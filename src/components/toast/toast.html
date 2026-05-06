@@ -1,0 +1,38 @@
+<div class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 max-w-sm">
+  @for (toast of toastService.toasts(); track toast.id) {
+  <div
+    class="toast-card relative overflow-hidden flex items-start gap-3 p-4 rounded-xl shadow-xl animate-slide-in bg-background border border-text/10"
+    role="alert"
+  >
+    <!-- Color Overlay -->
+    <div class="absolute inset-0 z-0" [class]="getOverlayClass(toast.type)"></div>
+
+    <!-- Icon -->
+    <div
+      class="relative z-10 shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
+      [class]="getIconBgClass(toast.type)"
+    >
+      <i class="fas text-lg" [class]="getIconClass(toast.type)"></i>
+    </div>
+
+    <!-- Content -->
+    <div class="relative z-10 flex-1 min-w-0 pt-1">
+      <p class="text-sm font-inter-semibold" [class]="getTitleClass(toast.type)">
+        {{ getTitle(toast.type) }}
+      </p>
+      <p class="text-xs font-inter-regular text-text/70 mt-0.5 wrap-break-words">
+        {{ toast.message }}
+      </p>
+    </div>
+
+    <!-- Close Button -->
+    <button
+      type="button"
+      (click)="removeToast(toast.id)"
+      class="relative z-10 shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-text/40 hover:text-text/70 hover:bg-text/10 focus:outline-none"
+    >
+      <i class="fas fa-times text-xs"></i>
+    </button>
+  </div>
+  }
+</div>

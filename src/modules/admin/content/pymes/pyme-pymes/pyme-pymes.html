@@ -1,0 +1,71 @@
+<div class="space-y-6">
+  <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-inter-bold text-text">PYMEs</h1>
+      <p class="text-sm text-text/60 mt-1">Empresas que usan Hubsme para diagnostico y consultoria.</p>
+    </div>
+    <div class="flex gap-2 w-full lg:w-auto">
+      <input
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+        (keyup.enter)="load()"
+        class="w-full lg:w-80 px-3 py-2 rounded-lg border border-text/20 bg-background outline-none focus:border-primary"
+        placeholder="Buscar por nombre o RUC"
+      />
+      <button (click)="load()" class="px-4 py-2 rounded-lg bg-primary text-background font-inter-semibold">
+        Buscar
+      </button>
+    </div>
+  </div>
+
+  <section class="rounded-xl border border-text/10 p-5 bg-background">
+    <h2 class="font-inter-bold text-lg mb-4">Nueva PYME</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+      <input [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="px-3 py-2 rounded-lg border border-text/20 bg-background" placeholder="Nombre comercial" />
+      <input [ngModel]="form().email" (ngModelChange)="updateForm('email', $event)" class="px-3 py-2 rounded-lg border border-text/20 bg-background" placeholder="Email de acceso" />
+      <input [ngModel]="form().ruc" (ngModelChange)="updateForm('ruc', $event)" class="px-3 py-2 rounded-lg border border-text/20 bg-background" placeholder="RUC" />
+      <input [ngModel]="form().sector" (ngModelChange)="updateForm('sector', $event)" class="px-3 py-2 rounded-lg border border-text/20 bg-background" placeholder="Sector" />
+      <input type="number" [ngModel]="form().numEmployees" (ngModelChange)="updateForm('numEmployees', $event)" class="px-3 py-2 rounded-lg border border-text/20 bg-background" placeholder="Empleados" />
+      <input type="number" [ngModel]="form().yearsInOperation" (ngModelChange)="updateForm('yearsInOperation', $event)" class="px-3 py-2 rounded-lg border border-text/20 bg-background" placeholder="Años operando" />
+      <textarea [ngModel]="form().description" (ngModelChange)="updateForm('description', $event)" class="md:col-span-3 px-3 py-2 rounded-lg border border-text/20 bg-background" placeholder="Descripcion"></textarea>
+    </div>
+    <button
+      (click)="create()"
+      [disabled]="creating()"
+      class="mt-4 px-4 py-2 rounded-lg bg-secondary text-text font-inter-bold disabled:opacity-50"
+    >
+      @if (creating()) { <i class="fas fa-spinner fa-spin mr-2"></i>Creando... } @else { Crear PYME }
+    </button>
+  </section>
+
+  <div class="rounded-xl border border-text/10 overflow-hidden bg-background">
+    @if (loading()) {
+    <div class="py-12 text-center text-text/50"><i class="fas fa-spinner fa-spin text-2xl"></i></div>
+    } @else {
+    <table class="w-full text-sm">
+      <thead class="bg-text/5 text-text/60">
+        <tr>
+          <th class="text-left px-4 py-3">Empresa</th>
+          <th class="text-left px-4 py-3">RUC</th>
+          <th class="text-left px-4 py-3">Sector</th>
+          <th class="text-left px-4 py-3">Empleados</th>
+          <th class="text-left px-4 py-3">Alta</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-text/10">
+        @for (pyme of pymes(); track pyme.id) {
+        <tr class="hover:bg-text/5">
+          <td class="px-4 py-3 font-inter-semibold">{{ pyme.name }}</td>
+          <td class="px-4 py-3">{{ pyme.ruc || '-' }}</td>
+          <td class="px-4 py-3">{{ pyme.sector || '-' }}</td>
+          <td class="px-4 py-3">{{ pyme.numEmployees || '-' }}</td>
+          <td class="px-4 py-3">{{ pyme.createdAt | date : 'shortDate' }}</td>
+        </tr>
+        } @empty {
+        <tr><td colspan="5" class="px-4 py-10 text-center text-text/50">No hay PYMEs registradas.</td></tr>
+        }
+      </tbody>
+    </table>
+    }
+  </div>
+</div>

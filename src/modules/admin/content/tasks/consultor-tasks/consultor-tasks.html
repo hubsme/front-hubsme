@@ -1,0 +1,96 @@
+<div class="space-y-7 font-inter-regular text-text">
+  <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+    <div>
+      <h1 class="text-[1.9rem] leading-tight font-inter-bold">Tablero de Tareas</h1>
+      <p class="mt-1 text-[0.95rem] text-muted">Gestionando tareas para: {{ clientLabel() }}.</p>
+    </div>
+
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <label class="flex items-center gap-2 text-sm text-muted font-inter-semibold">
+        Cliente:
+        <select
+          [ngModel]="selectedPymeId()"
+          (ngModelChange)="selectedPymeId.set($event === 'all' ? 'all' : +$event)"
+          class="h-10 w-56 rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none"
+        >
+          <option value="all">Todos</option>
+          @for (pyme of pymes(); track pyme.id) {
+          <option [value]="pyme.userId">{{ pyme.name }}</option>
+          }
+        </select>
+      </label>
+      <button (click)="showCreate.set(!showCreate())" class="h-10 rounded-full bg-primary px-5 text-sm text-white font-inter-semibold">
+        <i class="fas fa-plus mr-2"></i>Nueva Tarea
+      </button>
+    </div>
+  </div>
+
+  @if (showCreate()) {
+  <section class="rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]">
+    <h2 class="mb-4 text-base font-inter-bold">Nueva tarea</h2>
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
+      <input type="number" [ngModel]="form().pymeId" (ngModelChange)="updateForm('pymeId', $event)" class="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none" placeholder="ID usuario PYME" />
+      <input type="number" [ngModel]="form().consultantId" (ngModelChange)="updateForm('consultantId', $event)" class="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none" placeholder="ID consultor" />
+      <input [ngModel]="form().title" (ngModelChange)="updateForm('title', $event)" class="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none md:col-span-2" placeholder="Titulo" />
+      <select [ngModel]="form().assignedTo" (ngModelChange)="updateForm('assignedTo', $event)" class="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none">
+        <option value="pyme">Asignada a PYME</option>
+        <option value="consultor">Asignada a consultor</option>
+      </select>
+      <select [ngModel]="form().priority" (ngModelChange)="updateForm('priority', $event)" class="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none">
+        <option value="alta">Alta</option>
+        <option value="media">Media</option>
+        <option value="baja">Baja</option>
+      </select>
+      <input type="date" [ngModel]="form().dueDate" (ngModelChange)="updateForm('dueDate', $event)" class="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none" />
+      <textarea [ngModel]="form().description" (ngModelChange)="updateForm('description', $event)" class="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none md:col-span-4" placeholder="Descripcion"></textarea>
+    </div>
+    <div class="mt-4 flex justify-end gap-2">
+      <button (click)="showCreate.set(false)" class="h-10 rounded-xl border border-border px-4 text-sm font-inter-semibold">Cancelar</button>
+      <button (click)="create()" [disabled]="creating()" class="h-10 rounded-xl bg-secondary px-4 text-sm text-white font-inter-bold disabled:opacity-50">
+        @if (creating()) { <i class="fas fa-spinner fa-spin mr-2"></i>Creando... } @else { Crear tarea }
+      </button>
+    </div>
+  </section>
+  }
+
+  @if (loading()) {
+  <div class="py-16 text-center text-muted">
+    <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+  </div>
+  } @else {
+  <div class="grid grid-cols-1 gap-5 xl:grid-cols-4">
+    @for (column of columns; track column.id) {
+    <section class="min-h-[34rem] border-r border-border/70 last:border-r-0 xl:pr-5">
+      <div class="mb-5 flex items-center gap-2">
+        <h2 class="text-base text-slate-700 font-inter-bold">{{ column.label }}</h2>
+        <span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-700">{{ tasksByStatus(column.id).length }}</span>
+      </div>
+
+      <div class="space-y-4">
+        @for (task of tasksByStatus(column.id); track task.id) {
+        <article class="rounded-2xl border border-border bg-surface p-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)]">
+          <span class="rounded-full px-2.5 py-1 text-[0.68rem] uppercase font-inter-bold" [class]="priorityClass(task.priority)">
+            {{ task.priority }}
+          </span>
+          <h3 class="mt-4 text-sm font-inter-bold">{{ task.title }}</h3>
+          <p class="mt-3 line-clamp-3 text-xs leading-5 text-muted">{{ task.description }}</p>
+          <div class="mt-6 flex items-center justify-between text-xs text-muted">
+            <span><i class="far fa-clock mr-1"></i>{{ task.dueDate ? (task.dueDate | date : 'M/d/yyyy') : 'Sin fecha' }}</span>
+            <select [ngModel]="task.status" (ngModelChange)="moveTask(task.id, $event)" class="rounded-lg border border-border bg-surface px-2 py-1 text-xs outline-none">
+              @for (option of columns; track option.id) {
+              <option [value]="option.id">{{ option.label }}</option>
+              }
+            </select>
+          </div>
+        </article>
+        } @empty {
+        <div class="flex h-24 items-center justify-center rounded-2xl border border-dashed border-border text-xs text-muted">
+          Sin tareas
+        </div>
+        }
+      </div>
+    </section>
+    }
+  </div>
+  }
+</div>

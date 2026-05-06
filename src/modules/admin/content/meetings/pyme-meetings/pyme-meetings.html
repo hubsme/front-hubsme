@@ -1,0 +1,98 @@
+<div class="space-y-7 font-inter-regular text-text">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div>
+      <h1 class="text-[1.9rem] leading-tight font-inter-bold">Mis Reuniones</h1>
+      <p class="mt-1 text-[0.92rem] text-muted">Gestiona tus sesiones de consultoria y actas generadas.</p>
+    </div>
+
+    <button
+      type="button"
+      (click)="showCreate.set(!showCreate())"
+      class="inline-flex h-9 items-center gap-2 self-start rounded-full bg-text px-4 text-[0.82rem] text-background font-inter-bold shadow-sm"
+    >
+      <i class="fas fa-plus text-xs"></i>
+      Nueva Reunión
+    </button>
+  </div>
+
+  @if (showCreate()) {
+  <section class="rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]">
+    <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+      <input type="number" [ngModel]="form().pymeId" (ngModelChange)="updateForm('pymeId', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-[0.82rem] outline-none focus:border-text" placeholder="ID PYME" />
+      <input type="number" [ngModel]="form().consultantId" (ngModelChange)="updateForm('consultantId', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-[0.82rem] outline-none focus:border-text" placeholder="ID consultor" />
+      <input [ngModel]="form().title" (ngModelChange)="updateForm('title', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-[0.82rem] outline-none focus:border-text" placeholder="Titulo" />
+      <input type="datetime-local" [ngModel]="form().startTime" (ngModelChange)="updateForm('startTime', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-[0.82rem] outline-none focus:border-text" />
+      <input type="number" [ngModel]="form().durationMinutes" (ngModelChange)="updateForm('durationMinutes', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-[0.82rem] outline-none focus:border-text" placeholder="Duracion" />
+      <input [ngModel]="form().meetingUrl" (ngModelChange)="updateForm('meetingUrl', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-[0.82rem] outline-none focus:border-text" placeholder="URL de reunion" />
+    </div>
+    <button (click)="create()" [disabled]="creating()" class="mt-4 h-9 rounded-xl bg-text px-4 text-[0.82rem] text-background font-inter-bold disabled:opacity-50">
+      @if (creating()) { <i class="fas fa-spinner fa-spin mr-2"></i>Creando... } @else { Crear reunión }
+    </button>
+  </section>
+  }
+
+  <div class="space-y-4">
+    @if (loading()) {
+    <div class="py-16 text-center text-muted"><i class="fas fa-spinner fa-spin text-3xl text-secondary"></i></div>
+    } @else {
+    @for (meeting of meetings(); track meeting.id) {
+    <article class="overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_10px_28px_rgba(15,23,42,0.06)]">
+      <div class="flex flex-col lg:flex-row">
+        <div class="flex min-h-32 w-full items-center justify-center bg-slate-50 px-8 py-6 text-center lg:w-48">
+          <div>
+            <p class="text-[0.82rem] uppercase font-inter-bold">{{ month(meeting.startTime) }}</p>
+            <p class="text-[2.5rem] leading-none font-inter-bold">{{ day(meeting.startTime) }}</p>
+            <p class="mt-1 text-[0.78rem] text-muted font-inter-semibold">{{ time(meeting.startTime) }}</p>
+          </div>
+        </div>
+
+        <div class="flex flex-1 flex-col gap-5 p-6 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <span class="inline-flex rounded-full px-3 py-1 text-[0.68rem] font-inter-bold" [class]="statusClass(meeting.status)">
+              {{ meeting.status }}
+            </span>
+            <h2 class="mt-3 text-[1.1rem] leading-tight font-inter-bold">{{ meeting.title }}</h2>
+            <div class="mt-3 flex flex-wrap items-center gap-4 text-[0.82rem] text-muted">
+              <span class="inline-flex items-center gap-1.5"><i class="far fa-clock"></i>{{ meeting.durationMinutes }} min</span>
+              <span class="inline-flex items-center gap-1.5"><i class="fas fa-video text-xs"></i>{{ meeting.meetingUrl ? 'Google Meet' : 'Virtual' }}</span>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3 lg:justify-end">
+            @if (meeting.status !== 'finalizada') {
+            <button (click)="startFinalize(meeting.id)" class="inline-flex h-9 items-center gap-2 rounded-full bg-text px-4 text-[0.82rem] text-background font-inter-bold">
+              <i class="fas fa-circle-check text-xs"></i>
+              Finalizar y Generar Acta
+            </button>
+            } @else {
+            <button class="inline-flex h-9 items-center gap-2 rounded-full border border-border px-4 text-[0.82rem] font-inter-semibold">
+              <i class="far fa-file-lines text-xs"></i>
+              Ver Acta
+            </button>
+            }
+            <button class="text-[0.82rem] font-inter-semibold">Detalles</button>
+          </div>
+        </div>
+      </div>
+
+      @if (finalizingId() === meeting.id) {
+      <div class="border-t border-border p-5">
+        <textarea
+          [ngModel]="finalDescription()"
+          (ngModelChange)="finalDescription.set($event)"
+          class="min-h-28 w-full rounded-xl border border-border bg-surface px-3 py-2 text-[0.82rem] outline-none focus:border-text"
+          placeholder="Describe acuerdos, puntos tratados y tareas potenciales..."
+        ></textarea>
+        <div class="mt-3 flex justify-end gap-2">
+          <button (click)="finalizingId.set(null)" class="h-9 rounded-xl border border-border px-4 text-[0.82rem]">Cancelar</button>
+          <button (click)="finalize()" class="h-9 rounded-xl bg-text px-4 text-[0.82rem] text-background font-inter-bold">Generar acta</button>
+        </div>
+      </div>
+      }
+    </article>
+    } @empty {
+    <div class="rounded-2xl border border-dashed border-border bg-surface py-14 text-center text-muted">No hay reuniones.</div>
+    }
+    }
+  </div>
+</div>

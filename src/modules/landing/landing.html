@@ -1,0 +1,209 @@
+<div class="min-h-screen bg-slate-50 text-slate-900">
+  <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-5 lg:px-8">
+      <a href="#top" class="flex items-center gap-3">
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-950 text-white">
+          <i class="fas fa-brain text-lg"></i>
+        </div>
+        <div class="text-3xl font-black tracking-tight text-slate-950">HUBSME</div>
+      </a>
+
+      <nav class="hidden items-center gap-8 text-sm font-semibold text-slate-700 md:flex">
+        <a href="#quienes-somos" class="transition hover:text-slate-950">Quienes Somos</a>
+        <a href="#servicios" class="transition hover:text-slate-950">Servicios</a>
+        <a href="#consultores" class="transition hover:text-slate-950">Consultores</a>
+      </nav>
+
+      <button
+        type="button"
+        (click)="goToLogin()"
+        class="rounded-full bg-slate-950 px-6 py-3 text-sm font-bold text-white transition hover:bg-slate-800"
+      >
+        Login
+      </button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section
+      class="relative isolate overflow-hidden"
+      style="
+        background-image:
+          linear-gradient(90deg, rgba(15, 23, 42, 0.76) 0%, rgba(15, 23, 42, 0.46) 45%, rgba(15, 23, 42, 0.68) 100%),
+          url('https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1800&q=80');
+        background-position: center;
+        background-size: cover;
+      "
+    >
+      <div class="mx-auto grid min-h-[calc(100vh-88px)] max-w-7xl items-end px-6 py-16 lg:px-8">
+        <div class="max-w-3xl pb-8 text-white lg:pb-16">
+          <div class="mb-5 inline-flex rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm font-medium">
+            Plataforma de diagnostico y consultoria para PYMES
+          </div>
+          <h1 class="max-w-2xl text-5xl font-black leading-none tracking-tight sm:text-6xl lg:text-7xl">
+            Conectamos tu PYME con la Excelencia
+          </h1>
+          <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-100 sm:text-xl">
+            La primera plataforma que utiliza IA para diagnosticar tu negocio y conectarte con los
+            mejores consultores del mercado.
+          </p>
+
+          <div class="mt-8 flex flex-col gap-4 sm:flex-row">
+            <button
+              type="button"
+              (click)="goToSignUp('pyme')"
+              class="rounded-full bg-slate-950 px-7 py-4 text-base font-bold text-white transition hover:bg-slate-800"
+            >
+              Empezar Diagnostico Gratis
+            </button>
+            <button
+              type="button"
+              (click)="goToSignUp('consultor')"
+              class="rounded-full border border-white/35 bg-white/18 px-7 py-4 text-base font-bold text-white backdrop-blur transition hover:bg-white/25"
+            >
+              Unirse como Consultor
+            </button>
+          </div>
+
+          <div class="mt-12 grid gap-4 sm:grid-cols-3">
+            <article
+              *ngFor="let stat of stats"
+              class="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur"
+            >
+              <div class="text-3xl font-black">{{ stat.value }}</div>
+              <div class="mt-2 text-sm text-slate-100">{{ stat.label }}</div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="quienes-somos" class="bg-white py-24">
+      <div class="mx-auto grid max-w-7xl gap-14 px-6 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:px-8">
+        <div class="overflow-hidden rounded-[32px] shadow-2xl shadow-slate-200/70">
+          <img
+            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80"
+            alt="Equipo colaborando en una mesa de trabajo"
+            class="h-full w-full object-cover"
+          />
+        </div>
+
+        <div>
+          <div class="inline-flex rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600">
+            Nuestra Historia
+          </div>
+          <h2 class="mt-6 max-w-xl text-4xl font-black leading-tight tracking-tight text-slate-950 sm:text-5xl">
+            Transformando el futuro de las PYMES con IA
+          </h2>
+          <p class="mt-6 text-lg leading-8 text-slate-600">
+            HUBSME nacio para democratizar el acceso a consultoria de alto nivel para pequenas y
+            medianas empresas. Combinamos diagnostico asistido por IA con una red de especialistas
+            validados para convertir problemas difusos en planes accionables.
+          </p>
+
+          <div class="mt-8 space-y-5">
+            <article class="flex gap-4 rounded-2xl bg-slate-50 p-5">
+              <div class="mt-1 h-12 w-12 rounded-2xl bg-white shadow-sm"></div>
+              <div>
+                <h3 class="text-xl font-bold text-slate-950">Nuestra Mision</h3>
+                <p class="mt-2 text-slate-600">
+                  Empoderar empresarios con diagnosticos precisos y conexiones estrategicas con
+                  consultores validados.
+                </p>
+              </div>
+            </article>
+            <article class="flex gap-4 rounded-2xl bg-slate-50 p-5">
+              <div class="mt-1 h-12 w-12 rounded-2xl bg-white shadow-sm"></div>
+              <div>
+                <h3 class="text-xl font-bold text-slate-950">Nuestra Vision</h3>
+                <p class="mt-2 text-slate-600">
+                  Ser el ecosistema digital lider en Latinoamerica para la optimizacion y
+                  crecimiento sostenible de negocios emergentes.
+                </p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="consultores" class="bg-slate-100 py-24">
+      <div class="mx-auto max-w-7xl px-6 lg:px-8">
+        <div class="mx-auto max-w-3xl text-center">
+          <h2 class="text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">
+            Nuestros Consultores Estrella
+          </h2>
+          <p class="mt-4 text-lg text-slate-600">
+            Expertos validados listos para llevar tu empresa al siguiente nivel.
+          </p>
+        </div>
+
+        <div class="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <article
+            *ngFor="let consultant of consultants"
+            class="rounded-[28px] border border-slate-200 bg-white p-8 text-center shadow-sm"
+          >
+            <div class="mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-slate-100">
+              <img [src]="consultant.avatar" [alt]="consultant.name" class="h-full w-full object-cover" />
+            </div>
+            <h3 class="mt-6 text-3xl font-black tracking-tight text-slate-950">{{ consultant.name }}</h3>
+            <p class="mt-2 text-base text-slate-600">{{ consultant.specialty }}</p>
+            <div class="mt-5 text-lg font-bold text-amber-500">★ {{ consultant.score }}</div>
+            <button
+              type="button"
+              class="mt-7 w-full rounded-full border border-slate-200 px-5 py-3 text-sm font-bold text-slate-900 transition hover:border-slate-950"
+            >
+              Ver Perfil
+            </button>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="servicios" class="bg-white py-24">
+      <div class="mx-auto grid max-w-7xl gap-14 px-6 lg:grid-cols-[1fr_0.95fr] lg:items-center lg:px-8">
+        <div>
+          <h2 class="max-w-2xl text-4xl font-black leading-tight tracking-tight text-slate-950 sm:text-5xl">
+            Consultoria Especializada para cada area de tu negocio
+          </h2>
+          <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+            No importa el desafio, tenemos una red de expertos y herramientas de IA disenadas para
+            resolver problemas complejos en tiempo record.
+          </p>
+
+          <div class="mt-10 grid gap-5 md:grid-cols-2">
+            <article *ngFor="let service of services" class="rounded-2xl bg-slate-50 p-5">
+              <h3 class="text-xl font-bold text-slate-950">{{ service.title }}</h3>
+              <p class="mt-3 text-slate-600">{{ service.description }}</p>
+            </article>
+          </div>
+        </div>
+
+        <div class="overflow-hidden rounded-[32px] shadow-2xl shadow-slate-200/70">
+          <img
+            src="https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1200&q=80"
+            alt="Sesion de consultoria en equipo"
+            class="h-full w-full object-cover"
+          />
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-slate-950 py-8 text-white">
+    <div class="mx-auto flex max-w-7xl flex-col gap-5 px-6 text-sm text-slate-300 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+      <div class="flex items-center gap-3 font-black text-white">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white">
+          <i class="fas fa-brain text-base"></i>
+        </div>
+        <span>HUBSME</span>
+      </div>
+      <div>© 2026 HUBSME. Todos los derechos reservados.</div>
+      <div class="flex gap-6">
+        <a href="#top" class="transition hover:text-white">Privacidad</a>
+        <a href="#top" class="transition hover:text-white">Terminos</a>
+        <a href="#top" class="transition hover:text-white">Contacto</a>
+      </div>
+    </div>
+  </footer>
+</div>

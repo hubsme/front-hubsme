@@ -1,0 +1,61 @@
+@if (alertService.alert(); as alert) {
+<!-- Backdrop -->
+<div
+  class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center animate-fade-in"
+  (click)="closeAlert()"
+>
+  <!-- Modal -->
+  <div
+    class="bg-background rounded-2xl shadow-2xl max-w-md w-full mx-4 animate-scale-in"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Header with Icon -->
+    <div class="p-6 border-b border-text/10">
+      <div class="flex items-start gap-4">
+        <!-- Icon -->
+        <div
+          class="shrink-0 w-12 h-12 rounded-full flex items-center justify-center {{
+            getStyles(alert.type).iconBg
+          }}"
+        >
+          <i class="{{ getIcon(alert.type) }} text-2xl {{ getStyles(alert.type).icon }}"></i>
+        </div>
+
+        <!-- Title & Message -->
+        <div class="flex-1 min-w-0">
+          <h3 class="text-lg font-inter-bold text-text mb-1">
+            {{ alert.title }}
+          </h3>
+          <p class="text-sm font-inter-regular text-text/70">
+            {{ alert.message }}
+          </p>
+        </div>
+
+        <!-- Close button -->
+        <button
+          type="button"
+          (click)="closeAlert()"
+          class="shrink-0 text-text/40 hover:text-text/70"
+        >
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="p-6 flex gap-3 justify-end">
+      @for (button of alert.buttons; track $index) {
+      <button
+        type="button"
+        (click)="handleButtonClick(button)"
+        class="px-4 py-2 rounded-lg font-inter-semibold  shadow-sm hover:shadow-md {{
+          getButtonStyles(button.style)
+        }}"
+      >
+        {{ button.text }}
+      </button>
+      }
+    </div>
+  </div>
+</div>
+}

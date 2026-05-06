@@ -1,0 +1,45 @@
+<div
+  class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+  (click)="handleClose()"
+>
+  <div
+    class="bg-background rounded-xl shadow-2xl w-full flex flex-col max-h-[90vh]"
+    [ngClass]="getMaxWidthClass()"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 border-b border-text/10 shrink-0">
+      <h2 class="text-xl font-anton lowercase text-text">{{ title() }}</h2>
+      <button
+        (click)="handleClose()"
+        class="w-8 h-8 flex items-center justify-center rounded-lg text-text/50 hover:bg-text/5 hover:text-text"
+      >
+        <i class="fas fa-times text-sm"></i>
+      </button>
+    </div>
+
+    <!-- Body (Scrollable) -->
+    <div class="overflow-y-auto flex-1">
+      <ng-content></ng-content>
+    </div>
+
+    <!-- Footer -->
+    <div class="flex items-center justify-end gap-2 p-4 border-t border-text/10 shrink-0">
+      <button
+        type="button"
+        (click)="handleClose()"
+        class="px-3 py-1.5 text-sm bg-text/5 text-text rounded-lg font-inter-medium hover:bg-text/10"
+      >
+        {{ cancelText() }}
+      </button>
+      <button
+        type="button"
+        (click)="handleSubmit()"
+        [disabled]="loading() || isSubmitting()"
+        class="px-3 py-1.5 text-sm bg-secondary text-background rounded-lg font-inter-semibold hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {{ loading() || isSubmitting() ? 'Guardando...' : submitText() }}
+      </button>
+    </div>
+  </div>
+</div>

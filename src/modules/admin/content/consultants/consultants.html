@@ -1,0 +1,11 @@
+@switch (role()) {
+  @case ('pyme') {
+    <app-pyme-consultants />
+  }
+  @case ('consultor') {
+    <app-consultor-consultants />
+  }
+  @default {
+    <app-admin-consultants />
+  }
+}

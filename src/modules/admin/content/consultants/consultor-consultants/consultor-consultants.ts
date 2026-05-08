@@ -29,6 +29,7 @@ export class ConsultorConsultants implements OnInit {
   search = signal('');
   loading = signal(false);
   creating = signal(false);
+  showCreate = signal(false);
 
   form = signal<ConsultantForm>({
     name: '',
@@ -81,6 +82,7 @@ export class ConsultorConsultants implements OnInit {
       )
       .then(() => {
         this.toastService.success('Consultor creado correctamente');
+        this.showCreate.set(false);
         this.form.set({
           name: '',
           email: '',

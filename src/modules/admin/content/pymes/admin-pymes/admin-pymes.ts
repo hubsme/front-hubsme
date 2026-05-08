@@ -19,6 +19,7 @@ export class AdminPymes implements OnInit {
   search = signal('');
   loading = signal(false);
   creating = signal(false);
+  showCreate = signal(false);
 
   form = signal({
     name: '',
@@ -71,6 +72,7 @@ export class AdminPymes implements OnInit {
       )
       .then(() => {
         this.toastService.success('PYME creada correctamente');
+        this.showCreate.set(false);
         this.form.set({
           name: '',
           email: '',

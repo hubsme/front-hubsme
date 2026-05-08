@@ -27,9 +27,11 @@ export class ConsultorDiagnostics implements OnInit {
   private toastService = inject(ToastService);
 
   diagnostics = signal<ApiResponse<'diagnostic', 'findAll'>['data']>([]);
+  pymes = signal<ApiResponse<'pyme', 'findAll'>['data']>([]);
   latest = signal<ApiResponse<'diagnostic', 'generate'> | null>(null);
   loading = signal(false);
   generating = signal(false);
+  showCreate = signal(false);
 
   form = signal<DiagnosticForm>({
     pymeId: 0,
@@ -46,7 +48,19 @@ export class ConsultorDiagnostics implements OnInit {
   ngOnInit() {
     const user = this.hubsme.currentUser();
     this.form.update((current) => ({ ...current, pymeId: user.role === 'pyme' ? user.id : current.pymeId }));
+    this.loadPymes();
     this.load();
+  }
+
+  loadPymes() {
+    this.hubsme
+      .listPymes('', 1, 100)
+      .then((res) => {
+        const pymes = res.data.data;
+        this.pymes.set(pymes);
+        this.form.update((current) => ({ ...current, pymeId: current.pymeId || pymes[0]?.userId || 0 }));
+      })
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
   }
 
   load() {
@@ -93,6 +107,7 @@ export class ConsultorDiagnostics implements OnInit {
       .then((res) => {
         this.latest.set(res.data);
         this.toastService.success('Diagnostico generado');
+        this.showCreate.set(false);
         this.load();
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))

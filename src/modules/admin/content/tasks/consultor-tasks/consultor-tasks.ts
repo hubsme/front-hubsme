@@ -37,6 +37,7 @@ export class ConsultorTasks implements OnInit {
 
   tasks = signal<ApiResponse<'task', 'findAll'>['data']>([]);
   pymes = signal<ApiResponse<'pyme', 'findAll'>['data']>([]);
+  consultants = signal<ApiResponse<'consultant', 'findAll'>['data']>([]);
   selectedPymeId = signal<number | 'all'>('all');
   showCreate = signal(false);
   loading = signal(false);
@@ -59,14 +60,23 @@ export class ConsultorTasks implements OnInit {
       pymeId: user.role === 'pyme' ? user.id : current.pymeId,
       consultantId: user.role === 'consultor' ? user.id : current.consultantId,
     }));
-    this.loadPymes();
+    this.loadLookups();
     this.load();
   }
 
-  loadPymes() {
-    this.hubsme
-      .listPymes('', 1, 50)
-      .then((res) => this.pymes.set(res.data.data))
+  loadLookups() {
+    Promise.all([this.hubsme.listPymes('', 1, 100), this.hubsme.listConsultants('', 1, 100, 'true')])
+      .then(([pymesRes, consultantsRes]) => {
+        const pymes = pymesRes.data.data;
+        const consultants = consultantsRes.data.data;
+        this.pymes.set(pymes);
+        this.consultants.set(consultants);
+        this.form.update((current) => ({
+          ...current,
+          pymeId: current.pymeId || pymes[0]?.userId || 0,
+          consultantId: current.consultantId || consultants[0]?.userId || 0,
+        }));
+      })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
   }
 

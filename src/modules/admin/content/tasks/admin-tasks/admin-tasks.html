@@ -4,34 +4,63 @@
       <h1 class="text-2xl font-inter-bold text-text">Tareas</h1>
       <p class="text-sm text-text/60 mt-1">Seguimiento de acciones acordadas en consultoria.</p>
     </div>
+    <button
+      type="button"
+      (click)="showCreate.set(true)"
+      class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm text-white font-inter-semibold shadow-sm"
+    >
+      <i class="fas fa-plus text-xs"></i>
+      Nueva tarea
+    </button>
   </div>
 
-  <section class="rounded-xl border border-text/10 p-5 bg-background">
-    <h2 class="font-inter-bold text-lg mb-4">Nueva tarea</h2>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-      <input type="number" [ngModel]="form().pymeId" (ngModelChange)="updateForm('pymeId', $event)" class="px-3 py-2 rounded-lg border border-text/20 bg-background" placeholder="ID usuario PYME" />
-      <input type="number" [ngModel]="form().consultantId" (ngModelChange)="updateForm('consultantId', $event)" class="px-3 py-2 rounded-lg border border-text/20 bg-background" placeholder="ID consultor" />
-      <input [ngModel]="form().title" (ngModelChange)="updateForm('title', $event)" class="md:col-span-2 px-3 py-2 rounded-lg border border-text/20 bg-background" placeholder="Titulo" />
-      <select [ngModel]="form().assignedTo" (ngModelChange)="updateForm('assignedTo', $event)" class="px-3 py-2 rounded-lg border border-text/20 bg-background">
-        <option value="pyme">Asignada a PYME</option>
-        <option value="consultor">Asignada a consultor</option>
-      </select>
-      <select [ngModel]="form().priority" (ngModelChange)="updateForm('priority', $event)" class="px-3 py-2 rounded-lg border border-text/20 bg-background">
-        <option value="alta">Alta</option>
-        <option value="media">Media</option>
-        <option value="baja">Baja</option>
-      </select>
-      <input type="date" [ngModel]="form().dueDate" (ngModelChange)="updateForm('dueDate', $event)" class="px-3 py-2 rounded-lg border border-text/20 bg-background" />
-      <textarea [ngModel]="form().description" (ngModelChange)="updateForm('description', $event)" class="md:col-span-4 px-3 py-2 rounded-lg border border-text/20 bg-background" placeholder="Descripcion"></textarea>
-    </div>
-    <button
-      (click)="create()"
-      [disabled]="creating()"
-      class="mt-4 px-4 py-2 rounded-lg bg-secondary text-text font-inter-bold disabled:opacity-50"
-    >
-      @if (creating()) { <i class="fas fa-spinner fa-spin mr-2"></i>Creando... } @else { Crear tarea }
-    </button>
-  </section>
+  @if (showCreate()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4 py-6">
+    <section class="w-full max-w-4xl rounded-2xl border border-border bg-surface p-5 shadow-2xl">
+      <div class="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <h2 class="font-inter-bold text-lg">Nueva tarea</h2>
+          <p class="mt-1 text-sm text-muted">Usa selects para asignar la PYME y el consultor responsable.</p>
+        </div>
+        <button type="button" (click)="showCreate.set(false)" class="grid size-9 place-items-center rounded-full border border-border text-muted hover:text-text">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-4">
+        <select [ngModel]="form().pymeId" (ngModelChange)="updateForm('pymeId', +$event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none md:col-span-2">
+          <option [ngValue]="0" disabled>Selecciona una PYME</option>
+          @for (pyme of pymes(); track pyme.id) {
+          <option [ngValue]="pyme.userId">{{ pyme.name }}{{ pyme.ruc ? ' · ' + pyme.ruc : '' }}</option>
+          }
+        </select>
+        <select [ngModel]="form().consultantId" (ngModelChange)="updateForm('consultantId', +$event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none md:col-span-2">
+          <option [ngValue]="0">Sin consultor asignado</option>
+          @for (consultant of consultants(); track consultant.id) {
+          <option [ngValue]="consultant.userId">{{ consultant.name }}</option>
+          }
+        </select>
+        <input [ngModel]="form().title" (ngModelChange)="updateForm('title', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none md:col-span-4" placeholder="Titulo" />
+        <select [ngModel]="form().assignedTo" (ngModelChange)="updateForm('assignedTo', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none">
+          <option value="pyme">Asignada a PYME</option>
+          <option value="consultor">Asignada a consultor</option>
+        </select>
+        <select [ngModel]="form().priority" (ngModelChange)="updateForm('priority', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none">
+          <option value="alta">Alta</option>
+          <option value="media">Media</option>
+          <option value="baja">Baja</option>
+        </select>
+        <input type="date" [ngModel]="form().dueDate" (ngModelChange)="updateForm('dueDate', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none md:col-span-2" />
+        <textarea [ngModel]="form().description" (ngModelChange)="updateForm('description', $event)" class="min-h-24 rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none md:col-span-4" placeholder="Descripcion"></textarea>
+      </div>
+      <div class="mt-5 flex justify-end gap-2">
+        <button type="button" (click)="showCreate.set(false)" class="h-10 rounded-xl border border-border px-4 text-sm font-inter-semibold">Cancelar</button>
+        <button type="button" (click)="create()" [disabled]="creating()" class="h-10 rounded-xl bg-secondary px-4 text-sm text-white font-inter-bold disabled:opacity-50">
+          @if (creating()) { <i class="fas fa-spinner fa-spin mr-2"></i>Creando... } @else { Crear tarea }
+        </button>
+      </div>
+    </section>
+  </div>
+  }
 
   @if (loading()) {
   <div class="py-12 text-center text-text/50"><i class="fas fa-spinner fa-spin text-2xl"></i></div>

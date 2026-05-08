@@ -36,8 +36,11 @@ export class AdminTasks implements OnInit {
   ];
 
   tasks = signal<ApiResponse<'task', 'findAll'>['data']>([]);
+  pymes = signal<ApiResponse<'pyme', 'findAll'>['data']>([]);
+  consultants = signal<ApiResponse<'consultant', 'findAll'>['data']>([]);
   loading = signal(false);
   creating = signal(false);
+  showCreate = signal(false);
 
   form = signal<TaskForm>({
     pymeId: 0,
@@ -56,7 +59,24 @@ export class AdminTasks implements OnInit {
       pymeId: user.role === 'pyme' ? user.id : current.pymeId,
       consultantId: user.role === 'consultor' ? user.id : current.consultantId,
     }));
+    this.loadLookups();
     this.load();
+  }
+
+  loadLookups() {
+    Promise.all([this.hubsme.listPymes('', 1, 100), this.hubsme.listConsultants('', 1, 100, 'true')])
+      .then(([pymesRes, consultantsRes]) => {
+        const pymes = pymesRes.data.data;
+        const consultants = consultantsRes.data.data;
+        this.pymes.set(pymes);
+        this.consultants.set(consultants);
+        this.form.update((current) => ({
+          ...current,
+          pymeId: current.pymeId || pymes[0]?.userId || 0,
+          consultantId: current.consultantId || consultants[0]?.userId || 0,
+        }));
+      })
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
   }
 
   load() {
@@ -94,6 +114,7 @@ export class AdminTasks implements OnInit {
       .then(() => {
         this.toastService.success('Tarea creada');
         this.form.update((current) => ({ ...current, title: '', description: '', dueDate: '' }));
+        this.showCreate.set(false);
         this.load();
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))

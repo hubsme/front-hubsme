@@ -6,7 +6,7 @@
     </div>
 
     <button
-      (click)="showCreate.set(!showCreate())"
+      (click)="showCreate.set(true)"
       class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm text-white font-inter-semibold shadow-sm hover:bg-slate-800"
     >
       <i class="fas fa-plus"></i>
@@ -15,23 +15,43 @@
   </div>
 
   @if (showCreate()) {
-  <section class="rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]">
-    <h2 class="mb-4 text-base font-inter-bold">Nueva reunion</h2>
-    <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-      <input type="number" [ngModel]="form().pymeId" (ngModelChange)="updateForm('pymeId', $event)" class="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none" placeholder="ID usuario PYME" />
-      <input type="number" [ngModel]="form().consultantId" (ngModelChange)="updateForm('consultantId', $event)" class="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none" placeholder="ID usuario consultor" />
-      <input [ngModel]="form().title" (ngModelChange)="updateForm('title', $event)" class="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none" placeholder="Titulo" />
-      <input type="datetime-local" [ngModel]="form().startTime" (ngModelChange)="updateForm('startTime', $event)" class="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none" />
-      <input type="number" [ngModel]="form().durationMinutes" (ngModelChange)="updateForm('durationMinutes', $event)" class="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none" placeholder="Duracion" />
-      <input [ngModel]="form().meetingUrl" (ngModelChange)="updateForm('meetingUrl', $event)" class="rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none" placeholder="URL de reunion" />
-    </div>
-    <div class="mt-4 flex justify-end gap-2">
-      <button (click)="showCreate.set(false)" class="h-10 rounded-xl border border-border px-4 text-sm font-inter-semibold">Cancelar</button>
-      <button (click)="create()" [disabled]="creating()" class="h-10 rounded-xl bg-secondary px-4 text-sm text-white font-inter-bold disabled:opacity-50">
-        @if (creating()) { <i class="fas fa-spinner fa-spin mr-2"></i>Creando... } @else { Crear reunion }
-      </button>
-    </div>
-  </section>
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4 py-6">
+    <section class="w-full max-w-3xl rounded-2xl border border-border bg-surface p-5 shadow-2xl">
+      <div class="mb-5 flex items-start justify-between gap-4">
+        <div>
+          <h2 class="text-base font-inter-bold">Nueva reunion</h2>
+          <p class="mt-1 text-sm text-muted">Selecciona participantes desde el directorio.</p>
+        </div>
+        <button type="button" (click)="showCreate.set(false)" class="grid size-9 place-items-center rounded-full border border-border text-muted hover:text-text">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <select [ngModel]="form().pymeId" (ngModelChange)="updateForm('pymeId', +$event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none">
+          <option [ngValue]="0" disabled>Selecciona una PYME</option>
+          @for (pyme of pymes(); track pyme.id) {
+          <option [ngValue]="pyme.userId">{{ pyme.name }}{{ pyme.ruc ? ' · ' + pyme.ruc : '' }}</option>
+          }
+        </select>
+        <select [ngModel]="form().consultantId" (ngModelChange)="updateForm('consultantId', +$event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none">
+          <option [ngValue]="0" disabled>Selecciona un consultor</option>
+          @for (consultant of consultants(); track consultant.id) {
+          <option [ngValue]="consultant.userId">{{ consultant.name }}</option>
+          }
+        </select>
+        <input [ngModel]="form().title" (ngModelChange)="updateForm('title', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none md:col-span-2" placeholder="Titulo" />
+        <input type="datetime-local" [ngModel]="form().startTime" (ngModelChange)="updateForm('startTime', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none" />
+        <input type="number" [ngModel]="form().durationMinutes" (ngModelChange)="updateForm('durationMinutes', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none" placeholder="Duracion" />
+        <input [ngModel]="form().meetingUrl" (ngModelChange)="updateForm('meetingUrl', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none md:col-span-2" placeholder="URL de reunion" />
+      </div>
+      <div class="mt-5 flex justify-end gap-2">
+        <button type="button" (click)="showCreate.set(false)" class="h-10 rounded-xl border border-border px-4 text-sm font-inter-semibold">Cancelar</button>
+        <button type="button" (click)="create()" [disabled]="creating()" class="h-10 rounded-xl bg-secondary px-4 text-sm text-white font-inter-bold disabled:opacity-50">
+          @if (creating()) { <i class="fas fa-spinner fa-spin mr-2"></i>Creando... } @else { Crear reunion }
+        </button>
+      </div>
+    </section>
+  </div>
   }
 
   @if (loading()) {

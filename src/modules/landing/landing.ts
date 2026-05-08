@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { AfterViewInit, Component, ElementRef, PLATFORM_ID, ViewChild, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { PATH, buildPath } from '@route/path.route';
 
@@ -9,10 +9,12 @@ type LandingRole = 'pyme' | 'consultor';
   selector: 'app-landing',
   imports: [CommonModule],
   templateUrl: './landing.html',
-  styleUrl: './landing.css',
 })
-export class Landing {
+export class Landing implements AfterViewInit {
   private router = inject(Router);
+  private platformId = inject(PLATFORM_ID);
+
+  @ViewChild('heroVideo') private heroVideo?: ElementRef<HTMLVideoElement>;
 
   protected readonly consultants = [
     {
@@ -66,6 +68,16 @@ export class Landing {
     { value: '+45', label: 'Consultores validados' },
   ];
 
+  ngAfterViewInit(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    window.setTimeout(() => {
+      this.syncHeroVideo();
+      const initialSection = window.location.hash.replace('#', '');
+      if (initialSection) this.scrollToSection(initialSection);
+    });
+  }
+
   protected goToLogin(): void {
     this.router.navigate([buildPath(PATH.auth.signIn)]);
   }
@@ -74,5 +86,38 @@ export class Landing {
     this.router.navigate([buildPath(PATH.auth.signUp)], {
       queryParams: { role },
     });
+  }
+
+  protected scrollToSection(sectionId: string, event?: Event): void {
+    event?.preventDefault();
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const target = document.getElementById(sectionId);
+    if (!target) return;
+
+    const headerHeight = document.querySelector('header')?.getBoundingClientRect().height ?? 0;
+    const anchor = sectionId === 'top' ? target : target.firstElementChild ?? target;
+    const top = anchor.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
+
+    window.history.pushState(null, '', `#${sectionId}`);
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  }
+
+  protected syncHeroVideo(): void {
+    const video = this.heroVideo?.nativeElement;
+    if (!video) return;
+
+    video.muted = true;
+    video.defaultMuted = true;
+    video.volume = 0;
+    video.loop = true;
+  }
+
+  protected restartHeroVideo(): void {
+    const video = this.heroVideo?.nativeElement;
+    if (!video) return;
+
+    this.syncHeroVideo();
+    video.currentTime = 0;
   }
 }

@@ -97,7 +97,7 @@ export class Landing implements AfterViewInit {
 
     const headerHeight = document.querySelector('header')?.getBoundingClientRect().height ?? 0;
     const anchor = sectionId === 'top' ? target : target.firstElementChild ?? target;
-    const top = anchor.getBoundingClientRect().top + window.scrollY - headerHeight - 16;
+    const top = anchor.getBoundingClientRect().top + window.scrollY - headerHeight - 96;
 
     window.history.pushState(null, '', `#${sectionId}`);
     window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });

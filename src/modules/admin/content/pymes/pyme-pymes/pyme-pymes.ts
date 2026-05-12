@@ -4,10 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { Api, ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
+import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 
 @Component({
   selector: 'app-pyme-pymes',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalForm],
   templateUrl: './pyme-pymes.html',
 })
 export class PymePymes implements OnInit {

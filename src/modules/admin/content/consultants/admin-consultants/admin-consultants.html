@@ -22,33 +22,43 @@
   </div>
 
   @if (showCreate()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 px-4 py-6">
-    <section class="w-full max-w-4xl rounded-2xl border border-border bg-surface p-5 shadow-2xl">
-      <div class="mb-5 flex items-start justify-between gap-4">
-        <div>
-          <h2 class="font-inter-bold text-lg">Nuevo consultor</h2>
-          <p class="mt-1 text-sm text-muted">Crea el usuario y su perfil profesional.</p>
-        </div>
-        <button type="button" (click)="showCreate.set(false)" class="grid size-9 place-items-center rounded-full border border-border text-muted hover:text-text">
-          <i class="fas fa-xmark"></i>
-        </button>
+  <app-modal-form
+    title="Nuevo consultor"
+    submitText="Crear consultor"
+    [loading]="creating()"
+    maxWidth="4xl"
+    (onSubmit)="create()"
+    (onClose)="showCreate.set(false)"
+  >
+    <div class="p-5">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
+          <span>Nombre</span>
+          <input [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+        </label>
+        <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
+          <span>Email</span>
+          <input [ngModel]="form().email" (ngModelChange)="updateForm('email', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+        </label>
+        <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
+          <span>Precio por hora</span>
+          <input type="number" [ngModel]="form().pricePerHour" (ngModelChange)="updateForm('pricePerHour', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+        </label>
+        <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
+          <span>Especialidades</span>
+          <input [ngModel]="form().specialties" (ngModelChange)="updateForm('specialties', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+        </label>
+        <label class="space-y-1.5 text-xs text-muted font-inter-semibold md:col-span-2">
+          <span>Sectores</span>
+          <input [ngModel]="form().sectors" (ngModelChange)="updateForm('sectors', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+        </label>
+        <label class="space-y-1.5 text-xs text-muted font-inter-semibold md:col-span-2">
+          <span>Bio profesional</span>
+          <textarea [ngModel]="form().bio" (ngModelChange)="updateForm('bio', $event)" class="min-h-24 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm text-text outline-none focus:border-secondary"></textarea>
+        </label>
       </div>
-      <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-        <input [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none" placeholder="Nombre" />
-        <input [ngModel]="form().email" (ngModelChange)="updateForm('email', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none" placeholder="Email" />
-        <input type="number" [ngModel]="form().pricePerHour" (ngModelChange)="updateForm('pricePerHour', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none" placeholder="Precio por hora" />
-        <input [ngModel]="form().specialties" (ngModelChange)="updateForm('specialties', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none" placeholder="Especialidades, separadas por coma" />
-        <input [ngModel]="form().sectors" (ngModelChange)="updateForm('sectors', $event)" class="h-10 rounded-xl border border-border bg-surface px-3 text-sm outline-none md:col-span-2" placeholder="Sectores, separados por coma" />
-        <textarea [ngModel]="form().bio" (ngModelChange)="updateForm('bio', $event)" class="min-h-24 rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none md:col-span-3" placeholder="Bio profesional"></textarea>
-      </div>
-      <div class="mt-5 flex justify-end gap-2">
-        <button type="button" (click)="showCreate.set(false)" class="h-10 rounded-xl border border-border px-4 text-sm font-inter-semibold">Cancelar</button>
-        <button type="button" (click)="create()" [disabled]="creating()" class="h-10 rounded-xl bg-secondary px-4 text-sm text-white font-inter-bold disabled:opacity-50">
-          @if (creating()) { <i class="fas fa-spinner fa-spin mr-2"></i>Creando... } @else { Crear consultor }
-        </button>
-      </div>
-    </section>
-  </div>
+    </div>
+  </app-modal-form>
   }
 
   <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
+import { ModalForm } from '@module/admin/components/modal-form/modal-form';
+import { PymeInputSearch } from '@module/admin/components/input-search/pyme-input-search/pyme-input-search';
 
 type DiagnosticForm = {
   pymeId: number;
@@ -19,7 +21,7 @@ type DiagnosticForm = {
 
 @Component({
   selector: 'app-admin-diagnostics',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PymeInputSearch, ModalForm],
   templateUrl: './admin-diagnostics.html',
 })
 export class AdminDiagnostics implements OnInit {

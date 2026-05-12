@@ -22,7 +22,7 @@ export class ModalForm {
   // Internal state for submission
   isSubmitting = signal<boolean>(false);
   private previousLoading = false;
-  private resetTimeout: any = null;
+  private resetTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     // Detectar cuando loading cambia de true a false

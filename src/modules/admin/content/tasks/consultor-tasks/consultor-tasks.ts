@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
+import { ModalForm } from '@module/admin/components/modal-form/modal-form';
+import { PymeInputSearch } from '@module/admin/components/input-search/pyme-input-search/pyme-input-search';
+import { ConsultantInputSearch } from '@module/admin/components/input-search/consultant-input-search/consultant-input-search';
 
 type TaskStatus = 'pendiente' | 'en_progreso' | 'completada' | 'bloqueada';
 type TaskPriority = 'alta' | 'media' | 'baja';
@@ -21,7 +24,7 @@ type TaskForm = {
 
 @Component({
   selector: 'app-consultor-tasks',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ModalForm, PymeInputSearch, ConsultantInputSearch],
   templateUrl: './consultor-tasks.html',
 })
 export class ConsultorTasks implements OnInit {

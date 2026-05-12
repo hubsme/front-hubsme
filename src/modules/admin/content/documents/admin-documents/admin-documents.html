@@ -32,7 +32,7 @@
       <div class="mt-5 rounded-2xl bg-slate-50 border border-slate-200/70 p-4">
         <p class="text-xs uppercase tracking-wide text-muted font-inter-semibold mb-2">Resumen</p>
         <p class="text-sm text-text/80 leading-6">
-          {{ $any(document.minutes)?.resumen || 'Acta generada y disponible para seguimiento.' }}
+          {{ document.minutes?.resumen || 'Acta generada y disponible para seguimiento.' }}
         </p>
       </div>
     </article>

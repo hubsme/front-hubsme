@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
+import { ModalForm } from '@module/admin/components/modal-form/modal-form';
+import { PymeInputSearch } from '@module/admin/components/input-search/pyme-input-search/pyme-input-search';
+import { ConsultantInputSearch } from '@module/admin/components/input-search/consultant-input-search/consultant-input-search';
 
 type MeetingForm = {
   pymeId: number;
@@ -16,7 +19,7 @@ type MeetingForm = {
 
 @Component({
   selector: 'app-admin-meetings',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PymeInputSearch, ConsultantInputSearch, ModalForm],
   templateUrl: './admin-meetings.html',
 })
 export class AdminMeetings implements OnInit {

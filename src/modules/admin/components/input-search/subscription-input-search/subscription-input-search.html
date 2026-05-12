@@ -1,0 +1,40 @@
+<div class="relative w-full">
+  <div (click)="toggleDropdown()" class="flex h-10 w-full cursor-pointer items-center justify-between rounded-xl border border-border bg-white px-3 text-sm font-inter-regular text-text outline-none transition-all" [class.border-secondary]="isOpen()" [class.opacity-50]="disabled()" [class.cursor-not-allowed]="disabled()">
+    <span class="truncate" [class.text-text]="selectedItem()" [class.text-text/50]="!selectedItem()">{{ getDisplayText() }}</span>
+    <div class="flex items-center gap-2">
+      @if (showClear() && selectedItem()) {
+        <button type="button" (click)="$event.stopPropagation(); clearSelection()" class="flex size-5 items-center justify-center rounded-full text-text/50 transition-colors hover:bg-text/10 hover:text-danger"><i class="fas fa-times text-xs"></i></button>
+      }
+      <i class="fas fa-chevron-down text-text/50 transition-transform duration-200" [class.rotate-180]="isOpen()"></i>
+    </div>
+  </div>
+  @if (isOpen()) {
+    <div class="absolute left-0 top-full z-50 mt-1 w-full overflow-hidden rounded-xl border border-border bg-white shadow-lg">
+      <div class="border-b border-border/70 bg-white p-2">
+        <div class="relative">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs text-text/40"></i>
+          <input [formControl]="searchControl" type="text" placeholder="Buscar suscripcion..." class="h-9 w-full rounded-xl border border-border bg-white pl-8 pr-3 text-sm text-text outline-none transition-all focus:border-secondary" (click)="$event.stopPropagation()" />
+        </div>
+      </div>
+      <div class="max-h-60 overflow-y-auto">
+        @if (loading()) {
+          <div class="p-4 text-center text-xs text-text/50"><i class="fas fa-spinner fa-spin mr-2"></i>Buscando...</div>
+        } @else if (items().length === 0) {
+          <div class="p-4 text-center text-xs text-text/50">No se encontraron resultados</div>
+        } @else {
+          <ul class="py-1">
+            @for (item of items(); track item.id) {
+              <li (click)="selectItem(item)" class="flex cursor-pointer items-center gap-3 border-b border-text/5 px-3 py-2 transition-colors last:border-0 hover:bg-secondary/5" [class.bg-secondary/20]="selectedItem()?.id === item.id">
+                <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-text/5 text-text/60"><i class="fas fa-credit-card text-xs"></i></div>
+                <div class="flex min-w-0 flex-col">
+                  <span class="truncate text-sm font-inter-medium text-text">{{ item.plan }} · {{ item.status }}</span>
+                  <span class="truncate text-xs text-text/50">Usuario #{{ item.userId }} · {{ item.startedAt | date : 'shortDate' }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  }
+</div>

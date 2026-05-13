@@ -68,8 +68,10 @@ export class PymeInputSearch implements ControlValueAccessor {
     this.disabled.set(isDisabled);
   }
 
-  toggleDropdown() {
+  toggleDropdown(event?: MouseEvent) {
     if (this.disabled()) return;
+    const target = event?.target;
+    if (target instanceof HTMLElement && target.closest('[data-clear-button]')) return;
     this.isOpen.update((value) => !value);
     if (this.isOpen()) this.search(this.searchControl.value);
     else this.onTouched();
@@ -82,7 +84,9 @@ export class PymeInputSearch implements ControlValueAccessor {
     this.isOpen.set(false);
   }
 
-  clearSelection() {
+  clearSelection(event?: Event) {
+    event?.preventDefault();
+    event?.stopPropagation();
     this.selectedItem.set(null);
     this.onChange(null);
     this.onSelected.emit(null);

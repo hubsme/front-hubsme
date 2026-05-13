@@ -4,22 +4,23 @@ type Rol = ApiField<'user', 'findOne', 'role'>;
 
 export type PathNode = {
   _path: string;
-  [key: string]: any;
+  [key: string]: unknown;
 };
 
 export function buildPath(node: PathNode): string {
-  const findFullPath = (obj: any, target: PathNode, path: string[] = []): string[] | null => {
+  const findFullPath = (obj: unknown, target: PathNode, path: string[] = []): string[] | null => {
     if (!obj || typeof obj !== 'object') return null;
+    const current = obj as Record<string, unknown>;
 
-    if (obj === target) {
+    if (current === target) {
       return path;
     }
 
-    for (const key in obj) {
+    for (const key in current) {
       if (key === '_path') continue;
-      const value = obj[key];
+      const value = current[key];
       const nextPath =
-        '_path' in obj && typeof obj._path === 'string' ? [...path, obj._path] : path;
+        '_path' in current && typeof current['_path'] === 'string' ? [...path, current['_path']] : path;
       const result = findFullPath(value, target, nextPath);
       if (result) return result;
     }
@@ -42,37 +43,62 @@ export const PATH = {
     signIn: { _path: 'sign-in' },
     signUp: { _path: 'sign-up' },
   },
-  admin: {
-    _path: 'admin',
+  pyme: {
+    _path: 'pyme',
     dashboard: { _path: 'dashboard' },
     pymes: { _path: 'pymes' },
     consultants: { _path: 'consultants' },
+    inbox: { _path: 'inbox' },
     meetings: { _path: 'meetings' },
     tasks: { _path: 'tasks' },
     documents: { _path: 'documents' },
     diagnostics: { _path: 'diagnostics' },
     subscription: { _path: 'subscription' },
-    users: { _path: 'users' },
+    profile: { _path: 'profile' },
+  },
+  consultor: {
+    _path: 'consultor',
+    dashboard: { _path: 'dashboard' },
+    pymes: { _path: 'pymes' },
+    consultants: { _path: 'consultants' },
+    inbox: { _path: 'inbox' },
+    meetings: { _path: 'meetings' },
+    tasks: { _path: 'tasks' },
+    documents: { _path: 'documents' },
+    diagnostics: { _path: 'diagnostics' },
+    subscription: { _path: 'subscription' },
+    profile: { _path: 'profile' },
   },
 } as const;
 
 export const ROUTE_CONFIG = {
   defaultRoutes: {
-    admin: buildPath(PATH.admin.dashboard),
-    pyme: buildPath(PATH.admin.dashboard),
-    consultor: buildPath(PATH.admin.dashboard),
+    admin: '',
+    pyme: buildPath(PATH.pyme.dashboard),
+    consultor: buildPath(PATH.consultor.dashboard),
   } as Record<Rol, string>,
 
   routeAccess: {
-    [buildPath(PATH.admin.dashboard)]: ['admin', 'pyme', 'consultor'],
-    [buildPath(PATH.admin.pymes)]: ['admin', 'consultor'],
-    [buildPath(PATH.admin.consultants)]: ['admin', 'pyme', 'consultor'],
-    [buildPath(PATH.admin.meetings)]: ['admin', 'pyme', 'consultor'],
-    [buildPath(PATH.admin.tasks)]: ['admin', 'pyme', 'consultor'],
-    [buildPath(PATH.admin.documents)]: ['admin', 'pyme', 'consultor'],
-    [buildPath(PATH.admin.diagnostics)]: ['admin', 'pyme'],
-    [buildPath(PATH.admin.subscription)]: ['admin', 'consultor'],
-    [buildPath(PATH.admin.users)]: ['admin'],
+    [buildPath(PATH.pyme.dashboard)]: ['pyme'],
+    [buildPath(PATH.pyme.pymes)]: ['pyme'],
+    [buildPath(PATH.pyme.consultants)]: ['pyme'],
+    [buildPath(PATH.pyme.inbox)]: ['pyme'],
+    [buildPath(PATH.pyme.meetings)]: ['pyme'],
+    [buildPath(PATH.pyme.tasks)]: ['pyme'],
+    [buildPath(PATH.pyme.documents)]: ['pyme'],
+    [buildPath(PATH.pyme.diagnostics)]: ['pyme'],
+    [buildPath(PATH.pyme.subscription)]: ['pyme'],
+    [buildPath(PATH.pyme.profile)]: ['pyme'],
+    [buildPath(PATH.consultor.dashboard)]: ['consultor'],
+    [buildPath(PATH.consultor.pymes)]: ['consultor'],
+    [buildPath(PATH.consultor.consultants)]: ['consultor'],
+    [buildPath(PATH.consultor.inbox)]: ['consultor'],
+    [buildPath(PATH.consultor.meetings)]: ['consultor'],
+    [buildPath(PATH.consultor.tasks)]: ['consultor'],
+    [buildPath(PATH.consultor.documents)]: ['consultor'],
+    [buildPath(PATH.consultor.diagnostics)]: ['consultor'],
+    [buildPath(PATH.consultor.subscription)]: ['consultor'],
+    [buildPath(PATH.consultor.profile)]: ['consultor'],
   } as Record<string, Rol[]>,
 };
 
@@ -84,5 +110,5 @@ export function canAccessRoute(route: string, roles: Rol[]): boolean {
 
 export function getDefaultRoute(roles: Rol[]): string {
   const role = roles[0];
-  return ROUTE_CONFIG.defaultRoutes[role] || buildPath(PATH.admin.dashboard);
+  return ROUTE_CONFIG.defaultRoutes[role] || '';
 }

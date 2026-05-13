@@ -33,6 +33,7 @@ Reglas clave e imprescindibles para cambios en `frontend-hubsme`.
 - No usar colores nativos de Tailwind directamente.
 - No usar tipografias que no esten declaradas en `src/styles.css`.
 - Respetar nomenclatura, metodos, esquema y patrones existentes.
+- En formularios, el texto del label debe tener separacion visual con el input usando Tailwind, preferentemente `mb-2 block`.
 
 ## API Generada
 

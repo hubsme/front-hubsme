@@ -3,7 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Api, ApiBody } from 'api/backend.api';
-import { PATH, buildPath } from '@route/path.route';
+import { PATH, buildPath, getDefaultRoute } from '@route/path.route';
 import { SessionService } from '@service/session.service';
 import { ToastService } from '@service/toast.service';
 
@@ -24,13 +24,20 @@ export class SingUp {
   email = signal('');
   password = signal('');
   role = signal<'pyme' | 'consultor'>('pyme');
+  roleLocked = signal(false);
   loading = signal(false);
 
   constructor() {
     const role = this.route.snapshot.queryParamMap.get('role');
     if (role === 'pyme' || role === 'consultor') {
       this.role.set(role);
+      this.roleLocked.set(this.route.snapshot.queryParamMap.get('locked') === 'true');
     }
+  }
+
+  setRole(role: 'pyme' | 'consultor') {
+    if (this.roleLocked()) return;
+    this.role.set(role);
   }
 
   onRegister() {
@@ -52,7 +59,7 @@ export class SingUp {
       .then((res) => {
         this.session.setSession(res.data);
         this.toastService.success('Cuenta creada correctamente');
-        this.router.navigate([buildPath(PATH.admin.dashboard)]);
+        this.router.navigate([getDefaultRoute([res.data.user.role])]);
       })
       .catch((error) => {
         const message = error.error?.message || error.message || 'No se pudo crear la cuenta';

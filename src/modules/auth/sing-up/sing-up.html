@@ -7,15 +7,24 @@
         <i class="fas fa-brain text-2xl"></i>
       </div>
       <h1 class="mt-4 text-3xl font-inter-bold text-primary tracking-tight">Crear cuenta</h1>
-      <p class="text-sm text-text/50 font-inter-medium">Elige tu perfil para empezar en Hubsme</p>
+      <p class="text-sm text-text/50 font-inter-medium">
+        @if (roleLocked() && role() === 'consultor') {
+          Crea tu cuenta de consultor en Hubsme
+        } @else if (roleLocked() && role() === 'pyme') {
+          Crea tu cuenta PYME para iniciar el diagnostico
+        } @else {
+          Elige tu perfil para empezar en Hubsme
+        }
+      </p>
     </div>
 
     <div class="p-8 pt-4">
       <form (ngSubmit)="onRegister()" class="space-y-5">
+        @if (!roleLocked()) {
         <div class="grid grid-cols-2 gap-2">
           <button
             type="button"
-            (click)="role.set('pyme')"
+            (click)="setRole('pyme')"
             class="rounded-lg border px-4 py-3 text-left"
             [class.border-primary]="role() === 'pyme'"
             [class.bg-primary/5]="role() === 'pyme'"
@@ -26,7 +35,7 @@
           </button>
           <button
             type="button"
-            (click)="role.set('consultor')"
+            (click)="setRole('consultor')"
             class="rounded-lg border px-4 py-3 text-left"
             [class.border-primary]="role() === 'consultor'"
             [class.bg-primary/5]="role() === 'consultor'"
@@ -36,9 +45,26 @@
             <p class="text-xs text-text/50">Gestiono clientes y sesiones.</p>
           </button>
         </div>
+        } @else {
+          <div class="rounded-xl border border-primary/20 bg-primary/5 p-4">
+            <div class="flex items-center gap-3">
+              <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-background">
+                <i class="fas" [class.fa-user-tie]="role() === 'consultor'" [class.fa-building]="role() === 'pyme'"></i>
+              </div>
+              <div>
+                <p class="text-sm font-inter-bold text-primary">
+                  {{ role() === 'consultor' ? 'Registro para consultor' : 'Registro para PYME' }}
+                </p>
+                <p class="text-xs text-text/50">
+                  Este perfil ya viene seleccionado desde la landing.
+                </p>
+              </div>
+            </div>
+          </div>
+        }
 
         <div class="space-y-2">
-          <label class="block text-sm font-inter-semibold text-text/60">Nombre</label>
+          <label class="mb-2 block text-sm font-inter-semibold text-text/60">Nombre</label>
           <input
             name="name"
             [ngModel]="name()"
@@ -49,7 +75,7 @@
         </div>
 
         <div class="space-y-2">
-          <label class="block text-sm font-inter-semibold text-text/60">Email</label>
+          <label class="mb-2 block text-sm font-inter-semibold text-text/60">Email</label>
           <input
             type="email"
             name="email"
@@ -61,7 +87,7 @@
         </div>
 
         <div class="space-y-2">
-          <label class="block text-sm font-inter-semibold text-text/60">Password</label>
+          <label class="mb-2 block text-sm font-inter-semibold text-text/60">Password</label>
           <input
             type="password"
             name="password"

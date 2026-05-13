@@ -44,6 +44,10 @@ export class HubsmeService {
     return this.api.meeting.create(data);
   }
 
+  updateMeeting(id: number, data: ApiBody<'meeting', 'update'>) {
+    return this.api.meeting.update({ id }, data);
+  }
+
   finalizeMeeting(id: number, description: string) {
     return this.api.meeting.finalize({ id }, { description });
   }
@@ -86,6 +90,44 @@ export class HubsmeService {
 
   upsertSubscription(data: ApiBody<'subscription', 'upsert'>) {
     return this.api.subscription.upsert(data);
+  }
+
+  listMatches(page = 1, limit = 100, status?: ApiBody<'pymeConsultantMatch', 'pymeconsultantmatchUpdate'>['status']) {
+    const user = this.currentUser();
+    return this.api.pymeConsultantMatch.pymeconsultantmatchFindAll({
+      page,
+      limit,
+      pymeId: user.role === 'pyme' ? user.id : undefined,
+      consultantId: user.role === 'consultor' ? user.id : undefined,
+      status,
+    });
+  }
+
+  createMatch(consultantId: number) {
+    const user = this.currentUser();
+    return this.api.pymeConsultantMatch.pymeconsultantmatchCreate({
+      pymeId: user.id,
+      consultantId,
+      status: 'pendiente',
+      source: 'marketplace',
+    });
+  }
+
+  updateMatch(id: number, status: ApiBody<'pymeConsultantMatch', 'pymeconsultantmatchUpdate'>['status']) {
+    return this.api.pymeConsultantMatch.pymeconsultantmatchUpdate({ id }, { status });
+  }
+
+  listMatchMessages(matchId: number) {
+    return this.api.pymeConsultantMessage.pymeconsultantmessageFindAll({ matchId });
+  }
+
+  sendMatchMessage(matchId: number, message: string) {
+    const user = this.currentUser();
+    return this.api.pymeConsultantMessage.pymeconsultantmessageCreate({
+      matchId,
+      senderId: user.id,
+      message,
+    });
   }
 
   getErrorMessage(error: unknown): string {

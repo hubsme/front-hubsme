@@ -1,47 +1,28 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, PLATFORM_ID, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, PLATFORM_ID, ViewChild, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { Api, ApiResponse } from 'api/backend.api';
 import { PATH, buildPath } from '@route/path.route';
+import { SessionService } from '@service/session.service';
 
 type LandingRole = 'pyme' | 'consultor';
+type LandingConsultant = ApiResponse<'publicConsultant', 'publicconsultantFindAll'>['data'][number];
 
 @Component({
   selector: 'app-landing',
   imports: [CommonModule],
   templateUrl: './landing.html',
 })
-export class Landing implements AfterViewInit {
+export class Landing implements OnInit, AfterViewInit {
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
+  private api = inject(Api);
+  private session = inject(SessionService);
 
   @ViewChild('heroVideo') private heroVideo?: ElementRef<HTMLVideoElement>;
 
-  protected readonly consultants = [
-    {
-      name: 'Carlos Mendoza',
-      specialty: 'Estrategia Digital',
-      score: '4.9',
-      avatar: 'https://api.dicebear.com/9.x/adventurer/svg?seed=Carlos',
-    },
-    {
-      name: 'Ana Lucia Torres',
-      specialty: 'Consultoria Financiera',
-      score: '4.8',
-      avatar: 'https://api.dicebear.com/9.x/adventurer/svg?seed=Ana',
-    },
-    {
-      name: 'Roberto Sanchez',
-      specialty: 'Experto en Operaciones',
-      score: '4.7',
-      avatar: 'https://api.dicebear.com/9.x/adventurer/svg?seed=Roberto',
-    },
-    {
-      name: 'Elena Rivas',
-      specialty: 'Especialista en RRHH',
-      score: '4.9',
-      avatar: 'https://api.dicebear.com/9.x/adventurer/svg?seed=Elena',
-    },
-  ];
+  protected consultants = signal<LandingConsultant[]>([]);
+  protected consultantsLoading = signal(false);
 
   protected readonly services = [
     {
@@ -68,6 +49,10 @@ export class Landing implements AfterViewInit {
     { value: '+45', label: 'Consultores validados' },
   ];
 
+  ngOnInit(): void {
+    this.loadConsultants();
+  }
+
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
@@ -84,8 +69,26 @@ export class Landing implements AfterViewInit {
 
   protected goToSignUp(role: LandingRole): void {
     this.router.navigate([buildPath(PATH.auth.signUp)], {
-      queryParams: { role },
+      queryParams: { role, locked: true },
     });
+  }
+
+  protected startFreeDiagnostic(): void {
+    this.session.restoreSession();
+    if (this.session.session()) {
+      this.router.navigate([buildPath(PATH.pyme.diagnostics)]);
+      return;
+    }
+
+    this.goToSignUp('pyme');
+  }
+
+  protected consultantPhoto(consultant: LandingConsultant): string {
+    return consultant.photoUrl || `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(consultant.name)}`;
+  }
+
+  protected consultantSpecialty(consultant: LandingConsultant): string {
+    return consultant.specialties[0] ?? 'Consultoria para PYMES';
   }
 
   protected scrollToSection(sectionId: string, event?: Event): void {
@@ -119,5 +122,14 @@ export class Landing implements AfterViewInit {
 
     this.syncHeroVideo();
     video.currentTime = 0;
+  }
+
+  private loadConsultants(): void {
+    this.consultantsLoading.set(true);
+    this.api.publicConsultant
+      .publicconsultantFindAll({ limit: 8 })
+      .then((response) => this.consultants.set(response.data.data))
+      .catch(() => this.consultants.set([]))
+      .finally(() => this.consultantsLoading.set(false));
   }
 }

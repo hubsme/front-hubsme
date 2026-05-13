@@ -1,0 +1,73 @@
+<div class="space-y-6 font-inter-regular text-text">
+  <div class="flex flex-col gap-2">
+    <h1 class="text-3xl font-inter-bold">Perfil PYME</h1>
+    <p class="text-sm text-muted">Actualiza la informacion publica de tu empresa.</p>
+  </div>
+
+  @if (loading()) {
+    <div class="py-16 text-center text-muted">
+      <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+    </div>
+  } @else {
+    <section class="grid grid-cols-1 gap-6 xl:grid-cols-[22rem_1fr]">
+      <aside class="rounded-xl border border-border bg-background p-5">
+        <div class="mx-auto h-36 w-36 overflow-hidden rounded-2xl border border-border bg-text/5">
+          @if (form().logoUrl) {
+            <img [src]="form().logoUrl" alt="Logo de empresa" class="h-full w-full object-cover" />
+          } @else {
+            <div class="flex h-full w-full items-center justify-center text-4xl text-muted">
+              <i class="fas fa-building"></i>
+            </div>
+          }
+        </div>
+        <label class="mt-5 flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border text-sm font-inter-semibold">
+          @if (uploadingLogo()) {
+            <i class="fas fa-spinner fa-spin"></i>
+          } @else {
+            <i class="fas fa-image"></i>
+          }
+          Subir logo
+          <input type="file" accept="image/*" class="hidden" (change)="uploadLogo($event)" />
+        </label>
+      </aside>
+
+      <form (ngSubmit)="save()" class="rounded-xl border border-border bg-background p-5">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Empresa</span>
+            <input [ngModel]="form().name" name="pymeName" (ngModelChange)="updateForm('name', $event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary" />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">RUC</span>
+            <input [ngModel]="form().ruc" name="ruc" (ngModelChange)="updateForm('ruc', $event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary" />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Sector</span>
+            <input [ngModel]="form().sector" name="sector" (ngModelChange)="updateForm('sector', $event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary" />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Empleados</span>
+            <input type="number" [ngModel]="form().numEmployees" name="numEmployees" (ngModelChange)="updateForm('numEmployees', +$event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary" />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Años operando</span>
+            <input type="number" [ngModel]="form().yearsInOperation" name="yearsInOperation" (ngModelChange)="updateForm('yearsInOperation', +$event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary" />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+            <span class="mb-2 block">Descripcion</span>
+            <textarea [ngModel]="form().description" name="description" (ngModelChange)="updateForm('description', $event)" class="min-h-28 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-text outline-none focus:border-secondary"></textarea>
+          </label>
+        </div>
+        <div class="mt-6 flex justify-end">
+          <button type="submit" [disabled]="saving()" class="h-10 rounded-xl bg-primary px-5 text-sm text-background font-inter-bold disabled:opacity-50">
+            @if (saving()) {
+              <i class="fas fa-spinner fa-spin mr-2"></i> Guardando...
+            } @else {
+              Guardar perfil
+            }
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+</div>

@@ -37,6 +37,7 @@ Este archivo define reglas imprescindibles para cambios en el frontend Angular.
 - No usar tipografias que no esten declaradas en `src/styles.css`.
 - Respetar la nomenclatura, tokens y patrones visuales existentes.
 - Mantener consistencia con lo ya implementado en metodos, esquema y estructura.
+- En formularios, separar el texto del label del input con clases Tailwind, preferentemente `mb-2 block`.
 
 ## 5. API Autogenerada
 

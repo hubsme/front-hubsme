@@ -54,7 +54,7 @@
             Plataforma de diagnostico y consultoria para PYMES
           </div>
           <h1 class="max-w-2xl text-5xl font-inter-bold leading-none sm:text-6xl lg:text-7xl">
-            Conectamos tu PYME con la Excelencia
+            Conectamos tu PYME con expertos.
           </h1>
           <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-100 sm:text-xl">
             La primera plataforma que utiliza IA para diagnosticar tu negocio y conectarte con los
@@ -64,7 +64,7 @@
           <div class="mt-8 flex flex-col gap-4 sm:flex-row">
             <button
               type="button"
-              (click)="goToSignUp('pyme')"
+              (click)="startFreeDiagnostic()"
               class="rounded-full bg-slate-950 px-7 py-4 text-base font-inter-bold text-white transition hover:bg-slate-800"
             >
               Empezar Diagnostico Gratis
@@ -79,13 +79,12 @@
           </div>
 
           <div class="mt-12 grid gap-4 sm:grid-cols-3">
-            <article
-              *ngFor="let stat of stats"
-              class="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur"
-            >
+            @for (stat of stats; track stat.label) {
+            <article class="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur">
               <div class="text-3xl font-inter-bold">{{ stat.value }}</div>
               <div class="mt-2 text-sm text-slate-100">{{ stat.label }}</div>
             </article>
+            }
           </div>
         </div>
       </div>
@@ -156,23 +155,54 @@
         </div>
 
         <div class="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-          <article
-            *ngFor="let consultant of consultants"
-            class="rounded-[28px] border border-slate-200 bg-white p-8 text-center shadow-sm"
-          >
-            <div class="mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-slate-100">
-              <img [src]="consultant.avatar" [alt]="consultant.name" class="h-full w-full object-cover" />
-            </div>
-            <h3 class="mt-6 text-3xl font-inter-bold text-slate-950">{{ consultant.name }}</h3>
-            <p class="mt-2 text-base text-slate-600">{{ consultant.specialty }}</p>
-            <div class="mt-5 text-lg font-inter-bold text-amber-500">★ {{ consultant.score }}</div>
-            <button
-              type="button"
-              class="mt-7 w-full rounded-full border border-slate-200 px-5 py-3 text-sm font-inter-bold text-slate-900 transition hover:border-slate-950"
-            >
-              Ver Perfil
-            </button>
-          </article>
+          @if (consultantsLoading()) {
+            @for (item of [1, 2, 3, 4]; track item) {
+              <article class="h-80 animate-pulse rounded-[28px] border border-slate-200 bg-white p-8 shadow-sm">
+                <div class="mx-auto h-24 w-24 rounded-full bg-slate-100"></div>
+                <div class="mx-auto mt-8 h-6 w-36 rounded-full bg-slate-100"></div>
+                <div class="mx-auto mt-4 h-4 w-28 rounded-full bg-slate-100"></div>
+                <div class="mx-auto mt-8 h-10 w-full rounded-full bg-slate-100"></div>
+              </article>
+            }
+          } @else {
+            @for (consultant of consultants(); track consultant.id) {
+              <article class="group rounded-[28px] border border-slate-200 bg-white p-8 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/70">
+                <div class="relative mx-auto h-28 w-28 overflow-hidden rounded-full border-4 border-slate-100 bg-slate-100">
+                  <img [src]="consultantPhoto(consultant)" [alt]="consultant.name" class="h-full w-full object-cover transition group-hover:opacity-0" />
+                  @if (consultant.videoUrl) {
+                    <video
+                      [src]="consultant.videoUrl"
+                      class="absolute inset-0 h-full w-full object-cover opacity-0 transition group-hover:opacity-100"
+                      autoplay
+                      muted
+                      loop
+                      playsinline
+                      preload="metadata"
+                    ></video>
+                    <div class="absolute inset-x-0 bottom-0 bg-slate-950/70 py-1 text-[0.65rem] font-inter-bold text-white opacity-0 transition group-hover:opacity-100">
+                      Video perfil
+                    </div>
+                  }
+                </div>
+                <h3 class="mt-6 text-2xl font-inter-bold text-slate-950">{{ consultant.name }}</h3>
+                <p class="mt-2 text-base text-slate-600">{{ consultantSpecialty(consultant) }}</p>
+                <p class="mt-3 line-clamp-3 min-h-16 text-sm leading-5 text-slate-500">
+                  {{ consultant.bio || 'Especialista validado para acompanar el crecimiento de tu PYME.' }}
+                </p>
+                <div class="mt-5 text-lg font-inter-bold text-amber-500">★ {{ consultant.rating }}</div>
+                <button
+                  type="button"
+                  class="mt-7 w-full rounded-full border border-slate-200 px-5 py-3 text-sm font-inter-bold text-slate-900 transition hover:border-slate-950"
+                >
+                  Ver Perfil
+                </button>
+              </article>
+            } @empty {
+              <div class="col-span-full rounded-[28px] border border-slate-200 bg-white p-10 text-center text-slate-500">
+                Aun no hay consultores publicados.
+              </div>
+            }
+          }
         </div>
       </div>
     </section>
@@ -189,10 +219,12 @@
           </p>
 
           <div class="mt-10 grid gap-5 md:grid-cols-2">
-            <article *ngFor="let service of services" class="rounded-2xl bg-slate-50 p-5">
+            @for (service of services; track service.title) {
+            <article class="rounded-2xl bg-slate-50 p-5">
               <h3 class="text-xl font-inter-bold text-slate-950">{{ service.title }}</h3>
               <p class="mt-3 text-slate-600">{{ service.description }}</p>
             </article>
+            }
           </div>
         </div>
 

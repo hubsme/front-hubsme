@@ -1,9 +1,9 @@
 <div class="relative w-full">
-  <div (click)="toggleDropdown()" class="flex h-10 w-full cursor-pointer items-center justify-between rounded-xl border border-border bg-white px-3 text-sm font-inter-regular text-text outline-none transition-all" [class.border-secondary]="isOpen()" [class.opacity-50]="disabled()" [class.cursor-not-allowed]="disabled()">
+  <div (click)="toggleDropdown($event)" class="flex h-10 w-full cursor-pointer items-center justify-between rounded-xl border border-border bg-white px-3 text-sm font-inter-regular text-text outline-none transition-all" [class.border-secondary]="isOpen()" [class.opacity-50]="disabled()" [class.cursor-not-allowed]="disabled()">
     <span class="truncate" [class.text-text]="selectedItem()" [class.text-text/50]="!selectedItem()">{{ getDisplayText() }}</span>
-    <div class="flex items-center gap-2">
+    <div class="flex shrink-0 items-center gap-3">
       @if (showClear() && selectedItem()) {
-        <button type="button" (click)="$event.stopPropagation(); clearSelection()" class="flex size-5 items-center justify-center rounded-full text-text/50 transition-colors hover:bg-text/10 hover:text-danger"><i class="fas fa-times text-xs"></i></button>
+        <button type="button" data-clear-button aria-label="Limpiar selección" title="Limpiar selección" (pointerdown)="clearSelection($event)" (click)="$event.preventDefault(); $event.stopPropagation()" class="flex size-4 items-center justify-center rounded-full text-text/40 transition-colors active:text-danger focus-visible:text-danger"><i class="fas fa-times text-[0.65rem]"></i></button>
       }
       <i class="fas fa-chevron-down text-text/50 transition-transform duration-200" [class.rotate-180]="isOpen()"></i>
     </div>

@@ -3,7 +3,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ToastService } from '@service/toast.service';
-import { PATH, buildPath } from '@route/path.route';
+import { PATH, buildPath, getDefaultRoute } from '@route/path.route';
 import { Api, ApiBody } from 'api/backend.api';
 import { SessionService } from '@service/session.service';
 
@@ -26,8 +26,9 @@ export class SingIn implements OnInit {
 
   ngOnInit(): void {
     // Si ya está logueado, redirigir al dashboard
-    if (this.session.session()) {
-      this.router.navigate([buildPath(PATH.admin.dashboard)]);
+    const currentSession = this.session.session();
+    if (currentSession) {
+      this.router.navigate([getDefaultRoute([currentSession.user.role])]);
     }
   }
 
@@ -60,7 +61,7 @@ export class SingIn implements OnInit {
           return;
         }
         this.session.setSession(res.data);
-        this.router.navigate([buildPath(PATH.admin.dashboard)]);
+        this.router.navigate([getDefaultRoute([res.data.user.role])]);
         this.toastService.success('Bienvenido!');
       })
       .catch((error) => {

@@ -170,6 +170,7 @@ export interface PymeResultDto {
   numEmployees: number | null;
   yearsInOperation: number | null;
   description: string | null;
+  logoUrl: string | null;
 }
 
 export interface PymeCreateDto {
@@ -187,6 +188,8 @@ export interface PymeCreateDto {
   yearsInOperation?: number;
   /** @example "PYME textil peruana en proceso de digitalizacion." */
   description?: string;
+  /** @example "https://storage.example.com/pymes/logo.jpg" */
+  logoUrl?: string;
 }
 
 export interface PymeUpdateDto {
@@ -204,6 +207,8 @@ export interface PymeUpdateDto {
   yearsInOperation?: number;
   /** @example "PYME textil peruana en proceso de digitalizacion." */
   description?: string;
+  /** @example "https://storage.example.com/pymes/logo.jpg" */
+  logoUrl?: string;
 }
 
 export interface ConsultantListItemDto {
@@ -213,6 +218,8 @@ export interface ConsultantListItemDto {
   bio: string | null;
   specialties: string[];
   sectors: string[];
+  photoUrl: string | null;
+  videoUrl: string | null;
   pricePerHour: string;
   rating: string;
   totalReviews: number;
@@ -239,6 +246,8 @@ export interface ConsultantResultDto {
   bio: string | null;
   specialties: string[];
   sectors: string[];
+  photoUrl: string | null;
+  videoUrl: string | null;
   pricePerHour: string;
   rating: string;
   totalReviews: number;
@@ -257,6 +266,10 @@ export interface ConsultantCreateDto {
   specialties?: string[];
   /** @example ["Retail","Manufactura"] */
   sectors?: string[];
+  /** @example "https://storage.example.com/consultants/photo.jpg" */
+  photoUrl?: string;
+  /** @example "https://storage.example.com/consultants/video.mp4" */
+  videoUrl?: string;
   /** @example 150 */
   pricePerHour?: number;
   /** @default "true" */
@@ -276,6 +289,10 @@ export interface ConsultantUpdateDto {
   specialties?: string[];
   /** @example ["Retail","Manufactura"] */
   sectors?: string[];
+  /** @example "https://storage.example.com/consultants/photo.jpg" */
+  photoUrl?: string;
+  /** @example "https://storage.example.com/consultants/video.mp4" */
+  videoUrl?: string;
   /** @example 150 */
   pricePerHour?: number;
   /** @default "true" */
@@ -575,6 +592,94 @@ export interface DashboardResponseDto {
   upcomingMeetings: DashboardMeetingDto[];
 }
 
+export interface PymeConsultantMatchResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  pymeId: number;
+  pymeName: string | null;
+  consultantId: number;
+  consultantName: string | null;
+  status: "pendiente" | "aceptado" | "rechazado" | "finalizado";
+  source: string;
+  notes: string | null;
+}
+
+export interface PymeConsultantMatchListDto {
+  data: PymeConsultantMatchResultDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface PymeConsultantMatchCreateDto {
+  /** @example 2 */
+  pymeId: number;
+  /** @example 3 */
+  consultantId: number;
+  /** @default "pendiente" */
+  status?: "pendiente" | "aceptado" | "rechazado" | "finalizado";
+  /** @example "diagnostico" */
+  source?: string;
+  /** @example "Match generado por afinidad de sector y especialidad." */
+  notes?: string;
+}
+
+export interface PymeConsultantMatchUpdateDto {
+  /** @example 2 */
+  pymeId?: number;
+  /** @example 3 */
+  consultantId?: number;
+  /** @default "pendiente" */
+  status?: "pendiente" | "aceptado" | "rechazado" | "finalizado";
+  /** @example "diagnostico" */
+  source?: string;
+  /** @example "Match generado por afinidad de sector y especialidad." */
+  notes?: string;
+}
+
+export interface PymeConsultantMessageResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  matchId: number;
+  senderId: number;
+  senderName: string | null;
+  senderRole: "admin" | "pyme" | "consultor" | null;
+  message: string;
+  /** @format date-time */
+  readAt: string | null;
+}
+
+export interface PymeConsultantMessageListDto {
+  data: PymeConsultantMessageResultDto[];
+}
+
+export interface PymeConsultantMessageCreateDto {
+  /** @example 1 */
+  matchId: number;
+  /** @example 2 */
+  senderId: number;
+  /** @example "Hola, revisemos una primera sesion esta semana." */
+  message: string;
+}
+
+export interface StorageResultDto {
+  publicId: string;
+  url: string;
+  secureUrl: string;
+  format: string;
+  bytes: number;
+  resourceType: string;
+  createdAt: string;
+}
+
 export type AppGetHelloData = any;
 
 export type AuthLoginData = LoginResponseDto;
@@ -753,6 +858,27 @@ export interface ConsultantRemoveParams {
 export type ConsultantRemoveData = ConsultantResultDto;
 
 export type ConsultantRemoveError = HttpErrorDto;
+
+export interface PublicconsultantFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by name, bio or specialty */
+  search?: string;
+  active?: "true" | "false";
+  validated?: "true" | "false";
+  /** Filter by sector */
+  sector?: string;
+}
+
+export type PublicconsultantFindAllData = ConsultantListDto;
 
 export interface MeetingFindAllParams {
   /**
@@ -967,6 +1093,94 @@ export interface DashboardSummaryParams {
 export type DashboardSummaryData = DashboardResponseDto;
 
 export type DashboardSummaryError = HttpErrorDto;
+
+export interface PymeconsultantmatchFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by PYME or consultant name */
+  search?: string;
+  /** @example 2 */
+  pymeId?: number;
+  /** @example 3 */
+  consultantId?: number;
+  status?: "pendiente" | "aceptado" | "rechazado" | "finalizado";
+}
+
+export type PymeconsultantmatchFindAllData = PymeConsultantMatchListDto;
+
+export type PymeconsultantmatchFindAllError = HttpErrorDto;
+
+export interface PymeconsultantmatchFindOneParams {
+  id: number;
+}
+
+export type PymeconsultantmatchFindOneData = PymeConsultantMatchResultDto;
+
+export type PymeconsultantmatchFindOneError = HttpErrorDto;
+
+export type PymeconsultantmatchCreateData = PymeConsultantMatchResultDto;
+
+export type PymeconsultantmatchCreateError = HttpErrorDto;
+
+export interface PymeconsultantmatchUpdateParams {
+  id: number;
+}
+
+export type PymeconsultantmatchUpdateData = PymeConsultantMatchResultDto;
+
+export type PymeconsultantmatchUpdateError = HttpErrorDto;
+
+export interface PymeconsultantmatchRemoveParams {
+  id: number;
+}
+
+export type PymeconsultantmatchRemoveData = PymeConsultantMatchResultDto;
+
+export type PymeconsultantmatchRemoveError = HttpErrorDto;
+
+export interface PymeconsultantmessageFindAllParams {
+  /** @example 1 */
+  matchId: number;
+}
+
+export type PymeconsultantmessageFindAllData = PymeConsultantMessageListDto;
+
+export type PymeconsultantmessageFindAllError = HttpErrorDto;
+
+export type PymeconsultantmessageCreateData = PymeConsultantMessageResultDto;
+
+export type PymeconsultantmessageCreateError = HttpErrorDto;
+
+export interface StorageUploadPayload {
+  /** @format binary */
+  file?: File;
+}
+
+export interface StorageUploadParams {
+  folder: string;
+}
+
+export type StorageUploadData = StorageResultDto;
+
+export interface StorageDeleteParams {
+  publicId: string;
+}
+
+export type StorageDeleteData = any;
+
+export interface StorageDownloadParams {
+  path: string;
+}
+
+export type StorageDownloadData = any;
 
 export namespace App {
   /**
@@ -1417,6 +1631,41 @@ export namespace Consultant {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = ConsultantRemoveData;
+  }
+}
+
+export namespace PublicConsultant {
+  /**
+   * No description
+   * @tags publicConsultant
+   * @name PublicconsultantFindAll
+   * @summary Get public active consultants for landing
+   * @request GET:/public/consultant/find-all
+   * @response `200` `PublicconsultantFindAllData`
+   */
+  export namespace PublicconsultantFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by name, bio or specialty */
+      search?: string;
+      active?: "true" | "false";
+      validated?: "true" | "false";
+      /** Filter by sector */
+      sector?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PublicconsultantFindAllData;
   }
 }
 
@@ -1916,6 +2165,221 @@ export namespace Dashboard {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = DashboardSummaryData;
+  }
+}
+
+export namespace PymeConsultantMatch {
+  /**
+   * No description
+   * @tags pymeConsultantMatch
+   * @name PymeconsultantmatchFindAll
+   * @summary Get all PYME and consultant matches paginated
+   * @request GET:/admin/pyme-consultant-match/find-all
+   * @secure
+   * @response `200` `PymeconsultantmatchFindAllData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeconsultantmatchFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by PYME or consultant name */
+      search?: string;
+      /** @example 2 */
+      pymeId?: number;
+      /** @example 3 */
+      consultantId?: number;
+      status?: "pendiente" | "aceptado" | "rechazado" | "finalizado";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeconsultantmatchFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags pymeConsultantMatch
+   * @name PymeconsultantmatchFindOne
+   * @summary Get a PYME and consultant match by ID
+   * @request GET:/admin/pyme-consultant-match/find-one/{id}
+   * @secure
+   * @response `200` `PymeconsultantmatchFindOneData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeconsultantmatchFindOne {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeconsultantmatchFindOneData;
+  }
+
+  /**
+   * No description
+   * @tags pymeConsultantMatch
+   * @name PymeconsultantmatchCreate
+   * @summary Create a PYME and consultant match
+   * @request POST:/admin/pyme-consultant-match/create
+   * @secure
+   * @response `200` `PymeconsultantmatchCreateData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeconsultantmatchCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PymeConsultantMatchCreateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeconsultantmatchCreateData;
+  }
+
+  /**
+   * No description
+   * @tags pymeConsultantMatch
+   * @name PymeconsultantmatchUpdate
+   * @summary Update a PYME and consultant match
+   * @request PATCH:/admin/pyme-consultant-match/update/{id}
+   * @secure
+   * @response `200` `PymeconsultantmatchUpdateData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeconsultantmatchUpdate {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = PymeConsultantMatchUpdateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeconsultantmatchUpdateData;
+  }
+
+  /**
+   * No description
+   * @tags pymeConsultantMatch
+   * @name PymeconsultantmatchRemove
+   * @summary Soft-delete a PYME and consultant match
+   * @request DELETE:/admin/pyme-consultant-match/delete/{id}
+   * @secure
+   * @response `200` `PymeconsultantmatchRemoveData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeconsultantmatchRemove {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeconsultantmatchRemoveData;
+  }
+}
+
+export namespace PymeConsultantMessage {
+  /**
+   * No description
+   * @tags pymeConsultantMessage
+   * @name PymeconsultantmessageFindAll
+   * @summary Get messages by accepted PYME and consultant match
+   * @request GET:/admin/pyme-consultant-message/find-all
+   * @secure
+   * @response `200` `PymeconsultantmessageFindAllData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeconsultantmessageFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example 1 */
+      matchId: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeconsultantmessageFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags pymeConsultantMessage
+   * @name PymeconsultantmessageCreate
+   * @summary Create a message in an accepted PYME and consultant match
+   * @request POST:/admin/pyme-consultant-message/create
+   * @secure
+   * @response `200` `PymeconsultantmessageCreateData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeconsultantmessageCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PymeConsultantMessageCreateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeconsultantmessageCreateData;
+  }
+}
+
+export namespace Storage {
+  /**
+   * No description
+   * @tags storage
+   * @name StorageUpload
+   * @summary Subir un archivo a Azure Storage
+   * @request POST:/storage
+   * @secure
+   * @response `200` `StorageUploadData`
+   */
+  export namespace StorageUpload {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      folder: string;
+    };
+    export type RequestBody = StorageUploadPayload;
+    export type RequestHeaders = {};
+    export type ResponseBody = StorageUploadData;
+  }
+
+  /**
+   * No description
+   * @tags storage
+   * @name StorageDelete
+   * @summary Eliminar un archivo de Azure Storage
+   * @request DELETE:/storage/{publicId}
+   * @secure
+   * @response `200` `StorageDeleteData`
+   */
+  export namespace StorageDelete {
+    export type RequestParams = {
+      publicId: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = StorageDeleteData;
+  }
+
+  /**
+   * No description
+   * @tags storage
+   * @name StorageDownload
+   * @summary Visualizar o descargar archivo de Azure Storage
+   * @request GET:/storage/download-file
+   * @response `200` `StorageDownloadData`
+   */
+  export namespace StorageDownload {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      path: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = StorageDownloadData;
   }
 }
 
@@ -2661,6 +3125,28 @@ export class Api<SecurityDataType extends unknown> {
         ...params,
       }),
   };
+  publicConsultant = {
+    /**
+     * No description
+     *
+     * @tags publicConsultant
+     * @name PublicconsultantFindAll
+     * @summary Get public active consultants for landing
+     * @request GET:/public/consultant/find-all
+     * @response `200` `PublicconsultantFindAllData`
+     */
+    publicconsultantFindAll: (
+      query: PublicconsultantFindAllParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PublicconsultantFindAllData, any>({
+        path: `/public/consultant/find-all`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+  };
   meeting = {
     /**
      * No description
@@ -3181,6 +3667,267 @@ export class Api<SecurityDataType extends unknown> {
         query: query,
         secure: true,
         format: "json",
+        ...params,
+      }),
+  };
+  pymeConsultantMatch = {
+    /**
+     * No description
+     *
+     * @tags pymeConsultantMatch
+     * @name PymeconsultantmatchFindAll
+     * @summary Get all PYME and consultant matches paginated
+     * @request GET:/admin/pyme-consultant-match/find-all
+     * @secure
+     * @response `200` `PymeconsultantmatchFindAllData`
+     * @response `400` `HttpErrorDto`
+     */
+    pymeconsultantmatchFindAll: (
+      query: PymeconsultantmatchFindAllParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PymeconsultantmatchFindAllData,
+        PymeconsultantmatchFindAllError
+      >({
+        path: `/admin/pyme-consultant-match/find-all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pymeConsultantMatch
+     * @name PymeconsultantmatchFindOne
+     * @summary Get a PYME and consultant match by ID
+     * @request GET:/admin/pyme-consultant-match/find-one/{id}
+     * @secure
+     * @response `200` `PymeconsultantmatchFindOneData`
+     * @response `400` `HttpErrorDto`
+     */
+    pymeconsultantmatchFindOne: (
+      { id, ...query }: PymeconsultantmatchFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PymeconsultantmatchFindOneData,
+        PymeconsultantmatchFindOneError
+      >({
+        path: `/admin/pyme-consultant-match/find-one/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pymeConsultantMatch
+     * @name PymeconsultantmatchCreate
+     * @summary Create a PYME and consultant match
+     * @request POST:/admin/pyme-consultant-match/create
+     * @secure
+     * @response `200` `PymeconsultantmatchCreateData`
+     * @response `400` `HttpErrorDto`
+     */
+    pymeconsultantmatchCreate: (
+      data: PymeConsultantMatchCreateDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PymeconsultantmatchCreateData,
+        PymeconsultantmatchCreateError
+      >({
+        path: `/admin/pyme-consultant-match/create`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pymeConsultantMatch
+     * @name PymeconsultantmatchUpdate
+     * @summary Update a PYME and consultant match
+     * @request PATCH:/admin/pyme-consultant-match/update/{id}
+     * @secure
+     * @response `200` `PymeconsultantmatchUpdateData`
+     * @response `400` `HttpErrorDto`
+     */
+    pymeconsultantmatchUpdate: (
+      { id, ...query }: PymeconsultantmatchUpdateParams,
+      data: PymeConsultantMatchUpdateDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PymeconsultantmatchUpdateData,
+        PymeconsultantmatchUpdateError
+      >({
+        path: `/admin/pyme-consultant-match/update/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pymeConsultantMatch
+     * @name PymeconsultantmatchRemove
+     * @summary Soft-delete a PYME and consultant match
+     * @request DELETE:/admin/pyme-consultant-match/delete/{id}
+     * @secure
+     * @response `200` `PymeconsultantmatchRemoveData`
+     * @response `400` `HttpErrorDto`
+     */
+    pymeconsultantmatchRemove: (
+      { id, ...query }: PymeconsultantmatchRemoveParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PymeconsultantmatchRemoveData,
+        PymeconsultantmatchRemoveError
+      >({
+        path: `/admin/pyme-consultant-match/delete/${id}`,
+        method: "DELETE",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
+  pymeConsultantMessage = {
+    /**
+     * No description
+     *
+     * @tags pymeConsultantMessage
+     * @name PymeconsultantmessageFindAll
+     * @summary Get messages by accepted PYME and consultant match
+     * @request GET:/admin/pyme-consultant-message/find-all
+     * @secure
+     * @response `200` `PymeconsultantmessageFindAllData`
+     * @response `400` `HttpErrorDto`
+     */
+    pymeconsultantmessageFindAll: (
+      query: PymeconsultantmessageFindAllParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PymeconsultantmessageFindAllData,
+        PymeconsultantmessageFindAllError
+      >({
+        path: `/admin/pyme-consultant-message/find-all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pymeConsultantMessage
+     * @name PymeconsultantmessageCreate
+     * @summary Create a message in an accepted PYME and consultant match
+     * @request POST:/admin/pyme-consultant-message/create
+     * @secure
+     * @response `200` `PymeconsultantmessageCreateData`
+     * @response `400` `HttpErrorDto`
+     */
+    pymeconsultantmessageCreate: (
+      data: PymeConsultantMessageCreateDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PymeconsultantmessageCreateData,
+        PymeconsultantmessageCreateError
+      >({
+        path: `/admin/pyme-consultant-message/create`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  storage = {
+    /**
+     * No description
+     *
+     * @tags storage
+     * @name StorageUpload
+     * @summary Subir un archivo a Azure Storage
+     * @request POST:/storage
+     * @secure
+     * @response `200` `StorageUploadData`
+     */
+    upload: (
+      query: StorageUploadParams,
+      data: StorageUploadPayload,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<StorageUploadData, any>({
+        path: `/storage`,
+        method: "POST",
+        query: query,
+        body: data,
+        secure: true,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags storage
+     * @name StorageDelete
+     * @summary Eliminar un archivo de Azure Storage
+     * @request DELETE:/storage/{publicId}
+     * @secure
+     * @response `200` `StorageDeleteData`
+     */
+    delete: (
+      { publicId, ...query }: StorageDeleteParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<StorageDeleteData, any>({
+        path: `/storage/${publicId}`,
+        method: "DELETE",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags storage
+     * @name StorageDownload
+     * @summary Visualizar o descargar archivo de Azure Storage
+     * @request GET:/storage/download-file
+     * @response `200` `StorageDownloadData`
+     */
+    download: (
+      query: StorageDownloadParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<StorageDownloadData, any>({
+        path: `/storage/download-file`,
+        method: "GET",
+        query: query,
         ...params,
       }),
   };

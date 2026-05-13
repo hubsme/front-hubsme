@@ -35,38 +35,33 @@ export class Sidebar {
 
   menuItems = computed(() => {
     const role = this.sessionService.session()?.user.role;
-    const adminItems: MenuItem[] = [
-      { label: 'Dashboard', path: buildPath(PATH.admin.dashboard), icon: 'fas fa-chart-pie' },
-      { label: 'PYMEs', path: buildPath(PATH.admin.pymes), icon: 'fas fa-building' },
-      { label: 'Consultores', path: buildPath(PATH.admin.consultants), icon: 'fas fa-user-tie' },
-      { label: 'Reuniones', path: buildPath(PATH.admin.meetings), icon: 'fas fa-calendar-check' },
-      { label: 'Tareas', path: buildPath(PATH.admin.tasks), icon: 'fas fa-list-check' },
-      { label: 'Documentos', path: buildPath(PATH.admin.documents), icon: 'fas fa-file-lines' },
-      { label: 'Diagnostico IA', path: buildPath(PATH.admin.diagnostics), icon: 'fas fa-clipboard-check' },
-      { label: 'Suscripcion', path: buildPath(PATH.admin.subscription), icon: 'fas fa-credit-card' },
-    ];
-
+    const pymePath = PATH.pyme;
+    const consultorPath = PATH.consultor;
     const pymeItems: MenuItem[] = [
-      { label: 'Dashboard', path: buildPath(PATH.admin.dashboard), icon: 'fas fa-table-cells-large' },
-      { label: 'Diagnostico IA', path: buildPath(PATH.admin.diagnostics), icon: 'fas fa-clipboard-check' },
-      { label: 'Consultores', path: buildPath(PATH.admin.consultants), icon: 'fas fa-user-group' },
-      { label: 'Reuniones', path: buildPath(PATH.admin.meetings), icon: 'fas fa-calendar' },
-      { label: 'Tareas', path: buildPath(PATH.admin.tasks), icon: 'fas fa-square-check' },
-      { label: 'Documentos', path: buildPath(PATH.admin.documents), icon: 'fas fa-file-lines' },
+      { label: 'Dashboard', path: buildPath(pymePath.dashboard), icon: 'fas fa-table-cells-large' },
+      { label: 'Perfil', path: buildPath(pymePath.profile), icon: 'fas fa-user-gear' },
+      { label: 'Diagnostico IA', path: buildPath(pymePath.diagnostics), icon: 'fas fa-clipboard-check' },
+      { label: 'Consultores', path: buildPath(pymePath.consultants), icon: 'fas fa-user-group' },
+      { label: 'Inbox', path: buildPath(pymePath.inbox), icon: 'fas fa-inbox' },
+      { label: 'Reuniones', path: buildPath(pymePath.meetings), icon: 'fas fa-calendar' },
+      { label: 'Tareas', path: buildPath(pymePath.tasks), icon: 'fas fa-square-check' },
+      { label: 'Documentos', path: buildPath(pymePath.documents), icon: 'fas fa-file-lines' },
     ];
 
     const consultorItems: MenuItem[] = [
-      { label: 'Dashboard', path: buildPath(PATH.admin.dashboard), icon: 'fas fa-table-cells-large' },
-      { label: 'Mis Clientes', path: buildPath(PATH.admin.pymes), icon: 'fas fa-user-group' },
-      { label: 'Reuniones', path: buildPath(PATH.admin.meetings), icon: 'fas fa-calendar' },
-      { label: 'Tareas', path: buildPath(PATH.admin.tasks), icon: 'fas fa-square-check' },
-      { label: 'Documentos', path: buildPath(PATH.admin.documents), icon: 'fas fa-file-lines' },
-      { label: 'Suscripcion', path: buildPath(PATH.admin.subscription), icon: 'fas fa-credit-card' },
+      { label: 'Dashboard', path: buildPath(consultorPath.dashboard), icon: 'fas fa-table-cells-large' },
+      { label: 'Perfil', path: buildPath(consultorPath.profile), icon: 'fas fa-user-gear' },
+      { label: 'Mis Clientes', path: buildPath(consultorPath.pymes), icon: 'fas fa-user-group' },
+      { label: 'Inbox', path: buildPath(consultorPath.inbox), icon: 'fas fa-inbox' },
+      { label: 'Reuniones', path: buildPath(consultorPath.meetings), icon: 'fas fa-calendar' },
+      { label: 'Tareas', path: buildPath(consultorPath.tasks), icon: 'fas fa-square-check' },
+      { label: 'Documentos', path: buildPath(consultorPath.documents), icon: 'fas fa-file-lines' },
+      { label: 'Suscripcion', path: buildPath(consultorPath.subscription), icon: 'fas fa-credit-card' },
     ];
 
     if (role === 'pyme') return pymeItems;
     if (role === 'consultor') return consultorItems;
-    return adminItems;
+    return [];
   });
 
   logout() {

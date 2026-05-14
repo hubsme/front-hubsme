@@ -32,11 +32,16 @@
   src: url('/font/Inter-Bold.ttf') format('truetype');
 }
 
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('/font/PlusJakartaSans-Regular.ttf') format('truetype');
+}
+
 :root {
   --color-primary: #171717;
   --color-secondary: #3568ea;
   --color-accent: #f59e0b;
-  --color-background: #f3f6fb;
+  --color-background: #f8fafc;
   --color-surface: #ffffff;
   --color-text: #182033;
   --color-muted: #6c7a93;
@@ -85,22 +90,7 @@
   --font-inter-medium: 'Inter Medium', sans-serif;
   --font-inter-semibold: 'Inter SemiBold', sans-serif;
   --font-inter-bold: 'Inter Bold', sans-serif;
-}
-
-html,
-body {
-  background: var(--color-background);
-  color: var(--color-text);
-}
-
-body {
-  font-family: 'Inter Regular', sans-serif;
-}
-
-/* Global placeholder style */
-::placeholder {
-  color: var(--color-muted);
-  opacity: 0.9;
+  --font-plus-jakarta-sans: 'Plus Jakarta Sans', sans-serif;
 }
 
 /* Scrollbar styles for dark mode */
@@ -123,25 +113,5 @@ body {
 /* Select dropdown options in dark mode */
 [data-theme='dark'] select option {
   background-color: var(--color-background);
-  color: var(--color-text);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.4s ease-out forwards;
-}
-
-::selection {
-  background: color-mix(in srgb, var(--color-secondary) 18%, white);
   color: var(--color-text);
 }

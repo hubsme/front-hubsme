@@ -6,7 +6,7 @@ import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 
 type Match = ApiResponse<'pymeConsultantMatch', 'pymeconsultantmatchFindAll'>['data'][number];
-type MatchFilter = 'solicitudes' | 'activos';
+type MatchFilter = 'solicitudes' | 'contactados';
 
 @Component({
   selector: 'app-consultor-pymes',
@@ -19,7 +19,7 @@ export class ConsultorPymes implements OnInit {
 
   matches = signal<Match[]>([]);
   search = signal('');
-  activeFilter = signal<MatchFilter>('solicitudes');
+  activeFilter = signal<MatchFilter>('contactados');
   loading = signal(false);
   updatingId = signal<number | null>(null);
 
@@ -54,7 +54,7 @@ export class ConsultorPymes implements OnInit {
       .then(() => {
         this.toastService.success(status === 'aceptado' ? 'Match aceptado' : 'Match rechazado');
         this.load();
-        if (status === 'aceptado') this.activeFilter.set('activos');
+        if (status === 'aceptado') this.activeFilter.set('contactados');
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.updatingId.set(null));

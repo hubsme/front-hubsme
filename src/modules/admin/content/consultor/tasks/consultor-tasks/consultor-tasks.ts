@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, QueryList, ViewChildren, computed, inject, signal } from '@angular/core';
+import Sortable from 'sortablejs';
 import { FormsModule } from '@angular/forms';
 import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
@@ -27,9 +28,12 @@ type TaskForm = {
   imports: [CommonModule, FormsModule, ModalForm, PymeInputSearch, ConsultantInputSearch],
   templateUrl: './consultor-tasks.html',
 })
-export class ConsultorTasks implements OnInit {
+export class ConsultorTasks implements OnInit, AfterViewInit, OnDestroy {
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
+  private sortables: Sortable[] = [];
+
+  @ViewChildren('taskList') taskLists!: QueryList<ElementRef<HTMLElement>>;
 
   columns: { id: TaskStatus; label: string; className: string }[] = [
     { id: 'pendiente', label: 'Pendiente', className: 'bg-text/5 text-text/60' },
@@ -67,6 +71,15 @@ export class ConsultorTasks implements OnInit {
     this.load();
   }
 
+  ngAfterViewInit() {
+    this.taskLists.changes.subscribe(() => this.initSortables());
+    this.initSortables();
+  }
+
+  ngOnDestroy() {
+    this.destroySortables();
+  }
+
   loadLookups() {
     Promise.all([this.hubsme.listPymes('', 1, 100), this.hubsme.listConsultants('', 1, 100, 'true')])
       .then(([pymesRes, consultantsRes]) => {
@@ -87,7 +100,10 @@ export class ConsultorTasks implements OnInit {
     this.loading.set(true);
     this.hubsme
       .listTasks()
-      .then((res) => this.tasks.set(res.data.data))
+      .then((res) => {
+        this.tasks.set(res.data.data);
+        this.initSortables();
+      })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
   }
@@ -126,10 +142,15 @@ export class ConsultorTasks implements OnInit {
   }
 
   moveTask(id: number, status: TaskStatus) {
+    const previousTasks = this.tasks();
+    this.tasks.update((tasks) => tasks.map((task) => (task.id === id ? { ...task, status } : task)));
+
     this.hubsme
       .updateTaskStatus(id, status)
-      .then(() => this.load())
-      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
+      .catch((error) => {
+        this.tasks.set(previousTasks);
+        this.toastService.error(this.hubsme.getErrorMessage(error));
+      });
   }
 
   tasksByStatus(status: TaskStatus) {
@@ -156,5 +177,48 @@ export class ConsultorTasks implements OnInit {
     if (priority === 'alta') return 'bg-danger/10 text-danger';
     if (priority === 'media') return 'bg-accent/15 text-amber-700';
     return 'bg-success/10 text-success';
+  }
+
+  private initSortables() {
+    window.setTimeout(() => {
+      if (!this.taskLists) return;
+
+      this.destroySortables();
+      this.sortables = this.taskLists.map((list) =>
+        Sortable.create(list.nativeElement, {
+          group: 'consultor-tasks',
+          animation: 180,
+          easing: 'cubic-bezier(0.2, 0, 0, 1)',
+          forceFallback: true,
+          fallbackOnBody: true,
+          fallbackTolerance: 4,
+          scroll: true,
+          bubbleScroll: true,
+          draggable: '[data-task-id]',
+          filter: '.is-empty',
+          swapThreshold: 0.65,
+          ghostClass: 'opacity-40',
+          chosenClass: 'shadow-2xl',
+          dragClass: 'opacity-90',
+          onEnd: (event) => {
+            const taskId = Number((event.item as HTMLElement).dataset['taskId']);
+            const status = (event.to as HTMLElement).dataset['status'] as TaskStatus | undefined;
+            const task = this.tasks().find((item) => item.id === taskId);
+
+            if (!task || !status || task.status === status) {
+              this.tasks.set([...this.tasks()]);
+              return;
+            }
+
+            this.moveTask(taskId, status);
+          },
+        }),
+      );
+    });
+  }
+
+  private destroySortables() {
+    this.sortables.forEach((sortable) => sortable.destroy());
+    this.sortables = [];
   }
 }

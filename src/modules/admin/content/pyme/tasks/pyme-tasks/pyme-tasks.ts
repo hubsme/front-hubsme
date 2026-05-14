@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, QueryList, ViewChildren, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, QueryList, ViewChildren, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiResponse } from 'api/backend.api';
 import Sortable from 'sortablejs';
@@ -45,6 +45,7 @@ export class PymeTasks implements OnInit, AfterViewInit, OnDestroy {
   tasks = signal<ApiResponse<'task', 'findAll'>['data']>([]);
   pymes = signal<ApiResponse<'pyme', 'findAll'>['data']>([]);
   consultants = signal<ApiResponse<'consultant', 'findAll'>['data']>([]);
+  selectedConsultantId = signal<number | 'all'>('all');
   loading = signal(false);
   creating = signal(false);
   showCreate = signal(false);
@@ -152,8 +153,14 @@ export class PymeTasks implements OnInit, AfterViewInit, OnDestroy {
       });
   }
 
+  filteredTasks = computed(() => {
+    const selected = this.selectedConsultantId();
+    if (selected === 'all') return this.tasks();
+    return this.tasks().filter((task) => task.consultantId === Number(selected));
+  });
+
   tasksByStatus(status: TaskStatus) {
-    return this.tasks().filter((task) => task.status === status);
+    return this.filteredTasks().filter((task) => task.status === status);
   }
 
   priorityClass(priority: TaskPriority) {

@@ -1,18 +1,27 @@
 <div class="space-y-6 font-inter-regular text-text">
   <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
-      <h1 class="text-[1.9rem] leading-tight font-inter-bold">Tablero de Tareas</h1>
+      <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold">Mi tablero</h1>
       <p class="mt-1 text-[0.92rem] text-muted">Seguimiento de acciones estrategicas acordadas en consultoria.</p>
     </div>
 
-    <button
-      type="button"
-      (click)="showCreate.set(true)"
-      class="inline-flex h-9 items-center gap-2 self-start rounded-full bg-text px-4 text-[0.82rem] text-background font-inter-bold shadow-sm"
-    >
-      <i class="fas fa-plus text-xs"></i>
-      Nueva Tarea
-    </button>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div class="w-64">
+        <app-consultant-input-search
+          [ngModel]="selectedConsultantId() === 'all' ? null : selectedConsultantId()"
+          [showClear]="true"
+          (onSelected)="selectedConsultantId.set($event?.userId ?? 'all')"
+        />
+      </div>
+      <button
+        type="button"
+        (click)="showCreate.set(true)"
+        class="inline-flex h-9 items-center gap-2 rounded-full bg-text px-4 text-[0.82rem] text-background font-inter-bold shadow-sm"
+      >
+        <i class="fas fa-plus text-xs"></i>
+        Nueva Tarea
+      </button>
+    </div>
   </div>
 
   @if (showCreate()) {
@@ -81,7 +90,7 @@
     @for (column of columns; track column.id) {
     <section class="min-h-[34rem] border-r border-border/70 pr-5 last:border-r-0">
       <header class="mb-4 flex items-center gap-2">
-        <h2 class="text-[1rem] text-slate-700 font-inter-bold">{{ column.label }}</h2>
+        <h2 class="text-xl text-slate-700 font-anton lowercase text-text">{{ column.label }}</h2>
         <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-text/5 px-2 text-[0.72rem] text-text/70 font-inter-semibold">
           {{ tasksByStatus(column.id).length }}
         </span>
@@ -109,10 +118,14 @@
                 <i class="far fa-clock"></i>
                 {{ task.dueDate ? (task.dueDate | date : 'M/d/yyyy') : 'Sin fecha' }}
               </span>
-              <span class="inline-flex items-center gap-2 text-slate-300">
-                <i class="far fa-circle-check"></i>
-                <i class="far fa-clock"></i>
-              </span>
+              <div class="relative">
+                <select [ngModel]="task.status" (ngModelChange)="moveTask(task.id, $event)" class="appearance-none rounded-lg border border-border bg-surface py-1 pl-2 pr-7 text-xs outline-none">
+                  @for (option of columns; track option.id) {
+                  <option [value]="option.id">{{ option.label }}</option>
+                  }
+                </select>
+                <i class="fas fa-chevron-down pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[0.6rem] text-text/40"></i>
+              </div>
             </div>
           </article>
           } @empty {

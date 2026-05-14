@@ -1,7 +1,7 @@
 <div class="space-y-7 font-inter-regular text-text">
   <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
-      <h1 class="text-[1.9rem] leading-tight font-inter-bold">Mis Reuniones</h1>
+      <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold capitalize">Mis Reuniones</h1>
       <p class="mt-1 text-[0.95rem] text-muted">Gestiona tus sesiones de consultoria y actas generadas.</p>
     </div>
 
@@ -76,7 +76,7 @@
             <span class="rounded-full px-3 py-1 text-xs font-inter-semibold" [class]="statusClass(meeting.status)">
               {{ meeting.status }}
             </span>
-            <h2 class="mt-3 text-lg text-text font-inter-bold">{{ meeting.title }}</h2>
+            <h2 class="mt-3 text-xl text-text font-anton lowercase">{{ meeting.title }}</h2>
             <div class="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted">
               <span><i class="far fa-clock mr-1.5"></i>{{ meeting.durationMinutes }} min</span>
               <span><i class="fas fa-video mr-1.5"></i>{{ meeting.meetingUrl ? 'Google Meet' : 'Virtual' }}</span>

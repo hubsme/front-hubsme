@@ -1,6 +1,6 @@
 <div class="space-y-7 font-inter-regular text-text">
   <div>
-    <h1 class="text-[1.9rem] leading-tight font-inter-bold">Inbox</h1>
+    <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold">Mis chats</h1>
     <p class="mt-1 text-[0.92rem] text-muted">Conversa con los consultores que ya aceptaron el match.</p>
   </div>
 
@@ -29,7 +29,7 @@
     <section class="flex min-h-[32rem] flex-col rounded-xl border border-border bg-surface">
       @if (selectedMatch()) {
       <header class="border-b border-border px-5 py-4">
-        <h2 class="font-inter-bold">{{ partnerName(selectedMatch()!) }}</h2>
+        <h2 class="font-anton lowercase text-text text-xl">{{ partnerName(selectedMatch()!) }}</h2>
         <p class="mt-1 text-[0.78rem] text-muted">Conversaciones con el consultor</p>
       </header>
 

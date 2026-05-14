@@ -1,7 +1,7 @@
 <div class="space-y-7 font-inter-regular text-text">
   <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
     <div>
-      <h1 class="text-[1.9rem] leading-tight font-inter-bold">Marketplace de Consultores</h1>
+      <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold">Mis consultores</h1>
       <p class="mt-1 text-[0.92rem] text-muted">
         Encuentra expertos y solicita match para iniciar una colaboracion.
       </p>
@@ -21,24 +21,24 @@
   <div class="flex flex-wrap gap-2 border-b border-border">
     <button
       type="button"
-      (click)="activeTab.set('disponibles')"
-      class="border-b-2 px-3 py-2 text-[0.82rem] font-inter-bold"
-      [class.border-text]="activeTab() === 'disponibles'"
-      [class.border-transparent]="activeTab() !== 'disponibles'"
-      [class.text-muted]="activeTab() !== 'disponibles'"
-    >
-      Disponibles
-    </button>
-    <button
-      type="button"
       (click)="activeTab.set('matches')"
       class="border-b-2 px-3 py-2 text-[0.82rem] font-inter-bold"
       [class.border-text]="activeTab() === 'matches'"
       [class.border-transparent]="activeTab() !== 'matches'"
       [class.text-muted]="activeTab() !== 'matches'"
     >
-      Matches
+      Contactados
       <span class="ml-1 rounded-full bg-text/5 px-2 py-0.5 text-[0.68rem]">{{ matches().length }}</span>
+    </button>
+    <button
+      type="button"
+      (click)="activeTab.set('explorar')"
+      class="border-b-2 px-3 py-2 text-[0.82rem] font-inter-bold"
+      [class.border-text]="activeTab() === 'explorar'"
+      [class.border-transparent]="activeTab() !== 'explorar'"
+      [class.text-muted]="activeTab() !== 'explorar'"
+    >
+      Explorar
     </button>
   </div>
 
@@ -47,7 +47,7 @@
     <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
   </div>
   } @else {
-  @if (activeTab() === 'disponibles') {
+  @if (activeTab() === 'explorar') {
   <div class="grid grid-cols-1 gap-5 xl:grid-cols-3">
     @for (consultant of filteredConsultants(); track consultant.id) {
     @let match = matchForConsultant(consultant);
@@ -62,7 +62,7 @@
         </span>
       </div>
 
-      <h2 class="mt-6 text-[1.1rem] leading-tight font-inter-bold">{{ consultant.name }}</h2>
+      <h2 class="mt-6 text-xl leading-tight font-anton lowercase text-text">{{ consultant.name }}</h2>
       <p class="mt-2 min-h-12 text-[0.82rem] leading-6 text-muted">
         {{ consultant.bio || 'Especialista en consultoria para PYMES en crecimiento.' }}
       </p>
@@ -120,7 +120,7 @@
           <span class="inline-flex rounded-full px-2.5 py-1 text-[0.68rem] font-inter-bold" [class]="statusClass(match.status)">
             {{ statusLabel(match.status) }}
           </span>
-          <h2 class="mt-3 text-[1.05rem] font-inter-bold">{{ partnerName(match) }}</h2>
+          <h2 class="mt-3 text-xl font-anton lowercase text-text">{{ partnerName(match) }}</h2>
           <p class="mt-1 text-[0.78rem] text-muted">Origen: {{ match.source || 'marketplace' }}</p>
         </div>
         <div class="flex flex-wrap gap-2 md:justify-end">
@@ -132,7 +132,7 @@
     </article>
     } @empty {
     <div class="xl:col-span-2 rounded-xl border border-dashed border-border bg-surface py-14 text-center text-muted">
-      Aun no hay matches.
+      Aun no tienes consultores contactados.
     </div>
     }
   </div>

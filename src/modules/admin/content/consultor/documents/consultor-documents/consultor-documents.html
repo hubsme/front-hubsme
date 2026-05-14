@@ -1,7 +1,7 @@
 <div class="space-y-7 font-inter-regular text-text">
   <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
     <div>
-      <h1 class="text-[1.9rem] leading-tight font-inter-bold">Gestion Documental</h1>
+      <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold capitalize">mis documentos</h1>
       <p class="mt-1 text-[0.95rem] text-muted">Accede a tus actas de reuniones, acuerdos y documentos compartidos.</p>
     </div>
 
@@ -36,7 +36,7 @@
         <span class="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700 font-inter-semibold">Acta de Reunion</span>
       </div>
 
-      <h2 class="mt-7 text-lg font-inter-bold">{{ documentTitle(document) }}</h2>
+      <h2 class="mt-7 text-xl font-anton lowercase text-text">{{ documentTitle(document) }}</h2>
       <p class="mt-4 text-sm text-text/60">
         <i class="far fa-calendar mr-2"></i>{{ document.completedAt || document.startTime | date : 'd MMMM y' }}
       </p>

@@ -8,7 +8,7 @@ import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 
 type Consultant = ApiResponse<'consultant', 'findAll'>['data'][number];
 type Match = ApiResponse<'pymeConsultantMatch', 'pymeconsultantmatchFindAll'>['data'][number];
-type ViewTab = 'disponibles' | 'matches';
+type ViewTab = 'explorar' | 'matches';
 type ScheduleForm = {
   title: string;
   startTime: string;
@@ -30,7 +30,7 @@ export class PymeConsultants implements OnInit {
   matches = signal<Match[]>([]);
   scheduleMatch = signal<Match | null>(null);
   search = signal('');
-  activeTab = signal<ViewTab>('disponibles');
+  activeTab = signal<ViewTab>('matches');
   loading = signal(false);
   matchLoadingId = signal<number | null>(null);
   creatingMeeting = signal(false);
@@ -153,7 +153,7 @@ export class PymeConsultants implements OnInit {
   statusLabel(status: Match['status']) {
     const labels: Record<Match['status'], string> = {
       pendiente: 'Pendiente',
-      aceptado: 'Tu cliente',
+      aceptado: 'Contactado',
       rechazado: 'Rechazado',
       finalizado: 'Finalizado',
     };

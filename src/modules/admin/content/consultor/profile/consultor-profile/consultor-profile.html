@@ -1,7 +1,7 @@
 <div class="space-y-6 font-inter-regular text-text">
   <div class="flex flex-col gap-2">
-    <h1 class="text-3xl font-inter-bold">Perfil consultor</h1>
-    <p class="text-sm text-muted">Actualiza tu informacion publica, foto y video de presentacion.</p>
+    <h1 class="text-3xl font-plus-jakarta-sans font-bold capitalize">mi perfil</h1>
+    <p class="text-[0.82rem] text-muted">Actualiza tu informacion publica, foto y video de presentacion.</p>
   </div>
 
   @if (loading()) {
@@ -10,7 +10,8 @@
     </div>
   } @else {
     <section class="grid grid-cols-1 gap-6 xl:grid-cols-[22rem_1fr]">
-      <aside class="rounded-xl border border-border bg-background p-5">
+      <aside class="rounded-xl border border-border bg-surface p-6">
+        <h2 class="mb-5 block text-xs font-inter-semibold text-muted">Foto de perfil y video</h2>
         <div class="mx-auto h-36 w-36 overflow-hidden rounded-full border border-border bg-text/5">
           @if (form().photoUrl) {
             <img [src]="form().photoUrl" alt="Foto de perfil" class="h-full w-full object-cover" />
@@ -43,7 +44,8 @@
         }
       </aside>
 
-      <form (ngSubmit)="save()" class="rounded-xl border border-border bg-background p-5">
+      <form (ngSubmit)="save()" class="rounded-xl border border-border bg-surface p-6 lg:p-8">
+        <h2 class="mb-6 font-anton text-xl lowercase text-text">mi información personal</h2>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
             <span class="mb-2 block">Nombre publico</span>

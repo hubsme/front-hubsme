@@ -1,4 +1,6 @@
-import { CommonModule } from '@angular/common';
+import os
+
+ts_content = """import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiResponse } from 'api/backend.api';
@@ -209,8 +211,7 @@ export class PymeDiagnostics implements OnInit {
 
   progress() {
     const totalSteps = this.steps.length;
-    const pct = ((this.currentStepIndex() + 1) / totalSteps) * 100;
-    return `${pct.toFixed(2)}%`;
+    return `${((this.currentStepIndex() + 1) / totalSteps) * 100}%`;
   }
   
   isStepComplete() {
@@ -272,3 +273,117 @@ export class PymeDiagnostics implements OnInit {
       .finally(() => this.generating.set(false));
   }
 }
+"""
+
+html_content = """<div class="space-y-6 font-inter-regular text-text">
+  <header>
+    <div class="flex items-end justify-between gap-4">
+      <div>
+        <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold capitalize">Diagnóstico Rápido Integral</h1>
+        <p class="mt-1 text-[0.92rem] text-muted">Paso {{ currentStepIndex() + 1 }} de {{ steps.length }}: {{ steps[currentStepIndex()].title }}</p>
+      </div>
+      <p class="text-[0.82rem] text-text font-inter-semibold">{{ progress() }} completado</p>
+    </div>
+    <div class="mt-5 h-1 rounded-full bg-border">
+      <div class="h-1 rounded-full bg-text transition-all duration-300" [style.width]="progress()"></div>
+    </div>
+  </header>
+
+  <section class="rounded-2xl border border-border bg-surface p-5 lg:p-8 shadow-[0_16px_36px_rgba(15,23,42,0.08)]">
+    <div class="mb-8 border-b border-border pb-6">
+      <h2 class="text-xl font-anton lowercase text-text">{{ steps[currentStepIndex()].title }}</h2>
+      <p class="mt-1 text-[0.82rem] text-muted">{{ steps[currentStepIndex()].description }}</p>
+    </div>
+
+    <div class="space-y-8">
+      @for (question of steps[currentStepIndex()].questions; track question.id) {
+        <div>
+          <h3 class="text-[0.9rem] font-inter-semibold mb-4">{{ question.text }}</h3>
+          <div class="grid grid-cols-1 gap-2">
+            @for (option of question.options; track option) {
+              <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-slate-50"
+                     [class.bg-slate-50]="responses()[question.id] === option"
+                     [class.border-primary]="responses()[question.id] === option">
+                <div class="relative flex h-5 w-5 items-center justify-center rounded-full border border-border"
+                     [class.border-primary]="responses()[question.id] === option">
+                  @if (responses()[question.id] === option) {
+                    <div class="h-2.5 w-2.5 rounded-full bg-primary"></div>
+                  }
+                </div>
+                <span class="text-[0.85rem]">{{ option }}</span>
+                <input type="radio" [name]="question.id" [value]="option" 
+                       (change)="setResponse(question.id, option)"
+                       class="hidden" />
+              </label>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="mt-10 border-t border-border pt-6">
+      <div class="flex items-center justify-between gap-3">
+        <button
+          type="button"
+          (click)="previousStep()"
+          [disabled]="currentStepIndex() === 0"
+          class="inline-flex h-10 items-center gap-2 rounded-xl px-4 text-[0.85rem] text-muted font-inter-semibold transition-colors hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-transparent"
+        >
+          <i class="fas fa-arrow-left text-xs"></i>
+          Anterior
+        </button>
+        <button
+          type="button"
+          (click)="nextStep()"
+          [disabled]="generating()"
+          class="inline-flex h-10 min-w-40 items-center justify-center gap-2 rounded-xl bg-text px-6 text-[0.85rem] text-background font-inter-bold transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          @if (generating()) {
+          <i class="fas fa-spinner fa-spin text-xs"></i>Analizando...
+          } @else if (currentStepIndex() === steps.length - 1) {
+          Generar diagnóstico <i class="fas fa-arrow-right text-xs"></i>
+          } @else {
+          Siguiente <i class="fas fa-arrow-right text-xs"></i>
+          }
+        </button>
+      </div>
+    </div>
+  </section>
+
+  @if (latest()) {
+  <section class="rounded-2xl border border-success/20 bg-success/5 p-6 mt-8">
+    <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+      <div class="flex-1">
+        <h2 class="text-xl font-anton lowercase text-text">Resultado del Diagnóstico</h2>
+        <p class="mt-3 text-[0.88rem] leading-relaxed text-slate-700">{{ latest()?.result?.resumenEjecutivo }}</p>
+        
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          @for (area of latest()?.result?.areasEvaluadas; track area.area) {
+            <div class="rounded-xl border border-success/20 bg-white p-4">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[0.8rem] font-inter-bold uppercase tracking-wide text-text">{{ area.area }}</span>
+                <span class="text-xs font-inter-semibold text-muted">{{ area.puntaje }}/100</span>
+              </div>
+              <p class="text-[0.8rem] text-slate-600">{{ area.hallazgo }}</p>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="rounded-2xl bg-text px-8 py-6 text-center text-background w-full lg:w-auto shrink-0">
+        <p class="text-[0.7rem] uppercase tracking-widest opacity-80 mb-1">Nivel Hubsme</p>
+        <p class="text-5xl font-inter-bold">{{ latest()?.score }}</p>
+        <p class="text-[0.7rem] uppercase tracking-widest opacity-80 mt-2">Puntaje Total</p>
+      </div>
+    </div>
+  </section>
+  }
+</div>
+"""
+
+with open('src/modules/admin/content/pyme/diagnostics/pyme-diagnostics/pyme-diagnostics.ts', 'w') as f:
+    f.write(ts_content)
+
+with open('src/modules/admin/content/pyme/diagnostics/pyme-diagnostics/pyme-diagnostics.html', 'w') as f:
+    f.write(html_content)
+
+print("Files rewritten successfully.")

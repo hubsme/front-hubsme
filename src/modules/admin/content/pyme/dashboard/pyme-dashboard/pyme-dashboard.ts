@@ -105,9 +105,7 @@ export class PymeDashboard implements OnInit {
   userName = computed(() => this.sessionService.session()?.user.name ?? 'Hubsme');
   isConsultant = computed(() => this.role() === 'consultor');
 
-  headerTitle = computed(() =>
-    this.isConsultant() ? 'Panel de Control: Consultor' : `Bienvenido, ${this.userName()}`,
-  );
+  headerTitle = computed(() => 'Panel General');
 
   headerDescription = computed(() =>
     this.isConsultant()

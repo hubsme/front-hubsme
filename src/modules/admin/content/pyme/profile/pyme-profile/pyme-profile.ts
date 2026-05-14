@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Api, ApiBody, ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
@@ -31,6 +31,16 @@ export class PymeProfile implements OnInit {
   saving = signal(false);
   uploadingLogo = signal(false);
   pyme = signal<PymeProfileData | null>(null);
+
+  lastUpdatedText = computed(() => {
+    const p = this.pyme() as any;
+    if (!p || !p.updatedAt) return '';
+    const date = new Date(p.updatedAt);
+    const now = new Date();
+    const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+    const timeStr = date.toLocaleTimeString('es-PE', { hour: 'numeric', minute: '2-digit', hour12: true });
+    return isToday ? `Hoy, ${timeStr}` : `${date.toLocaleDateString('es-PE')}, ${timeStr}`;
+  });
 
   form = signal<PymeForm>({
     name: '',

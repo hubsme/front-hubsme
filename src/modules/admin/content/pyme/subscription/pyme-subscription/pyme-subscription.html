@@ -1,6 +1,6 @@
 <div class="space-y-6">
   <div class="text-center max-w-2xl mx-auto">
-    <h1 class="text-3xl font-inter-bold text-text">Suscripcion</h1>
+    <h1 class="text-3xl font-plus-jakarta-sans font-bold capitalize text-text">Suscripcion</h1>
     <p class="text-sm text-text/60 mt-2">Planes para escalar tu cartera de consultoria dentro de Hubsme.</p>
   </div>
 
@@ -10,7 +10,7 @@
   <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
     @for (plan of plans(); track plan.id) {
     <article
-      class="rounded-xl border p-5 bg-background flex flex-col"
+      class="rounded-xl border p-5 bg-surface flex flex-col"
       [class.border-primary]="selectedPlan() === plan.id"
       [class.shadow-lg]="selectedPlan() === plan.id"
       [class.border-text\/10]="selectedPlan() !== plan.id"

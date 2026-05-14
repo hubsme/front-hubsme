@@ -1,7 +1,7 @@
 <div class="space-y-7 font-inter-regular text-text">
   <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
     <div>
-      <h1 class="text-[1.9rem] leading-tight font-inter-bold">Mis Clientes</h1>
+      <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold capitalize">Mis Clientes</h1>
       <p class="mt-1 text-[0.95rem] text-muted">Gestiona solicitudes de match y PYMEs aceptadas.</p>
     </div>
 
@@ -19,6 +19,17 @@
   <div class="flex flex-wrap gap-2 border-b border-border">
     <button
       type="button"
+      (click)="activeFilter.set('contactados')"
+      class="border-b-2 px-3 py-2 text-[0.82rem] font-inter-bold"
+      [class.border-text]="activeFilter() === 'contactados'"
+      [class.border-transparent]="activeFilter() !== 'contactados'"
+      [class.text-muted]="activeFilter() !== 'contactados'"
+    >
+      Contactados
+      <span class="ml-1 rounded-full bg-text/5 px-2 py-0.5 text-[0.68rem]">{{ acceptedMatches().length }}</span>
+    </button>
+    <button
+      type="button"
       (click)="activeFilter.set('solicitudes')"
       class="border-b-2 px-3 py-2 text-[0.82rem] font-inter-bold"
       [class.border-text]="activeFilter() === 'solicitudes'"
@@ -27,17 +38,6 @@
     >
       Solicitudes
       <span class="ml-1 rounded-full bg-text/5 px-2 py-0.5 text-[0.68rem]">{{ pendingMatches().length }}</span>
-    </button>
-    <button
-      type="button"
-      (click)="activeFilter.set('activos')"
-      class="border-b-2 px-3 py-2 text-[0.82rem] font-inter-bold"
-      [class.border-text]="activeFilter() === 'activos'"
-      [class.border-transparent]="activeFilter() !== 'activos'"
-      [class.text-muted]="activeFilter() !== 'activos'"
-    >
-      Clientes activos
-      <span class="ml-1 rounded-full bg-text/5 px-2 py-0.5 text-[0.68rem]">{{ acceptedMatches().length }}</span>
     </button>
   </div>
 
@@ -59,7 +59,7 @@
       </div>
 
       <div class="mt-7">
-        <h2 class="text-lg font-inter-bold">{{ clientName(match) }}</h2>
+        <h2 class="text-xl font-anton lowercase text-text">{{ clientName(match) }}</h2>
         <p class="mt-1 text-sm text-muted">Origen: {{ match.source || 'marketplace' }}</p>
       </div>
 
@@ -101,7 +101,7 @@
       @if (activeFilter() === 'solicitudes') {
       No tienes solicitudes pendientes.
       } @else {
-      No tienes clientes activos todavía.
+      No tienes clientes contactados todavía.
       }
     </div>
     }

@@ -1,7 +1,7 @@
 <div class="space-y-6">
   <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
-      <h1 class="text-2xl font-inter-bold text-text">Diagnosticos</h1>
+      <h1 class="text-3xl font-plus-jakarta-sans font-bold capitalize text-text">Diagnosticos</h1>
       <p class="text-sm text-text/60 mt-1">Evaluacion estrategica de PYMEs y recomendaciones accionables.</p>
     </div>
     <button type="button" (click)="showCreate.set(true)" class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm text-white font-inter-semibold shadow-sm">
@@ -66,7 +66,7 @@
   <section class="rounded-xl border border-primary/30 p-5 bg-primary/5">
     <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
       <div>
-        <h2 class="font-inter-bold text-xl">Resultado reciente</h2>
+        <h2 class="font-anton lowercase text-xl text-text">Resultado reciente</h2>
         <p class="text-sm text-text/70 mt-2">{{ latest()?.result?.resumenEjecutivo }}</p>
       </div>
       <div class="rounded-xl bg-primary text-background px-6 py-4 text-center">
@@ -76,7 +76,7 @@
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-5">
       @for (area of latest()?.result?.areasEvaluadas ?? []; track area.area) {
-      <div class="rounded-lg bg-background border border-text/10 p-4">
+      <div class="rounded-lg bg-surface border border-text/10 p-4">
         <div class="flex justify-between text-sm font-inter-bold">
           <span>{{ area.area }}</span>
           <span>{{ area.puntaje }}/100</span>
@@ -90,7 +90,7 @@
 
   <section class="rounded-xl border border-text/10 bg-background overflow-hidden">
     <div class="p-4 border-b border-text/10 flex items-center justify-between">
-      <h2 class="font-inter-bold">Historial</h2>
+      <h2 class="font-anton lowercase text-text text-xl">Historial</h2>
     </div>
     @if (loading()) {
     <div class="py-12 text-center text-text/50"><i class="fas fa-spinner fa-spin text-2xl"></i></div>

@@ -60,6 +60,16 @@ export class Navbar {
     this.isDropdownOpen.set(false);
   }
 
+  goToProfile() {
+    const role = this.userRole();
+    if (role === 'pyme') {
+      this.router.navigate(['/pyme/profile']);
+    } else if (role === 'consultor') {
+      this.router.navigate(['/consultor/profile']);
+    }
+    this.isDropdownOpen.set(false);
+  }
+
   goToLanding(fragment?: string) {
     window.location.href = fragment ? `/#${fragment}` : '/';
   }

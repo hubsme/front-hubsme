@@ -15,7 +15,7 @@
       <button (click)="load()" class="px-4 py-2 rounded-lg bg-primary text-background font-inter-semibold">
         Buscar
       </button>
-      <button type="button" (click)="showCreate.set(true)" class="whitespace-nowrap rounded-lg bg-secondary px-4 py-2 text-sm text-white font-inter-bold">
+      <button type="button" (click)="showCreate.set(true)" class="whitespace-nowrap rounded-lg bg-secondary px-4 py-2 text-sm text-fixed-background-50 font-inter-bold">
         Nuevo consultor
       </button>
     </div>
@@ -34,27 +34,27 @@
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
           <span>Nombre</span>
-          <input [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
           <span>Email</span>
-          <input [ngModel]="form().email" (ngModelChange)="updateForm('email', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input [ngModel]="form().email" (ngModelChange)="updateForm('email', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
           <span>Precio por hora</span>
-          <input type="number" [ngModel]="form().pricePerHour" (ngModelChange)="updateForm('pricePerHour', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input type="number" [ngModel]="form().pricePerHour" (ngModelChange)="updateForm('pricePerHour', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
           <span>Especialidades</span>
-          <input [ngModel]="form().specialties" (ngModelChange)="updateForm('specialties', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input [ngModel]="form().specialties" (ngModelChange)="updateForm('specialties', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold md:col-span-2">
           <span>Sectores</span>
-          <input [ngModel]="form().sectors" (ngModelChange)="updateForm('sectors', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input [ngModel]="form().sectors" (ngModelChange)="updateForm('sectors', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold md:col-span-2">
           <span>Bio profesional</span>
-          <textarea [ngModel]="form().bio" (ngModelChange)="updateForm('bio', $event)" class="min-h-24 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm text-text outline-none focus:border-secondary"></textarea>
+          <textarea [ngModel]="form().bio" (ngModelChange)="updateForm('bio', $event)" class="min-h-24 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-secondary"></textarea>
         </label>
       </div>
     </div>

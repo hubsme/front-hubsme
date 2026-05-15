@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Api, ApiResponse } from 'api/backend.api';
 import { PATH, buildPath } from '@route/path.route';
 import { SessionService } from '@service/session.service';
+import { ThemeService } from '@service/theme.service';
 
 type LandingRole = 'pyme' | 'consultor';
 type LandingConsultant = ApiResponse<'publicConsultant', 'publicconsultantFindAll'>['data'][number];
@@ -18,6 +19,7 @@ export class Landing implements OnInit, AfterViewInit {
   private platformId = inject(PLATFORM_ID);
   private api = inject(Api);
   private session = inject(SessionService);
+  themeService = inject(ThemeService);
 
   @ViewChild('heroVideo') private heroVideo?: ElementRef<HTMLVideoElement>;
 

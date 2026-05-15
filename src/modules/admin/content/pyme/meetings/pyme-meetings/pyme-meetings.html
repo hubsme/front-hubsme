@@ -8,7 +8,7 @@
     <button
       type="button"
       (click)="showCreate.set(true)"
-      class="inline-flex h-9 items-center gap-2 self-start rounded-full bg-text px-4 text-[0.82rem] text-background font-inter-bold shadow-sm"
+      class="inline-flex h-9 items-center gap-2 self-start rounded-full bg-secondary px-4 text-[0.82rem] text-background font-inter-bold shadow-sm hover:bg-secondary/90 transition-colors"
     >
       <i class="fas fa-plus text-xs"></i>
       Nueva Reunión
@@ -92,7 +92,7 @@
               Cancelar
             </button>
             } @else if (meeting.status === 'confirmada') {
-            <button (click)="startFinalize(meeting.id)" class="inline-flex h-9 items-center gap-2 rounded-full bg-text px-4 text-[0.82rem] text-background font-inter-bold">
+            <button (click)="startFinalize(meeting.id)" class="inline-flex h-9 items-center gap-2 rounded-full bg-secondary px-4 text-[0.82rem] text-background font-inter-bold hover:bg-secondary/90 transition-colors">
               <i class="fas fa-circle-check text-xs"></i>
               Finalizar y Generar Acta
             </button>
@@ -117,7 +117,7 @@
         ></textarea>
         <div class="mt-3 flex justify-end gap-2">
           <button (click)="finalizingId.set(null)" class="h-9 rounded-xl border border-border px-4 text-[0.82rem]">Cancelar</button>
-          <button (click)="finalize()" class="h-9 rounded-xl bg-text px-4 text-[0.82rem] text-background font-inter-bold">Generar acta</button>
+          <button (click)="finalize()" class="h-9 rounded-xl bg-secondary px-4 text-[0.82rem] text-background font-inter-bold hover:bg-secondary/90 transition-colors">Generar acta</button>
         </div>
       </div>
       }

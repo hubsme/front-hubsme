@@ -69,7 +69,7 @@
           </label>
         </div>
         <div class="mt-6 flex justify-end">
-          <button type="submit" [disabled]="saving()" class="h-10 rounded-xl bg-primary px-5 text-sm text-background font-inter-bold disabled:opacity-50">
+          <button type="submit" [disabled]="saving()" class="h-10 rounded-xl bg-secondary px-5 text-sm text-background font-inter-bold hover:bg-secondary/90 transition-colors disabled:opacity-50">
             @if (saving()) {
               <i class="fas fa-spinner fa-spin mr-2"></i> Guardando...
             } @else {

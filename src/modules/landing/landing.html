@@ -1,21 +1,24 @@
-<div class="min-h-screen bg-slate-50 text-slate-900 font-inter-regular">
-  <header class="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur">
+<div class="min-h-screen bg-background-50 text-text font-plus-jakarta-sans">
+  <header class="sticky top-0 z-50 border-b border-border bg-surface/95 backdrop-blur">
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-5 lg:px-8">
-      <a href="#top" (click)="scrollToSection('top', $event)" class="flex items-center gap-3">
-        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-950 text-white">
-          <i class="fas fa-brain text-lg"></i>
-        </div>
-        <div class="text-3xl font-inter-bold text-slate-950">HUBSME</div>
+      <a href="#top" (click)="scrollToSection('top', $event)" class="flex items-center">
+        <img
+          src="/avif/logo_completo.avif"
+          alt="HUBSME"
+          class="h-10 w-auto"
+          [class.brightness-0]="themeService.theme() === 'dark'"
+          [class.invert]="themeService.theme() === 'dark'"
+        />
       </a>
 
-      <nav class="hidden items-center gap-8 text-sm font-inter-semibold text-slate-700 md:flex">
-        <a href="#quienes-somos" (click)="scrollToSection('quienes-somos', $event)" class="transition hover:text-slate-950">
+      <nav class="hidden items-center gap-8 text-sm font-inter-semibold text-text-700 md:flex">
+        <a href="#quienes-somos" (click)="scrollToSection('quienes-somos', $event)" class="transition hover:text-text">
           Quienes Somos
         </a>
-        <a href="#servicios" (click)="scrollToSection('servicios', $event)" class="transition hover:text-slate-950">
+        <a href="#servicios" (click)="scrollToSection('servicios', $event)" class="transition hover:text-text">
           Servicios
         </a>
-        <a href="#consultores" (click)="scrollToSection('consultores', $event)" class="transition hover:text-slate-950">
+        <a href="#consultores" (click)="scrollToSection('consultores', $event)" class="transition hover:text-text">
           Consultores
         </a>
       </nav>
@@ -23,7 +26,7 @@
       <button
         type="button"
         (click)="goToLogin()"
-        class="rounded-full bg-slate-950 px-6 py-3 text-sm font-inter-bold text-white transition hover:bg-slate-800"
+        class="rounded-full bg-primary px-6 py-3 text-sm font-inter-bold text-fixed-background-50 transition hover:bg-primary-600"
       >
         Login
       </button>
@@ -31,7 +34,7 @@
   </header>
 
   <main id="top">
-    <section class="relative isolate overflow-hidden bg-slate-950">
+    <section class="relative isolate overflow-hidden bg-primary-950">
       <video
         #heroVideo
         class="absolute inset-0 -z-20 h-full w-full object-cover"
@@ -45,18 +48,18 @@
         (loadedmetadata)="syncHeroVideo()"
         (ended)="restartHeroVideo()"
       ></video>
-      <div class="absolute inset-0 -z-10 bg-slate-950/58"></div>
-      <div class="absolute inset-0 -z-10 bg-gradient-to-r from-slate-950/60 via-slate-950/25 to-slate-950/62"></div>
+      <div class="absolute inset-0 -z-10 bg-primary-950/40"></div>
+      <div class="absolute inset-0 -z-10 bg-gradient-to-r from-primary-950/50 via-primary-950/10 to-primary-950/50"></div>
 
       <div class="mx-auto grid min-h-[calc(100vh-88px)] max-w-7xl items-end px-6 py-16 lg:px-8">
-        <div class="max-w-3xl pb-8 text-white lg:pb-16">
-          <div class="mb-5 inline-flex rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm font-inter-medium">
+        <div class="max-w-3xl pb-8 text-fixed-background-50 lg:pb-16">
+          <div class="mb-5 inline-flex rounded-full border border-surface/25 bg-surface/10 px-4 py-2 text-sm font-inter-medium">
             Plataforma de diagnostico y consultoria para PYMES
           </div>
           <h1 class="max-w-2xl text-5xl font-inter-bold leading-none sm:text-6xl lg:text-7xl">
             Conectamos tu PYME con expertos.
           </h1>
-          <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-100 sm:text-xl">
+          <p class="mt-6 max-w-2xl text-lg leading-8 text-text-100 sm:text-xl">
             La primera plataforma que utiliza IA para diagnosticar tu negocio y conectarte con los
             mejores consultores del mercado.
           </p>
@@ -65,14 +68,14 @@
             <button
               type="button"
               (click)="startFreeDiagnostic()"
-              class="rounded-full bg-slate-950 px-7 py-4 text-base font-inter-bold text-white transition hover:bg-slate-800"
+              class="rounded-full bg-primary px-7 py-4 text-base font-inter-bold text-fixed-background-50 transition hover:bg-primary-600"
             >
               Empezar Diagnostico Gratis
             </button>
             <button
               type="button"
               (click)="goToSignUp('consultor')"
-              class="rounded-full border border-white/35 bg-white/18 px-7 py-4 text-base font-inter-bold text-white backdrop-blur transition hover:bg-white/25"
+              class="rounded-full border border-surface/35 bg-surface/18 px-7 py-4 text-base font-inter-bold text-fixed-background-50 backdrop-blur transition hover:bg-surface/25"
             >
               Unirse como Consultor
             </button>
@@ -80,9 +83,9 @@
 
           <div class="mt-12 grid gap-4 sm:grid-cols-3">
             @for (stat of stats; track stat.label) {
-            <article class="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur">
+            <article class="rounded-2xl border border-surface/15 bg-surface/10 p-5 backdrop-blur">
               <div class="text-3xl font-inter-bold">{{ stat.value }}</div>
-              <div class="mt-2 text-sm text-slate-100">{{ stat.label }}</div>
+              <div class="mt-2 text-sm text-text-100">{{ stat.label }}</div>
             </article>
             }
           </div>
@@ -90,9 +93,9 @@
       </div>
     </section>
 
-    <section id="quienes-somos" class="bg-white py-24">
+    <section id="quienes-somos" class="bg-surface py-24">
       <div class="mx-auto grid max-w-7xl gap-14 px-6 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:px-8">
-        <div class="overflow-hidden rounded-[32px] shadow-2xl shadow-slate-200/70">
+        <div class="overflow-hidden rounded-[32px] shadow-2xl shadow-text-200/70">
           <img
             src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80"
             alt="Equipo colaborando en una mesa de trabajo"
@@ -101,38 +104,38 @@
         </div>
 
         <div>
-          <div class="inline-flex rounded-full bg-slate-100 px-4 py-2 text-sm font-inter-semibold text-slate-600">
+          <div class="inline-flex rounded-full bg-primary-100 px-4 py-2 text-sm font-inter-semibold text-primary-700">
             Nuestra Historia
           </div>
-          <h2 class="mt-6 max-w-xl text-4xl font-inter-bold leading-tight text-slate-950 sm:text-5xl">
+          <h2 class="mt-6 max-w-xl text-3xl font-inter-bold leading-tight text-text sm:text-4xl">
             Transformando el futuro de las PYMES con IA
           </h2>
-          <p class="mt-6 text-lg leading-8 text-slate-600">
+          <p class="mt-5 text-base leading-relaxed text-text-600">
             HUBSME nacio para democratizar el acceso a consultoria de alto nivel para pequenas y
             medianas empresas. Combinamos diagnostico asistido por IA con una red de especialistas
             validados para convertir problemas difusos en planes accionables.
           </p>
 
           <div class="mt-8 space-y-5">
-            <article class="flex gap-4 rounded-2xl bg-slate-50 p-5">
-              <div class="mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-slate-950 shadow-sm">
+            <article class="flex items-center gap-4 rounded-2xl bg-background-50 p-5">
+              <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-fixed-background-50 shadow-md shadow-primary-500/20">
                 <i class="fas fa-bolt text-lg"></i>
               </div>
               <div>
-                <h3 class="text-xl font-inter-bold text-slate-950">Nuestra Mision</h3>
-                <p class="mt-2 text-slate-600">
+                <h3 class="text-lg font-inter-bold text-text">Nuestra Mision</h3>
+                <p class="mt-1.5 text-sm text-text-600">
                   Empoderar empresarios con diagnosticos precisos y conexiones estrategicas con
                   consultores validados.
                 </p>
               </div>
             </article>
-            <article class="flex gap-4 rounded-2xl bg-slate-50 p-5">
-              <div class="mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-slate-950 shadow-sm">
-                <i class="far fa-shield text-lg"></i>
+            <article class="flex items-center gap-4 rounded-2xl bg-background-50 p-5">
+              <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-fixed-background-50 shadow-md shadow-primary-500/20">
+                <i class="fas fa-eye text-lg"></i>
               </div>
               <div>
-                <h3 class="text-xl font-inter-bold text-slate-950">Nuestra Vision</h3>
-                <p class="mt-2 text-slate-600">
+                <h3 class="text-lg font-inter-bold text-text">Nuestra Vision</h3>
+                <p class="mt-1.5 text-sm text-text-600">
                   Ser el ecosistema digital lider en Latinoamerica para la optimizacion y
                   crecimiento sostenible de negocios emergentes.
                 </p>
@@ -143,92 +146,135 @@
       </div>
     </section>
 
-    <section id="consultores" class="bg-slate-100 py-24">
+    <section id="consultores" class="bg-background-50 py-24">
       <div class="mx-auto max-w-7xl px-6 lg:px-8">
         <div class="mx-auto max-w-3xl text-center">
-          <h2 class="text-4xl font-inter-bold text-slate-950 sm:text-5xl">
+          <h2 class="text-4xl font-inter-bold text-text sm:text-5xl">
             Nuestros Consultores Estrella
           </h2>
-          <p class="mt-4 text-lg text-slate-600">
+          <p class="mt-4 text-lg text-text-600">
             Expertos validados listos para llevar tu empresa al siguiente nivel.
           </p>
         </div>
 
-        <div class="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div class="relative mt-16 overflow-hidden py-4 before:absolute before:left-0 before:top-0 before:z-10 before:h-full before:w-12 before:bg-gradient-to-r before:from-background-50 before:to-transparent after:absolute after:right-0 after:top-0 after:z-10 after:h-full after:w-12 after:bg-gradient-to-l after:from-background-50 after:to-transparent lg:before:w-32 lg:after:w-32">
           @if (consultantsLoading()) {
-            @for (item of [1, 2, 3, 4]; track item) {
-              <article class="h-80 animate-pulse rounded-[28px] border border-slate-200 bg-white p-8 shadow-sm">
-                <div class="mx-auto h-24 w-24 rounded-full bg-slate-100"></div>
-                <div class="mx-auto mt-8 h-6 w-36 rounded-full bg-slate-100"></div>
-                <div class="mx-auto mt-4 h-4 w-28 rounded-full bg-slate-100"></div>
-                <div class="mx-auto mt-8 h-10 w-full rounded-full bg-slate-100"></div>
-              </article>
-            }
+            <div class="flex gap-6">
+              @for (item of [1, 2, 3, 4, 5]; track item) {
+                <article class="flex w-[280px] shrink-0 animate-pulse flex-col items-center rounded-3xl border border-border bg-surface p-6 shadow-sm">
+                  <div class="mx-auto h-24 w-24 rounded-full bg-background-100 ring-4 ring-background-50 ring-offset-4 ring-offset-surface"></div>
+                  <div class="mt-6 h-5 w-32 rounded-full bg-background-100"></div>
+                  <div class="mt-2 h-6 w-24 rounded-full bg-background-100"></div>
+                  <div class="mt-5 h-4 w-full rounded-full bg-background-100"></div>
+                  <div class="mt-2 h-4 w-4/5 rounded-full bg-background-100"></div>
+                  <div class="mt-6 h-10 w-full rounded-xl bg-background-100"></div>
+                </article>
+              }
+            </div>
           } @else {
-            @for (consultant of consultants(); track consultant.id) {
-              <article class="group rounded-[28px] border border-slate-200 bg-white p-8 text-center shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/70">
-                <div class="relative mx-auto h-28 w-28 overflow-hidden rounded-full border-4 border-slate-100 bg-slate-100">
-                  <img [src]="consultantPhoto(consultant)" [alt]="consultant.name" class="h-full w-full object-cover transition group-hover:opacity-0" />
-                  @if (consultant.videoUrl) {
-                    <video
-                      [src]="consultant.videoUrl"
-                      class="absolute inset-0 h-full w-full object-cover opacity-0 transition group-hover:opacity-100"
-                      autoplay
-                      muted
-                      loop
-                      playsinline
-                      preload="metadata"
-                    ></video>
-                    <div class="absolute inset-x-0 bottom-0 bg-slate-950/70 py-1 text-[0.65rem] font-inter-bold text-white opacity-0 transition group-hover:opacity-100">
-                      Video perfil
-                    </div>
-                  }
-                </div>
-                <h3 class="mt-6 text-2xl font-inter-bold text-slate-950">{{ consultant.name }}</h3>
-                <p class="mt-2 text-base text-slate-600">{{ consultantSpecialty(consultant) }}</p>
-                <p class="mt-3 line-clamp-3 min-h-16 text-sm leading-5 text-slate-500">
-                  {{ consultant.bio || 'Especialista validado para acompanar el crecimiento de tu PYME.' }}
-                </p>
-                <div class="mt-5 text-lg font-inter-bold text-amber-500">★ {{ consultant.rating }}</div>
-                <button
-                  type="button"
-                  class="mt-7 w-full rounded-full border border-slate-200 px-5 py-3 text-sm font-inter-bold text-slate-900 transition hover:border-slate-950"
-                >
-                  Ver Perfil
-                </button>
-              </article>
-            } @empty {
-              <div class="col-span-full rounded-[28px] border border-slate-200 bg-white p-10 text-center text-slate-500">
-                Aun no hay consultores publicados.
-              </div>
-            }
+            <div class="flex w-max gap-6 animate-marquee">
+              <!-- Loop 1 -->
+              @for (consultant of consultants(); track consultant.id + '-1') {
+                <article class="group flex w-[280px] shrink-0 flex-col items-center rounded-3xl border border-border bg-surface p-6 text-center shadow-sm transition-all hover:-translate-y-2 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/10">
+                  <div class="relative mx-auto h-24 w-24 overflow-hidden rounded-full bg-background-50 ring-4 ring-primary-50 ring-offset-4 ring-offset-surface transition-all group-hover:ring-primary-100">
+                    <img [src]="consultantPhoto(consultant)" [alt]="consultant.name" class="h-full w-full object-cover transition group-hover:scale-110 group-hover:opacity-0" />
+                    @if (consultant.videoUrl) {
+                      <video
+                        [src]="consultant.videoUrl"
+                        class="absolute inset-0 h-full w-full object-cover opacity-0 transition group-hover:opacity-100"
+                        autoplay
+                        muted
+                        loop
+                        playsinline
+                        preload="metadata"
+                      ></video>
+                      <div class="absolute inset-x-0 bottom-0 bg-text/70 py-1 text-[0.65rem] font-inter-bold text-fixed-background-50 opacity-0 transition group-hover:opacity-100">
+                        Video perfil
+                      </div>
+                    }
+                  </div>
+                  <h3 class="mt-6 text-xl font-inter-bold text-text">{{ consultant.name }}</h3>
+                  <div class="mt-2 inline-flex rounded-full bg-primary-50 px-3 py-1 text-xs font-inter-bold text-primary-600">{{ consultantSpecialty(consultant) }}</div>
+                  <p class="mt-4 line-clamp-3 min-h-[3.75rem] text-sm leading-relaxed text-text-500">
+                    {{ consultant.bio || 'Especialista validado para acompanar el crecimiento de tu PYME.' }}
+                  </p>
+                  <div class="mt-4 flex items-center gap-1.5 text-sm font-inter-bold text-text-700">
+                    <i class="fas fa-star text-warning"></i> 
+                    <span>{{ consultant.rating }}</span>
+                  </div>
+                  <button
+                    type="button"
+                    class="mt-6 w-full rounded-xl bg-primary px-5 py-2.5 text-sm font-inter-bold text-fixed-background-50 transition hover:bg-primary-600 hover:shadow-md hover:shadow-primary-500/20"
+                  >
+                    Ver Perfil
+                  </button>
+                </article>
+              }
+              <!-- Loop 2 -->
+              @for (consultant of consultants(); track consultant.id + '-2') {
+                <article class="group flex w-[280px] shrink-0 flex-col items-center rounded-3xl border border-border bg-surface p-6 text-center shadow-sm transition-all hover:-translate-y-2 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/10">
+                  <div class="relative mx-auto h-24 w-24 overflow-hidden rounded-full bg-background-50 ring-4 ring-primary-50 ring-offset-4 ring-offset-surface transition-all group-hover:ring-primary-100">
+                    <img [src]="consultantPhoto(consultant)" [alt]="consultant.name" class="h-full w-full object-cover transition group-hover:scale-110 group-hover:opacity-0" />
+                    @if (consultant.videoUrl) {
+                      <video
+                        [src]="consultant.videoUrl"
+                        class="absolute inset-0 h-full w-full object-cover opacity-0 transition group-hover:opacity-100"
+                        autoplay
+                        muted
+                        loop
+                        playsinline
+                        preload="metadata"
+                      ></video>
+                      <div class="absolute inset-x-0 bottom-0 bg-text/70 py-1 text-[0.65rem] font-inter-bold text-fixed-background-50 opacity-0 transition group-hover:opacity-100">
+                        Video perfil
+                      </div>
+                    }
+                  </div>
+                  <h3 class="mt-6 text-xl font-inter-bold text-text">{{ consultant.name }}</h3>
+                  <div class="mt-2 inline-flex rounded-full bg-primary-50 px-3 py-1 text-xs font-inter-bold text-primary-600">{{ consultantSpecialty(consultant) }}</div>
+                  <p class="mt-4 line-clamp-3 min-h-[3.75rem] text-sm leading-relaxed text-text-500">
+                    {{ consultant.bio || 'Especialista validado para acompanar el crecimiento de tu PYME.' }}
+                  </p>
+                  <div class="mt-4 flex items-center gap-1.5 text-sm font-inter-bold text-text-700">
+                    <i class="fas fa-star text-warning"></i> 
+                    <span>{{ consultant.rating }}</span>
+                  </div>
+                  <button
+                    type="button"
+                    class="mt-6 w-full rounded-xl bg-primary px-5 py-2.5 text-sm font-inter-bold text-fixed-background-50 transition hover:bg-primary-600 hover:shadow-md hover:shadow-primary-500/20"
+                  >
+                    Ver Perfil
+                  </button>
+                </article>
+              }
+            </div>
           }
         </div>
       </div>
     </section>
 
-    <section id="servicios" class="bg-white py-24">
+    <section id="servicios" class="bg-surface py-24">
       <div class="mx-auto grid max-w-7xl gap-14 px-6 lg:grid-cols-[1fr_0.95fr] lg:items-center lg:px-8">
         <div>
-          <h2 class="max-w-2xl text-4xl font-inter-bold leading-tight text-slate-950 sm:text-5xl">
+          <h2 class="max-w-2xl text-3xl font-inter-bold leading-tight text-text sm:text-4xl">
             Consultoria Especializada para cada area de tu negocio
           </h2>
-          <p class="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
+          <p class="mt-5 max-w-2xl text-base leading-relaxed text-text-600">
             No importa el desafio, tenemos una red de expertos y herramientas de IA disenadas para
             resolver problemas complejos en tiempo record.
           </p>
 
           <div class="mt-10 grid gap-5 md:grid-cols-2">
             @for (service of services; track service.title) {
-            <article class="rounded-2xl bg-slate-50 p-5">
-              <h3 class="text-xl font-inter-bold text-slate-950">{{ service.title }}</h3>
-              <p class="mt-3 text-slate-600">{{ service.description }}</p>
+            <article class="rounded-2xl bg-primary-50 border border-primary-100 p-5 transition hover:shadow-md hover:shadow-primary-500/10">
+              <h3 class="text-lg font-inter-bold text-text">{{ service.title }}</h3>
+              <p class="mt-1.5 text-sm text-text-600">{{ service.description }}</p>
             </article>
             }
           </div>
         </div>
 
-        <div class="overflow-hidden rounded-[32px] shadow-2xl shadow-slate-200/70">
+        <div class="overflow-hidden rounded-[32px] shadow-2xl shadow-text-200/70">
           <img
             src="https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1200&q=80"
             alt="Sesion de consultoria en equipo"
@@ -239,19 +285,62 @@
     </section>
   </main>
 
-  <footer class="bg-slate-950 py-8 text-white">
-    <div class="mx-auto flex max-w-7xl flex-col gap-5 px-6 text-sm text-slate-300 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-      <div class="flex items-center gap-3 font-inter-bold text-white">
-        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white">
-          <i class="fas fa-brain text-base"></i>
+  <footer class="bg-primary-950 pt-20 pb-10 text-fixed-background-50">
+    <div class="mx-auto max-w-7xl px-6 lg:px-8">
+      <div class="grid grid-cols-1 gap-12 lg:grid-cols-4 lg:gap-8">
+        <!-- Logo y Descripcion -->
+        <div class="lg:col-span-1">
+          <img src="/avif/logo_completo.avif" alt="HUBSME" class="h-10 w-auto brightness-0 invert" />
+          <p class="mt-6 text-sm leading-relaxed text-text-400">
+            Democratizando el acceso a consultoría de alto nivel con IA para el crecimiento sostenible de las PYMES en Latinoamérica.
+          </p>
+          <div class="mt-8 flex gap-5">
+            <a href="#" class="text-text-400 hover:text-fixed-background-50 transition-colors"><i class="fab fa-linkedin text-xl"></i></a>
+            <a href="#" class="text-text-400 hover:text-fixed-background-50 transition-colors"><i class="fab fa-instagram text-xl"></i></a>
+            <a href="#" class="text-text-400 hover:text-fixed-background-50 transition-colors"><i class="fab fa-x-twitter text-xl"></i></a>
+            <a href="#" class="text-text-400 hover:text-fixed-background-50 transition-colors"><i class="fab fa-youtube text-xl"></i></a>
+          </div>
         </div>
-        <span>HUBSME</span>
+
+        <!-- Oficinas -->
+        <div>
+          <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text-300">Oficina Principal</h3>
+          <p class="mt-4 text-sm text-text-400">Av. Micoela Bastidas Mz U Lt 12, Chorrillos<br>Lima, Perú</p>
+          
+          <h3 class="mt-8 text-xs font-inter-bold uppercase tracking-wider text-text-300">Próxima Apertura</h3>
+          <p class="mt-4 text-sm text-text-400">Próxima apertura<br>Lima, Perú</p>
+        </div>
+
+        <!-- Informacion -->
+        <div>
+          <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text-300">Información Empresarial</h3>
+          <ul class="mt-4 space-y-3 text-sm text-text-400">
+            <li>RUC: 20655555555</li>
+            <li>Contacto: <a href="mailto:contacto@hubsme.pe" class="hover:text-fixed-background-50">contacto@hubsme.pe</a></li>
+            <li>T: +51 907 009 567</li>
+          </ul>
+        </div>
+
+        <!-- Enlaces Rapidos -->
+        <div>
+          <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text-300">Enlaces Rápidos</h3>
+          <ul class="mt-4 space-y-3 text-sm text-text-400">
+            <li><a href="#quienes-somos" (click)="scrollToSection('quienes-somos', $event)" class="hover:text-fixed-background-50 transition-colors">Quienes Somos</a></li>
+            <li><a href="#servicios" (click)="scrollToSection('servicios', $event)" class="hover:text-fixed-background-50 transition-colors">Servicios</a></li>
+            <li><a href="#consultores" (click)="scrollToSection('consultores', $event)" class="hover:text-fixed-background-50 transition-colors">Consultores</a></li>
+            <li><a href="#top" (click)="scrollToSection('top', $event)" class="hover:text-fixed-background-50 transition-colors">Inicio</a></li>
+          </ul>
+        </div>
       </div>
-      <div>© 2026 HUBSME. Todos los derechos reservados.</div>
-      <div class="flex gap-6">
-        <a href="#top" (click)="scrollToSection('top', $event)" class="transition hover:text-white">Privacidad</a>
-        <a href="#top" (click)="scrollToSection('top', $event)" class="transition hover:text-white">Terminos</a>
-        <a href="#top" (click)="scrollToSection('top', $event)" class="transition hover:text-white">Contacto</a>
+
+      <!-- Barra Inferior -->
+      <div class="mt-20 border-t border-surface/10 pt-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-text-500">
+          <span class="font-inter-bold text-text-300">HUBSME S.A.C.</span>
+          <span>© 2026 Todos los derechos reservados.</span>
+          <a href="#top" (click)="scrollToSection('top', $event)" class="hover:text-fixed-background-50 transition-colors">Privacidad</a>
+          <a href="#top" (click)="scrollToSection('top', $event)" class="hover:text-fixed-background-50 transition-colors">Configuración de Cookies</a>
+        </div>
       </div>
     </div>
   </footer>

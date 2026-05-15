@@ -4,7 +4,7 @@
       <h1 class="text-3xl font-plus-jakarta-sans font-bold capitalize text-text">Diagnosticos</h1>
       <p class="text-sm text-text/60 mt-1">Evaluacion estrategica de PYMEs y recomendaciones accionables.</p>
     </div>
-    <button type="button" (click)="showCreate.set(true)" class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm text-white font-inter-semibold shadow-sm">
+    <button type="button" (click)="showCreate.set(true)" class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm text-fixed-background-50 font-inter-semibold shadow-sm">
       <i class="fas fa-plus text-xs"></i>
       Nuevo diagnostico
     </button>
@@ -27,35 +27,35 @@
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
           <span>Sector</span>
-          <input [ngModel]="form().sector" (ngModelChange)="updateForm('sector', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input [ngModel]="form().sector" (ngModelChange)="updateForm('sector', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
           <span>Empleados</span>
-          <input type="number" [ngModel]="form().employees" (ngModelChange)="updateForm('employees', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input type="number" [ngModel]="form().employees" (ngModelChange)="updateForm('employees', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
           <span>Años operando</span>
-          <input type="number" [ngModel]="form().years" (ngModelChange)="updateForm('years', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input type="number" [ngModel]="form().years" (ngModelChange)="updateForm('years', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
           <span>Digitalizacion 1-10</span>
-          <input type="number" min="1" max="10" [ngModel]="form().techLevel" (ngModelChange)="updateForm('techLevel', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input type="number" min="1" max="10" [ngModel]="form().techLevel" (ngModelChange)="updateForm('techLevel', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold md:col-span-2">
           <span>Facturacion anual estimada</span>
-          <input [ngModel]="form().revenue" (ngModelChange)="updateForm('revenue', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input [ngModel]="form().revenue" (ngModelChange)="updateForm('revenue', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold md:col-span-2">
           <span>Principal desafio financiero u operativo</span>
-          <textarea [ngModel]="form().challenges" (ngModelChange)="updateForm('challenges', $event)" class="min-h-20 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm text-text outline-none focus:border-secondary"></textarea>
+          <textarea [ngModel]="form().challenges" (ngModelChange)="updateForm('challenges', $event)" class="min-h-20 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-secondary"></textarea>
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold md:col-span-2">
           <span>Cultura y equipo</span>
-          <textarea [ngModel]="form().culture" (ngModelChange)="updateForm('culture', $event)" class="min-h-20 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm text-text outline-none focus:border-secondary"></textarea>
+          <textarea [ngModel]="form().culture" (ngModelChange)="updateForm('culture', $event)" class="min-h-20 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-secondary"></textarea>
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold md:col-span-2">
           <span>Mercado y competidores</span>
-          <textarea [ngModel]="form().market" (ngModelChange)="updateForm('market', $event)" class="min-h-20 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm text-text outline-none focus:border-secondary"></textarea>
+          <textarea [ngModel]="form().market" (ngModelChange)="updateForm('market', $event)" class="min-h-20 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-secondary"></textarea>
         </label>
       </div>
     </div>

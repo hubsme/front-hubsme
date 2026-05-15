@@ -22,6 +22,7 @@ import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { SessionService } from '@service/session.service';
 import { ToastService } from '@service/toast.service';
+import { ThemeService } from '@service/theme.service';
 
 type DashboardSummary = ApiResponse<'dashboard', 'summary'>;
 type DashboardRole = 'admin' | 'pyme' | 'consultor';
@@ -95,6 +96,7 @@ export class ConsultorDashboard implements OnInit {
   private hubsme = inject(HubsmeService);
   private sessionService = inject(SessionService);
   private toastService = inject(ToastService);
+  private themeService = inject(ThemeService);
   private platformId = inject(PLATFORM_ID);
 
   summary = signal<DashboardSummary | null>(null);
@@ -112,6 +114,16 @@ export class ConsultorDashboard implements OnInit {
       ? 'Vista global de tu cartera de clientes y compromisos.'
       : 'Aqui tienes un resumen de tu actividad de consultoria.',
   );
+
+  isDark = computed(() => this.themeService.theme() === 'dark');
+
+  chartTheme = computed(() => ({
+    text: this.isDark() ? '#94a3b8' : '#6c7a93',
+    grid: this.isDark() ? '#334155' : '#eef2f7',
+    tooltip: (this.isDark() ? 'dark' : 'light') as 'dark' | 'light',
+    surface: this.isDark() ? '#111b30' : '#ffffff',
+    title: this.isDark() ? '#f1f5f9' : '#182033'
+  }));
 
   productivityLabel = computed(() => {
     const totalTasks = this.summary()?.stats.tasks ?? 0;
@@ -326,7 +338,7 @@ export class ConsultorDashboard implements OnInit {
       categories: this.workloadRows().map((row) => row.name),
       labels: {
         style: {
-          colors: '#6c7a93',
+          colors: this.chartTheme().text,
           fontSize: '11px',
           fontFamily: 'Inter Medium, sans-serif',
         },
@@ -337,19 +349,19 @@ export class ConsultorDashboard implements OnInit {
     yaxis: {
       labels: {
         style: {
-          colors: '#6c7a93',
+          colors: this.chartTheme().text,
           fontSize: '11px',
           fontFamily: 'Inter SemiBold, sans-serif',
         },
       },
     },
     grid: {
-      borderColor: '#eef2f7',
+      borderColor: this.chartTheme().grid,
       strokeDashArray: 4,
       xaxis: { lines: { show: false } },
     },
     tooltip: {
-      theme: 'light',
+      theme: this.chartTheme().tooltip,
       shared: false,
       intersect: true,
       followCursor: false,
@@ -359,7 +371,7 @@ export class ConsultorDashboard implements OnInit {
       position: 'top',
       horizontalAlign: 'right',
       fontSize: '12px',
-      labels: { colors: '#6c7a93' },
+      labels: { colors: this.chartTheme().text },
     },
     fill: { opacity: 1 },
     markers: { size: 0 },
@@ -392,7 +404,7 @@ export class ConsultorDashboard implements OnInit {
       categories: this.activitySeries().labels,
       labels: {
         style: {
-          colors: '#6c7a93',
+          colors: this.chartTheme().text,
           fontSize: '11px',
           fontFamily: 'Inter Medium, sans-serif',
         },
@@ -404,18 +416,18 @@ export class ConsultorDashboard implements OnInit {
       min: 0,
       labels: {
         style: {
-          colors: '#94a3b8',
+          colors: this.chartTheme().text,
           fontSize: '11px',
           fontFamily: 'Inter Medium, sans-serif',
         },
       },
     },
     grid: {
-      borderColor: '#eef2f7',
+      borderColor: this.chartTheme().grid,
       strokeDashArray: 4,
     },
     tooltip: {
-      theme: 'light',
+      theme: this.chartTheme().tooltip,
       shared: true,
       intersect: false,
     },
@@ -423,13 +435,13 @@ export class ConsultorDashboard implements OnInit {
       position: 'top',
       horizontalAlign: 'right',
       fontSize: '12px',
-      labels: { colors: '#6c7a93' },
+      labels: { colors: this.chartTheme().text },
     },
     plotOptions: {},
     fill: {
       type: 'gradient',
       gradient: {
-        shade: 'light',
+        shade: this.isDark() ? 'dark' : 'light',
         type: 'vertical',
         shadeIntensity: 0.12,
         opacityFrom: 0.28,
@@ -463,15 +475,15 @@ export class ConsultorDashboard implements OnInit {
     legend: {
       position: 'bottom',
       fontSize: '12px',
-      labels: { colors: '#6c7a93' },
+      labels: { colors: this.chartTheme().text },
       itemMargin: { horizontal: 14, vertical: 8 },
     },
     stroke: {
-      colors: ['#ffffff'],
+      colors: [this.chartTheme().surface],
       width: 6,
     },
     dataLabels: { enabled: false },
-    tooltip: { theme: 'light' },
+    tooltip: { theme: this.chartTheme().tooltip },
     plotOptions: {
       pie: {
         donut: {
@@ -482,7 +494,7 @@ export class ConsultorDashboard implements OnInit {
               show: true,
               fontSize: '26px',
               fontFamily: 'Inter Bold, sans-serif',
-              color: '#182033',
+              color: this.chartTheme().title,
               formatter: (value: string) => `${Math.round(Number(value) || 0)}`,
             },
             total: {
@@ -490,7 +502,7 @@ export class ConsultorDashboard implements OnInit {
               label: 'Tareas',
               fontSize: '11px',
               fontFamily: 'Inter SemiBold, sans-serif',
-              color: '#6c7a93',
+              color: this.chartTheme().text,
               formatter: () => `${this.summary()?.stats.tasks ?? 0}`,
             },
           },
@@ -531,7 +543,7 @@ export class ConsultorDashboard implements OnInit {
       categories: this.taskSlices().map((item) => item.shortLabel),
       labels: {
         style: {
-          colors: '#6c7a93',
+          colors: this.chartTheme().text,
           fontSize: '11px',
           fontFamily: 'Inter Medium, sans-serif',
         },
@@ -543,18 +555,18 @@ export class ConsultorDashboard implements OnInit {
       min: 0,
       labels: {
         style: {
-          colors: '#94a3b8',
+          colors: this.chartTheme().text,
           fontSize: '11px',
           fontFamily: 'Inter Medium, sans-serif',
         },
       },
     },
     grid: {
-      borderColor: '#eef2f7',
+      borderColor: this.chartTheme().grid,
       strokeDashArray: 4,
     },
     tooltip: {
-      theme: 'light',
+      theme: this.chartTheme().tooltip,
       shared: false,
       intersect: true,
       followCursor: false,

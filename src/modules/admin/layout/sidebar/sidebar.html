@@ -1,6 +1,6 @@
 @if (isOpen()) {
 <div
-  class="fixed inset-0 bg-black/50 z-30 md:hidden transition-opacity"
+  class="fixed inset-0 bg-text-950/50 z-30 md:hidden transition-opacity"
   (click)="closeSidebar()"
 ></div>
 }
@@ -14,25 +14,31 @@
   <div
     class="flex flex-col items-center border-text/10 justify-center"
     [class.py-8]="!isCollapsed()"
-    [class.h-16]="isCollapsed()"
+    [class.h-20]="isCollapsed()"
     [class.border-b]="isCollapsed()"
     [class.px-4]="!isCollapsed()"
     [class.px-2]="isCollapsed()"
   >
     <div class="flex flex-col items-center gap-0 overflow-hidden w-full">
       @if (isCollapsed()) {
-      <div class="w-10 h-10 rounded-xl bg-slate-950 text-white flex items-center justify-center">
-        <i class="fas fa-brain"></i>
+      <div class="w-10 h-10 flex items-center justify-center">
+        <img
+          src="/avif/icono.avif"
+          alt="HUBSME"
+          class="w-8 h-8 object-contain"
+          [class.brightness-0]="themeService.theme() === 'dark'"
+          [class.invert]="themeService.theme() === 'dark'"
+        />
       </div>
       } @else {
-      <div class="flex items-center gap-3 py-2">
-        <div class="w-10 h-10 rounded-[0.85rem] bg-slate-950 text-white flex items-center justify-center shadow-sm">
-          <i class="fas fa-brain text-[1rem]"></i>
-        </div>
-        <div class="flex flex-col leading-tight">
-          <span class="text-[1.3rem] font-plus-jakarta-sans font-bold tracking-tight text-slate-950">HUBSME</span>
-          <span class="text-[0.65rem] font-inter-medium text-muted">consulting hub</span>
-        </div>
+      <div class="flex items-center py-2 px-1">
+        <img
+          src="/avif/logo_completo.avif"
+          alt="HUBSME"
+          class="h-9 w-auto"
+          [class.brightness-0]="themeService.theme() === 'dark'"
+          [class.invert]="themeService.theme() === 'dark'"
+        />
       </div>
       }
     </div>
@@ -45,20 +51,21 @@
     <button
       (click)="navigateTo(item.path)"
       [title]="isCollapsed() ? item.label : ''"
-      class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl duration-200 group overflow-hidden text-left"
-      [class.bg-slate-950]="isActive(item.path)"
-      [class.text-white]="isActive(item.path)"
-      [class.shadow-[0_12px_30px_rgba(15,23,42,0.16)]]="isActive(item.path)"
+      class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl duration-200 group overflow-hidden text-left transition-colors"
+      [class.bg-primary]="isActive(item.path)"
+      [class.text-fixed-background-50]="isActive(item.path)"
+      [class.shadow-md]="isActive(item.path)"
+      [class.shadow-primary/30]="isActive(item.path)"
       [class.text-muted]="!isActive(item.path)"
-      [class.hover:bg-slate-100]="!isActive(item.path)"
-      [class.hover:text-text]="!isActive(item.path)"
+      [class.hover:bg-primary/10]="!isActive(item.path)"
+      [class.hover:text-primary]="!isActive(item.path)"
       [class.justify-center]="isCollapsed()"
     >
       <i
         [class]="
           item.icon +
-          ' w-5 text-center shrink-0 ' +
-          (isActive(item.path) ? 'text-white' : 'group-hover:text-slate-950')
+          ' w-5 text-center shrink-0 transition-colors duration-200 ' +
+          (isActive(item.path) ? 'text-fixed-background-50' : 'group-hover:text-primary')
         "
       ></i>
       @if (!isCollapsed()) {

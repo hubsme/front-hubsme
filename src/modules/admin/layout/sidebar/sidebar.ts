@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router } from '@angular/router';
 import { PATH, buildPath } from '@route/path.route';
 import { SessionService } from '@service/session.service';
+import { ThemeService } from '@service/theme.service';
 import { filter } from 'rxjs';
 
 interface MenuItem {
@@ -21,6 +22,7 @@ interface MenuItem {
 export class Sidebar {
   private router = inject(Router);
   private sessionService = inject(SessionService);
+  themeService = inject(ThemeService);
   private currentUrl = signal(this.router.url);
 
   isOpen = input(false);

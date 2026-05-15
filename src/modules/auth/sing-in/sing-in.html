@@ -1,16 +1,11 @@
 <div class="min-h-screen flex items-center justify-center bg-background p-4 font-inter-regular text-text">
   <div class="w-full max-w-md bg-background rounded-2xl shadow-lg border border-text/10 overflow-hidden">
-    <div class="pt-8 pb-4 text-center">
-      <div
-        class="mx-auto w-16 h-16 rounded-2xl bg-primary text-background flex items-center justify-center shadow-sm"
-      >
-        <i class="fas fa-brain text-2xl"></i>
-      </div>
-      <h1 class="mt-4 text-3xl font-inter-bold text-primary tracking-tight">HUBSME</h1>
+    <div class="pt-12 pb-4 text-center">
+      <img src="/avif/logo_completo.avif" alt="HUBSME" class="mx-auto h-12 w-auto" />
       <p class="text-sm text-text/50 font-inter-medium">Panel de consultoria para PYMEs</p>
     </div>
 
-    <div class="p-8 pt-4">
+    <div class="p-10">
       <form (ngSubmit)="onLogin()" class="space-y-5">
         <div class="space-y-2">
           <label for="email" class="mb-2 block text-sm font-inter-semibold text-text/60">Email</label>
@@ -23,7 +18,7 @@
               [ngModel]="email()"
               (ngModelChange)="email.set($event)"
               required
-              class="block w-full pl-10 pr-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none bg-background text-text"
+              class="block w-full pl-10 pr-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-background text-text"
               placeholder="admin@hubsme.com"
             />
           </div>
@@ -40,13 +35,13 @@
               [ngModel]="password()"
               (ngModelChange)="password.set($event)"
               required
-              class="block w-full pl-10 pr-10 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none bg-background text-text"
+              class="block w-full pl-10 pr-10 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-background text-text"
               placeholder="123456"
             />
             <button
               type="button"
               (click)="togglePasswordVisibility()"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-text/40 hover:text-primary"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-text/40 hover:text-secondary"
             >
               <i [class]="showPassword() ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
             </button>
@@ -56,7 +51,7 @@
         <button
           type="submit"
           [disabled]="loading()"
-          class="w-full flex justify-center py-3 px-4 rounded-lg text-sm font-inter-bold text-background bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+          class="w-full flex justify-center py-3 px-4 rounded-lg text-sm font-inter-bold text-background bg-secondary hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           @if (loading()) {
           <i class="fas fa-circle-notch fa-spin mr-2"></i> Ingresando... } @else { Ingresar }
@@ -65,7 +60,7 @@
 
       <div class="mt-6 text-center text-sm text-text/60">
         Aun no tienes cuenta?
-        <button type="button" (click)="goToSignUp()" class="font-inter-bold text-primary hover:underline">
+        <button type="button" (click)="goToSignUp()" class="font-inter-bold text-secondary hover:underline">
           Crear cuenta
         </button>
       </div>

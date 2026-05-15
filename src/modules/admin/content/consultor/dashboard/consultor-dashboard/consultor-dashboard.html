@@ -175,9 +175,9 @@
 
       <div class="mt-6 space-y-4">
         @for (meeting of upcomingMeetings(); track meeting.id) {
-        <article class="flex items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-slate-50 px-4 py-3">
+        <article class="flex items-center justify-between gap-4 rounded-2xl border border-border bg-background-50 px-4 py-3">
           <div class="flex min-w-0 items-center gap-3">
-            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-muted">
+            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-background-100 text-muted">
               <i class="fas fa-calendar text-sm"></i>
             </div>
             <div class="min-w-0">
@@ -191,7 +191,7 @@
           </div>
         </article>
         } @empty {
-        <div class="rounded-2xl border border-dashed border-border bg-slate-50 py-14 text-center text-muted">
+        <div class="rounded-2xl border border-dashed border-border bg-background-50 py-14 text-center text-muted">
           No hay sesiones proximas registradas.
         </div>
         }

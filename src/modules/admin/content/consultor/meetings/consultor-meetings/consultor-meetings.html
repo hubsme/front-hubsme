@@ -7,7 +7,7 @@
 
     <button
       (click)="showCreate.set(true)"
-      class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm text-white font-inter-semibold shadow-sm hover:bg-slate-800"
+      class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm text-fixed-background-50 font-inter-semibold shadow-sm hover:bg-text-800"
     >
       <i class="fas fa-plus"></i>
       Nueva Reunion
@@ -35,19 +35,19 @@
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold md:col-span-2">
           <span>Titulo</span>
-          <input [ngModel]="form().title" (ngModelChange)="updateForm('title', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input [ngModel]="form().title" (ngModelChange)="updateForm('title', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
           <span>Fecha y hora</span>
-          <input type="datetime-local" [ngModel]="form().startTime" (ngModelChange)="updateForm('startTime', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input type="datetime-local" [ngModel]="form().startTime" (ngModelChange)="updateForm('startTime', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
           <span>Duracion</span>
-          <input type="number" [ngModel]="form().durationMinutes" (ngModelChange)="updateForm('durationMinutes', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input type="number" [ngModel]="form().durationMinutes" (ngModelChange)="updateForm('durationMinutes', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="space-y-1.5 text-xs text-muted font-inter-semibold md:col-span-2">
           <span>URL de reunion</span>
-          <input [ngModel]="form().meetingUrl" (ngModelChange)="updateForm('meetingUrl', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input [ngModel]="form().meetingUrl" (ngModelChange)="updateForm('meetingUrl', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
       </div>
     </div>
@@ -63,7 +63,7 @@
     @for (meeting of meetings(); track meeting.id) {
     <article class="overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_10px_24px_rgba(15,23,42,0.05)]">
       <div class="flex flex-col lg:flex-row lg:items-stretch">
-        <div class="flex w-full items-center justify-center bg-slate-50 px-8 py-6 text-center lg:w-48">
+        <div class="flex w-full items-center justify-center bg-background-50 px-8 py-6 text-center lg:w-48">
           <div>
             <p class="text-xs uppercase text-text font-inter-bold">{{ month(meeting) }}</p>
             <p class="text-[2.45rem] leading-none text-text font-inter-bold">{{ day(meeting) }}</p>
@@ -85,7 +85,7 @@
 
           <div class="flex flex-wrap items-center gap-3">
             @if (meeting.status !== 'finalizada') {
-            <button (click)="startFinalize(meeting.id)" class="h-10 rounded-full bg-primary px-4 text-sm text-white font-inter-semibold">
+            <button (click)="startFinalize(meeting.id)" class="h-10 rounded-full bg-primary px-4 text-sm text-fixed-background-50 font-inter-semibold">
               <i class="fas fa-check-circle mr-2"></i>Finalizar y Generar Acta
             </button>
             } @else {
@@ -108,7 +108,7 @@
         ></textarea>
         <div class="mt-3 flex justify-end gap-2">
           <button (click)="finalizingId.set(null)" class="h-10 rounded-xl border border-border px-4 text-sm">Cancelar</button>
-          <button (click)="finalize()" class="h-10 rounded-xl bg-secondary px-4 text-sm text-white font-inter-bold">Generar acta</button>
+          <button (click)="finalize()" class="h-10 rounded-xl bg-secondary px-4 text-sm text-fixed-background-50 font-inter-bold">Generar acta</button>
         </div>
       </div>
       }

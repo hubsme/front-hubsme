@@ -15,7 +15,7 @@
       <button (click)="load()" class="px-4 py-2 rounded-lg bg-primary text-background font-inter-semibold">
         Buscar
       </button>
-      <button type="button" (click)="showCreate.set(true)" class="whitespace-nowrap rounded-lg bg-secondary px-4 py-2 text-sm text-white font-inter-bold">
+      <button type="button" (click)="showCreate.set(true)" class="whitespace-nowrap rounded-lg bg-secondary px-4 py-2 text-sm text-fixed-background-50 font-inter-bold">
         Nueva PYME
       </button>
     </div>
@@ -34,31 +34,31 @@
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <label class="block text-xs text-muted font-inter-semibold">
           <span class="mb-2 block">Nombre comercial</span>
-          <input [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input [ngModel]="form().name" (ngModelChange)="updateForm('name', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="block text-xs text-muted font-inter-semibold">
           <span class="mb-2 block">Email de acceso</span>
-          <input [ngModel]="form().email" (ngModelChange)="updateForm('email', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input [ngModel]="form().email" (ngModelChange)="updateForm('email', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="block text-xs text-muted font-inter-semibold">
           <span class="mb-2 block">RUC</span>
-          <input [ngModel]="form().ruc" (ngModelChange)="updateForm('ruc', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input [ngModel]="form().ruc" (ngModelChange)="updateForm('ruc', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="block text-xs text-muted font-inter-semibold">
           <span class="mb-2 block">Sector</span>
-          <input [ngModel]="form().sector" (ngModelChange)="updateForm('sector', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input [ngModel]="form().sector" (ngModelChange)="updateForm('sector', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="block text-xs text-muted font-inter-semibold">
           <span class="mb-2 block">Empleados</span>
-          <input type="number" [ngModel]="form().numEmployees" (ngModelChange)="updateForm('numEmployees', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input type="number" [ngModel]="form().numEmployees" (ngModelChange)="updateForm('numEmployees', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="block text-xs text-muted font-inter-semibold">
           <span class="mb-2 block">Años operando</span>
-          <input type="number" [ngModel]="form().yearsInOperation" (ngModelChange)="updateForm('yearsInOperation', $event)" class="h-10 w-full rounded-xl border border-border bg-white px-3 text-sm text-text outline-none focus:border-secondary" />
+          <input type="number" [ngModel]="form().yearsInOperation" (ngModelChange)="updateForm('yearsInOperation', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
         <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
           <span class="mb-2 block">Descripcion</span>
-          <textarea [ngModel]="form().description" (ngModelChange)="updateForm('description', $event)" class="min-h-24 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm text-text outline-none focus:border-secondary"></textarea>
+          <textarea [ngModel]="form().description" (ngModelChange)="updateForm('description', $event)" class="min-h-24 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-secondary"></textarea>
         </label>
       </div>
     </div>

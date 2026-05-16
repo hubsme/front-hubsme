@@ -9,13 +9,13 @@
       <div class="w-64">
         <app-consultant-input-search
           [ngModel]="selectedConsultantId() === 'all' ? null : selectedConsultantId()"
-          [showClear]="true"
+          [filters]="consultantFilters"
           (onSelected)="selectedConsultantId.set($event?.userId ?? 'all')"
         />
       </div>
       <button
         type="button"
-        (click)="showCreate.set(true)"
+        (click)="startCreate()"
         class="inline-flex h-9 items-center gap-2 rounded-full bg-secondary px-4 text-[0.82rem] text-background font-inter-bold shadow-sm hover:bg-secondary/90 transition-colors"
       >
         <i class="fas fa-plus text-xs"></i>
@@ -26,22 +26,31 @@
 
   @if (showCreate()) {
   <app-modal-form
-    title="Nueva tarea"
-    submitText="Crear tarea"
+    [title]="editingTaskId() ? 'Editar tarea' : 'Nueva tarea'"
+    [submitText]="editingTaskId() ? 'Guardar cambios' : 'Crear tarea'"
     [loading]="creating()"
     maxWidth="4xl"
-    (onSubmit)="create()"
-    (onClose)="showCreate.set(false)"
+    (onSubmit)="submit()"
+    (onClose)="closeForm()"
   >
     <div class="p-5">
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <label class="block text-xs text-muted font-inter-semibold">
-          <span class="mb-2 block">PYME</span>
-          <app-pyme-input-search [ngModel]="form().pymeId" [showClear]="true" (onSelected)="updateForm('pymeId', $event?.userId ?? 0)" />
-        </label>
-        <label class="block text-xs text-muted font-inter-semibold">
+        <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
           <span class="mb-2 block">Consultor</span>
-          <app-consultant-input-search [ngModel]="form().consultantId" [showClear]="true" (onSelected)="updateForm('consultantId', $event?.userId ?? 0)" />
+          @if (acceptedMatches().length) {
+            <app-consultant-input-search
+              [ngModel]="form().consultantId"
+              [filters]="consultantFilters"
+              [showClear]="true"
+              (onSelected)="updateForm('consultantId', $event?.userId ?? 0)"
+            />
+          } @else {
+            <div
+              class="rounded-xl border border-dashed border-border bg-surface px-4 py-4 text-sm text-muted"
+            >
+              Todavia no tienes consultores conectados para crear tareas.
+            </div>
+          }
         </label>
         <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
           <span class="mb-2 block">Titulo</span>
@@ -104,10 +113,20 @@
             class="cursor-grab rounded-2xl border border-dashed border-border bg-background/40 p-4 active:cursor-grabbing"
           >
             <div class="flex items-center justify-between gap-3">
-              <span class="rounded-full px-2.5 py-1 text-[0.65rem] uppercase font-inter-bold" [class]="priorityClass(task.priority)">
-                {{ task.priority }}
-              </span>
-              <span class="text-[0.7rem] text-muted">{{ task.assignedTo }}</span>
+              <div class="flex items-center gap-2">
+                <span class="rounded-full px-2.5 py-1 text-[0.65rem] uppercase font-inter-bold" [class]="priorityClass(task.priority)">
+                  {{ task.priority }}
+                </span>
+                <span class="text-[0.7rem] text-muted">{{ task.assignedTo }}</span>
+              </div>
+              <button
+                type="button"
+                (click)="$event.stopPropagation(); startEdit(task)"
+                class="grid h-7 w-7 cursor-pointer place-items-center rounded-full bg-surface text-muted transition-colors hover:bg-secondary-50 hover:text-secondary"
+                aria-label="Editar tarea"
+              >
+                <i class="fas fa-pen text-[0.7rem]"></i>
+              </button>
             </div>
 
             <h3 class="mt-3 text-[0.9rem] leading-snug font-inter-bold">{{ task.title }}</h3>

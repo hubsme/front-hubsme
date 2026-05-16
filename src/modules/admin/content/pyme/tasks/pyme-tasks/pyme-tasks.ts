@@ -6,8 +6,10 @@ import Sortable from 'sortablejs';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
-import { PymeInputSearch } from '@module/admin/components/input-search/pyme-input-search/pyme-input-search';
-import { ConsultantInputSearch } from '@module/admin/components/input-search/consultant-input-search/consultant-input-search';
+import {
+  ConsultantInputSearch,
+  ConsultantInputSearchFilters,
+} from '@module/admin/components/input-search/consultant-input-search/consultant-input-search';
 
 type TaskStatus = 'pendiente' | 'en_progreso' | 'completada' | 'bloqueada';
 type TaskPriority = 'alta' | 'media' | 'baja';
@@ -23,9 +25,12 @@ type TaskForm = {
   dueDate: string;
 };
 
+type Match = ApiResponse<'pyme', 'consultantContacts'>['data'][number];
+type Task = ApiResponse<'task', 'findAll'>['data'][number];
+
 @Component({
   selector: 'app-pyme-tasks',
-  imports: [CommonModule, FormsModule, ModalForm, PymeInputSearch, ConsultantInputSearch],
+  imports: [CommonModule, FormsModule, ModalForm, ConsultantInputSearch],
   templateUrl: './pyme-tasks.html',
 })
 export class PymeTasks implements OnInit, AfterViewInit, OnDestroy {
@@ -42,13 +47,17 @@ export class PymeTasks implements OnInit, AfterViewInit, OnDestroy {
     { id: 'bloqueada', label: 'Bloqueada', className: 'bg-danger/10 text-danger' },
   ];
 
+  readonly consultantFilters = {
+    source: 'matches',
+    status: 'aceptado',
+  } satisfies ConsultantInputSearchFilters;
   tasks = signal<ApiResponse<'task', 'findAll'>['data']>([]);
-  pymes = signal<ApiResponse<'pyme', 'findAll'>['data']>([]);
-  consultants = signal<ApiResponse<'consultant', 'findAll'>['data']>([]);
+  acceptedMatches = signal<Match[]>([]);
   selectedConsultantId = signal<number | 'all'>('all');
   loading = signal(false);
   creating = signal(false);
   showCreate = signal(false);
+  editingTaskId = signal<number | null>(null);
 
   form = signal<TaskForm>({
     pymeId: 0,
@@ -72,17 +81,20 @@ export class PymeTasks implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadLookups() {
-    Promise.all([this.hubsme.listPymes('', 1, 100), this.hubsme.listConsultants('', 1, 100, 'true')])
-      .then(([pymesRes, consultantsRes]) => {
-        const pymes = pymesRes.data.data;
-        const consultants = consultantsRes.data.data;
-        this.pymes.set(pymes);
-        this.consultants.set(consultants);
+    this.hubsme
+      .listMatches(1, 100, 'aceptado')
+      .then((matchesRes) => {
+        const matches = matchesRes.data.data;
+        this.acceptedMatches.set(matches);
         this.form.update((current) => ({
           ...current,
-          pymeId: current.pymeId || pymes[0]?.userId || 0,
-          consultantId: current.consultantId || consultants[0]?.userId || 0,
+          consultantId: matches.some((match) => match.consultantId === current.consultantId)
+            ? current.consultantId
+            : (matches[0]?.consultantId ?? 0),
         }));
+        this.selectedConsultantId.update((current) =>
+          current === 'all' ? (matches[0]?.consultantId ?? 'all') : current,
+        );
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
   }
@@ -112,10 +124,46 @@ export class PymeTasks implements OnInit, AfterViewInit, OnDestroy {
     this.form.update((current) => ({ ...current, [key]: value }));
   }
 
+  startCreate() {
+    this.editingTaskId.set(null);
+    this.form.update((current) => ({
+      ...current,
+      title: '',
+      description: '',
+      assignedTo: 'pyme',
+      priority: 'media',
+      dueDate: '',
+    }));
+    this.showCreate.set(true);
+  }
+
+  startEdit(task: Task) {
+    this.editingTaskId.set(task.id);
+    this.form.set({
+      pymeId: task.pymeId,
+      consultantId: task.consultantId ?? 0,
+      title: task.title,
+      description: task.description,
+      assignedTo: task.assignedTo,
+      priority: task.priority,
+      dueDate: this.dateInputValue(task.dueDate),
+    });
+    this.showCreate.set(true);
+  }
+
+  closeForm() {
+    this.showCreate.set(false);
+    this.editingTaskId.set(null);
+  }
+
+  submit() {
+    return this.editingTaskId() ? this.update() : this.create();
+  }
+
   create() {
     const data = this.form();
-    if (!data.pymeId || !data.title || !data.description) {
-      this.toastService.error('Completa PYME, titulo y descripcion');
+    if (!data.pymeId || !data.consultantId || !data.title || !data.description) {
+      this.toastService.error('Selecciona un consultor conectado y completa titulo y descripcion');
       return;
     }
 
@@ -134,7 +182,35 @@ export class PymeTasks implements OnInit, AfterViewInit, OnDestroy {
       .then(() => {
         this.toastService.success('Tarea creada');
         this.form.update((current) => ({ ...current, title: '', description: '', dueDate: '' }));
-        this.showCreate.set(false);
+        this.closeForm();
+        this.load();
+      })
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.creating.set(false));
+  }
+
+  update() {
+    const id = this.editingTaskId();
+    const data = this.form();
+    if (!id || !data.pymeId || !data.consultantId || !data.title || !data.description) {
+      this.toastService.error('Selecciona un consultor conectado y completa titulo y descripcion');
+      return;
+    }
+
+    this.creating.set(true);
+    this.hubsme
+      .updateTask(id, {
+        pymeId: Number(data.pymeId),
+        consultantId: Number(data.consultantId) || undefined,
+        title: data.title,
+        description: data.description,
+        assignedTo: data.assignedTo,
+        priority: data.priority,
+        dueDate: data.dueDate ? new Date(`${data.dueDate}T00:00:00`).toISOString() : undefined,
+      })
+      .then(() => {
+        this.toastService.success('Tarea actualizada');
+        this.closeForm();
         this.load();
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
@@ -170,6 +246,10 @@ export class PymeTasks implements OnInit, AfterViewInit, OnDestroy {
       baja: 'bg-success/10 text-success',
     };
     return classes[priority];
+  }
+
+  private dateInputValue(value: string | null) {
+    return value ? new Date(value).toISOString().slice(0, 10) : '';
   }
 
   private initSortables() {

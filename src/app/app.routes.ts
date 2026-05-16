@@ -78,6 +78,13 @@ const workspaceRoutes = (role: AppRole): Routes => {
                 ),
         },
         {
+          path: `${getPath(path.documents)}/:id`,
+          loadComponent: () =>
+            import('@module/admin/content/shared/meeting-minutes-detail/meeting-minutes-detail').then(
+              (m) => m.MeetingMinutesDetail,
+            ),
+        },
+        {
           path: getPath(path.documents),
           loadComponent: () =>
             role === 'pyme'

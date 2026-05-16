@@ -1,12 +1,25 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  FormControl,
+  NG_VALUE_ACCESSOR,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { PymeService } from '@service/admin/pyme.service';
+import { HubsmeService } from '@service/hubsme.service';
 import { ApiResponse } from 'api/backend.api';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 type PymeOption = ApiResponse<'pyme', 'findAll'>['data'][number];
+type MatchOption = ApiResponse<'consultant', 'pymeContacts'>['data'][number];
+type MatchStatus = MatchOption['status'];
+
+export type PymeInputSearchFilters = {
+  source?: 'all' | 'matches';
+  status?: MatchStatus;
+};
 
 @Component({
   selector: 'app-pyme-input-search',
@@ -16,9 +29,11 @@ type PymeOption = ApiResponse<'pyme', 'findAll'>['data'][number];
 })
 export class PymeInputSearch implements ControlValueAccessor {
   private pymeService = inject(PymeService);
+  private hubsmeService = inject(HubsmeService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
   initialData = input<PymeOption | null>(null);
+  filters = input<PymeInputSearchFilters | null>(null);
   showClear = input(false);
   onSelected = output<PymeOption | null>();
 
@@ -109,22 +124,56 @@ export class PymeInputSearch implements ControlValueAccessor {
 
   private search(term: string) {
     this.loading.set(true);
-    this.pymeService
-      .findAll({ search: term.trim() || undefined, limit: 10 })
-      .then((response) => this.items.set(response.data))
+    const filters = this.filters();
+    const cleanTerm = term.trim();
+    const request =
+      filters?.source === 'matches'
+        ? this.hubsmeService
+            .listMatches(1, 10, filters.status, cleanTerm)
+            .then((response) => response.data.data.map((match) => this.matchToPyme(match)))
+        : this.pymeService
+            .findAll({ search: cleanTerm || undefined, limit: 10 })
+            .then((response) => response.data);
+
+    request
+      .then((items) => this.items.set(items))
       .catch(() => this.items.set([]))
       .finally(() => this.loading.set(false));
   }
 
   private loadInitial(id: number) {
+    const filters = this.filters();
+    if (filters?.source === 'matches') {
+      this.hubsmeService
+        .listMatches(1, 100, filters.status)
+        .then((response) => {
+          const match = response.data.data.find((item) => item.pymeId === id);
+          this.selectedItem.set(match ? this.matchToPyme(match) : null);
+        })
+        .catch(() => this.selectedItem.set(null));
+      return;
+    }
+
     this.pymeService
-      .findOne(id)
+      .findByUser(id)
       .then((item) => this.selectedItem.set(item))
       .catch(() =>
         this.pymeService
-          .findByUser(id)
+          .findOne(id)
           .then((item) => this.selectedItem.set(item))
           .catch(() => this.selectedItem.set(null)),
       );
+  }
+
+  private matchToPyme(match: MatchOption): PymeOption {
+    return {
+      id: match.pymeId,
+      userId: match.pymeId,
+      name: match.pymeName ?? 'PYME',
+      ruc: null,
+      sector: match.pymeSector,
+      numEmployees: match.pymeNumEmployees,
+      createdAt: match.createdAt,
+    };
   }
 }

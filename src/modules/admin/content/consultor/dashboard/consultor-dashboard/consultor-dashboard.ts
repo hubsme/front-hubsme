@@ -103,7 +103,9 @@ export class ConsultorDashboard implements OnInit {
   loading = signal(false);
 
   isBrowser = isPlatformBrowser(this.platformId);
-  role = computed<DashboardRole>(() => (this.sessionService.session()?.user.role as DashboardRole) ?? 'admin');
+  role = computed<DashboardRole>(
+    () => (this.sessionService.session()?.user.role as DashboardRole) ?? 'admin',
+  );
   userName = computed(() => this.sessionService.session()?.user.name ?? 'Hubsme');
   isConsultant = computed(() => this.role() === 'consultor');
 
@@ -122,15 +124,14 @@ export class ConsultorDashboard implements OnInit {
     grid: this.isDark() ? '#334155' : '#eef2f7',
     tooltip: (this.isDark() ? 'dark' : 'light') as 'dark' | 'light',
     surface: this.isDark() ? '#111b30' : '#ffffff',
-    title: this.isDark() ? '#f1f5f9' : '#182033'
+    title: this.isDark() ? '#f1f5f9' : '#182033',
   }));
 
   productivityLabel = computed(() => {
     const totalTasks = this.summary()?.stats.tasks ?? 0;
     const completed = this.summary()?.taskStatus.completada ?? 0;
     const ratio = totalTasks > 0 ? Math.round((completed / totalTasks) * 100) : 0;
-    const uplift = Math.max(8, Math.min(24, Math.round(ratio / 4) || 12));
-    return `+${uplift}% Productividad`;
+    return `${ratio}% Productividad`;
   });
 
   healthScore = computed(() => {
@@ -140,9 +141,7 @@ export class ConsultorDashboard implements OnInit {
   });
 
   consultantHours = computed(() => {
-    const stats = this.summary()?.stats;
-    if (!stats) return 0;
-    return stats.meetings * 6 + stats.clients * 4 + 8;
+    return this.summary()?.stats.billableHours ?? 0;
   });
 
   consultantCount = computed(() => {
@@ -152,7 +151,19 @@ export class ConsultorDashboard implements OnInit {
   });
 
   kpiCards = computed<KpiCard[]>(() => {
-    const stats = this.summary()?.stats ?? { clients: 0, meetings: 0, tasks: 0, diagnostics: 0 };
+    const stats = this.summary()?.stats ?? {
+      clients: 0,
+      meetings: 0,
+      tasks: 0,
+      diagnostics: 0,
+      billableHours: 0,
+    };
+    const taskStatus = this.summary()?.taskStatus ?? {
+      pendiente: 0,
+      enProgreso: 0,
+      completada: 0,
+      bloqueada: 0,
+    };
 
     if (this.isConsultant()) {
       return [
@@ -160,7 +171,7 @@ export class ConsultorDashboard implements OnInit {
           label: 'Clientes activos',
           value: `${stats.clients}`,
           helper: 'PYMES bajo asesoria',
-          badge: `+${Math.max(1, Math.ceil(stats.clients / 2))} este mes`,
+          badge: `${stats.clients} aceptados`,
           icon: 'fas fa-user-group',
           iconClass: 'bg-secondary/8 text-secondary',
         },
@@ -168,15 +179,15 @@ export class ConsultorDashboard implements OnInit {
           label: 'Sesiones totales',
           value: `${stats.meetings}`,
           helper: 'Reuniones gestionadas',
-          badge: `${Math.max(1, Math.min(4, this.upcomingMeetings().length || 4))} esta semana`,
+          badge: `${this.upcomingMeetings().length} proximas`,
           icon: 'fas fa-calendar-days',
           iconClass: 'bg-accent/10 text-accent',
         },
         {
           label: 'Tareas pendientes',
-          value: `${stats.tasks}`,
+          value: `${taskStatus.pendiente}`,
           helper: 'Acciones por ejecutar',
-          badge: `${Math.max(1, this.summary()?.taskStatus.pendiente ?? 0)} criticas`,
+          badge: `${taskStatus.bloqueada} bloqueadas`,
           icon: 'fas fa-square-check',
           iconClass: 'bg-success/10 text-success',
         },
@@ -184,7 +195,7 @@ export class ConsultorDashboard implements OnInit {
           label: 'Horas facturables',
           value: `${this.consultantHours()}`,
           helper: 'Acumuladas este mes',
-          badge: `S/ ${(this.consultantHours() * 150).toLocaleString('en-US')} est.`,
+          badge: 'Este mes',
           icon: 'fas fa-clock',
           iconClass: 'bg-violet-500/10 text-violet-600',
         },
@@ -228,43 +239,30 @@ export class ConsultorDashboard implements OnInit {
   });
 
   workloadRows = computed<WorkloadRow[]>(() => {
-    const totalTasks = Math.max(4, this.summary()?.stats.tasks ?? 0);
-    const completed = this.summary()?.taskStatus.completada ?? 0;
-
     if (this.isConsultant()) {
-      return [
-        {
-          name: 'Textiles Sur',
-          total: Math.max(4, Math.round(totalTasks * 0.34)),
-          completed: Math.max(2, Math.round(completed * 0.28)),
-        },
-        {
-          name: 'TecnoLogistica',
-          total: Math.max(3, Math.round(totalTasks * 0.22)),
-          completed: Math.max(1, Math.round(completed * 0.14)),
-        },
-        {
-          name: 'Alimentos SAC',
-          total: Math.max(5, Math.round(totalTasks * 0.29)),
-          completed: Math.max(3, Math.round(completed * 0.33)),
-        },
-        {
-          name: 'Constructora X',
-          total: Math.max(2, Math.round(totalTasks * 0.15)),
-          completed: Math.max(1, Math.round(completed * 0.1)),
-        },
-      ];
+      return this.summary()?.workloadByClient ?? [];
     }
 
+    const totalTasks = this.summary()?.stats.tasks ?? 0;
+    const completed = this.summary()?.taskStatus.completada ?? 0;
+
     return [
-      { name: 'Diagnostico', total: 10, completed: Math.max(5, Math.round(this.healthScore() / 10)) },
+      {
+        name: 'Diagnostico',
+        total: 10,
+        completed: Math.max(5, Math.round(this.healthScore() / 10)),
+      },
       {
         name: 'Reuniones',
         total: Math.max(4, totalTasks),
         completed: Math.max(2, Math.round((this.summary()?.stats.meetings ?? 0) * 0.6)),
       },
       { name: 'Tareas', total: Math.max(6, totalTasks), completed: Math.max(2, completed) },
-      { name: 'Consultores', total: Math.max(3, this.consultantCount() + 1), completed: this.consultantCount() },
+      {
+        name: 'Consultores',
+        total: Math.max(3, this.consultantCount() + 1),
+        completed: this.consultantCount(),
+      },
     ];
   });
 
@@ -278,8 +276,18 @@ export class ConsultorDashboard implements OnInit {
 
     return [
       { label: 'Pendientes', shortLabel: 'Pend.', value: taskStatus.pendiente, color: '#94a3b8' },
-      { label: 'En progreso', shortLabel: 'Progreso', value: taskStatus.enProgreso, color: '#3568ea' },
-      { label: 'Completadas', shortLabel: 'Compl.', value: taskStatus.completada, color: '#16a34a' },
+      {
+        label: 'En progreso',
+        shortLabel: 'Progreso',
+        value: taskStatus.enProgreso,
+        color: '#3568ea',
+      },
+      {
+        label: 'Completadas',
+        shortLabel: 'Compl.',
+        value: taskStatus.completada,
+        color: '#16a34a',
+      },
       { label: 'Bloqueadas', shortLabel: 'Bloq.', value: taskStatus.bloqueada, color: '#dc2626' },
     ];
   });
@@ -585,19 +593,15 @@ export class ConsultorDashboard implements OnInit {
 
   alerts = computed<AlertItem[]>(() => {
     if (this.isConsultant()) {
-      return [
-        {
-          client: 'Textiles del Sur',
-          message: `${Math.max(2, this.summary()?.taskStatus.pendiente ?? 0)} tareas criticas vencen manana`,
-          tone: 'danger',
-        },
-        { client: 'TecnoLogistica', message: 'Reunion de seguimiento no agendada', tone: 'warning' },
-        { client: 'Alimentos SAC', message: 'Nuevo frente comercial requiere acompanamiento', tone: 'info' },
-      ];
+      return this.summary()?.alerts ?? [];
     }
 
     return [
-      { client: 'Operacion', message: 'Pipeline comercial requiere seguimiento diario', tone: 'warning' },
+      {
+        client: 'Operacion',
+        message: 'Pipeline comercial requiere seguimiento diario',
+        tone: 'warning',
+      },
       {
         client: 'Equipo',
         message: `${Math.max(1, this.summary()?.taskStatus.bloqueada ?? 0)} bloqueos necesitan destrabe esta semana`,
@@ -616,8 +620,15 @@ export class ConsultorDashboard implements OnInit {
     return meetings.map((meeting, index) => ({
       ...meeting,
       subtitle: this.isConsultant()
-        ? ['Revision de estrategia', 'Workshop IA Marketing', 'Mesa de seguimiento', 'Planning trimestral'][index % 4]
-        : ['Sesion consultiva', 'Revision operativa', 'Seguimiento comercial', 'Orden financiero'][index % 4],
+        ? [
+            'Revision de estrategia',
+            'Workshop IA Marketing',
+            'Mesa de seguimiento',
+            'Planning trimestral',
+          ][index % 4]
+        : ['Sesion consultiva', 'Revision operativa', 'Seguimiento comercial', 'Orden financiero'][
+            index % 4
+          ],
       mode: meeting.status === 'solicitada' ? 'Por confirmar' : 'Virtual',
     }));
   });

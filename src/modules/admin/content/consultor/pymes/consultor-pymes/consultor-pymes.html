@@ -1,7 +1,9 @@
 <div class="space-y-7 font-inter-regular text-text">
   <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
     <div>
-      <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold capitalize">Mis Clientes</h1>
+      <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold capitalize">
+        Mis Clientes
+      </h1>
       <p class="mt-1 text-[0.95rem] text-muted">Gestiona solicitudes de match y PYMEs aceptadas.</p>
     </div>
 
@@ -10,7 +12,7 @@
       <input
         [ngModel]="search()"
         (ngModelChange)="search.set($event)"
-        class="h-10 w-full rounded-xl border border-border bg-background pl-11 pr-4 text-sm outline-none placeholder:text-muted/80 focus:border-secondary"
+        class="h-10 w-full rounded-xl border border-border bg-background pl-11 pr-4 text-sm outline-none placeholder:text-text-400 focus:border-secondary"
         placeholder="Buscar cliente por nombre..."
       />
     </label>
@@ -26,7 +28,9 @@
       [class.text-muted]="activeFilter() !== 'contactados'"
     >
       Contactados
-      <span class="ml-1 rounded-full bg-text/5 px-2 py-0.5 text-[0.68rem]">{{ acceptedMatches().length }}</span>
+      <span class="ml-1 rounded-full bg-text/5 px-2 py-0.5 text-[0.68rem]">{{
+        acceptedMatches().length
+      }}</span>
     </button>
     <button
       type="button"
@@ -37,74 +41,113 @@
       [class.text-muted]="activeFilter() !== 'solicitudes'"
     >
       Solicitudes
-      <span class="ml-1 rounded-full bg-text/5 px-2 py-0.5 text-[0.68rem]">{{ pendingMatches().length }}</span>
+      <span class="ml-1 rounded-full bg-text/5 px-2 py-0.5 text-[0.68rem]">{{
+        pendingMatches().length
+      }}</span>
     </button>
   </div>
 
   @if (loading()) {
-  <div class="py-16 text-center text-muted">
-    <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
-  </div>
+    <div class="py-16 text-center text-muted">
+      <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+    </div>
   } @else {
-  <div class="grid grid-cols-1 gap-5 xl:grid-cols-2 2xl:grid-cols-3">
-    @for (match of visibleMatches(); track match.id) {
-    <article class="rounded-xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]">
-      <div class="flex items-start justify-between gap-4">
-        <div class="flex h-16 w-16 items-center justify-center rounded-full bg-text text-2xl text-background font-inter-bold shadow-sm">
-          {{ initials(clientName(match)) }}
+    <div class="grid grid-cols-1 gap-5 xl:grid-cols-2 2xl:grid-cols-3">
+      @for (match of visibleMatches(); track match.id) {
+        <article
+          class="rounded-xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]"
+        >
+          <div class="flex items-start justify-between gap-4">
+            <div
+              class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-border bg-background text-2xl text-text font-inter-bold shadow-sm"
+            >
+              @if (match.pymeLogoUrl) {
+                <img
+                  [src]="match.pymeLogoUrl"
+                  [alt]="clientName(match)"
+                  class="h-full w-full object-cover"
+                />
+              } @else {
+                {{ initials(clientName(match)) }}
+              }
+            </div>
+            <span
+              class="rounded-full px-3 py-1 text-xs font-inter-semibold"
+              [class]="statusClass(match.status)"
+            >
+              {{ statusLabel(match.status) }}
+            </span>
+          </div>
+
+          <div class="mt-7">
+            <h2 class="text-xl font-anton lowercase text-text">{{ clientName(match) }}</h2>
+            <p class="mt-1 text-sm text-muted">{{ businessSector(match) }}</p>
+          </div>
+
+          <div class="mt-5 flex flex-wrap gap-x-5 gap-y-2 border-y border-border py-4 text-sm">
+            <span class="inline-flex items-center gap-2 text-muted">
+              <i class="fas fa-users text-[0.78rem] text-secondary"></i>
+              <span class="text-text">{{ employeesLabel(match) }}</span>
+            </span>
+            <span class="inline-flex items-center gap-2 text-muted">
+              <i class="fas fa-chart-line text-[0.78rem] text-secondary"></i>
+              <span class="text-text">{{ yearsLabel(match) }}</span>
+            </span>
+          </div>
+
+          <div class="mt-4 space-y-3 text-sm">
+            <p class="line-clamp-2 leading-6 text-muted">
+              {{ businessDescription(match) }}
+            </p>
+            <p class="flex items-start gap-2 text-muted">
+              <i class="fas fa-clock mt-0.5 text-[0.78rem] text-secondary"></i>
+              <span>{{ lastActivity(match) }}</span>
+            </p>
+          </div>
+
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            @if (match.status === 'pendiente') {
+              <button
+                type="button"
+                (click)="updateMatch(match, 'rechazado')"
+                class="h-9 rounded-xl border border-border bg-background text-sm font-inter-semibold"
+                [disabled]="updatingId() === match.id"
+              >
+                Rechazar
+              </button>
+              <button
+                type="button"
+                (click)="updateMatch(match, 'aceptado')"
+                class="h-9 rounded-xl bg-secondary text-sm text-background font-inter-semibold shadow-sm"
+                [disabled]="updatingId() === match.id"
+              >
+                Aceptar
+              </button>
+            } @else {
+              <button
+                class="h-9 rounded-xl border border-border bg-background text-sm font-inter-semibold"
+              >
+                Ver Historial
+              </button>
+              <button
+                class="h-9 rounded-xl bg-secondary text-sm text-background font-inter-semibold shadow-sm"
+              >
+                Nueva Sesion
+              </button>
+            }
+          </div>
+        </article>
+      } @empty {
+        <div
+          class="rounded-xl border border-dashed border-border bg-surface py-16 text-center text-muted col-span-full"
+        >
+          @if (activeFilter() === 'solicitudes') {
+            No tienes solicitudes pendientes.
+          } @else {
+            No tienes clientes contactados todavía.
+          }
         </div>
-        <span class="rounded-full px-3 py-1 text-xs font-inter-semibold" [class]="statusClass(match.status)">
-          {{ statusLabel(match.status) }}
-        </span>
-      </div>
-
-      <div class="mt-7">
-        <h2 class="text-xl font-anton lowercase text-text">{{ clientName(match) }}</h2>
-        <p class="mt-1 text-sm text-muted">Origen: {{ match.source || 'marketplace' }}</p>
-      </div>
-
-      <div class="mt-8 rounded-xl bg-background px-4 py-3">
-        <p class="text-xs text-muted font-inter-bold">Ultima actividad:</p>
-        <p class="mt-1 text-sm text-text">{{ lastActivity(match) }}</p>
-      </div>
-
-      <div class="mt-4 grid grid-cols-2 gap-3">
-        @if (match.status === 'pendiente') {
-        <button
-          type="button"
-          (click)="updateMatch(match, 'rechazado')"
-          class="h-9 rounded-xl border border-border bg-background text-sm font-inter-semibold"
-          [disabled]="updatingId() === match.id"
-        >
-          Rechazar
-        </button>
-        <button
-          type="button"
-          (click)="updateMatch(match, 'aceptado')"
-          class="h-9 rounded-xl bg-primary text-sm text-background font-inter-semibold shadow-sm"
-          [disabled]="updatingId() === match.id"
-        >
-          Aceptar
-        </button>
-        } @else {
-        <button class="h-9 rounded-xl border border-border bg-background text-sm font-inter-semibold">
-          Ver Historial
-        </button>
-        <button class="h-9 rounded-xl bg-primary text-sm text-background font-inter-semibold shadow-sm">
-          Nueva Sesion
-        </button>
-        }
-      </div>
-    </article>
-    } @empty {
-    <div class="rounded-xl border border-dashed border-border bg-surface py-16 text-center text-muted col-span-full">
-      @if (activeFilter() === 'solicitudes') {
-      No tienes solicitudes pendientes.
-      } @else {
-      No tienes clientes contactados todavía.
       }
     </div>
-    }
-  </div>
   }
 </div>

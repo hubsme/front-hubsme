@@ -5,7 +5,7 @@ import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 
-type Match = ApiResponse<'pymeConsultantMatch', 'pymeconsultantmatchFindAll'>['data'][number];
+type Match = ApiResponse<'consultant', 'pymeContacts'>['data'][number];
 type MatchFilter = 'solicitudes' | 'contactados';
 
 @Component({
@@ -50,7 +50,7 @@ export class ConsultorPymes implements OnInit {
   updateMatch(match: Match, status: Match['status']) {
     this.updatingId.set(match.id);
     this.hubsme
-      .updateMatch(match.id, status)
+      .updateMatch(match, status)
       .then(() => {
         this.toastService.success(status === 'aceptado' ? 'Match aceptado' : 'Match rechazado');
         this.load();
@@ -62,6 +62,27 @@ export class ConsultorPymes implements OnInit {
 
   clientName(match: Match) {
     return match.pymeName ?? 'PYME';
+  }
+
+  businessDescription(match: Match) {
+    return match.pymeDescription?.trim() || 'Esta empresa aun no registro una descripcion publica.';
+  }
+
+  businessSector(match: Match) {
+    return match.pymeSector?.trim() || 'Sector no registrado';
+  }
+
+  employeesLabel(match: Match) {
+    return match.pymeNumEmployees
+      ? `${match.pymeNumEmployees} empleados`
+      : 'Empleados no registrados';
+  }
+
+  yearsLabel(match: Match) {
+    if (!match.pymeYearsInOperation) return 'Antiguedad no registrada';
+    return match.pymeYearsInOperation === 1
+      ? '1 año operando'
+      : `${match.pymeYearsInOperation} años operando`;
   }
 
   initials(name: string) {

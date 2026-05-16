@@ -1,4 +1,6 @@
 @import 'tailwindcss';
+@import 'quill/dist/quill.snow.css';
+@import 'quill/dist/quill.bubble.css';
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 /* Custom Fonts */
@@ -427,4 +429,51 @@ textarea.bg-background {
 }
 .animate-marquee:hover {
   animation-play-state: paused;
+}
+
+/* Quill Editor Custom Styles */
+quill-editor {
+  display: block;
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.ql-toolbar.ql-snow {
+  border: none !important;
+  border-bottom: 1px solid var(--color-border) !important;
+  background: var(--color-background);
+  padding: 0.75rem !important;
+}
+
+.ql-container.ql-snow {
+  border: none !important;
+  background: var(--color-surface);
+  font-family: 'Inter Regular', sans-serif !important;
+  font-size: 0.95rem !important;
+}
+
+.ql-editor {
+  min-height: 300px;
+  padding: 1.5rem !important;
+  line-height: 1.6 !important;
+}
+
+.ql-editor.ql-blank::before {
+  left: 1.5rem !important;
+  font-style: italic !important;
+  color: var(--color-muted) !important;
+}
+
+/* Hide toolbar for read-only view while keeping editor styles */
+quill-editor.hide-toolbar .ql-toolbar.ql-snow {
+  display: none !important;
+}
+
+quill-editor.hide-toolbar {
+  border: none !important;
+}
+
+quill-editor.hide-toolbar .ql-container.ql-snow {
+  border: none !important;
 }

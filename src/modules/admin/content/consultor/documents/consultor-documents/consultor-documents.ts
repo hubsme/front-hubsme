@@ -1,13 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 
 @Component({
   selector: 'app-consultor-documents',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './consultor-documents.html',
 })
 export class ConsultorDocuments implements OnInit {
@@ -35,7 +36,7 @@ export class ConsultorDocuments implements OnInit {
       .listMeetings(1, 100)
       .then((res) =>
         this.documents.set(
-          res.data.data.filter((meeting) => meeting.status === 'finalizada' || meeting.minutes),
+          res.data.data.filter((meeting) => meeting.status === 'finalizada'),
         ),
       )
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
@@ -43,7 +44,7 @@ export class ConsultorDocuments implements OnInit {
   }
 
   documentTitle(document: ApiResponse<'meeting', 'findAll'>['data'][number]) {
-    return document.minutes?.titulo || document.title || 'Acta de Reunion';
+    return document.title || 'Acta de Reunion';
   }
 
   consultantName() {

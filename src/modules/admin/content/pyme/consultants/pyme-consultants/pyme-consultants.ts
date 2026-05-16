@@ -1,19 +1,22 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 type Consultant = ApiResponse<'consultant', 'findAll'>['data'][number];
-type Match = ApiResponse<'pymeConsultantMatch', 'pymeconsultantmatchFindAll'>['data'][number];
+type Match = ApiResponse<'pyme', 'consultantContacts'>['data'][number];
 type ViewTab = 'explorar' | 'matches';
 type ScheduleForm = {
   title: string;
   startTime: string;
   durationMinutes: number;
-  meetingUrl: string;
+  description: string;
 };
 
 @Component({
@@ -24,32 +27,34 @@ type ScheduleForm = {
 export class PymeConsultants implements OnInit {
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
+  private searchTerms = new Subject<string>();
+  private consultantRequestId = 0;
 
   user = this.hubsme.currentUser();
   consultants = signal<Consultant[]>([]);
   matches = signal<Match[]>([]);
   scheduleMatch = signal<Match | null>(null);
+  videoConsultant = signal<Consultant | null>(null);
+  profileConsultant = signal<Consultant | null>(null);
   search = signal('');
   activeTab = signal<ViewTab>('matches');
   loading = signal(false);
+  searching = signal(false);
   matchLoadingId = signal<number | null>(null);
   creatingMeeting = signal(false);
-
-  filteredConsultants = computed(() => {
-    const search = this.search().trim().toLowerCase();
-    if (!search) return this.consultants();
-    return this.consultants().filter((consultant) => {
-      const specialties = consultant.specialties.join(' ').toLowerCase();
-      return consultant.name.toLowerCase().includes(search) || specialties.includes(search);
-    });
-  });
 
   scheduleForm = signal<ScheduleForm>({
     title: 'Sesion de consultoria',
     startTime: this.defaultDateTime(),
     durationMinutes: 60,
-    meetingUrl: '',
+    description: '',
   });
+
+  constructor() {
+    this.searchTerms
+      .pipe(debounceTime(350), distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe((term) => this.loadConsultants(term, true));
+  }
 
   ngOnInit() {
     this.load();
@@ -61,14 +66,17 @@ export class PymeConsultants implements OnInit {
       this.hubsme.listMatches(1, 100).then((res) => {
         this.matches.set(res.data.data);
       }),
-      this.hubsme.listConsultants('', 1, 100, 'true').then((res) => {
-        this.consultants.set(res.data.data);
-      }),
+      this.loadConsultants(this.search(), false),
     ];
 
     Promise.all(requests)
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
+  }
+
+  updateSearch(value: string) {
+    this.search.set(value);
+    this.searchTerms.next(value.trim());
   }
 
   requestMatch(consultant: Consultant) {
@@ -78,7 +86,6 @@ export class PymeConsultants implements OnInit {
       .then(() => {
         this.toastService.success('Solicitud de match enviada');
         this.load();
-        this.activeTab.set('matches');
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.matchLoadingId.set(null));
@@ -94,7 +101,7 @@ export class PymeConsultants implements OnInit {
       title: 'Sesion de consultoria',
       startTime: this.defaultDateTime(),
       durationMinutes: 60,
-      meetingUrl: '',
+      description: '',
     });
   }
 
@@ -114,7 +121,7 @@ export class PymeConsultants implements OnInit {
         title: form.title.trim(),
         startTime: new Date(form.startTime).toISOString(),
         durationMinutes: Number(form.durationMinutes) || 60,
-        meetingUrl: form.meetingUrl.trim() || undefined,
+        description: form.description.trim() || undefined,
         status: 'solicitada',
       })
       .then(() => {
@@ -137,6 +144,24 @@ export class PymeConsultants implements OnInit {
     return match.consultantName ?? 'Consultor';
   }
 
+  matchConsultantPhoto(match: Match): string {
+    return (
+      match.consultantPhotoUrl ||
+      `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(this.partnerName(match))}`
+    );
+  }
+
+  matchRating(match: Match) {
+    return Number(match.consultantRating || 0).toFixed(1);
+  }
+
+  consultantPhoto(consultant: Consultant): string {
+    return (
+      consultant.photoUrl ||
+      `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(consultant.name)}`
+    );
+  }
+
   initials(name: string) {
     return name
       .split(' ')
@@ -147,7 +172,27 @@ export class PymeConsultants implements OnInit {
   }
 
   rating(consultant: Consultant) {
-    return Number(consultant.rating || 4.8).toFixed(1);
+    return Number(consultant.rating || 0).toFixed(1);
+  }
+
+  private loadConsultants(search: string, showSearching: boolean): Promise<void> {
+    const requestId = ++this.consultantRequestId;
+    if (showSearching) this.searching.set(true);
+
+    return this.hubsme
+      .listConsultants(search.trim(), 1, 100, 'true')
+      .then((res) => {
+        if (requestId !== this.consultantRequestId) return;
+        this.consultants.set(res.data.data);
+      })
+      .catch((error) => {
+        if (requestId !== this.consultantRequestId) return;
+        this.consultants.set([]);
+        this.toastService.error(this.hubsme.getErrorMessage(error));
+      })
+      .finally(() => {
+        if (showSearching && requestId === this.consultantRequestId) this.searching.set(false);
+      });
   }
 
   statusLabel(status: Match['status']) {

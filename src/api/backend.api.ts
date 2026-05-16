@@ -192,6 +192,77 @@ export interface PymeCreateDto {
   logoUrl?: string;
 }
 
+export interface PymeConsultantActionDto {
+  /** @example 5 */
+  pymeId: number;
+  /** @example 1 */
+  consultantId: number;
+  /** @example "Nos interesa coordinar una primera conversacion." */
+  notes?: string;
+}
+
+export interface PymeConsultantMatchResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  pymeId: number;
+  pymeName: string | null;
+  pymeSector: string | null;
+  pymeNumEmployees: number | null;
+  pymeYearsInOperation: number | null;
+  pymeDescription: string | null;
+  pymeLogoUrl: string | null;
+  consultantId: number;
+  consultantName: string | null;
+  consultantBio: string | null;
+  consultantSpecialties: string[];
+  consultantPhotoUrl: string | null;
+  consultantPricePerHour: string;
+  consultantRating: string;
+  status: "pendiente" | "aceptado" | "rechazado" | "finalizado";
+  source: string;
+  notes: string | null;
+}
+
+export interface PymeConsultantMatchListDto {
+  data: PymeConsultantMatchResultDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface PymeConsultantMessageResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  matchId: number;
+  senderId: number;
+  senderName: string | null;
+  senderRole: "admin" | "pyme" | "consultor" | null;
+  message: string;
+  /** @format date-time */
+  readAt: string | null;
+}
+
+export interface PymeConsultantMessageListDto {
+  data: PymeConsultantMessageResultDto[];
+}
+
+export interface PymeConsultantMessageActionDto {
+  /** @example 5 */
+  pymeId: number;
+  /** @example 1 */
+  consultantId: number;
+  /** @example "Hola, quisiera revisar una primera sesion esta semana." */
+  message: string;
+}
+
 export interface PymeUpdateDto {
   /** @example 2 */
   userId?: number;
@@ -278,6 +349,24 @@ export interface ConsultantCreateDto {
   validated?: "true" | "false";
 }
 
+export interface ConsultantPymeActionDto {
+  /** @example 1 */
+  consultantId: number;
+  /** @example 5 */
+  pymeId: number;
+  /** @example "Puedo ayudarte con este diagnostico." */
+  notes?: string;
+}
+
+export interface ConsultantPymeMessageActionDto {
+  /** @example 1 */
+  consultantId: number;
+  /** @example 5 */
+  pymeId: number;
+  /** @example "Hola, te propongo revisar los avances en una llamada." */
+  message: string;
+}
+
 export interface ConsultantUpdateDto {
   /** @example 3 */
   userId?: number;
@@ -301,12 +390,24 @@ export interface ConsultantUpdateDto {
   validated?: "true" | "false";
 }
 
-export interface MeetingMinutesDto {
-  titulo: string;
-  resumen: string;
-  puntosTratados: string[];
-  acuerdos: object[];
-  tareasGeneradas: object[];
+export interface TaskResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  meetingId: number | null;
+  pymeId: number;
+  consultantId: number | null;
+  title: string;
+  description: string;
+  assignedTo: "pyme" | "consultor";
+  priority: "alta" | "media" | "baja";
+  status: "pendiente" | "en_progreso" | "completada" | "bloqueada";
+  /** @format date-time */
+  dueDate: string | null;
 }
 
 export interface MeetingResultDto {
@@ -326,9 +427,9 @@ export interface MeetingResultDto {
   meetingUrl: string | null;
   status: "solicitada" | "confirmada" | "finalizada" | "cancelada";
   description: string | null;
-  minutes: MeetingMinutesDto | null;
   /** @format date-time */
   completedAt: string | null;
+  tasks?: TaskResultDto[];
 }
 
 export interface MeetingListDto {
@@ -352,6 +453,8 @@ export interface MeetingCreateDto {
   durationMinutes?: number;
   /** @example "https://meet.google.com/demo" */
   meetingUrl?: string;
+  /** @example "Revisar objetivos, contexto y dudas principales para la sesion." */
+  description?: string;
   /** @default "confirmada" */
   status?: "solicitada" | "confirmada" | "finalizada" | "cancelada";
 }
@@ -372,33 +475,36 @@ export interface MeetingUpdateDto {
   durationMinutes?: number;
   /** @example "https://meet.google.com/demo" */
   meetingUrl?: string;
+  /** @example "Revisar objetivos, contexto y dudas principales para la sesion." */
+  description?: string;
   /** @default "confirmada" */
   status?: "solicitada" | "confirmada" | "finalizada" | "cancelada";
 }
 
-export interface MeetingFinalizeDto {
-  /** @example "Revisamos el embudo comercial, acordamos implementar CRM y preparar reporte financiero para la siguiente sesion." */
+export interface MeetingFinalizeTaskDto {
+  /** @example "Preparar propuesta de optimizacion" */
+  title: string;
+  /** @example "Detallar alcance, tiempos y siguientes pasos." */
   description: string;
+  /** @example "consultor" */
+  assignedTo: "pyme" | "consultor";
+  /** @example "media" */
+  priority: "alta" | "media" | "baja";
+  /** @example "2026-05-23T00:00:00.000Z" */
+  dueDate?: string;
 }
 
-export interface TaskResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  /** @format date-time */
-  deletedAt: string | null;
-  meetingId: number | null;
-  pymeId: number;
-  consultantId: number | null;
-  title: string;
+export interface MeetingFinalizeDto {
+  /**
+   * Acta completa en formato Markdown.
+   * @example "## Resumen
+   * Se reviso el estado actual del negocio.
+   *
+   * ## Acuerdos
+   * - El consultor preparara una propuesta."
+   */
   description: string;
-  assignedTo: "pyme" | "consultor";
-  priority: "alta" | "media" | "baja";
-  status: "pendiente" | "en_progreso" | "completada" | "bloqueada";
-  /** @format date-time */
-  dueDate: string | null;
+  tasks?: MeetingFinalizeTaskDto[];
 }
 
 export interface MeetingFinalizeResultDto {
@@ -569,6 +675,7 @@ export interface DashboardStatsDto {
   meetings: number;
   tasks: number;
   diagnostics: number;
+  billableHours: number;
 }
 
 export interface DashboardTaskStatusDto {
@@ -586,88 +693,26 @@ export interface DashboardMeetingDto {
   status: string;
 }
 
+export interface DashboardWorkloadClientDto {
+  pymeId: number;
+  name: string;
+  total: number;
+  completed: number;
+}
+
+export interface DashboardAlertDto {
+  id: number;
+  client: string;
+  message: string;
+  tone: "danger" | "warning" | "info";
+}
+
 export interface DashboardResponseDto {
   stats: DashboardStatsDto;
   taskStatus: DashboardTaskStatusDto;
   upcomingMeetings: DashboardMeetingDto[];
-}
-
-export interface PymeConsultantMatchResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  /** @format date-time */
-  deletedAt: string | null;
-  pymeId: number;
-  pymeName: string | null;
-  consultantId: number;
-  consultantName: string | null;
-  status: "pendiente" | "aceptado" | "rechazado" | "finalizado";
-  source: string;
-  notes: string | null;
-}
-
-export interface PymeConsultantMatchListDto {
-  data: PymeConsultantMatchResultDto[];
-  meta: PaginationMetaDto;
-}
-
-export interface PymeConsultantMatchCreateDto {
-  /** @example 2 */
-  pymeId: number;
-  /** @example 3 */
-  consultantId: number;
-  /** @default "pendiente" */
-  status?: "pendiente" | "aceptado" | "rechazado" | "finalizado";
-  /** @example "diagnostico" */
-  source?: string;
-  /** @example "Match generado por afinidad de sector y especialidad." */
-  notes?: string;
-}
-
-export interface PymeConsultantMatchUpdateDto {
-  /** @example 2 */
-  pymeId?: number;
-  /** @example 3 */
-  consultantId?: number;
-  /** @default "pendiente" */
-  status?: "pendiente" | "aceptado" | "rechazado" | "finalizado";
-  /** @example "diagnostico" */
-  source?: string;
-  /** @example "Match generado por afinidad de sector y especialidad." */
-  notes?: string;
-}
-
-export interface PymeConsultantMessageResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  /** @format date-time */
-  deletedAt: string | null;
-  matchId: number;
-  senderId: number;
-  senderName: string | null;
-  senderRole: "admin" | "pyme" | "consultor" | null;
-  message: string;
-  /** @format date-time */
-  readAt: string | null;
-}
-
-export interface PymeConsultantMessageListDto {
-  data: PymeConsultantMessageResultDto[];
-}
-
-export interface PymeConsultantMessageCreateDto {
-  /** @example 1 */
-  matchId: number;
-  /** @example 2 */
-  senderId: number;
-  /** @example "Hola, revisemos una primera sesion esta semana." */
-  message: string;
+  workloadByClient: DashboardWorkloadClientDto[];
+  alerts: DashboardAlertDto[];
 }
 
 export interface StorageResultDto {
@@ -784,6 +829,55 @@ export type PymeCreateData = PymeResultDto;
 
 export type PymeCreateError = HttpErrorDto;
 
+export type PymeContactConsultantData = PymeConsultantMatchResultDto;
+
+export type PymeContactConsultantError = HttpErrorDto;
+
+export interface PymeConsultantContactsParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** @example 1 */
+  pymeId: number;
+  status?: "pendiente" | "aceptado" | "rechazado" | "finalizado";
+  /** Search by consultant name or specialty */
+  search?: string;
+}
+
+export type PymeConsultantContactsData = PymeConsultantMatchListDto;
+
+export type PymeConsultantContactsError = HttpErrorDto;
+
+export type PymeAcceptConsultantContactData = PymeConsultantMatchResultDto;
+
+export type PymeAcceptConsultantContactError = HttpErrorDto;
+
+export type PymeRejectConsultantContactData = PymeConsultantMatchResultDto;
+
+export type PymeRejectConsultantContactError = HttpErrorDto;
+
+export interface PymeConsultantMessagesParams {
+  /** @example 1 */
+  pymeId: number;
+  /** @example 1 */
+  consultantId: number;
+}
+
+export type PymeConsultantMessagesData = PymeConsultantMessageListDto;
+
+export type PymeConsultantMessagesError = HttpErrorDto;
+
+export type PymeSendConsultantMessageData = PymeConsultantMessageResultDto;
+
+export type PymeSendConsultantMessageError = HttpErrorDto;
+
 export interface PymeUpdateParams {
   id: number;
 }
@@ -842,6 +936,55 @@ export type ConsultantFindByUserError = HttpErrorDto;
 export type ConsultantCreateData = ConsultantResultDto;
 
 export type ConsultantCreateError = HttpErrorDto;
+
+export type ConsultantContactPymeData = PymeConsultantMatchResultDto;
+
+export type ConsultantContactPymeError = HttpErrorDto;
+
+export interface ConsultantPymeContactsParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** @example 1 */
+  consultantId: number;
+  status?: "pendiente" | "aceptado" | "rechazado" | "finalizado";
+  /** Search by PYME name or sector */
+  search?: string;
+}
+
+export type ConsultantPymeContactsData = PymeConsultantMatchListDto;
+
+export type ConsultantPymeContactsError = HttpErrorDto;
+
+export type ConsultantAcceptPymeContactData = PymeConsultantMatchResultDto;
+
+export type ConsultantAcceptPymeContactError = HttpErrorDto;
+
+export type ConsultantRejectPymeContactData = PymeConsultantMatchResultDto;
+
+export type ConsultantRejectPymeContactError = HttpErrorDto;
+
+export interface ConsultantPymeMessagesParams {
+  /** @example 1 */
+  consultantId: number;
+  /** @example 1 */
+  pymeId: number;
+}
+
+export type ConsultantPymeMessagesData = PymeConsultantMessageListDto;
+
+export type ConsultantPymeMessagesError = HttpErrorDto;
+
+export type ConsultantSendPymeMessageData = PymeConsultantMessageResultDto;
+
+export type ConsultantSendPymeMessageError = HttpErrorDto;
 
 export interface ConsultantUpdateParams {
   id: number;
@@ -1093,71 +1236,6 @@ export interface DashboardSummaryParams {
 export type DashboardSummaryData = DashboardResponseDto;
 
 export type DashboardSummaryError = HttpErrorDto;
-
-export interface PymeconsultantmatchFindAllParams {
-  /**
-   * Page number
-   * @default 1
-   */
-  page?: number;
-  /**
-   * Items per page
-   * @default 10
-   */
-  limit?: number;
-  /** Search by PYME or consultant name */
-  search?: string;
-  /** @example 2 */
-  pymeId?: number;
-  /** @example 3 */
-  consultantId?: number;
-  status?: "pendiente" | "aceptado" | "rechazado" | "finalizado";
-}
-
-export type PymeconsultantmatchFindAllData = PymeConsultantMatchListDto;
-
-export type PymeconsultantmatchFindAllError = HttpErrorDto;
-
-export interface PymeconsultantmatchFindOneParams {
-  id: number;
-}
-
-export type PymeconsultantmatchFindOneData = PymeConsultantMatchResultDto;
-
-export type PymeconsultantmatchFindOneError = HttpErrorDto;
-
-export type PymeconsultantmatchCreateData = PymeConsultantMatchResultDto;
-
-export type PymeconsultantmatchCreateError = HttpErrorDto;
-
-export interface PymeconsultantmatchUpdateParams {
-  id: number;
-}
-
-export type PymeconsultantmatchUpdateData = PymeConsultantMatchResultDto;
-
-export type PymeconsultantmatchUpdateError = HttpErrorDto;
-
-export interface PymeconsultantmatchRemoveParams {
-  id: number;
-}
-
-export type PymeconsultantmatchRemoveData = PymeConsultantMatchResultDto;
-
-export type PymeconsultantmatchRemoveError = HttpErrorDto;
-
-export interface PymeconsultantmessageFindAllParams {
-  /** @example 1 */
-  matchId: number;
-}
-
-export type PymeconsultantmessageFindAllData = PymeConsultantMessageListDto;
-
-export type PymeconsultantmessageFindAllError = HttpErrorDto;
-
-export type PymeconsultantmessageCreateData = PymeConsultantMessageResultDto;
-
-export type PymeconsultantmessageCreateError = HttpErrorDto;
 
 export interface StorageUploadPayload {
   /** @format binary */
@@ -1461,6 +1539,135 @@ export namespace Pyme {
   /**
    * No description
    * @tags pyme
+   * @name PymeContactConsultant
+   * @summary Request contact with a consultant from a PYME
+   * @request POST:/admin/pyme/contact-consultant
+   * @secure
+   * @response `200` `PymeContactConsultantData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeContactConsultant {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PymeConsultantActionDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeContactConsultantData;
+  }
+
+  /**
+   * No description
+   * @tags pyme
+   * @name PymeConsultantContacts
+   * @summary Get consultant contacts for a PYME
+   * @request GET:/admin/pyme/consultant-contacts
+   * @secure
+   * @response `200` `PymeConsultantContactsData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeConsultantContacts {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** @example 1 */
+      pymeId: number;
+      status?: "pendiente" | "aceptado" | "rechazado" | "finalizado";
+      /** Search by consultant name or specialty */
+      search?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeConsultantContactsData;
+  }
+
+  /**
+   * No description
+   * @tags pyme
+   * @name PymeAcceptConsultantContact
+   * @summary Accept a consultant contact request from a PYME
+   * @request PATCH:/admin/pyme/accept-consultant-contact
+   * @secure
+   * @response `200` `PymeAcceptConsultantContactData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeAcceptConsultantContact {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PymeConsultantActionDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeAcceptConsultantContactData;
+  }
+
+  /**
+   * No description
+   * @tags pyme
+   * @name PymeRejectConsultantContact
+   * @summary Reject a consultant contact request from a PYME
+   * @request PATCH:/admin/pyme/reject-consultant-contact
+   * @secure
+   * @response `200` `PymeRejectConsultantContactData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeRejectConsultantContact {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PymeConsultantActionDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeRejectConsultantContactData;
+  }
+
+  /**
+   * No description
+   * @tags pyme
+   * @name PymeConsultantMessages
+   * @summary Get messages with a consultant from a PYME
+   * @request GET:/admin/pyme/consultant-messages
+   * @secure
+   * @response `200` `PymeConsultantMessagesData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeConsultantMessages {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example 1 */
+      pymeId: number;
+      /** @example 1 */
+      consultantId: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeConsultantMessagesData;
+  }
+
+  /**
+   * No description
+   * @tags pyme
+   * @name PymeSendConsultantMessage
+   * @summary Send a message from a PYME to a consultant
+   * @request POST:/admin/pyme/send-consultant-message
+   * @secure
+   * @response `200` `PymeSendConsultantMessageData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeSendConsultantMessage {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PymeConsultantMessageActionDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeSendConsultantMessageData;
+  }
+
+  /**
+   * No description
+   * @tags pyme
    * @name PymeUpdate
    * @summary Update a PYME profile
    * @request PATCH:/admin/pyme/update/{id}
@@ -1591,6 +1798,135 @@ export namespace Consultant {
     export type RequestBody = ConsultantCreateDto;
     export type RequestHeaders = {};
     export type ResponseBody = ConsultantCreateData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantContactPyme
+   * @summary Request contact with a PYME from a consultant
+   * @request POST:/admin/consultant/contact-pyme
+   * @secure
+   * @response `200` `ConsultantContactPymeData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantContactPyme {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantPymeActionDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantContactPymeData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantPymeContacts
+   * @summary Get PYME contacts for a consultant
+   * @request GET:/admin/consultant/pyme-contacts
+   * @secure
+   * @response `200` `ConsultantPymeContactsData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantPymeContacts {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** @example 1 */
+      consultantId: number;
+      status?: "pendiente" | "aceptado" | "rechazado" | "finalizado";
+      /** Search by PYME name or sector */
+      search?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantPymeContactsData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantAcceptPymeContact
+   * @summary Accept a PYME contact request from a consultant
+   * @request PATCH:/admin/consultant/accept-pyme-contact
+   * @secure
+   * @response `200` `ConsultantAcceptPymeContactData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantAcceptPymeContact {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantPymeActionDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantAcceptPymeContactData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantRejectPymeContact
+   * @summary Reject a PYME contact request from a consultant
+   * @request PATCH:/admin/consultant/reject-pyme-contact
+   * @secure
+   * @response `200` `ConsultantRejectPymeContactData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantRejectPymeContact {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantPymeActionDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantRejectPymeContactData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantPymeMessages
+   * @summary Get messages with a PYME from a consultant
+   * @request GET:/admin/consultant/pyme-messages
+   * @secure
+   * @response `200` `ConsultantPymeMessagesData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantPymeMessages {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example 1 */
+      consultantId: number;
+      /** @example 1 */
+      pymeId: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantPymeMessagesData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantSendPymeMessage
+   * @summary Send a message from a consultant to a PYME
+   * @request POST:/admin/consultant/send-pyme-message
+   * @secure
+   * @response `200` `ConsultantSendPymeMessageData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantSendPymeMessage {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantPymeMessageActionDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantSendPymeMessageData;
   }
 
   /**
@@ -1768,7 +2104,7 @@ export namespace Meeting {
    * No description
    * @tags meeting
    * @name MeetingFinalize
-   * @summary Finalize meeting, generate minutes and create follow-up tasks
+   * @summary Finalize meeting, save markdown minutes and create follow-up tasks
    * @request POST:/admin/meeting/finalize/{id}
    * @secure
    * @response `200` `MeetingFinalizeData`
@@ -2165,163 +2501,6 @@ export namespace Dashboard {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = DashboardSummaryData;
-  }
-}
-
-export namespace PymeConsultantMatch {
-  /**
-   * No description
-   * @tags pymeConsultantMatch
-   * @name PymeconsultantmatchFindAll
-   * @summary Get all PYME and consultant matches paginated
-   * @request GET:/admin/pyme-consultant-match/find-all
-   * @secure
-   * @response `200` `PymeconsultantmatchFindAllData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PymeconsultantmatchFindAll {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /**
-       * Page number
-       * @default 1
-       */
-      page?: number;
-      /**
-       * Items per page
-       * @default 10
-       */
-      limit?: number;
-      /** Search by PYME or consultant name */
-      search?: string;
-      /** @example 2 */
-      pymeId?: number;
-      /** @example 3 */
-      consultantId?: number;
-      status?: "pendiente" | "aceptado" | "rechazado" | "finalizado";
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = PymeconsultantmatchFindAllData;
-  }
-
-  /**
-   * No description
-   * @tags pymeConsultantMatch
-   * @name PymeconsultantmatchFindOne
-   * @summary Get a PYME and consultant match by ID
-   * @request GET:/admin/pyme-consultant-match/find-one/{id}
-   * @secure
-   * @response `200` `PymeconsultantmatchFindOneData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PymeconsultantmatchFindOne {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = PymeconsultantmatchFindOneData;
-  }
-
-  /**
-   * No description
-   * @tags pymeConsultantMatch
-   * @name PymeconsultantmatchCreate
-   * @summary Create a PYME and consultant match
-   * @request POST:/admin/pyme-consultant-match/create
-   * @secure
-   * @response `200` `PymeconsultantmatchCreateData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PymeconsultantmatchCreate {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = PymeConsultantMatchCreateDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = PymeconsultantmatchCreateData;
-  }
-
-  /**
-   * No description
-   * @tags pymeConsultantMatch
-   * @name PymeconsultantmatchUpdate
-   * @summary Update a PYME and consultant match
-   * @request PATCH:/admin/pyme-consultant-match/update/{id}
-   * @secure
-   * @response `200` `PymeconsultantmatchUpdateData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PymeconsultantmatchUpdate {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = PymeConsultantMatchUpdateDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = PymeconsultantmatchUpdateData;
-  }
-
-  /**
-   * No description
-   * @tags pymeConsultantMatch
-   * @name PymeconsultantmatchRemove
-   * @summary Soft-delete a PYME and consultant match
-   * @request DELETE:/admin/pyme-consultant-match/delete/{id}
-   * @secure
-   * @response `200` `PymeconsultantmatchRemoveData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PymeconsultantmatchRemove {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = PymeconsultantmatchRemoveData;
-  }
-}
-
-export namespace PymeConsultantMessage {
-  /**
-   * No description
-   * @tags pymeConsultantMessage
-   * @name PymeconsultantmessageFindAll
-   * @summary Get messages by accepted PYME and consultant match
-   * @request GET:/admin/pyme-consultant-message/find-all
-   * @secure
-   * @response `200` `PymeconsultantmessageFindAllData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PymeconsultantmessageFindAll {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /** @example 1 */
-      matchId: number;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = PymeconsultantmessageFindAllData;
-  }
-
-  /**
-   * No description
-   * @tags pymeConsultantMessage
-   * @name PymeconsultantmessageCreate
-   * @summary Create a message in an accepted PYME and consultant match
-   * @request POST:/admin/pyme-consultant-message/create
-   * @secure
-   * @response `200` `PymeconsultantmessageCreateData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PymeconsultantmessageCreate {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = PymeConsultantMessageCreateDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = PymeconsultantmessageCreateData;
   }
 }
 
@@ -2938,6 +3117,169 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags pyme
+     * @name PymeContactConsultant
+     * @summary Request contact with a consultant from a PYME
+     * @request POST:/admin/pyme/contact-consultant
+     * @secure
+     * @response `200` `PymeContactConsultantData`
+     * @response `400` `HttpErrorDto`
+     */
+    contactConsultant: (
+      data: PymeConsultantActionDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PymeContactConsultantData, PymeContactConsultantError>({
+        path: `/admin/pyme/contact-consultant`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pyme
+     * @name PymeConsultantContacts
+     * @summary Get consultant contacts for a PYME
+     * @request GET:/admin/pyme/consultant-contacts
+     * @secure
+     * @response `200` `PymeConsultantContactsData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantContacts: (
+      query: PymeConsultantContactsParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PymeConsultantContactsData,
+        PymeConsultantContactsError
+      >({
+        path: `/admin/pyme/consultant-contacts`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pyme
+     * @name PymeAcceptConsultantContact
+     * @summary Accept a consultant contact request from a PYME
+     * @request PATCH:/admin/pyme/accept-consultant-contact
+     * @secure
+     * @response `200` `PymeAcceptConsultantContactData`
+     * @response `400` `HttpErrorDto`
+     */
+    acceptConsultantContact: (
+      data: PymeConsultantActionDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PymeAcceptConsultantContactData,
+        PymeAcceptConsultantContactError
+      >({
+        path: `/admin/pyme/accept-consultant-contact`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pyme
+     * @name PymeRejectConsultantContact
+     * @summary Reject a consultant contact request from a PYME
+     * @request PATCH:/admin/pyme/reject-consultant-contact
+     * @secure
+     * @response `200` `PymeRejectConsultantContactData`
+     * @response `400` `HttpErrorDto`
+     */
+    rejectConsultantContact: (
+      data: PymeConsultantActionDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PymeRejectConsultantContactData,
+        PymeRejectConsultantContactError
+      >({
+        path: `/admin/pyme/reject-consultant-contact`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pyme
+     * @name PymeConsultantMessages
+     * @summary Get messages with a consultant from a PYME
+     * @request GET:/admin/pyme/consultant-messages
+     * @secure
+     * @response `200` `PymeConsultantMessagesData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantMessages: (
+      query: PymeConsultantMessagesParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PymeConsultantMessagesData,
+        PymeConsultantMessagesError
+      >({
+        path: `/admin/pyme/consultant-messages`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pyme
+     * @name PymeSendConsultantMessage
+     * @summary Send a message from a PYME to a consultant
+     * @request POST:/admin/pyme/send-consultant-message
+     * @secure
+     * @response `200` `PymeSendConsultantMessageData`
+     * @response `400` `HttpErrorDto`
+     */
+    sendConsultantMessage: (
+      data: PymeConsultantMessageActionDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PymeSendConsultantMessageData,
+        PymeSendConsultantMessageError
+      >({
+        path: `/admin/pyme/send-consultant-message`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pyme
      * @name PymeUpdate
      * @summary Update a PYME profile
      * @request PATCH:/admin/pyme/update/{id}
@@ -3068,6 +3410,169 @@ export class Api<SecurityDataType extends unknown> {
     create: (data: ConsultantCreateDto, params: RequestParams = {}) =>
       this.http.request<ConsultantCreateData, ConsultantCreateError>({
         path: `/admin/consultant/create`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantContactPyme
+     * @summary Request contact with a PYME from a consultant
+     * @request POST:/admin/consultant/contact-pyme
+     * @secure
+     * @response `200` `ConsultantContactPymeData`
+     * @response `400` `HttpErrorDto`
+     */
+    contactPyme: (
+      data: ConsultantPymeActionDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ConsultantContactPymeData, ConsultantContactPymeError>({
+        path: `/admin/consultant/contact-pyme`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantPymeContacts
+     * @summary Get PYME contacts for a consultant
+     * @request GET:/admin/consultant/pyme-contacts
+     * @secure
+     * @response `200` `ConsultantPymeContactsData`
+     * @response `400` `HttpErrorDto`
+     */
+    pymeContacts: (
+      query: ConsultantPymeContactsParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantPymeContactsData,
+        ConsultantPymeContactsError
+      >({
+        path: `/admin/consultant/pyme-contacts`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantAcceptPymeContact
+     * @summary Accept a PYME contact request from a consultant
+     * @request PATCH:/admin/consultant/accept-pyme-contact
+     * @secure
+     * @response `200` `ConsultantAcceptPymeContactData`
+     * @response `400` `HttpErrorDto`
+     */
+    acceptPymeContact: (
+      data: ConsultantPymeActionDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantAcceptPymeContactData,
+        ConsultantAcceptPymeContactError
+      >({
+        path: `/admin/consultant/accept-pyme-contact`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantRejectPymeContact
+     * @summary Reject a PYME contact request from a consultant
+     * @request PATCH:/admin/consultant/reject-pyme-contact
+     * @secure
+     * @response `200` `ConsultantRejectPymeContactData`
+     * @response `400` `HttpErrorDto`
+     */
+    rejectPymeContact: (
+      data: ConsultantPymeActionDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantRejectPymeContactData,
+        ConsultantRejectPymeContactError
+      >({
+        path: `/admin/consultant/reject-pyme-contact`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantPymeMessages
+     * @summary Get messages with a PYME from a consultant
+     * @request GET:/admin/consultant/pyme-messages
+     * @secure
+     * @response `200` `ConsultantPymeMessagesData`
+     * @response `400` `HttpErrorDto`
+     */
+    pymeMessages: (
+      query: ConsultantPymeMessagesParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantPymeMessagesData,
+        ConsultantPymeMessagesError
+      >({
+        path: `/admin/consultant/pyme-messages`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantSendPymeMessage
+     * @summary Send a message from a consultant to a PYME
+     * @request POST:/admin/consultant/send-pyme-message
+     * @secure
+     * @response `200` `ConsultantSendPymeMessageData`
+     * @response `400` `HttpErrorDto`
+     */
+    sendPymeMessage: (
+      data: ConsultantPymeMessageActionDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantSendPymeMessageData,
+        ConsultantSendPymeMessageError
+      >({
+        path: `/admin/consultant/send-pyme-message`,
         method: "POST",
         body: data,
         secure: true,
@@ -3245,7 +3750,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags meeting
      * @name MeetingFinalize
-     * @summary Finalize meeting, generate minutes and create follow-up tasks
+     * @summary Finalize meeting, save markdown minutes and create follow-up tasks
      * @request POST:/admin/meeting/finalize/{id}
      * @secure
      * @response `200` `MeetingFinalizeData`
@@ -3666,199 +4171,6 @@ export class Api<SecurityDataType extends unknown> {
         method: "GET",
         query: query,
         secure: true,
-        format: "json",
-        ...params,
-      }),
-  };
-  pymeConsultantMatch = {
-    /**
-     * No description
-     *
-     * @tags pymeConsultantMatch
-     * @name PymeconsultantmatchFindAll
-     * @summary Get all PYME and consultant matches paginated
-     * @request GET:/admin/pyme-consultant-match/find-all
-     * @secure
-     * @response `200` `PymeconsultantmatchFindAllData`
-     * @response `400` `HttpErrorDto`
-     */
-    pymeconsultantmatchFindAll: (
-      query: PymeconsultantmatchFindAllParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PymeconsultantmatchFindAllData,
-        PymeconsultantmatchFindAllError
-      >({
-        path: `/admin/pyme-consultant-match/find-all`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags pymeConsultantMatch
-     * @name PymeconsultantmatchFindOne
-     * @summary Get a PYME and consultant match by ID
-     * @request GET:/admin/pyme-consultant-match/find-one/{id}
-     * @secure
-     * @response `200` `PymeconsultantmatchFindOneData`
-     * @response `400` `HttpErrorDto`
-     */
-    pymeconsultantmatchFindOne: (
-      { id, ...query }: PymeconsultantmatchFindOneParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PymeconsultantmatchFindOneData,
-        PymeconsultantmatchFindOneError
-      >({
-        path: `/admin/pyme-consultant-match/find-one/${id}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags pymeConsultantMatch
-     * @name PymeconsultantmatchCreate
-     * @summary Create a PYME and consultant match
-     * @request POST:/admin/pyme-consultant-match/create
-     * @secure
-     * @response `200` `PymeconsultantmatchCreateData`
-     * @response `400` `HttpErrorDto`
-     */
-    pymeconsultantmatchCreate: (
-      data: PymeConsultantMatchCreateDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PymeconsultantmatchCreateData,
-        PymeconsultantmatchCreateError
-      >({
-        path: `/admin/pyme-consultant-match/create`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags pymeConsultantMatch
-     * @name PymeconsultantmatchUpdate
-     * @summary Update a PYME and consultant match
-     * @request PATCH:/admin/pyme-consultant-match/update/{id}
-     * @secure
-     * @response `200` `PymeconsultantmatchUpdateData`
-     * @response `400` `HttpErrorDto`
-     */
-    pymeconsultantmatchUpdate: (
-      { id, ...query }: PymeconsultantmatchUpdateParams,
-      data: PymeConsultantMatchUpdateDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PymeconsultantmatchUpdateData,
-        PymeconsultantmatchUpdateError
-      >({
-        path: `/admin/pyme-consultant-match/update/${id}`,
-        method: "PATCH",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags pymeConsultantMatch
-     * @name PymeconsultantmatchRemove
-     * @summary Soft-delete a PYME and consultant match
-     * @request DELETE:/admin/pyme-consultant-match/delete/{id}
-     * @secure
-     * @response `200` `PymeconsultantmatchRemoveData`
-     * @response `400` `HttpErrorDto`
-     */
-    pymeconsultantmatchRemove: (
-      { id, ...query }: PymeconsultantmatchRemoveParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PymeconsultantmatchRemoveData,
-        PymeconsultantmatchRemoveError
-      >({
-        path: `/admin/pyme-consultant-match/delete/${id}`,
-        method: "DELETE",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-  };
-  pymeConsultantMessage = {
-    /**
-     * No description
-     *
-     * @tags pymeConsultantMessage
-     * @name PymeconsultantmessageFindAll
-     * @summary Get messages by accepted PYME and consultant match
-     * @request GET:/admin/pyme-consultant-message/find-all
-     * @secure
-     * @response `200` `PymeconsultantmessageFindAllData`
-     * @response `400` `HttpErrorDto`
-     */
-    pymeconsultantmessageFindAll: (
-      query: PymeconsultantmessageFindAllParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PymeconsultantmessageFindAllData,
-        PymeconsultantmessageFindAllError
-      >({
-        path: `/admin/pyme-consultant-message/find-all`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags pymeConsultantMessage
-     * @name PymeconsultantmessageCreate
-     * @summary Create a message in an accepted PYME and consultant match
-     * @request POST:/admin/pyme-consultant-message/create
-     * @secure
-     * @response `200` `PymeconsultantmessageCreateData`
-     * @response `400` `HttpErrorDto`
-     */
-    pymeconsultantmessageCreate: (
-      data: PymeConsultantMessageCreateDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PymeconsultantmessageCreateData,
-        PymeconsultantmessageCreateError
-      >({
-        path: `/admin/pyme-consultant-message/create`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
         format: "json",
         ...params,
       }),

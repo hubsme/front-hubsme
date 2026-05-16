@@ -103,7 +103,9 @@ export class PymeDashboard implements OnInit {
   loading = signal(false);
 
   isBrowser = isPlatformBrowser(this.platformId);
-  role = computed<DashboardRole>(() => (this.sessionService.session()?.user.role as DashboardRole) ?? 'admin');
+  role = computed<DashboardRole>(
+    () => (this.sessionService.session()?.user.role as DashboardRole) ?? 'admin',
+  );
   userName = computed(() => this.sessionService.session()?.user.name ?? 'Hubsme');
   isConsultant = computed(() => this.role() === 'consultor');
 
@@ -114,7 +116,7 @@ export class PymeDashboard implements OnInit {
       ? 'Vista global de tu cartera de clientes y compromisos.'
       : 'Aqui tienes un resumen de tu actividad de consultoria.',
   );
-  
+
   isDark = computed(() => this.themeService.theme() === 'dark');
 
   chartTheme = computed(() => ({
@@ -122,37 +124,40 @@ export class PymeDashboard implements OnInit {
     grid: this.isDark() ? '#334155' : '#eef2f7',
     tooltip: (this.isDark() ? 'dark' : 'light') as 'dark' | 'light',
     surface: this.isDark() ? '#111b30' : '#ffffff',
-    title: this.isDark() ? '#f1f5f9' : '#182033'
+    title: this.isDark() ? '#f1f5f9' : '#182033',
   }));
 
   productivityLabel = computed(() => {
     const totalTasks = this.summary()?.stats.tasks ?? 0;
     const completed = this.summary()?.taskStatus.completada ?? 0;
     const ratio = totalTasks > 0 ? Math.round((completed / totalTasks) * 100) : 0;
-    const uplift = Math.max(8, Math.min(24, Math.round(ratio / 4) || 12));
-    return `+${uplift}% Productividad`;
+    return `${ratio}% Productividad`;
   });
 
   healthScore = computed(() => {
     const diagnostics = this.summary()?.stats.diagnostics ?? 0;
+    if (diagnostics === 0) return 0;
+
     const pending = this.summary()?.taskStatus.pendiente ?? 0;
     return Math.max(72, Math.min(96, 78 + diagnostics * 4 - Math.min(pending, 3)));
   });
 
   consultantHours = computed(() => {
-    const stats = this.summary()?.stats;
-    if (!stats) return 0;
-    return stats.meetings * 6 + stats.clients * 4 + 8;
+    return this.summary()?.stats.billableHours ?? 0;
   });
 
   consultantCount = computed(() => {
-    const stats = this.summary()?.stats;
-    if (!stats) return 0;
-    return Math.max(1, Math.min(6, Math.ceil((stats.meetings || 1) / 3)));
+    return this.summary()?.stats.clients ?? 0;
   });
 
   kpiCards = computed<KpiCard[]>(() => {
-    const stats = this.summary()?.stats ?? { clients: 0, meetings: 0, tasks: 0, diagnostics: 0 };
+    const stats = this.summary()?.stats ?? {
+      clients: 0,
+      meetings: 0,
+      tasks: 0,
+      diagnostics: 0,
+      billableHours: 0,
+    };
 
     if (this.isConsultant()) {
       return [
@@ -196,7 +201,7 @@ export class PymeDashboard implements OnInit {
         label: 'Diagnostico',
         value: `${this.healthScore()}/100`,
         helper: 'Puntaje de salud empresarial',
-        badge: `+${Math.max(3, stats.diagnostics * 2)} vs mes anterior`,
+        badge: `${stats.diagnostics} registrados`,
         icon: 'fas fa-brain',
         iconClass: 'bg-secondary/8 text-secondary',
       },
@@ -220,7 +225,7 @@ export class PymeDashboard implements OnInit {
         label: 'Consultores',
         value: `${this.consultantCount()}`,
         helper: 'Expertos conectados',
-        badge: 'Activos en tu red',
+        badge: `${this.consultantCount()} matches aceptados`,
         icon: 'fas fa-users',
         iconClass: 'bg-violet-500/10 text-violet-600',
       },
@@ -228,7 +233,7 @@ export class PymeDashboard implements OnInit {
   });
 
   workloadRows = computed<WorkloadRow[]>(() => {
-    const totalTasks = Math.max(4, this.summary()?.stats.tasks ?? 0);
+    const totalTasks = this.summary()?.stats.tasks ?? 0;
     const completed = this.summary()?.taskStatus.completada ?? 0;
 
     if (this.isConsultant()) {
@@ -257,14 +262,18 @@ export class PymeDashboard implements OnInit {
     }
 
     return [
-      { name: 'Diagnostico', total: 10, completed: Math.max(5, Math.round(this.healthScore() / 10)) },
+      {
+        name: 'Diagnostico',
+        total: this.summary()?.stats.diagnostics ?? 0,
+        completed: this.summary()?.stats.diagnostics ?? 0,
+      },
       {
         name: 'Reuniones',
-        total: Math.max(4, totalTasks),
-        completed: Math.max(2, Math.round((this.summary()?.stats.meetings ?? 0) * 0.6)),
+        total: this.summary()?.stats.meetings ?? 0,
+        completed: this.summary()?.stats.meetings ?? 0,
       },
-      { name: 'Tareas', total: Math.max(6, totalTasks), completed: Math.max(2, completed) },
-      { name: 'Consultores', total: Math.max(3, this.consultantCount() + 1), completed: this.consultantCount() },
+      { name: 'Tareas', total: totalTasks, completed },
+      { name: 'Consultores', total: this.consultantCount(), completed: this.consultantCount() },
     ];
   });
 
@@ -278,31 +287,36 @@ export class PymeDashboard implements OnInit {
 
     return [
       { label: 'Pendientes', shortLabel: 'Pend.', value: taskStatus.pendiente, color: '#94a3b8' },
-      { label: 'En progreso', shortLabel: 'Progreso', value: taskStatus.enProgreso, color: '#3568ea' },
-      { label: 'Completadas', shortLabel: 'Compl.', value: taskStatus.completada, color: '#16a34a' },
+      {
+        label: 'En progreso',
+        shortLabel: 'Progreso',
+        value: taskStatus.enProgreso,
+        color: '#3568ea',
+      },
+      {
+        label: 'Completadas',
+        shortLabel: 'Compl.',
+        value: taskStatus.completada,
+        color: '#16a34a',
+      },
       { label: 'Bloqueadas', shortLabel: 'Bloq.', value: taskStatus.bloqueada, color: '#dc2626' },
     ];
   });
 
   activitySeries = computed(() => {
-    const meetings = Math.max(4, this.summary()?.stats.meetings ?? 0);
-    const tasks = Math.max(3, this.summary()?.stats.tasks ?? 0);
+    const meetings = this.summary()?.stats.meetings ?? 0;
+    const tasks = this.summary()?.stats.tasks ?? 0;
 
     return {
-      labels: ['Ene', 'Feb', 'Mar', 'Abr'],
-      meetings: [
-        Math.max(2, Math.round(meetings * 0.33)),
-        Math.max(3, Math.round(meetings * 0.58)),
-        Math.max(3, Math.round(meetings * 0.45)),
-        Math.max(4, Math.round(meetings * 0.75)),
-      ],
-      tasks: [
-        Math.max(1, Math.round(tasks * 0.2)),
-        Math.max(2, Math.round(tasks * 0.28)),
-        Math.max(3, Math.round(tasks * 0.38)),
-        Math.max(3, Math.round(tasks * 0.46)),
-      ],
+      labels: ['Actual'],
+      meetings: [meetings],
+      tasks: [tasks],
     };
+  });
+
+  hasActivity = computed(() => {
+    const stats = this.summary()?.stats;
+    return (stats?.meetings ?? 0) > 0 || (stats?.tasks ?? 0) > 0;
   });
 
   workloadChartOptions = computed<AxisChartOptions>(() => ({
@@ -577,30 +591,10 @@ export class PymeDashboard implements OnInit {
 
   alerts = computed<AlertItem[]>(() => {
     if (this.isConsultant()) {
-      return [
-        {
-          client: 'Textiles del Sur',
-          message: `${Math.max(2, this.summary()?.taskStatus.pendiente ?? 0)} tareas criticas vencen manana`,
-          tone: 'danger',
-        },
-        { client: 'TecnoLogistica', message: 'Reunion de seguimiento no agendada', tone: 'warning' },
-        { client: 'Alimentos SAC', message: 'Nuevo frente comercial requiere acompanamiento', tone: 'info' },
-      ];
+      return this.summary()?.alerts ?? [];
     }
 
-    return [
-      { client: 'Operacion', message: 'Pipeline comercial requiere seguimiento diario', tone: 'warning' },
-      {
-        client: 'Equipo',
-        message: `${Math.max(1, this.summary()?.taskStatus.bloqueada ?? 0)} bloqueos necesitan destrabe esta semana`,
-        tone: 'danger',
-      },
-      {
-        client: 'Crecimiento',
-        message: 'Tu red de consultores ya tiene disponibilidad para nuevas sesiones',
-        tone: 'info',
-      },
-    ];
+    return this.summary()?.alerts ?? [];
   });
 
   upcomingMeetings = computed(() => {
@@ -608,8 +602,15 @@ export class PymeDashboard implements OnInit {
     return meetings.map((meeting, index) => ({
       ...meeting,
       subtitle: this.isConsultant()
-        ? ['Revision de estrategia', 'Workshop IA Marketing', 'Mesa de seguimiento', 'Planning trimestral'][index % 4]
-        : ['Sesion consultiva', 'Revision operativa', 'Seguimiento comercial', 'Orden financiero'][index % 4],
+        ? [
+            'Revision de estrategia',
+            'Workshop IA Marketing',
+            'Mesa de seguimiento',
+            'Planning trimestral',
+          ][index % 4]
+        : ['Sesion consultiva', 'Revision operativa', 'Seguimiento comercial', 'Orden financiero'][
+            index % 4
+          ],
       mode: meeting.status === 'solicitada' ? 'Por confirmar' : 'Virtual',
     }));
   });

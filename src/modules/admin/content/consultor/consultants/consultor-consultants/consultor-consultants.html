@@ -9,10 +9,10 @@
         [ngModel]="search()"
         (ngModelChange)="search.set($event)"
         (keyup.enter)="load()"
-        class="w-full lg:w-80 px-3 py-2 rounded-lg border border-text/20 bg-background outline-none focus:border-primary"
+        class="w-full lg:w-80 px-3 py-2 rounded-lg border border-text/20 bg-background outline-none focus:border-primary placeholder:text-text-400"
         placeholder="Buscar por nombre o especialidad"
       />
-      <button (click)="load()" class="px-4 py-2 rounded-lg bg-primary text-background font-inter-semibold">
+      <button (click)="load()" class="px-4 py-2 rounded-lg bg-secondary text-background font-inter-semibold">
         Buscar
       </button>
       <button type="button" (click)="showCreate.set(true)" class="whitespace-nowrap rounded-lg bg-secondary px-4 py-2 text-sm text-fixed-background-50 font-inter-bold">

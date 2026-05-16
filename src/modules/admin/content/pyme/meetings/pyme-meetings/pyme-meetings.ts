@@ -1,12 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
+import { QuillModule } from 'ngx-quill';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
-import { PymeInputSearch } from '@module/admin/components/input-search/pyme-input-search/pyme-input-search';
-import { ConsultantInputSearch } from '@module/admin/components/input-search/consultant-input-search/consultant-input-search';
+import {
+  ConsultantInputSearch,
+  ConsultantInputSearchFilters,
+} from '@module/admin/components/input-search/consultant-input-search/consultant-input-search';
 
 type MeetingForm = {
   pymeId: number;
@@ -14,25 +18,36 @@ type MeetingForm = {
   title: string;
   startTime: string;
   durationMinutes: number;
-  meetingUrl: string;
+  description: string;
 };
+
+type FinalizeTask = {
+  title: string;
+  description: string;
+  assignedTo: 'pyme' | 'consultor';
+  priority: 'alta' | 'media' | 'baja';
+  dueDate?: string;
+};
+
+type Match = ApiResponse<'pyme', 'consultantContacts'>['data'][number];
 
 @Component({
   selector: 'app-pyme-meetings',
-  imports: [CommonModule, FormsModule, ModalForm, PymeInputSearch, ConsultantInputSearch],
+  imports: [CommonModule, FormsModule, RouterLink, ModalForm, ConsultantInputSearch, QuillModule],
   templateUrl: './pyme-meetings.html',
 })
 export class PymeMeetings implements OnInit {
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
 
+  readonly consultantFilters = {
+    source: 'matches',
+    status: 'aceptado',
+  } satisfies ConsultantInputSearchFilters;
   meetings = signal<ApiResponse<'meeting', 'findAll'>['data']>([]);
-  pymes = signal<ApiResponse<'pyme', 'findAll'>['data']>([]);
-  consultants = signal<ApiResponse<'consultant', 'findAll'>['data']>([]);
+  acceptedMatches = signal<Match[]>([]);
   loading = signal(false);
   creating = signal(false);
-  finalizingId = signal<number | null>(null);
-  finalDescription = signal('');
   showCreate = signal(false);
 
   form = signal<MeetingForm>({
@@ -41,8 +56,23 @@ export class PymeMeetings implements OnInit {
     title: 'Sesion de consultoria',
     startTime: this.defaultDateTime(),
     durationMinutes: 60,
-    meetingUrl: '',
+    description: '',
   });
+
+  // Finalization signals
+  finalizingId = signal<number | null>(null);
+  finalDescription = signal('');
+  finalTasks = signal<FinalizeTask[]>([]);
+  
+  quillModules = {
+    toolbar: [
+      ['bold', 'italic', 'underline'],
+      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      ['clean']
+    ]
+  };
+  viewingActaId = signal<number | null>(null);
+  selectedMeeting = signal<ApiResponse<'meeting', 'findAll'>['data'][number] | null>(null);
 
   ngOnInit() {
     const user = this.hubsme.currentUser();
@@ -56,19 +86,24 @@ export class PymeMeetings implements OnInit {
   }
 
   loadLookups() {
-    Promise.all([this.hubsme.listPymes('', 1, 100), this.hubsme.listConsultants('', 1, 100, 'true')])
-      .then(([pymesRes, consultantsRes]) => {
-        const pymes = pymesRes.data.data;
-        const consultants = consultantsRes.data.data;
-        this.pymes.set(pymes);
-        this.consultants.set(consultants);
+    this.loadAcceptedMatches().catch((error) =>
+      this.toastService.error(this.hubsme.getErrorMessage(error)),
+    );
+  }
+
+  loadAcceptedMatches() {
+    return this.hubsme
+      .listMatches(1, 100, 'aceptado')
+      .then((matchesRes) => {
+        const matches = matchesRes.data.data;
+        this.acceptedMatches.set(matches);
         this.form.update((current) => ({
           ...current,
-          pymeId: current.pymeId || pymes[0]?.userId || 0,
-          consultantId: current.consultantId || consultants[0]?.userId || 0,
+          consultantId: matches.some((match) => match.consultantId === current.consultantId)
+            ? current.consultantId
+            : (matches[0]?.consultantId ?? 0),
         }));
-      })
-      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
+      });
   }
 
   load() {
@@ -87,7 +122,7 @@ export class PymeMeetings implements OnInit {
   create() {
     const data = this.form();
     if (!data.pymeId || !data.consultantId || !data.title || !data.startTime) {
-      this.toastService.error('Completa PYME, consultor, titulo y fecha');
+      this.toastService.error('Selecciona un consultor contactado y completa titulo y fecha');
       return;
     }
 
@@ -99,7 +134,7 @@ export class PymeMeetings implements OnInit {
         title: data.title,
         startTime: new Date(data.startTime).toISOString(),
         durationMinutes: Number(data.durationMinutes) || 60,
-        meetingUrl: data.meetingUrl || undefined,
+        description: data.description || undefined,
         status: 'solicitada',
       })
       .then(() => {
@@ -111,36 +146,88 @@ export class PymeMeetings implements OnInit {
       .finally(() => this.creating.set(false));
   }
 
+  updateMeetingStatus(
+    id: number,
+    status: ApiResponse<'meeting', 'findAll'>['data'][number]['status'],
+  ) {
+    this.hubsme
+      .updateMeeting(id, { status })
+      .then(() => {
+        this.toastService.success(
+          status === 'confirmada' ? 'Reunion aprobada' : 'Reunion cancelada',
+        );
+        this.load();
+      })
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
+  }
+
   startFinalize(id: number) {
+    const meeting = this.meetings().find((m) => m.id === id);
+    if (!meeting) return;
     this.finalizingId.set(id);
     this.finalDescription.set('');
+    this.finalTasks.set([]);
+  }
+
+  addTask() {
+    this.finalTasks.update((current) => [
+      ...current,
+      {
+        title: '',
+        description: '',
+        assignedTo: 'pyme',
+        priority: 'media',
+        dueDate: new Date().toISOString().split('T')[0],
+      },
+    ]);
+  }
+
+  removeTask(index: number) {
+    this.finalTasks.update((current) => current.filter((_, i) => i !== index));
+  }
+
+  updateTask<K extends keyof FinalizeTask>(index: number, key: K, value: any) {
+    this.finalTasks.update((current) => {
+      const updated = [...current];
+      updated[index] = { ...updated[index], [key]: value };
+      return updated;
+    });
   }
 
   finalize() {
     const id = this.finalizingId();
-    if (!id || !this.finalDescription()) {
-      this.toastService.error('Describe lo tratado en la reunion');
+    const description = this.finalDescription();
+    const tasks = this.finalTasks();
+
+    if (!id || !description.trim()) {
+      this.toastService.error('El acta no puede estar vacia');
       return;
     }
 
     this.hubsme
-      .finalizeMeeting(id, this.finalDescription())
-      .then((res) => {
-        this.toastService.success(`Acta creada y ${res.data.tasks.length} tareas generadas`);
+      .finalizeMeeting(id, {
+        description,
+        tasks: tasks.map((t) => ({
+          ...t,
+          dueDate: t.dueDate ? new Date(t.dueDate).toISOString() : undefined,
+        })),
+      })
+      .then(() => {
+        this.toastService.success('Reunion finalizada y acta generada');
         this.finalizingId.set(null);
         this.load();
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
   }
 
-  updateMeetingStatus(id: number, status: ApiResponse<'meeting', 'findAll'>['data'][number]['status']) {
-    this.hubsme
-      .updateMeeting(id, { status })
-      .then(() => {
-        this.toastService.success(status === 'confirmada' ? 'Reunion aprobada' : 'Reunion cancelada');
-        this.load();
-      })
-      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
+  viewActa(meeting: ApiResponse<'meeting', 'findAll'>['data'][number]) {
+    this.selectedMeeting.set(meeting);
+    this.viewingActaId.set(meeting.id);
+  }
+
+  closeActa() {
+    this.viewingActaId.set(null);
+    this.selectedMeeting.set(null);
   }
 
   private defaultDateTime(): string {

@@ -53,7 +53,7 @@
         <button
           (click)="choose(plan)"
           class="h-12 w-full rounded-xl text-sm font-inter-bold"
-          [class.bg-primary]="isFeatured(plan) || selectedPlan() !== plan.id"
+          [class.bg-secondary]="isFeatured(plan) || selectedPlan() !== plan.id"
           [class.text-fixed-background-50]="isFeatured(plan) || selectedPlan() !== plan.id"
           [class.bg-success\/10]="selectedPlan() === plan.id && !isFeatured(plan)"
           [class.text-success]="selectedPlan() === plan.id && !isFeatured(plan)"

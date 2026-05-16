@@ -11,7 +11,7 @@
         <input
           [ngModel]="search()"
           (ngModelChange)="search.set($event)"
-          class="h-10 w-full rounded-xl border border-border bg-surface pl-11 pr-4 text-sm outline-none placeholder:text-muted/80 focus:border-border"
+          class="h-10 w-full rounded-xl border border-border bg-surface pl-11 pr-4 text-sm outline-none placeholder:text-text-400 focus:border-border"
           placeholder="Buscar documentos..."
         />
       </label>
@@ -52,7 +52,10 @@
       </div>
 
       <div class="mt-5 flex items-center gap-3">
-        <button class="h-10 flex-1 rounded-xl bg-primary text-sm text-fixed-background-50 font-inter-semibold">
+        <button
+          [routerLink]="['/consultor/documents', document.id]"
+          class="h-10 flex-1 rounded-xl bg-secondary text-sm text-fixed-background-50 font-inter-semibold"
+        >
           <i class="far fa-file-lines mr-2"></i>Ver Acta
         </button>
         <button class="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface">

@@ -2,6 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { Api, ApiBody, ApiResponse } from 'api/backend.api';
 import { SessionService } from '@service/session.service';
 
+type MatchStatus = ApiResponse<'pyme', 'consultantContacts'>['data'][number]['status'];
+type MatchContact = Pick<
+  ApiResponse<'pyme', 'consultantContacts'>['data'][number],
+  'pymeId' | 'consultantId'
+>;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -40,6 +46,10 @@ export class HubsmeService {
     });
   }
 
+  getMeeting(id: number) {
+    return this.api.meeting.findOne({ id });
+  }
+
   createMeeting(data: ApiBody<'meeting', 'create'>) {
     return this.api.meeting.create(data);
   }
@@ -48,8 +58,8 @@ export class HubsmeService {
     return this.api.meeting.update({ id }, data);
   }
 
-  finalizeMeeting(id: number, description: string) {
-    return this.api.meeting.finalize({ id }, { description });
+  finalizeMeeting(id: number, data: ApiBody<'meeting', 'finalize'>) {
+    return this.api.meeting.finalize({ id }, data);
   }
 
   listTasks(page = 1, limit = 100, status?: ApiBody<'task', 'updateStatus'>['status']) {
@@ -65,6 +75,10 @@ export class HubsmeService {
 
   createTask(data: ApiBody<'task', 'create'>) {
     return this.api.task.create(data);
+  }
+
+  updateTask(id: number, data: ApiBody<'task', 'update'>) {
+    return this.api.task.update({ id }, data);
   }
 
   updateTaskStatus(id: number, status: ApiBody<'task', 'updateStatus'>['status']) {
@@ -92,42 +106,86 @@ export class HubsmeService {
     return this.api.subscription.upsert(data);
   }
 
-  listMatches(page = 1, limit = 100, status?: ApiBody<'pymeConsultantMatch', 'pymeconsultantmatchUpdate'>['status']) {
+  listMatches(
+    page = 1,
+    limit = 100,
+    status?: MatchStatus,
+    search?: string,
+  ) {
     const user = this.currentUser();
-    return this.api.pymeConsultantMatch.pymeconsultantmatchFindAll({
-      page,
-      limit,
-      pymeId: user.role === 'pyme' ? user.id : undefined,
-      consultantId: user.role === 'consultor' ? user.id : undefined,
-      status,
-    });
+    const cleanSearch = search?.trim() || undefined;
+
+    return user.role === 'pyme'
+      ? this.api.pyme.consultantContacts({ page, limit, pymeId: user.id, status, search: cleanSearch })
+      : this.api.consultant.pymeContacts({
+          page,
+          limit,
+          consultantId: user.id,
+          status,
+          search: cleanSearch,
+        });
   }
 
   createMatch(consultantId: number) {
     const user = this.currentUser();
-    return this.api.pymeConsultantMatch.pymeconsultantmatchCreate({
-      pymeId: user.id,
-      consultantId,
-      status: 'pendiente',
-      source: 'marketplace',
-    });
+    return this.api.pyme.contactConsultant({ pymeId: user.id, consultantId });
   }
 
-  updateMatch(id: number, status: ApiBody<'pymeConsultantMatch', 'pymeconsultantmatchUpdate'>['status']) {
-    return this.api.pymeConsultantMatch.pymeconsultantmatchUpdate({ id }, { status });
-  }
-
-  listMatchMessages(matchId: number) {
-    return this.api.pymeConsultantMessage.pymeconsultantmessageFindAll({ matchId });
-  }
-
-  sendMatchMessage(matchId: number, message: string) {
+  updateMatch(match: MatchContact, status: MatchStatus) {
     const user = this.currentUser();
-    return this.api.pymeConsultantMessage.pymeconsultantmessageCreate({
-      matchId,
-      senderId: user.id,
-      message,
-    });
+    if (status === 'aceptado') {
+      return user.role === 'pyme'
+        ? this.api.pyme.acceptConsultantContact({
+            pymeId: user.id,
+            consultantId: match.consultantId,
+          })
+        : this.api.consultant.acceptPymeContact({
+            consultantId: user.id,
+            pymeId: match.pymeId,
+          });
+    }
+
+    if (status === 'rechazado') {
+      return user.role === 'pyme'
+        ? this.api.pyme.rejectConsultantContact({
+            pymeId: user.id,
+            consultantId: match.consultantId,
+          })
+        : this.api.consultant.rejectPymeContact({
+            consultantId: user.id,
+            pymeId: match.pymeId,
+          });
+    }
+
+    throw new Error('Solo se puede aceptar o rechazar un contacto desde este modulo');
+  }
+
+  listMatchMessages(match: MatchContact) {
+    const user = this.currentUser();
+    return user.role === 'pyme'
+      ? this.api.pyme.consultantMessages({
+          pymeId: user.id,
+          consultantId: match.consultantId,
+        })
+      : this.api.consultant.pymeMessages({
+          consultantId: user.id,
+          pymeId: match.pymeId,
+        });
+  }
+
+  sendMatchMessage(match: MatchContact, message: string) {
+    const user = this.currentUser();
+    return user.role === 'pyme'
+      ? this.api.pyme.sendConsultantMessage({
+          pymeId: user.id,
+          consultantId: match.consultantId,
+          message,
+        })
+      : this.api.consultant.sendPymeMessage({
+          consultantId: user.id,
+          pymeId: match.pymeId,
+          message,
+        });
   }
 
   getErrorMessage(error: unknown): string {

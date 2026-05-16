@@ -3,10 +3,18 @@ import { Component, ElementRef, HostListener, inject, input, output, signal } fr
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { ConsultantService } from '@service/admin/consultant.service';
+import { HubsmeService } from '@service/hubsme.service';
 import { ApiResponse } from 'api/backend.api';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 type ConsultantOption = ApiResponse<'consultant', 'findAll'>['data'][number];
+type MatchOption = ApiResponse<'pyme', 'consultantContacts'>['data'][number];
+type MatchStatus = MatchOption['status'];
+
+export type ConsultantInputSearchFilters = {
+  source?: 'all' | 'matches';
+  status?: MatchStatus;
+};
 
 @Component({
   selector: 'app-consultant-input-search',
@@ -16,9 +24,11 @@ type ConsultantOption = ApiResponse<'consultant', 'findAll'>['data'][number];
 })
 export class ConsultantInputSearch implements ControlValueAccessor {
   private consultantService = inject(ConsultantService);
+  private hubsmeService = inject(HubsmeService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
   initialData = input<ConsultantOption | null>(null);
+  filters = input<ConsultantInputSearchFilters | null>(null);
   showClear = input(false);
   onSelected = output<ConsultantOption | null>();
 
@@ -109,14 +119,36 @@ export class ConsultantInputSearch implements ControlValueAccessor {
 
   private search(term: string) {
     this.loading.set(true);
-    this.consultantService
-      .findAll({ search: term.trim() || undefined, limit: 10, active: 'true' })
-      .then((response) => this.items.set(response.data))
+    const filters = this.filters();
+    const cleanTerm = term.trim();
+    const request =
+      filters?.source === 'matches'
+        ? this.hubsmeService
+            .listMatches(1, 10, filters.status, cleanTerm)
+            .then((response) => response.data.data.map((match) => this.matchToConsultant(match)))
+        : this.consultantService
+            .findAll({ search: cleanTerm || undefined, limit: 10, active: 'true' })
+            .then((response) => response.data);
+
+    request
+      .then((items) => this.items.set(items))
       .catch(() => this.items.set([]))
       .finally(() => this.loading.set(false));
   }
 
   private loadInitial(id: number) {
+    const filters = this.filters();
+    if (filters?.source === 'matches') {
+      this.hubsmeService
+        .listMatches(1, 100, filters.status)
+        .then((response) => {
+          const match = response.data.data.find((item) => item.consultantId === id);
+          this.selectedItem.set(match ? this.matchToConsultant(match) : null);
+        })
+        .catch(() => this.selectedItem.set(null));
+      return;
+    }
+
     this.consultantService
       .findOne(id)
       .then((item) => this.selectedItem.set(item))
@@ -126,5 +158,23 @@ export class ConsultantInputSearch implements ControlValueAccessor {
           .then((item) => this.selectedItem.set(item))
           .catch(() => this.selectedItem.set(null)),
       );
+  }
+
+  private matchToConsultant(match: MatchOption): ConsultantOption {
+    return {
+      id: match.consultantId,
+      userId: match.consultantId,
+      name: match.consultantName ?? 'Consultor',
+      bio: match.consultantBio,
+      specialties: match.consultantSpecialties,
+      sectors: [],
+      photoUrl: match.consultantPhotoUrl,
+      videoUrl: null,
+      pricePerHour: match.consultantPricePerHour,
+      rating: match.consultantRating,
+      totalReviews: 0,
+      active: 'true',
+      createdAt: match.createdAt,
+    };
   }
 }

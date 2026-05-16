@@ -5,8 +5,8 @@ import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 
-type Match = ApiResponse<'pymeConsultantMatch', 'pymeconsultantmatchFindAll'>['data'][number];
-type MatchMessage = ApiResponse<'pymeConsultantMessage', 'pymeconsultantmessageFindAll'>['data'][number];
+type Match = ApiResponse<'consultant', 'pymeContacts'>['data'][number];
+type MatchMessage = ApiResponse<'consultant', 'pymeMessages'>['data'][number];
 
 @Component({
   selector: 'app-consultor-inbox',
@@ -41,7 +41,7 @@ export class ConsultorInbox implements OnInit {
         const current = this.selectedMatch();
         const nextMatch = current ? res.data.data.find((match) => match.id === current.id) : res.data.data[0];
         this.selectedMatch.set(nextMatch ?? null);
-        if (nextMatch) this.loadMessages(nextMatch.id);
+        if (nextMatch) this.loadMessages(nextMatch);
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
@@ -49,13 +49,13 @@ export class ConsultorInbox implements OnInit {
 
   selectMatch(match: Match) {
     this.selectedMatch.set(match);
-    this.loadMessages(match.id);
+    this.loadMessages(match);
   }
 
-  loadMessages(matchId: number) {
+  loadMessages(match: Match) {
     this.loadingMessages.set(true);
     this.hubsme
-      .listMatchMessages(matchId)
+      .listMatchMessages(match)
       .then((res) => this.messages.set(res.data.data))
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loadingMessages.set(false));
@@ -68,10 +68,10 @@ export class ConsultorInbox implements OnInit {
 
     this.sending.set(true);
     this.hubsme
-      .sendMatchMessage(match.id, message)
+      .sendMatchMessage(match, message)
       .then(() => {
         this.messageText.set('');
-        this.loadMessages(match.id);
+        this.loadMessages(match);
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.sending.set(false));

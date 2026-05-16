@@ -9,11 +9,11 @@
       <div class="w-64">
         <app-pyme-input-search
           [ngModel]="selectedPymeId() === 'all' ? null : selectedPymeId()"
-          [showClear]="true"
+          [filters]="pymeFilters"
           (onSelected)="selectedPymeId.set($event?.userId ?? 'all')"
         />
       </div>
-      <button (click)="showCreate.set(true)" class="h-10 rounded-full bg-primary px-5 text-sm text-fixed-background-50 font-inter-semibold">
+      <button (click)="startCreate()" class="h-10 rounded-full bg-secondary px-5 text-sm text-fixed-background-50 font-inter-semibold">
         <i class="fas fa-plus mr-2"></i>Nueva Tarea
       </button>
     </div>
@@ -21,29 +21,38 @@
 
   @if (showCreate()) {
   <app-modal-form
-    title="Nueva tarea"
-    submitText="Crear tarea"
+    [title]="editingTaskId() ? 'Editar tarea' : 'Nueva tarea'"
+    [submitText]="editingTaskId() ? 'Guardar cambios' : 'Crear tarea'"
     [loading]="creating()"
     maxWidth="4xl"
-    (onSubmit)="create()"
-    (onClose)="showCreate.set(false)"
+    (onSubmit)="submit()"
+    (onClose)="closeForm()"
   >
     <div class="p-5">
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
-          <span>PYME</span>
-          <app-pyme-input-search [ngModel]="form().pymeId" [showClear]="true" (onSelected)="updateForm('pymeId', $event?.userId ?? 0)" />
+        <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+          <span class="mb-2 block">PYME</span>
+          @if (acceptedMatches().length) {
+            <app-pyme-input-search
+              [ngModel]="form().pymeId"
+              [filters]="pymeFilters"
+              [showClear]="true"
+              (onSelected)="updateForm('pymeId', $event?.userId ?? 0)"
+            />
+          } @else {
+            <div
+              class="rounded-xl border border-dashed border-border bg-surface px-4 py-4 text-sm text-muted"
+            >
+              Todavia no tienes PYMEs conectadas para crear tareas.
+            </div>
+          }
         </label>
-        <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
-          <span>Consultor</span>
-          <app-consultant-input-search [ngModel]="form().consultantId" [showClear]="true" (onSelected)="updateForm('consultantId', $event?.userId ?? 0)" />
-        </label>
-        <label class="space-y-1.5 text-xs text-muted font-inter-semibold md:col-span-2">
-          <span>Titulo</span>
+        <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+          <span class="mb-2 block">Titulo</span>
           <input [ngModel]="form().title" (ngModelChange)="updateForm('title', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
-        <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
-          <span>Asignado a</span>
+        <label class="block text-xs text-muted font-inter-semibold">
+          <span class="mb-2 block">Asignado a</span>
           <div class="relative">
             <select [ngModel]="form().assignedTo" (ngModelChange)="updateForm('assignedTo', $event)" class="h-10 w-full appearance-none rounded-xl border border-border bg-surface pl-3 pr-10 text-sm text-text outline-none focus:border-secondary">
               <option value="pyme">PYME</option>
@@ -52,8 +61,8 @@
             <i class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text/40"></i>
           </div>
         </label>
-        <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
-          <span>Prioridad</span>
+        <label class="block text-xs text-muted font-inter-semibold">
+          <span class="mb-2 block">Prioridad</span>
           <div class="relative">
             <select [ngModel]="form().priority" (ngModelChange)="updateForm('priority', $event)" class="h-10 w-full appearance-none rounded-xl border border-border bg-surface pl-3 pr-10 text-sm text-text outline-none focus:border-secondary">
               <option value="alta">Alta</option>
@@ -63,12 +72,12 @@
             <i class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text/40"></i>
           </div>
         </label>
-        <label class="space-y-1.5 text-xs text-muted font-inter-semibold md:col-span-2">
-          <span>Fecha limite</span>
+        <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+          <span class="mb-2 block">Fecha limite</span>
           <input type="date" [ngModel]="form().dueDate" (ngModelChange)="updateForm('dueDate', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
         </label>
-        <label class="space-y-1.5 text-xs text-muted font-inter-semibold md:col-span-2">
-          <span>Descripcion</span>
+        <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+          <span class="mb-2 block">Descripcion</span>
           <textarea [ngModel]="form().description" (ngModelChange)="updateForm('description', $event)" class="min-h-24 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-secondary"></textarea>
         </label>
       </div>
@@ -99,10 +108,20 @@
             class="cursor-grab rounded-2xl border border-dashed border-border bg-background/40 p-4 active:cursor-grabbing"
           >
             <div class="flex items-center justify-between gap-3">
-              <span class="rounded-full px-2.5 py-1 text-[0.65rem] uppercase font-inter-bold" [class]="priorityClass(task.priority)">
-                {{ task.priority }}
-              </span>
-              <span class="text-[0.7rem] text-muted">{{ task.assignedTo }}</span>
+              <div class="flex items-center gap-2">
+                <span class="rounded-full px-2.5 py-1 text-[0.65rem] uppercase font-inter-bold" [class]="priorityClass(task.priority)">
+                  {{ task.priority }}
+                </span>
+                <span class="text-[0.7rem] text-muted">{{ task.assignedTo }}</span>
+              </div>
+              <button
+                type="button"
+                (click)="$event.stopPropagation(); startEdit(task)"
+                class="grid h-7 w-7 cursor-pointer place-items-center rounded-full bg-surface text-muted transition-colors hover:bg-secondary-50 hover:text-secondary"
+                aria-label="Editar tarea"
+              >
+                <i class="fas fa-pen text-[0.7rem]"></i>
+              </button>
             </div>
 
             <h3 class="mt-3 text-[0.9rem] leading-snug font-inter-bold">{{ task.title }}</h3>

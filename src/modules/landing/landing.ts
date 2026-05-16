@@ -1,5 +1,15 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, OnInit, PLATFORM_ID, ViewChild, inject, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  PLATFORM_ID,
+  ViewChild,
+  inject,
+  signal,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { Api, ApiResponse } from 'api/backend.api';
 import { PATH, buildPath } from '@route/path.route';
@@ -14,7 +24,7 @@ type LandingConsultant = ApiResponse<'publicConsultant', 'publicconsultantFindAl
   imports: [CommonModule],
   templateUrl: './landing.html',
 })
-export class Landing implements OnInit, AfterViewInit {
+export class Landing implements OnInit, AfterViewInit, OnDestroy {
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private api = inject(Api);
@@ -25,11 +35,15 @@ export class Landing implements OnInit, AfterViewInit {
 
   protected consultants = signal<LandingConsultant[]>([]);
   protected consultantsLoading = signal(false);
+  private consultantAudioEnabled = false;
+  private activeConsultantVideo?: HTMLVideoElement;
+  private readonly interactionCleanups: (() => void)[] = [];
 
   protected readonly services = [
     {
       title: 'Consultoria de RRHH',
-      description: 'Optimiza tu talento humano y tu cultura organizacional con acompanamiento experto.',
+      description:
+        'Optimiza tu talento humano y tu cultura organizacional con acompanamiento experto.',
     },
     {
       title: 'Consultoria de Finanzas',
@@ -37,11 +51,13 @@ export class Landing implements OnInit, AfterViewInit {
     },
     {
       title: 'Consultoria de Logistica',
-      description: 'Mejora tu cadena de suministro, distribucion y capacidad de respuesta operativa.',
+      description:
+        'Mejora tu cadena de suministro, distribucion y capacidad de respuesta operativa.',
     },
     {
       title: 'Consultoria de Operaciones',
-      description: 'Procesos mas simples, indicadores claros y ejecucion continua para crecer ordenadamente.',
+      description:
+        'Procesos mas simples, indicadores claros y ejecucion continua para crecer ordenadamente.',
     },
   ];
 
@@ -58,11 +74,17 @@ export class Landing implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
+    this.listenForUserInteraction();
+
     window.setTimeout(() => {
       this.syncHeroVideo();
       const initialSection = window.location.hash.replace('#', '');
       if (initialSection) this.scrollToSection(initialSection);
     });
+  }
+
+  ngOnDestroy(): void {
+    this.interactionCleanups.forEach((cleanup) => cleanup());
   }
 
   protected goToLogin(): void {
@@ -86,7 +108,10 @@ export class Landing implements OnInit, AfterViewInit {
   }
 
   protected consultantPhoto(consultant: LandingConsultant): string {
-    return consultant.photoUrl || `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(consultant.name)}`;
+    return (
+      consultant.photoUrl ||
+      `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(consultant.name)}`
+    );
   }
 
   protected consultantSpecialty(consultant: LandingConsultant): string {
@@ -101,7 +126,7 @@ export class Landing implements OnInit, AfterViewInit {
     if (!target) return;
 
     const headerHeight = document.querySelector('header')?.getBoundingClientRect().height ?? 0;
-    const anchor = sectionId === 'top' ? target : target.firstElementChild ?? target;
+    const anchor = sectionId === 'top' ? target : (target.firstElementChild ?? target);
     const top = anchor.getBoundingClientRect().top + window.scrollY - headerHeight - 96;
 
     window.history.pushState(null, '', `#${sectionId}`);
@@ -126,6 +151,63 @@ export class Landing implements OnInit, AfterViewInit {
     video.currentTime = 0;
   }
 
+  protected syncConsultantVideo(event: Event): void {
+    const video = event.currentTarget instanceof HTMLVideoElement ? event.currentTarget : null;
+    if (!video) return;
+
+    this.prepareConsultantVideo(video);
+  }
+
+  protected playConsultantVideo(event: Event): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const video = this.getConsultantVideo(event);
+    if (!video) return;
+
+    this.pauseConsultantVideos(video);
+    this.activeConsultantVideo = video;
+    this.prepareConsultantVideo(video);
+    this.updateConsultantAudioButton(video, this.consultantAudioEnabled);
+    void video.play().catch(() => {
+      this.prepareConsultantVideo(video, false);
+      this.updateConsultantAudioButton(video, false);
+      return video.play().catch(() => undefined);
+    });
+  }
+
+  protected pauseConsultantVideo(event: Event): void {
+    const video = this.getConsultantVideo(event);
+    if (!video) return;
+
+    video.pause();
+    video.currentTime = 0;
+    this.prepareConsultantVideo(video, false);
+    this.updateConsultantAudioButton(video, false);
+
+    if (this.activeConsultantVideo === video) {
+      this.activeConsultantVideo = undefined;
+    }
+  }
+
+  protected unmuteConsultantVideo(event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const button = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+    const card = button?.closest('article');
+    const video = card?.querySelector<HTMLVideoElement>('video') ?? null;
+    if (!video) return;
+
+    this.consultantAudioEnabled = !this.consultantAudioEnabled;
+    this.pauseConsultantVideos(video);
+    this.activeConsultantVideo = video;
+    this.prepareConsultantVideo(video);
+    this.updateConsultantAudioButton(video, this.consultantAudioEnabled);
+    void video.play().catch(() => undefined);
+  }
+
   private loadConsultants(): void {
     this.consultantsLoading.set(true);
     this.api.publicConsultant
@@ -133,5 +215,69 @@ export class Landing implements OnInit, AfterViewInit {
       .then((response) => this.consultants.set(response.data.data))
       .catch(() => this.consultants.set([]))
       .finally(() => this.consultantsLoading.set(false));
+  }
+
+  private getConsultantVideo(event: Event): HTMLVideoElement | null {
+    const card = event.currentTarget instanceof HTMLElement ? event.currentTarget : null;
+    return card?.querySelector<HTMLVideoElement>('video') ?? null;
+  }
+
+  private prepareConsultantVideo(
+    video: HTMLVideoElement,
+    withAudio = this.consultantAudioEnabled,
+  ): void {
+    video.muted = !withAudio;
+    video.defaultMuted = !withAudio;
+    video.volume = withAudio ? 1 : 0;
+    video.loop = true;
+    video.playsInline = true;
+  }
+
+  private pauseConsultantVideos(except?: HTMLVideoElement): void {
+    document.querySelectorAll<HTMLVideoElement>('#consultores video').forEach((video) => {
+      if (video === except) return;
+
+      video.pause();
+      video.currentTime = 0;
+      this.prepareConsultantVideo(video, false);
+      this.updateConsultantAudioButton(video, false);
+    });
+  }
+
+  private updateAllConsultantAudioButtons(withAudio: boolean): void {
+    document.querySelectorAll<HTMLVideoElement>('#consultores video').forEach((video) => {
+      this.updateConsultantAudioButton(video, withAudio);
+    });
+  }
+
+  private updateConsultantAudioButton(video: HTMLVideoElement, withAudio: boolean): void {
+    const icon = video
+      .closest('article')
+      ?.querySelector<HTMLElement>('[data-consultant-audio-toggle] i');
+    if (!icon) return;
+
+    icon.classList.toggle('fa-volume-high', withAudio);
+    icon.classList.toggle('fa-volume-xmark', !withAudio);
+  }
+
+  private listenForUserInteraction(): void {
+    const enableAudio = () => {
+      if (this.consultantAudioEnabled) return;
+
+      this.consultantAudioEnabled = true;
+      this.updateAllConsultantAudioButtons(true);
+      if (this.activeConsultantVideo && !this.activeConsultantVideo.paused) {
+        this.prepareConsultantVideo(this.activeConsultantVideo, true);
+        this.updateConsultantAudioButton(this.activeConsultantVideo, true);
+      }
+    };
+
+    document.addEventListener('pointerdown', enableAudio);
+    document.addEventListener('keydown', enableAudio);
+
+    this.interactionCleanups.push(
+      () => document.removeEventListener('pointerdown', enableAudio),
+      () => document.removeEventListener('keydown', enableAudio),
+    );
   }
 }

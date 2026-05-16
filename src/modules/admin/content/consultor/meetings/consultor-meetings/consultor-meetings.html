@@ -1,13 +1,17 @@
 <div class="space-y-7 font-inter-regular text-text">
   <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
-      <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold capitalize">Mis Reuniones</h1>
-      <p class="mt-1 text-[0.95rem] text-muted">Gestiona tus sesiones de consultoria y actas generadas.</p>
+      <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold capitalize">
+        Mis Reuniones
+      </h1>
+      <p class="mt-1 text-[0.95rem] text-muted">
+        Gestiona tus sesiones de consultoria y actas generadas.
+      </p>
     </div>
 
     <button
       (click)="showCreate.set(true)"
-      class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm text-fixed-background-50 font-inter-semibold shadow-sm hover:bg-text-800"
+      class="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-secondary px-5 text-sm text-fixed-background-50 font-inter-semibold shadow-sm hover:bg-secondary/90"
     >
       <i class="fas fa-plus"></i>
       Nueva Reunion
@@ -15,107 +19,292 @@
   </div>
 
   @if (showCreate()) {
-  <app-modal-form
-    title="Nueva reunion"
-    submitText="Crear reunion"
-    [loading]="creating()"
-    maxWidth="3xl"
-    (onSubmit)="create()"
-    (onClose)="showCreate.set(false)"
-  >
-    <div class="p-5">
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
-          <span>PYME</span>
-          <app-pyme-input-search [ngModel]="form().pymeId" [showClear]="true" (onSelected)="updateForm('pymeId', $event?.userId ?? 0)" />
-        </label>
-        <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
-          <span>Consultor</span>
-          <app-consultant-input-search [ngModel]="form().consultantId" [showClear]="true" (onSelected)="updateForm('consultantId', $event?.userId ?? 0)" />
-        </label>
-        <label class="space-y-1.5 text-xs text-muted font-inter-semibold md:col-span-2">
-          <span>Titulo</span>
-          <input [ngModel]="form().title" (ngModelChange)="updateForm('title', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
-        </label>
-        <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
-          <span>Fecha y hora</span>
-          <input type="datetime-local" [ngModel]="form().startTime" (ngModelChange)="updateForm('startTime', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
-        </label>
-        <label class="space-y-1.5 text-xs text-muted font-inter-semibold">
-          <span>Duracion</span>
-          <input type="number" [ngModel]="form().durationMinutes" (ngModelChange)="updateForm('durationMinutes', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
-        </label>
-        <label class="space-y-1.5 text-xs text-muted font-inter-semibold md:col-span-2">
-          <span>URL de reunion</span>
-          <input [ngModel]="form().meetingUrl" (ngModelChange)="updateForm('meetingUrl', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
-        </label>
+    <app-modal-form
+      title="Nueva reunion"
+      submitText="Crear reunion"
+      [loading]="creating()"
+      maxWidth="3xl"
+      (onSubmit)="create()"
+      (onClose)="showCreate.set(false)"
+    >
+      <div class="p-5">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+            <span class="mb-2 block">PYME</span>
+            @if (acceptedMatches().length) {
+              <app-pyme-input-search
+                [ngModel]="form().pymeId"
+                [filters]="pymeFilters"
+                [showClear]="true"
+                (onSelected)="updateForm('pymeId', $event?.userId ?? 0)"
+              />
+            } @else {
+              <div
+                class="rounded-xl border border-dashed border-border bg-background px-4 py-4 text-sm text-muted"
+              >
+                Todavia no tienes PYMEs contactadas para agendar reuniones.
+              </div>
+            }
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+            <span class="mb-2 block">Titulo</span>
+            <input
+              [ngModel]="form().title"
+              (ngModelChange)="updateForm('title', $event)"
+              class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary"
+            />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Fecha y hora</span>
+            <input
+              type="datetime-local"
+              [ngModel]="form().startTime"
+              (ngModelChange)="updateForm('startTime', $event)"
+              class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary"
+            />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Duracion</span>
+            <input
+              type="number"
+              [ngModel]="form().durationMinutes"
+              (ngModelChange)="updateForm('durationMinutes', $event)"
+              class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary"
+            />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+            <span class="mb-2 block">Descripcion</span>
+            <textarea
+              [ngModel]="form().description"
+              (ngModelChange)="updateForm('description', $event)"
+              class="min-h-24 w-full resize-none rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-secondary placeholder:text-text-400"
+              placeholder="Describe el objetivo o contexto de la reunion..."
+            ></textarea>
+          </label>
+        </div>
       </div>
-    </div>
-  </app-modal-form>
+    </app-modal-form>
   }
 
   @if (loading()) {
-  <div class="py-16 text-center text-muted">
-    <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
-  </div>
+    <div class="py-16 text-center text-muted">
+      <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+    </div>
   } @else {
-  <div class="space-y-4">
-    @for (meeting of meetings(); track meeting.id) {
-    <article class="overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_10px_24px_rgba(15,23,42,0.05)]">
-      <div class="flex flex-col lg:flex-row lg:items-stretch">
-        <div class="flex w-full items-center justify-center bg-background-50 px-8 py-6 text-center lg:w-48">
-          <div>
-            <p class="text-xs uppercase text-text font-inter-bold">{{ month(meeting) }}</p>
-            <p class="text-[2.45rem] leading-none text-text font-inter-bold">{{ day(meeting) }}</p>
-            <p class="mt-1 text-sm text-muted font-inter-medium">{{ hour(meeting) }}</p>
-          </div>
-        </div>
+    <div class="space-y-4">
+      @for (meeting of meetings(); track meeting.id) {
+        <article
+          class="overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_10px_24px_rgba(15,23,42,0.05)]"
+        >
+          <div class="flex flex-col lg:flex-row lg:items-stretch">
+            <div
+              class="flex w-full items-center justify-center bg-background-50 px-8 py-6 text-center lg:w-48"
+            >
+              <div>
+                <p class="text-xs uppercase text-text font-inter-bold">{{ month(meeting) }}</p>
+                <p class="text-[2.45rem] leading-none text-text font-inter-bold">
+                  {{ day(meeting) }}
+                </p>
+                <p class="mt-1 text-sm text-muted font-inter-medium">{{ hour(meeting) }}</p>
+              </div>
+            </div>
 
-        <div class="flex flex-1 flex-col gap-4 p-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <span class="rounded-full px-3 py-1 text-xs font-inter-semibold" [class]="statusClass(meeting.status)">
-              {{ meeting.status }}
-            </span>
-            <h2 class="mt-3 text-xl text-text font-anton lowercase">{{ meeting.title }}</h2>
-            <div class="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted">
-              <span><i class="far fa-clock mr-1.5"></i>{{ meeting.durationMinutes }} min</span>
-              <span><i class="fas fa-video mr-1.5"></i>{{ meeting.meetingUrl ? 'Google Meet' : 'Virtual' }}</span>
+            <div
+              class="flex flex-1 flex-col gap-4 p-6 lg:flex-row lg:items-center lg:justify-between"
+            >
+              <div>
+                <span
+                  class="rounded-full px-3 py-1 text-xs font-inter-semibold"
+                  [class]="statusClass(meeting.status)"
+                >
+                  {{ meeting.status }}
+                </span>
+                <h2 class="mt-3 text-xl text-text font-anton lowercase">{{ meeting.title }}</h2>
+                <div class="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted">
+                  <span><i class="far fa-clock mr-1.5"></i>{{ meeting.durationMinutes }} min</span>
+                  <span
+                    ><i class="fas fa-video mr-1.5"></i
+                    >{{ meeting.meetingUrl ? 'Google Meet' : 'Virtual' }}</span
+                  >
+                </div>
+              </div>
+
+              <div class="flex min-w-fit flex-col items-end gap-4 self-stretch lg:justify-between">
+                <button class="h-10 px-2 text-sm font-inter-semibold">Detalles</button>
+
+                <div class="flex flex-wrap items-center justify-end gap-3">
+                  @if (meeting.status === 'solicitada') {
+                    <button
+                      (click)="updateMeetingStatus(meeting.id, 'confirmada')"
+                      class="h-10 rounded-full bg-success px-4 text-sm text-fixed-background-50 font-inter-semibold"
+                    >
+                      <i class="fas fa-check mr-2"></i>Aprobar
+                    </button>
+                    <button
+                      (click)="updateMeetingStatus(meeting.id, 'cancelada')"
+                      class="h-10 rounded-full border border-border px-4 text-sm font-inter-semibold"
+                    >
+                      Cancelar
+                    </button>
+                  } @else if (meeting.status === 'confirmada' && finalizingId() !== meeting.id) {
+                    <button
+                      (click)="startFinalize(meeting)"
+                      class="h-10 rounded-full bg-secondary px-4 text-sm text-fixed-background-50 font-inter-semibold"
+                    >
+                      <i class="fas fa-check-circle mr-2"></i>Finalizar y Generar Acta
+                    </button>
+                  } @else if (meeting.status === 'finalizada') {
+                    <button
+                      [routerLink]="['/consultor/documents', meeting.id]"
+                      class="h-10 rounded-full border border-border px-4 text-sm font-inter-semibold"
+                    >
+                      <i class="far fa-file-lines mr-2"></i>Ver Acta
+                    </button>
+                  }
+                </div>
+              </div>
             </div>
           </div>
 
-          <div class="flex flex-wrap items-center gap-3">
-            @if (meeting.status !== 'finalizada') {
-            <button (click)="startFinalize(meeting.id)" class="h-10 rounded-full bg-primary px-4 text-sm text-fixed-background-50 font-inter-semibold">
-              <i class="fas fa-check-circle mr-2"></i>Finalizar y Generar Acta
-            </button>
-            } @else {
-            <button class="h-10 rounded-full border border-border px-4 text-sm font-inter-semibold">
-              <i class="far fa-file-lines mr-2"></i>Ver Acta
-            </button>
-            }
-            <button class="h-10 px-2 text-sm font-inter-semibold">Detalles</button>
-          </div>
-        </div>
-      </div>
+          @if (finalizingId() === meeting.id) {
+            <div class="border-t border-border bg-background/20 p-6">
+              <div class="grid gap-6 lg:grid-cols-[1fr_400px]">
+                <!-- Rich Text Editor (Quill) -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-sm text-text font-inter-bold">Acta de la sesión</h3>
+                    <span class="text-[0.65rem] text-muted uppercase font-inter-bold bg-background/50 px-2 py-1 rounded-md">
+                      Editor Enriquecido
+                    </span>
+                  </div>
+                  <quill-editor
+                    [ngModel]="finalDescription()"
+                    (ngModelChange)="finalDescription.set($event)"
+                    [modules]="quillModules"
+                    placeholder="Escribe el acta de la reunión..."
+                    class="block min-h-[400px] w-full"
+                    theme="snow"
+                  ></quill-editor>
+                </div>
 
-      @if (finalizingId() === meeting.id) {
-      <div class="border-t border-border p-5">
-        <textarea
-          [ngModel]="finalDescription()"
-          (ngModelChange)="finalDescription.set($event)"
-          class="min-h-28 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm outline-none"
-          placeholder="Describe acuerdos, puntos tratados y tareas potenciales..."
-        ></textarea>
-        <div class="mt-3 flex justify-end gap-2">
-          <button (click)="finalizingId.set(null)" class="h-10 rounded-xl border border-border px-4 text-sm">Cancelar</button>
-          <button (click)="finalize()" class="h-10 rounded-xl bg-secondary px-4 text-sm text-fixed-background-50 font-inter-bold">Generar acta</button>
+                <!-- Tasks Manager -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-sm text-text font-inter-bold">Tareas generadas</h3>
+                    <button
+                      type="button"
+                      (click)="addTask()"
+                      class="h-8 rounded-full bg-secondary/10 px-3 text-[0.7rem] text-secondary font-inter-bold hover:bg-secondary/20 transition-colors"
+                    >
+                      <i class="fas fa-plus mr-1.5"></i>Nueva Tarea
+                    </button>
+                  </div>
+
+                  <div class="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                    @for (task of finalTasks(); track $index) {
+                      <div class="group relative rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all hover:border-secondary/30 hover:shadow-md animate-in fade-in slide-in-from-right-4">
+                        <div class="space-y-3">
+                          <div class="flex items-center gap-2">
+                            <i class="fas fa-thumbtack text-[0.7rem] text-secondary/40"></i>
+                            <input
+                              [ngModel]="task.title"
+                              (ngModelChange)="updateTask($index, 'title', $event)"
+                              placeholder="Título de la tarea"
+                              class="w-full bg-transparent text-[0.85rem] font-inter-bold outline-none focus:text-secondary"
+                            />
+                          </div>
+                          
+                          <textarea
+                            [ngModel]="task.description"
+                            (ngModelChange)="updateTask($index, 'description', $event)"
+                            placeholder="Descripción de la acción..."
+                            class="min-h-12 w-full resize-none bg-transparent text-[0.78rem] text-muted outline-none"
+                          ></textarea>
+                          
+                          <div class="grid grid-cols-2 gap-2">
+                            <div class="space-y-1">
+                              <span class="text-[0.65rem] text-muted uppercase font-inter-bold">Asignado</span>
+                              <select
+                                [ngModel]="task.assignedTo"
+                                (ngModelChange)="updateTask($index, 'assignedTo', $event)"
+                                class="h-8 w-full rounded-lg border border-border bg-background px-2 text-[0.72rem] outline-none"
+                              >
+                                <option value="pyme">PYME</option>
+                                <option value="consultor">Consultor</option>
+                              </select>
+                            </div>
+                            <div class="space-y-1">
+                              <span class="text-[0.65rem] text-muted uppercase font-inter-bold">Prioridad</span>
+                              <select
+                                [ngModel]="task.priority"
+                                (ngModelChange)="updateTask($index, 'priority', $event)"
+                                class="h-8 w-full rounded-lg border border-border bg-background px-2 text-[0.72rem] outline-none"
+                              >
+                                <option value="alta">Alta</option>
+                                <option value="media">Media</option>
+                                <option value="baja">Baja</option>
+                              </select>
+                            </div>
+                          </div>
+                          
+                          <div class="flex items-center justify-between border-t border-border/50 pt-3">
+                            <input
+                              type="date"
+                              [ngModel]="task.dueDate"
+                              (ngModelChange)="updateTask($index, 'dueDate', $event)"
+                              class="h-7 border-none bg-transparent text-[0.72rem] text-muted outline-none"
+                            />
+                            
+                            <button
+                              (click)="removeTask($index)"
+                              class="flex h-7 w-7 items-center justify-center rounded-lg text-muted hover:bg-danger/10 hover:text-danger transition-all opacity-0 group-hover:opacity-100"
+                              title="Eliminar tarea"
+                            >
+                              <i class="far fa-trash-alt text-xs"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    } @empty {
+                      <div class="rounded-2xl border border-dashed border-border py-10 text-center">
+                        <i class="fas fa-clipboard-check mb-2 block text-xl text-muted/30"></i>
+                        <p class="text-[0.75rem] text-muted">No se han añadido tareas todavía.</p>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-8 flex items-center justify-between border-t border-border pt-6">
+                <p class="text-xs text-muted">
+                  <i class="fas fa-info-circle mr-1.5"></i>
+                  El acta se guardará en formato Markdown y las tareas se crearán individualmente.
+                </p>
+                <div class="flex gap-3">
+                  <button
+                    (click)="finalizingId.set(null)"
+                    class="h-10 rounded-xl border border-border px-6 text-sm font-inter-semibold hover:bg-background transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    (click)="finalize()"
+                    class="h-10 rounded-xl bg-secondary px-6 text-sm text-fixed-background-50 font-inter-bold shadow-md shadow-secondary/20 hover:bg-secondary/90 transition-all active:scale-95"
+                  >
+                    Generar acta y finalizar
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+        </article>
+      } @empty {
+        <div
+          class="rounded-2xl border border-dashed border-border bg-surface py-16 text-center text-muted"
+        >
+          No hay reuniones.
         </div>
-      </div>
       }
-    </article>
-    } @empty {
-    <div class="rounded-2xl border border-dashed border-border bg-surface py-16 text-center text-muted">No hay reuniones.</div>
-    }
-  </div>
+    </div>
   }
 </div>

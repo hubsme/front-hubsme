@@ -10,12 +10,14 @@ type ConsultantProfileData = ApiResponse<'consultant', 'findByUser'>;
 type ConsultantForm = {
   name: string;
   bio: string;
-  specialties: string;
-  sectors: string;
+  specialties: string[];
+  sectors: string[];
   pricePerHour: number;
   photoUrl: string;
   videoUrl: string;
 };
+
+type ChipField = 'specialties' | 'sectors';
 
 @Component({
   selector: 'app-consultor-profile',
@@ -32,12 +34,14 @@ export class ConsultorProfile implements OnInit {
   uploadingPhoto = signal(false);
   uploadingVideo = signal(false);
   consultant = signal<ConsultantProfileData | null>(null);
+  specialtyInput = signal('');
+  sectorInput = signal('');
 
   form = signal<ConsultantForm>({
     name: '',
     bio: '',
-    specialties: '',
-    sectors: '',
+    specialties: [],
+    sectors: [],
     pricePerHour: 0,
     photoUrl: '',
     videoUrl: '',
@@ -62,8 +66,8 @@ export class ConsultorProfile implements OnInit {
         this.form.set({
           name: data.name,
           bio: data.bio ?? '',
-          specialties: data.specialties.join(', '),
-          sectors: data.sectors.join(', '),
+          specialties: data.specialties ?? [],
+          sectors: data.sectors ?? [],
           pricePerHour: Number(data.pricePerHour),
           photoUrl: data.photoUrl ?? '',
           videoUrl: data.videoUrl ?? '',
@@ -74,14 +78,17 @@ export class ConsultorProfile implements OnInit {
   }
 
   save() {
+    this.commitChipInput('specialties');
+    this.commitChipInput('sectors');
+
     const user = this.hubsme.currentUser();
     const form = this.form();
     const payload: ApiBody<'consultant', 'create'> = {
       userId: user.id,
       name: form.name,
       bio: form.bio || undefined,
-      specialties: this.parseList(form.specialties),
-      sectors: this.parseList(form.sectors),
+      specialties: form.specialties,
+      sectors: form.sectors,
       pricePerHour: Number(form.pricePerHour) || 0,
       photoUrl: form.photoUrl || undefined,
       videoUrl: form.videoUrl || undefined,
@@ -89,7 +96,9 @@ export class ConsultorProfile implements OnInit {
       validated: this.consultant()?.validated ?? 'false',
     };
     const current = this.consultant();
-    const request = current ? this.api.consultant.update({ id: current.id }, payload) : this.api.consultant.create(payload);
+    const request = current
+      ? this.api.consultant.update({ id: current.id }, payload)
+      : this.api.consultant.create(payload);
 
     this.saving.set(true);
     request
@@ -125,11 +134,51 @@ export class ConsultorProfile implements OnInit {
       .finally(() => this.uploadingVideo.set(false));
   }
 
-  private parseList(value: string): string[] {
-    return value
-      .split(',')
-      .map((item) => item.trim())
-      .filter(Boolean);
+  updateChipInput(field: ChipField, value: string) {
+    this.inputSignal(field).set(value);
+  }
+
+  addChip(field: ChipField) {
+    this.commitChipInput(field);
+  }
+
+  removeChip(field: ChipField, index: number) {
+    this.form.update((current) => ({
+      ...current,
+      [field]: current[field].filter((_, itemIndex) => itemIndex !== index),
+    }));
+  }
+
+  handleChipKeydown(event: KeyboardEvent, field: ChipField) {
+    if (event.key !== 'Enter' && event.key !== ',') return;
+
+    event.preventDefault();
+    this.commitChipInput(field);
+  }
+
+  private commitChipInput(field: ChipField) {
+    const input = this.inputSignal(field);
+    const value = this.normalizeChip(input());
+    if (!value) return;
+
+    this.form.update((current) => {
+      const exists = current[field].some((item) => item.toLowerCase() === value.toLowerCase());
+      if (exists) return current;
+
+      return {
+        ...current,
+        [field]: [...current[field], value],
+      };
+    });
+    input.set('');
+  }
+
+  private inputSignal(field: ChipField) {
+    return field === 'specialties' ? this.specialtyInput : this.sectorInput;
+  }
+
+  private normalizeChip(value: string): string {
+    return value.trim().replace(/\s+/g, ' ');
   }
 
   private getFile(event: Event): File | null {

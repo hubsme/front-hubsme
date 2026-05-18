@@ -11,13 +11,12 @@
   } @else {
     <section class="grid grid-cols-1 gap-6 lg:grid-cols-[20rem_1fr]">
       <aside class="rounded-xl border border-border bg-surface p-6">
-        <h2 class="mb-5 block text-xs font-inter-semibold text-muted">Logo de la empresa</h2>
-        <div class="mx-auto h-28 w-28 overflow-hidden rounded-2xl border-2 border-dashed border-border bg-text/5">
-          @if (form().logoUrl) {
-            <img [src]="form().logoUrl" alt="Logo de empresa" class="h-full w-full object-cover" />
+        <div class="mx-auto h-28 w-28 overflow-hidden rounded-2xl border border-border bg-text/5 shadow-inner">
+          @if (form().logoUrl && !imageError()) {
+            <img [src]="form().logoUrl" alt="Logo de empresa" (error)="onImageError()" class="h-full w-full object-cover" />
           } @else {
-            <div class="flex h-full w-full items-center justify-center text-4xl text-muted">
-              <i class="fas fa-building"></i>
+            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-secondary/60 font-plus-jakarta-sans text-4xl font-bold text-background uppercase select-none">
+              {{ form().name ? form().name.charAt(0) : 'H' }}
             </div>
           }
         </div>
@@ -76,6 +75,32 @@
             <span class="absolute bottom-2 right-3 text-[0.65rem] text-muted">{{ form().description.length || 0 }}/500</span>
           </label>
         </div>
+
+        <div class="my-6 border-t border-border"></div>
+        <h2 class="mb-6 font-anton text-xl lowercase text-text">información del dueño</h2>
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Nombres del dueño</span>
+            <input [ngModel]="form().ownerFirstName" name="ownerFirstName" (ngModelChange)="updateForm('ownerFirstName', $event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary" />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Apellidos del dueño</span>
+            <input [ngModel]="form().ownerLastName" name="ownerLastName" (ngModelChange)="updateForm('ownerLastName', $event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary" />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Email del dueño</span>
+            <input type="email" [ngModel]="form().ownerEmail" name="ownerEmail" (ngModelChange)="updateForm('ownerEmail', $event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary" />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Celular del dueño</span>
+            <input [ngModel]="form().ownerPhone" name="ownerPhone" (ngModelChange)="updateForm('ownerPhone', $event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary" />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+            <span class="mb-2 block">Cargo del dueño</span>
+            <input [ngModel]="form().ownerPosition" name="ownerPosition" (ngModelChange)="updateForm('ownerPosition', $event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary" />
+          </label>
+        </div>
+
         <div class="mt-8 flex flex-col items-end">
           <button type="submit" [disabled]="saving()" class="flex h-10 items-center justify-center gap-2 rounded-xl bg-secondary px-6 text-[0.82rem] text-background font-inter-bold transition-colors hover:bg-secondary/90 disabled:opacity-50">
             @if (saving()) {
@@ -93,7 +118,5 @@
         </div>
       </form>
     </section>
-
-
   }
 </div>

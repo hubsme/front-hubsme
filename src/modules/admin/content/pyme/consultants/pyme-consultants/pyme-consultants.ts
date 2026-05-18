@@ -158,7 +158,7 @@ export class PymeConsultants implements OnInit {
   consultantPhoto(consultant: Consultant): string {
     return (
       consultant.photoUrl ||
-      `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(consultant.name)}`
+      `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(consultant.fullName)}`
     );
   }
 

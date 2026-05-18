@@ -1,97 +1,268 @@
 <div class="min-h-screen flex items-center justify-center bg-background p-4 font-inter-regular text-text">
-  <div class="w-full max-w-lg bg-background rounded-2xl shadow-lg border border-text/10 overflow-hidden">
+  <div class="w-full max-w-lg bg-surface rounded-2xl shadow-lg border border-text/10 overflow-hidden">
     <div class="pt-12 pb-4 text-center">
       <img src="/avif/logo_completo.avif" alt="HUBSME" class="mx-auto h-12 w-auto" />
     </div>
 
     <div class="p-10">
-      <form (ngSubmit)="onRegister()" class="space-y-5">
-        @if (!roleLocked()) {
-        <div class="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            (click)="setRole('pyme')"
-            class="rounded-lg border px-4 py-3 text-left"
-            [class.border-secondary]="role() === 'pyme'"
-            [class.bg-secondary/5]="role() === 'pyme'"
-          >
-            <i class="fas fa-building text-secondary"></i>
-            <p class="font-inter-bold text-sm mt-2">Soy PYME</p>
-            <p class="text-xs text-text/50">Busco diagnostico y consultoria.</p>
-          </button>
-          <button
-            type="button"
-            (click)="setRole('consultor')"
-            class="rounded-lg border px-4 py-3 text-left"
-            [class.border-secondary]="role() === 'consultor'"
-            [class.bg-secondary/5]="role() === 'consultor'"
-          >
-            <i class="fas fa-user-tie text-secondary"></i>
-            <p class="font-inter-bold text-sm mt-2">Soy consultor</p>
-            <p class="text-xs text-text/50">Gestiono clientes y sesiones.</p>
-          </button>
-        </div>
-        } @else {
-          <div class="rounded-xl border border-secondary/20 bg-secondary/5 p-4">
-            <div class="flex items-center gap-3">
-              <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-background">
-                <i class="fas" [class.fa-user-tie]="role() === 'consultor'" [class.fa-building]="role() === 'pyme'"></i>
+      <form (ngSubmit)="onRegister()" class="space-y-5" autocomplete="off">
+        @if (step() === 1) {
+          @if (!roleLocked()) {
+          <div class="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              (click)="setRole('pyme')"
+              class="flex items-start gap-3 rounded-xl border p-4 text-left transition-all duration-200 cursor-pointer shadow-xs hover:border-secondary/40 hover:bg-secondary/[0.02]"
+              [class.border-secondary]="role() === 'pyme'"
+              [class.bg-secondary/[0.05]]="role() === 'pyme'"
+              [class.border-border]="role() !== 'pyme'"
+              [class.bg-surface]="role() !== 'pyme'"
+            >
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-all duration-200"
+                   [class.bg-secondary]="role() === 'pyme'"
+                   [class.text-background]="role() === 'pyme'"
+                   [class.bg-secondary/10]="role() !== 'pyme'"
+                   [class.text-secondary]="role() !== 'pyme'">
+                <i class="fas fa-building text-base"></i>
               </div>
-              <div>
-                <p class="text-sm font-inter-bold text-secondary">
-                  {{ role() === 'consultor' ? 'Registro para consultor' : 'Registro para PYME' }}
-                </p>
-                <p class="text-xs text-text/50">
-                  Este perfil ya viene seleccionado desde la landing.
-                </p>
+              <div class="space-y-1">
+                <p class="font-inter-bold text-sm text-text leading-tight">Soy PYME</p>
+                <p class="text-xs text-text/50 leading-normal">Busco diagnóstico y consultoría.</p>
+              </div>
+            </button>
+            <button
+              type="button"
+              (click)="setRole('consultor')"
+              class="flex items-start gap-3 rounded-xl border p-4 text-left transition-all duration-200 cursor-pointer shadow-xs hover:border-secondary/40 hover:bg-secondary/[0.02]"
+              [class.border-secondary]="role() === 'consultor'"
+              [class.bg-secondary/[0.05]]="role() === 'consultor'"
+              [class.border-border]="role() !== 'consultor'"
+              [class.bg-surface]="role() !== 'consultor'"
+            >
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-all duration-200"
+                   [class.bg-secondary]="role() === 'consultor'"
+                   [class.text-background]="role() === 'consultor'"
+                   [class.bg-secondary/10]="role() !== 'consultor'"
+                   [class.text-secondary]="role() !== 'consultor'">
+                <i class="fas fa-user-tie text-base"></i>
+              </div>
+              <div class="space-y-1">
+                <p class="font-inter-bold text-sm text-text leading-tight">Soy consultor</p>
+                <p class="text-xs text-text/50 leading-normal">Gestiono clientes y sesiones.</p>
+              </div>
+            </button>
+          </div>
+          } @else {
+            <div class="rounded-xl border border-secondary/20 bg-secondary/5 p-4">
+              <div class="flex items-center gap-3">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-background">
+                  <i class="fas" [class.fa-user-tie]="role() === 'consultor'" [class.fa-building]="role() === 'pyme'"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-inter-bold text-secondary">
+                    {{ role() === 'consultor' ? 'Registro para consultor' : 'Registro para PYME' }}
+                  </p>
+                  <p class="text-xs text-text/50">
+                    Este perfil ya viene seleccionado desde la landing.
+                  </p>
+                </div>
               </div>
             </div>
+          }
+
+          @if (role() === 'pyme') {
+            <!-- Sección Empresa -->
+            <div class="space-y-3 pt-6">
+              <h3 class="text-xs font-inter-bold uppercase tracking-wider text-secondary border-b border-text/10 pb-1.5 mt-2">Información de la Empresa</h3>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div class="space-y-2">
+                  <label class="mb-2 block text-sm font-inter-semibold text-text/60">Nombre</label>
+                  <input
+                    name="companyName"
+                    autocomplete="organization"
+                    [ngModel]="companyName()"
+                    (ngModelChange)="companyName.set($event)"
+                    class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
+                    placeholder="Textiles del Sur SAC"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <label class="mb-2 block text-sm font-inter-semibold text-text/60">RUC</label>
+                  <input
+                    name="ruc"
+                    autocomplete="off"
+                    [ngModel]="ruc()"
+                    (ngModelChange)="ruc.set($event)"
+                    class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
+                    placeholder="20600000001"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Sección Dueño -->
+            <div class="space-y-3 pt-6">
+              <h3 class="text-xs font-inter-bold uppercase tracking-wider text-secondary border-b border-text/10 pb-1.5 mt-2">Información del Dueño</h3>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div class="space-y-2">
+                  <label class="mb-2 block text-sm font-inter-semibold text-text/60">Nombres</label>
+                  <input
+                    name="firstName"
+                    autocomplete="given-name"
+                    [ngModel]="firstName()"
+                    (ngModelChange)="firstName.set($event)"
+                    class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
+                    placeholder="Maria"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <label class="mb-2 block text-sm font-inter-semibold text-text/60">Apellidos</label>
+                  <input
+                    name="lastName"
+                    autocomplete="family-name"
+                    [ngModel]="lastName()"
+                    (ngModelChange)="lastName.set($event)"
+                    class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
+                    placeholder="Torres"
+                  />
+                </div>
+              </div>
+
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div class="space-y-2">
+                  <label class="mb-2 block text-sm font-inter-semibold text-text/60">Celular</label>
+                  <input
+                    name="ownerPhone"
+                    autocomplete="tel"
+                    [ngModel]="ownerPhone()"
+                    (ngModelChange)="ownerPhone.set($event)"
+                    class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
+                    placeholder="+51999888777"
+                  />
+                </div>
+                <div class="space-y-2">
+                  <label class="mb-2 block text-sm font-inter-semibold text-text/60">Cargo</label>
+                  <input
+                    name="ownerPosition"
+                    autocomplete="off"
+                    [ngModel]="ownerPosition()"
+                    (ngModelChange)="ownerPosition.set($event)"
+                    class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
+                    placeholder="Gerente general"
+                  />
+                </div>
+              </div>
+            </div>
+          } @else if (role() === 'consultor') {
+            <div class="grid gap-4 sm:grid-cols-2 pt-6">
+              <div class="space-y-2">
+                <label class="mb-2 block text-sm font-inter-semibold text-text/60">Nombres</label>
+                <input
+                  name="firstName"
+                  autocomplete="given-name"
+                  [ngModel]="firstName()"
+                  (ngModelChange)="firstName.set($event)"
+                  class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
+                  placeholder="Maria"
+                />
+              </div>
+              <div class="space-y-2">
+                <label class="mb-2 block text-sm font-inter-semibold text-text/60">Apellidos</label>
+                <input
+                  name="lastName"
+                  autocomplete="family-name"
+                  [ngModel]="lastName()"
+                  (ngModelChange)="lastName.set($event)"
+                  class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
+                  placeholder="Torres"
+                />
+              </div>
+            </div>
+          }
+
+          <div class="pt-8">
+            <button
+              type="button"
+              (click)="goToCredentialsStep()"
+              [disabled]="!profileComplete()"
+              class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-inter-bold text-background bg-secondary hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+            >
+              <span>Siguiente</span>
+              <i class="fas fa-arrow-right text-xs"></i>
+            </button>
           </div>
+        } @else {
+          <div class="rounded-xl border border-text/10 bg-surface p-4">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-xs font-inter-semibold uppercase text-text/40">Perfil</p>
+                <p class="mt-1 text-sm font-inter-bold text-text">
+                  {{ role() === 'consultor' ? firstName() + ' ' + lastName() : companyName() }}
+                </p>
+                <p class="text-xs text-text/50">
+                  {{ role() === 'consultor' ? 'Consultor' : 'PYME - ' + ruc() }}
+                </p>
+              </div>
+              <button type="button" (click)="goToProfileStep()" class="text-sm font-inter-bold text-secondary hover:underline">
+                Editar
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="mb-2 block text-sm font-inter-semibold text-text/60">Email</label>
+            <input
+              type="email"
+              name="email"
+              [ngModel]="email()"
+              (ngModelChange)="email.set($event)"
+              class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
+              placeholder="hola@empresa.com"
+            />
+          </div>
+
+          <div class="space-y-2">
+            <label class="mb-2 block text-sm font-inter-semibold text-text/60">Password</label>
+            <input
+              type="password"
+              name="password"
+              [ngModel]="password()"
+              (ngModelChange)="password.set($event)"
+              class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
+              placeholder="Minimo 6 caracteres"
+            />
+          </div>
+
+          <button
+            type="submit"
+            [disabled]="loading()"
+            class="w-full flex justify-center py-3 px-4 rounded-lg text-sm font-inter-bold text-background bg-secondary hover:bg-secondary/90 disabled:opacity-50"
+          >
+            @if (loading()) {
+            <i class="fas fa-circle-notch fa-spin mr-2"></i> Creando... } @else { Crear cuenta }
+          </button>
+
+          <div class="my-6 flex items-center gap-3">
+            <span class="h-px flex-1 bg-text/10"></span>
+            <span class="text-xs font-inter-semibold uppercase text-text/40">o</span>
+            <span class="h-px flex-1 bg-text/10"></span>
+          </div>
+
+          <button
+            type="button"
+            (click)="startGoogleRegister()"
+            [disabled]="googleLoading()"
+            class="flex w-full items-center justify-center gap-3 rounded-lg border border-text/15 bg-surface px-4 py-3 text-sm font-inter-bold text-text hover:border-secondary/50 hover:text-secondary disabled:opacity-50"
+          >
+            @if (googleLoading()) {
+              <i class="fas fa-circle-notch fa-spin text-secondary"></i>
+              Esperando a Google...
+            } @else {
+              <i class="fab fa-google text-secondary"></i>
+              Crear cuenta con Google
+            }
+          </button>
         }
-
-        <div class="space-y-2">
-          <label class="mb-2 block text-sm font-inter-semibold text-text/60">Nombre</label>
-          <input
-            name="name"
-            [ngModel]="name()"
-            (ngModelChange)="name.set($event)"
-            class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-background text-text placeholder:text-text-400"
-            placeholder="Textiles del Sur SAC"
-          />
-        </div>
-
-        <div class="space-y-2">
-          <label class="mb-2 block text-sm font-inter-semibold text-text/60">Email</label>
-          <input
-            type="email"
-            name="email"
-            [ngModel]="email()"
-            (ngModelChange)="email.set($event)"
-            class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-background text-text placeholder:text-text-400"
-            placeholder="hola@empresa.com"
-          />
-        </div>
-
-        <div class="space-y-2">
-          <label class="mb-2 block text-sm font-inter-semibold text-text/60">Password</label>
-          <input
-            type="password"
-            name="password"
-            [ngModel]="password()"
-            (ngModelChange)="password.set($event)"
-            class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-background text-text placeholder:text-text-400"
-            placeholder="Minimo 6 caracteres"
-          />
-        </div>
-
-        <button
-          type="submit"
-          [disabled]="loading()"
-          class="w-full flex justify-center py-3 px-4 rounded-lg text-sm font-inter-bold text-background bg-secondary hover:bg-secondary/90 disabled:opacity-50"
-        >
-          @if (loading()) {
-          <i class="fas fa-circle-notch fa-spin mr-2"></i> Creando... } @else { Crear cuenta }
-        </button>
       </form>
 
       <div class="mt-6 text-center text-sm text-text/60">
@@ -102,4 +273,5 @@
       </div>
     </div>
   </div>
+
 </div>

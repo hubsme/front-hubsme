@@ -1,4 +1,4 @@
-import { Component, inject, output, computed, signal } from '@angular/core';
+import { Component, inject, output, computed, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { SessionService } from '@service/session.service';
@@ -17,7 +17,16 @@ export class Navbar {
   router = inject(Router);
 
   session = this.sessionService.session;
+  profilePicture = this.sessionService.profilePicture;
   isDropdownOpen = signal(false);
+  photoError = signal(false);
+
+  constructor() {
+    effect(() => {
+      this.profilePicture();
+      this.photoError.set(false);
+    });
+  }
 
   userName = computed(() => {
     const u = this.session();
@@ -42,6 +51,10 @@ export class Navbar {
 
   toggleSidebar = output<void>();
   toggleCollapse = output<void>();
+
+  onPhotoError() {
+    this.photoError.set(true);
+  }
 
   onToggleSidebar() {
     this.toggleSidebar.emit();

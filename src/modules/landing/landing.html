@@ -216,7 +216,7 @@
                   >
                     <img
                       [src]="consultantPhoto(consultant)"
-                      [alt]="consultant.name"
+                      [alt]="consultant.fullName"
                       class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     @if (consultant.videoUrl) {
@@ -251,7 +251,7 @@
                   <div
                     class="absolute bottom-0 left-0 z-10 flex h-[45%] w-full flex-col items-center justify-center bg-surface p-6 text-center transition-all duration-500 ease-in-out group-hover:translate-y-full group-hover:opacity-0"
                   >
-                    <h3 class="text-xl font-inter-bold text-text">{{ consultant.name }}</h3>
+                    <h3 class="text-xl font-inter-bold text-text">{{ consultant.fullName }}</h3>
                     <div
                       class="mt-2 inline-flex rounded-full bg-primary-50 px-3 py-1 text-xs font-inter-bold text-primary-600"
                     >
@@ -291,7 +291,7 @@
                   >
                     <img
                       [src]="consultantPhoto(consultant)"
-                      [alt]="consultant.name"
+                      [alt]="consultant.fullName"
                       class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                     @if (consultant.videoUrl) {
@@ -326,7 +326,7 @@
                   <div
                     class="absolute bottom-0 left-0 z-10 flex h-[45%] w-full flex-col items-center justify-center bg-surface p-6 text-center transition-all duration-500 ease-in-out group-hover:translate-y-full group-hover:opacity-0"
                   >
-                    <h3 class="text-xl font-inter-bold text-text">{{ consultant.name }}</h3>
+                    <h3 class="text-xl font-inter-bold text-text">{{ consultant.fullName }}</h3>
                     <div
                       class="mt-2 inline-flex rounded-full bg-primary-50 px-3 py-1 text-xs font-inter-bold text-primary-600"
                     >

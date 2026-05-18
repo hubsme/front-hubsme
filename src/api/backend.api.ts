@@ -35,7 +35,11 @@ export interface UserResultDto {
   email: string;
   /** @example "Carlos Mendoza" */
   name: string;
+  firstName: string | null;
+  lastName: string | null;
   role: "admin" | "pyme" | "consultor";
+  authProvider: "local" | "google";
+  googleId: string | null;
   isActive: "true" | "false";
 }
 
@@ -80,18 +84,51 @@ export interface RegisterDto {
   password: string;
   /**
    * User or business display name
-   * @example "Maria Torres"
+   * @example "Textiles del Sur SAC"
    */
   name: string;
+  /**
+   * Consultant first name or PYME owner first name
+   * @example "Maria"
+   */
+  firstName?: string;
+  /**
+   * Consultant last name or PYME owner last name
+   * @example "Torres"
+   */
+  lastName?: string;
+  /**
+   * PYME RUC
+   * @example "20600000001"
+   */
+  ruc?: string;
+  /**
+   * PYME owner phone
+   * @example "+51999888777"
+   */
+  ownerPhone?: string;
+  /**
+   * PYME owner position
+   * @example "Gerente general"
+   */
+  ownerPosition?: string;
   /** @default "pyme" */
   role: "pyme" | "consultor";
+}
+
+export interface GoogleAuthUrlResponseDto {
+  /** @example "https://accounts.google.com/o/oauth2/v2/auth?..." */
+  url: string;
 }
 
 export interface UserListItemDto {
   id: number;
   email: string;
   name: string;
+  firstName: string | null;
+  lastName: string | null;
   role: "admin" | "pyme" | "consultor";
+  authProvider: "local" | "google";
   isActive: "true" | "false";
   /** @format date-time */
   createdAt: string;
@@ -121,6 +158,10 @@ export interface UserCreateDto {
   password: string;
   /** @example "Carlos Mendoza" */
   name: string;
+  /** @example "Carlos" */
+  firstName?: string;
+  /** @example "Mendoza" */
+  lastName?: string;
   /** @default "pyme" */
   role: "admin" | "pyme" | "consultor";
 }
@@ -135,6 +176,10 @@ export interface UserUpdateDto {
   password?: string;
   /** @example "Carlos Mendoza" */
   name?: string;
+  /** @example "Carlos" */
+  firstName?: string;
+  /** @example "Mendoza" */
+  lastName?: string;
   role?: "admin" | "pyme" | "consultor";
   isActive?: "true" | "false";
 }
@@ -144,6 +189,9 @@ export interface PymeListItemDto {
   userId: number;
   name: string;
   ruc: string | null;
+  ownerFirstName: string | null;
+  ownerLastName: string | null;
+  ownerEmail: string | null;
   sector: string | null;
   numEmployees: number | null;
   /** @format date-time */
@@ -166,6 +214,11 @@ export interface PymeResultDto {
   userId: number;
   name: string;
   ruc: string | null;
+  ownerFirstName: string | null;
+  ownerLastName: string | null;
+  ownerEmail: string | null;
+  ownerPhone: string | null;
+  ownerPosition: string | null;
   sector: string | null;
   numEmployees: number | null;
   yearsInOperation: number | null;
@@ -180,6 +233,16 @@ export interface PymeCreateDto {
   name: string;
   /** @example "20600000001" */
   ruc?: string;
+  /** @example "Maria" */
+  ownerFirstName?: string;
+  /** @example "Torres" */
+  ownerLastName?: string;
+  /** @example "maria@empresa.com" */
+  ownerEmail?: string;
+  /** @example "+51999888777" */
+  ownerPhone?: string;
+  /** @example "Gerente general" */
+  ownerPosition?: string;
   /** @example "Manufactura" */
   sector?: string;
   /** @example 24 */
@@ -270,6 +333,16 @@ export interface PymeUpdateDto {
   name?: string;
   /** @example "20600000001" */
   ruc?: string;
+  /** @example "Maria" */
+  ownerFirstName?: string;
+  /** @example "Torres" */
+  ownerLastName?: string;
+  /** @example "maria@empresa.com" */
+  ownerEmail?: string;
+  /** @example "+51999888777" */
+  ownerPhone?: string;
+  /** @example "Gerente general" */
+  ownerPosition?: string;
   /** @example "Manufactura" */
   sector?: string;
   /** @example 24 */
@@ -285,7 +358,9 @@ export interface PymeUpdateDto {
 export interface ConsultantListItemDto {
   id: number;
   userId: number;
-  name: string;
+  fullName: string;
+  firstName: string | null;
+  lastName: string | null;
   bio: string | null;
   specialties: string[];
   sectors: string[];
@@ -313,7 +388,9 @@ export interface ConsultantResultDto {
   /** @format date-time */
   deletedAt: string | null;
   userId: number;
-  name: string;
+  fullName: string;
+  firstName: string | null;
+  lastName: string | null;
   bio: string | null;
   specialties: string[];
   sectors: string[];
@@ -329,8 +406,12 @@ export interface ConsultantResultDto {
 export interface ConsultantCreateDto {
   /** @example 3 */
   userId: number;
+  /** @example "Carlos" */
+  firstName?: string;
+  /** @example "Mendoza" */
+  lastName?: string;
   /** @example "Carlos Mendoza" */
-  name: string;
+  fullName?: string;
   /** @example "Consultor en transformacion digital para PYMES." */
   bio?: string;
   /** @example ["Tecnologia","Operaciones"] */
@@ -370,8 +451,12 @@ export interface ConsultantPymeMessageActionDto {
 export interface ConsultantUpdateDto {
   /** @example 3 */
   userId?: number;
+  /** @example "Carlos" */
+  firstName?: string;
+  /** @example "Mendoza" */
+  lastName?: string;
   /** @example "Carlos Mendoza" */
-  name?: string;
+  fullName?: string;
   /** @example "Consultor en transformacion digital para PYMES." */
   bio?: string;
   /** @example ["Tecnologia","Operaciones"] */
@@ -734,6 +819,25 @@ export type AuthLoginError = HttpErrorDto;
 export type AuthRegisterData = LoginResponseDto;
 
 export type AuthRegisterError = HttpErrorDto;
+
+export interface AuthGoogleUrlParams {
+  /** @default "login" */
+  flow?: "login" | "register";
+  /** @default "pyme" */
+  role?: "pyme" | "consultor";
+}
+
+export type AuthGoogleUrlData = GoogleAuthUrlResponseDto;
+
+export type AuthGoogleUrlError = HttpErrorDto;
+
+export interface AuthGoogleCallbackParams {
+  code?: string;
+  state?: string;
+  error?: string;
+}
+
+export type AuthGoogleCallbackData = any;
 
 export type AuthGetProfileData = any;
 
@@ -1310,6 +1414,48 @@ export namespace Auth {
     export type RequestBody = RegisterDto;
     export type RequestHeaders = {};
     export type ResponseBody = AuthRegisterData;
+  }
+
+  /**
+   * No description
+   * @tags auth
+   * @name AuthGoogleUrl
+   * @summary Get Google OAuth URL generated by backend
+   * @request GET:/auth/google/url
+   * @response `200` `AuthGoogleUrlData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace AuthGoogleUrl {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @default "login" */
+      flow?: "login" | "register";
+      /** @default "pyme" */
+      role?: "pyme" | "consultor";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthGoogleUrlData;
+  }
+
+  /**
+   * No description
+   * @tags auth
+   * @name AuthGoogleCallback
+   * @summary Google OAuth callback for popup login
+   * @request GET:/auth/google/callback
+   * @response `200` `AuthGoogleCallbackData` HTML response that posts the session to the opener window
+   */
+  export namespace AuthGoogleCallback {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      code?: string;
+      state?: string;
+      error?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthGoogleCallbackData;
   }
 
   /**
@@ -2885,6 +3031,45 @@ export class Api<SecurityDataType extends unknown> {
         body: data,
         type: ContentType.Json,
         format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthGoogleUrl
+     * @summary Get Google OAuth URL generated by backend
+     * @request GET:/auth/google/url
+     * @response `200` `AuthGoogleUrlData`
+     * @response `400` `HttpErrorDto`
+     */
+    googleUrl: (query: AuthGoogleUrlParams, params: RequestParams = {}) =>
+      this.http.request<AuthGoogleUrlData, AuthGoogleUrlError>({
+        path: `/auth/google/url`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthGoogleCallback
+     * @summary Google OAuth callback for popup login
+     * @request GET:/auth/google/callback
+     * @response `200` `AuthGoogleCallbackData` HTML response that posts the session to the opener window
+     */
+    googleCallback: (
+      query: AuthGoogleCallbackParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<AuthGoogleCallbackData, any>({
+        path: `/auth/google/callback`,
+        method: "GET",
+        query: query,
         ...params,
       }),
 

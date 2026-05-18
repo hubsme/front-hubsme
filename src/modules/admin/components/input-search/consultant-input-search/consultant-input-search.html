@@ -35,7 +35,7 @@
               <li (click)="selectItem(item)" class="flex cursor-pointer items-center gap-3 border-b border-text/5 px-3 py-2 transition-colors last:border-0 hover:bg-secondary/5" [class.bg-secondary/20]="selectedItem()?.id === item.id">
                 <div class="flex size-8 shrink-0 items-center justify-center rounded-full bg-text/5 text-text/60"><i class="fas fa-user-tie text-xs"></i></div>
                 <div class="flex min-w-0 flex-col">
-                  <span class="truncate text-sm font-inter-medium text-text">{{ item.name }}</span>
+                  <span class="truncate text-sm font-inter-medium text-text">{{ item.fullName }}</span>
                   <span class="truncate text-xs text-text/50">{{ item.specialties.join(', ') || 'Sin especialidades' }}</span>
                 </div>
               </li>

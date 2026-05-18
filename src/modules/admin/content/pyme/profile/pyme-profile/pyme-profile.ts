@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Api, ApiBody, ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
+import { SessionService } from '@service/session.service';
 
 type PymeProfileData = ApiResponse<'pyme', 'findByUser'>;
 
@@ -15,6 +16,11 @@ type PymeForm = {
   yearsInOperation: number;
   description: string;
   logoUrl: string;
+  ownerFirstName: string;
+  ownerLastName: string;
+  ownerEmail: string;
+  ownerPhone: string;
+  ownerPosition: string;
 };
 
 @Component({
@@ -26,11 +32,13 @@ export class PymeProfile implements OnInit {
   private api = inject(Api);
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
+  private sessionService = inject(SessionService);
 
   loading = signal(false);
   saving = signal(false);
   uploadingLogo = signal(false);
   pyme = signal<PymeProfileData | null>(null);
+  imageError = signal(false);
 
   lastUpdatedText = computed(() => {
     const p = this.pyme() as any;
@@ -50,6 +58,11 @@ export class PymeProfile implements OnInit {
     yearsInOperation: 0,
     description: '',
     logoUrl: '',
+    ownerFirstName: '',
+    ownerLastName: '',
+    ownerEmail: '',
+    ownerPhone: '',
+    ownerPosition: '',
   });
 
   ngOnInit(): void {
@@ -68,6 +81,8 @@ export class PymeProfile implements OnInit {
       .then((response) => {
         const data = response.data;
         this.pyme.set(data);
+        this.imageError.set(false);
+        this.sessionService.profilePicture.set(data.logoUrl || null);
         this.form.set({
           name: data.name,
           ruc: data.ruc ?? '',
@@ -76,6 +91,11 @@ export class PymeProfile implements OnInit {
           yearsInOperation: data.yearsInOperation ?? 0,
           description: data.description ?? '',
           logoUrl: data.logoUrl ?? '',
+          ownerFirstName: data.ownerFirstName ?? '',
+          ownerLastName: data.ownerLastName ?? '',
+          ownerEmail: data.ownerEmail ?? '',
+          ownerPhone: data.ownerPhone ?? '',
+          ownerPosition: data.ownerPosition ?? '',
         });
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
@@ -94,6 +114,11 @@ export class PymeProfile implements OnInit {
       yearsInOperation: Number(form.yearsInOperation) || 0,
       description: form.description || undefined,
       logoUrl: form.logoUrl || undefined,
+      ownerFirstName: form.ownerFirstName || undefined,
+      ownerLastName: form.ownerLastName || undefined,
+      ownerEmail: form.ownerEmail || undefined,
+      ownerPhone: form.ownerPhone || undefined,
+      ownerPosition: form.ownerPosition || undefined,
     };
     const current = this.pyme();
 
@@ -115,9 +140,17 @@ export class PymeProfile implements OnInit {
     this.uploadingLogo.set(true);
     this.api.storage
       .upload({ folder: 'pymes/logos' }, { file })
-      .then((response) => this.updateForm('logoUrl', response.data.secureUrl))
+      .then((response) => {
+        this.updateForm('logoUrl', response.data.secureUrl);
+        this.imageError.set(false);
+        this.sessionService.profilePicture.set(response.data.secureUrl);
+      })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.uploadingLogo.set(false));
+  }
+
+  onImageError() {
+    this.imageError.set(true);
   }
 
   private getFile(event: Event): File | null {

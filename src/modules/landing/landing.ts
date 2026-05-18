@@ -110,7 +110,7 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
   protected consultantPhoto(consultant: LandingConsultant): string {
     return (
       consultant.photoUrl ||
-      `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(consultant.name)}`
+      `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(consultant.fullName)}`
     );
   }
 

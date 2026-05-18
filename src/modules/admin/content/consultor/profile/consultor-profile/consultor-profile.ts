@@ -4,11 +4,14 @@ import { FormsModule } from '@angular/forms';
 import { Api, ApiBody, ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
+import { SessionService } from '@service/session.service';
 
 type ConsultantProfileData = ApiResponse<'consultant', 'findByUser'>;
 
 type ConsultantForm = {
-  name: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
   bio: string;
   specialties: string[];
   sectors: string[];
@@ -28,17 +31,21 @@ export class ConsultorProfile implements OnInit {
   private api = inject(Api);
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
+  private sessionService = inject(SessionService);
 
   loading = signal(false);
   saving = signal(false);
   uploadingPhoto = signal(false);
   uploadingVideo = signal(false);
   consultant = signal<ConsultantProfileData | null>(null);
+  photoError = signal(false);
   specialtyInput = signal('');
   sectorInput = signal('');
 
   form = signal<ConsultantForm>({
-    name: '',
+    firstName: '',
+    lastName: '',
+    fullName: '',
     bio: '',
     specialties: [],
     sectors: [],
@@ -63,8 +70,12 @@ export class ConsultorProfile implements OnInit {
       .then((response) => {
         const data = response.data;
         this.consultant.set(data);
+        this.photoError.set(false);
+        this.sessionService.profilePicture.set(data.photoUrl || null);
         this.form.set({
-          name: data.name,
+          firstName: data.firstName ?? '',
+          lastName: data.lastName ?? '',
+          fullName: data.fullName,
           bio: data.bio ?? '',
           specialties: data.specialties ?? [],
           sectors: data.sectors ?? [],
@@ -83,9 +94,12 @@ export class ConsultorProfile implements OnInit {
 
     const user = this.hubsme.currentUser();
     const form = this.form();
+    const fullName = `${form.firstName} ${form.lastName}`.trim() || form.fullName;
     const payload: ApiBody<'consultant', 'create'> = {
       userId: user.id,
-      name: form.name,
+      firstName: form.firstName || undefined,
+      lastName: form.lastName || undefined,
+      fullName,
       bio: form.bio || undefined,
       specialties: form.specialties,
       sectors: form.sectors,
@@ -117,9 +131,23 @@ export class ConsultorProfile implements OnInit {
     this.uploadingPhoto.set(true);
     this.api.storage
       .upload({ folder: 'consultants/photos' }, { file })
-      .then((response) => this.updateForm('photoUrl', response.data.secureUrl))
+      .then((response) => {
+        this.updateForm('photoUrl', response.data.secureUrl);
+        this.photoError.set(false);
+        this.sessionService.profilePicture.set(response.data.secureUrl);
+      })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.uploadingPhoto.set(false));
+  }
+
+  onPhotoError() {
+    this.photoError.set(true);
+  }
+
+  getInitials(): string {
+    const first = this.form().firstName?.trim()?.charAt(0) || '';
+    const last = this.form().lastName?.trim()?.charAt(0) || '';
+    return (first + last).toUpperCase() || 'C';
   }
 
   uploadVideo(event: Event) {

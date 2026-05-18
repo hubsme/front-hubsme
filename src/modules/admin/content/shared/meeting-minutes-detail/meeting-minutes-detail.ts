@@ -63,7 +63,7 @@ export class MeetingMinutesDetail implements OnInit {
 
   renderMarkdown(text: string | null | undefined): string {
     if (!text) return '';
-    
+
     const isHtml = /<[a-z][\s\S]*>/i.test(text);
     if (isHtml) {
       return text;
@@ -77,7 +77,7 @@ export class MeetingMinutesDetail implements OnInit {
       .replace(/\*(.*)\*/gim, '<i>$1</i>')
       .replace(/^- (.*$)/gim, '<li class="ml-4 list-disc">$1</li>')
       .replace(/\n/gim, '<br>');
-    
+
     return html;
   }
 

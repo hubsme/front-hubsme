@@ -4,6 +4,7 @@ import {
   provideZonelessChangeDetection,
   PLATFORM_ID,
   inject,
+  Injector,
 } from '@angular/core';
 import { provideRouter, Router } from '@angular/router';
 import { isPlatformBrowser, registerLocaleData } from '@angular/common';
@@ -31,7 +32,7 @@ export const appConfig: ApplicationConfig = {
       useFactory: () => {
         const router = inject(Router);
         const platformId = inject(PLATFORM_ID);
-        const sessionService = inject(SessionService);
+        const injector = inject(Injector);
         const http = new HttpClient({
           baseUrl: environment.baseUrl,
           securityWorker: async () => {
@@ -48,6 +49,7 @@ export const appConfig: ApplicationConfig = {
             const response = await fetch(input, init);
             if (response.status === 401) {
               if (isPlatformBrowser(platformId)) {
+                const sessionService = injector.get(SessionService);
                 sessionService.removeSession();
                 router.navigate([buildPath(PATH.auth.signIn)]);
               }

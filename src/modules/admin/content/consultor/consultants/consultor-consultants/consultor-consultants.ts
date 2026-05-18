@@ -7,7 +7,8 @@ import { ToastService } from '@service/toast.service';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 
 type ConsultantForm = {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
   bio: string;
@@ -33,7 +34,8 @@ export class ConsultorConsultants implements OnInit {
   showCreate = signal(false);
 
   form = signal<ConsultantForm>({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '123456',
     bio: '',
@@ -61,18 +63,28 @@ export class ConsultorConsultants implements OnInit {
 
   create() {
     const data = this.form();
-    if (!data.name || !data.email) {
-      this.toastService.error('Nombre y email son obligatorios');
+    const fullName = `${data.firstName} ${data.lastName}`.trim();
+    if (!data.firstName || !data.lastName || !data.email) {
+      this.toastService.error('Nombres, apellidos y email son obligatorios');
       return;
     }
 
     this.creating.set(true);
     this.api.user
-      .create({ name: data.name, email: data.email, password: data.password || '123456', role: 'consultor' })
+      .create({
+        name: fullName,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password || '123456',
+        role: 'consultor',
+      })
       .then((userRes) =>
         this.api.consultant.create({
           userId: userRes.data.id,
-          name: data.name,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          fullName,
           bio: data.bio || undefined,
           specialties: this.csvToArray(data.specialties),
           sectors: this.csvToArray(data.sectors),
@@ -85,7 +97,8 @@ export class ConsultorConsultants implements OnInit {
         this.toastService.success('Consultor creado correctamente');
         this.showCreate.set(false);
         this.form.set({
-          name: '',
+          firstName: '',
+          lastName: '',
           email: '',
           password: '123456',
           bio: '',

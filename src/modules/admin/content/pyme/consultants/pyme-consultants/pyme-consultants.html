@@ -62,7 +62,7 @@
             <div class="relative aspect-square bg-background-100">
               <img
                 [src]="consultantPhoto(consultant)"
-                [alt]="consultant.name"
+                [alt]="consultant.fullName"
                 class="h-full w-full object-cover object-top"
               />
               <div
@@ -88,7 +88,7 @@
 
             <div class="flex min-h-[23.5rem] flex-col p-5">
               <h2 class="text-xl leading-tight font-anton lowercase text-text">
-                {{ consultant.name }}
+                {{ consultant.fullName }}
               </h2>
               <p
                 class="mt-2 min-h-[4.5rem] overflow-hidden text-[0.82rem] leading-6 text-muted [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:3]"
@@ -305,7 +305,7 @@
         <div class="flex items-center justify-between gap-4 border-b border-border px-5 py-4">
           <div>
             <p class="text-xs uppercase text-muted font-inter-semibold">Perfil del consultor</p>
-            <h2 class="mt-1 text-lg text-text font-inter-bold">{{ profileConsultant()?.name }}</h2>
+            <h2 class="mt-1 text-lg text-text font-inter-bold">{{ profileConsultant()?.fullName }}</h2>
           </div>
           <button
             type="button"
@@ -320,7 +320,7 @@
           <div class="bg-background-100">
             <img
               [src]="consultantPhoto(profileConsultant()!)"
-              [alt]="profileConsultant()?.name || 'Consultor'"
+              [alt]="profileConsultant()?.fullName || 'Consultor'"
               class="h-72 w-full object-cover md:h-full"
             />
           </div>
@@ -411,7 +411,7 @@
         <div class="flex items-center justify-between gap-4 border-b border-border px-5 py-4">
           <div>
             <p class="text-xs uppercase text-muted font-inter-semibold">Video de introduccion</p>
-            <h2 class="mt-1 text-lg text-text font-inter-bold">{{ videoConsultant()?.name }}</h2>
+            <h2 class="mt-1 text-lg text-text font-inter-bold">{{ videoConsultant()?.fullName }}</h2>
           </div>
           <button
             type="button"

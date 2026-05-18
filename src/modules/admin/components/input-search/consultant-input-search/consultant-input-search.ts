@@ -105,7 +105,7 @@ export class ConsultantInputSearch implements ControlValueAccessor {
 
   getDisplayText(): string {
     const item = this.selectedItem();
-    return item ? item.name : 'Seleccionar consultor...';
+    return item ? item.fullName : 'Seleccionar consultor...';
   }
 
   @HostListener('document:click', ['$event'])
@@ -164,7 +164,9 @@ export class ConsultantInputSearch implements ControlValueAccessor {
     return {
       id: match.consultantId,
       userId: match.consultantId,
-      name: match.consultantName ?? 'Consultor',
+      fullName: match.consultantName ?? 'Consultor',
+      firstName: null,
+      lastName: null,
       bio: match.consultantBio,
       specialties: match.consultantSpecialties,
       sectors: [],

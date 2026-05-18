@@ -14,12 +14,12 @@
     <section class="grid grid-cols-1 gap-6 xl:grid-cols-[22rem_1fr]">
       <aside class="rounded-xl border border-border bg-surface p-6">
         <h2 class="mb-5 block text-xs font-inter-semibold text-muted">Foto de perfil y video</h2>
-        <div class="mx-auto h-36 w-36 overflow-hidden rounded-full border border-border bg-text/5">
-          @if (form().photoUrl) {
-            <img [src]="form().photoUrl" alt="Foto de perfil" class="h-full w-full object-cover" />
+        <div class="mx-auto h-36 w-36 overflow-hidden rounded-full border border-border bg-text/5 shadow-inner">
+          @if (form().photoUrl && !photoError()) {
+            <img [src]="form().photoUrl" alt="Foto de perfil" (error)="onPhotoError()" class="h-full w-full object-cover" />
           } @else {
-            <div class="flex h-full w-full items-center justify-center text-4xl text-muted">
-              <i class="fas fa-user-tie"></i>
+            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-secondary/60 font-plus-jakarta-sans text-4xl font-bold text-background uppercase select-none">
+              {{ getInitials() }}
             </div>
           }
         </div>
@@ -61,12 +61,21 @@
       <form (ngSubmit)="save()" class="rounded-xl border border-border bg-surface p-6 lg:p-8">
         <h2 class="mb-6 font-anton text-xl lowercase text-text">mi información personal</h2>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
-            <span class="mb-2 block">Nombre publico</span>
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Nombres</span>
             <input
-              [ngModel]="form().name"
-              name="consultantName"
-              (ngModelChange)="updateForm('name', $event)"
+              [ngModel]="form().firstName"
+              name="consultantFirstName"
+              (ngModelChange)="updateForm('firstName', $event)"
+              class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
+            />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Apellidos</span>
+            <input
+              [ngModel]="form().lastName"
+              name="consultantLastName"
+              (ngModelChange)="updateForm('lastName', $event)"
               class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
             />
           </label>

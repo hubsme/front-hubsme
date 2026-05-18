@@ -42,9 +42,15 @@
 
       <div
         (click)="onToggleDropdown()"
-        class="w-10 h-10 rounded-full bg-background/40 flex items-center justify-center text-text font-inter-bold border border-border shadow-sm cursor-pointer hover:bg-background/60 transition-colors"
+        class="w-10 h-10 overflow-hidden rounded-full bg-background/40 flex items-center justify-center text-text font-inter-bold border border-border shadow-sm cursor-pointer hover:bg-background/60 transition-colors"
       >
-        {{ userInitials() }}
+        @if (profilePicture() && !photoError()) {
+          <img [src]="profilePicture()" alt="Foto de perfil" (error)="onPhotoError()" class="h-full w-full object-cover" />
+        } @else {
+          <div class="h-full w-full flex items-center justify-center bg-primary/10 text-primary font-inter-bold text-sm tracking-wider">
+            {{ userInitials() }}
+          </div>
+        }
       </div>
 
       @if (isDropdownOpen()) {

@@ -136,6 +136,7 @@ export class PymeMeetings implements OnInit {
         durationMinutes: Number(data.durationMinutes) || 60,
         description: data.description || undefined,
         status: 'solicitada',
+        requestedBy: 'pyme',
       })
       .then(() => {
         this.toastService.success('Solicitud de reunion enviada');
@@ -254,5 +255,13 @@ export class PymeMeetings implements OnInit {
     if (status === 'cancelada') return 'bg-danger/10 text-danger';
     if (status === 'finalizada') return 'bg-text/5 text-text';
     return 'bg-success/10 text-success';
+  }
+
+  canApprove(meeting: ApiResponse<'meeting', 'findAll'>['data'][number]) {
+    return meeting.status === 'solicitada' && meeting.requestedBy === 'consultor';
+  }
+
+  isWaitingApproval(meeting: ApiResponse<'meeting', 'findAll'>['data'][number]) {
+    return meeting.status === 'solicitada' && meeting.requestedBy === 'pyme';
   }
 }

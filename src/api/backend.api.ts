@@ -511,6 +511,7 @@ export interface MeetingResultDto {
   durationMinutes: number;
   meetingUrl: string | null;
   status: "solicitada" | "confirmada" | "finalizada" | "cancelada";
+  requestedBy: "pyme" | "consultor";
   description: string | null;
   /** @format date-time */
   completedAt: string | null;
@@ -540,8 +541,10 @@ export interface MeetingCreateDto {
   meetingUrl?: string;
   /** @example "Revisar objetivos, contexto y dudas principales para la sesion." */
   description?: string;
-  /** @default "confirmada" */
+  /** @default "solicitada" */
   status?: "solicitada" | "confirmada" | "finalizada" | "cancelada";
+  /** @default "pyme" */
+  requestedBy?: "pyme" | "consultor";
 }
 
 export interface MeetingUpdateDto {
@@ -562,8 +565,10 @@ export interface MeetingUpdateDto {
   meetingUrl?: string;
   /** @example "Revisar objetivos, contexto y dudas principales para la sesion." */
   description?: string;
-  /** @default "confirmada" */
+  /** @default "solicitada" */
   status?: "solicitada" | "confirmada" | "finalizada" | "cancelada";
+  /** @default "pyme" */
+  requestedBy?: "pyme" | "consultor";
 }
 
 export interface MeetingFinalizeTaskDto {

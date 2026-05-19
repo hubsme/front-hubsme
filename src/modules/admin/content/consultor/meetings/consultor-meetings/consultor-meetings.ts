@@ -134,10 +134,11 @@ export class ConsultorMeetings implements OnInit {
         startTime: new Date(data.startTime).toISOString(),
         durationMinutes: Number(data.durationMinutes) || 60,
         description: data.description || undefined,
-        status: 'confirmada',
+        status: 'solicitada',
+        requestedBy: 'consultor',
       })
       .then(() => {
-        this.toastService.success('Reunion creada');
+        this.toastService.success('Solicitud de reunion enviada');
         this.showCreate.set(false);
         this.load();
       })
@@ -251,5 +252,13 @@ export class ConsultorMeetings implements OnInit {
     if (status === 'cancelada') return 'bg-danger/10 text-danger';
     if (status === 'solicitada') return 'bg-warning/10 text-warning';
     return 'bg-success/10 text-success';
+  }
+
+  canApprove(meeting: Meeting) {
+    return meeting.status === 'solicitada' && meeting.requestedBy === 'pyme';
+  }
+
+  isWaitingApproval(meeting: Meeting) {
+    return meeting.status === 'solicitada' && meeting.requestedBy === 'consultor';
   }
 }

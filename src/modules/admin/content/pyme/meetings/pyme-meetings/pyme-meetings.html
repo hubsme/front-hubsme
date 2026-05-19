@@ -142,12 +142,26 @@
                 <button class="h-9 px-2 text-[0.82rem] font-inter-semibold">Detalles</button>
 
                 <div class="flex flex-wrap items-center justify-end gap-3">
-                  @if (meeting.status === 'solicitada') {
+                  @if (canApprove(meeting)) {
+                    <button
+                      (click)="updateMeetingStatus(meeting.id, 'confirmada')"
+                      class="inline-flex h-9 items-center gap-2 rounded-full bg-success px-4 text-[0.82rem] text-fixed-background-50 font-inter-bold"
+                    >
+                      <i class="fas fa-check text-xs"></i>
+                      Aprobar
+                    </button>
+                    <button
+                      (click)="updateMeetingStatus(meeting.id, 'cancelada')"
+                      class="inline-flex h-9 items-center gap-2 rounded-full border border-border px-4 text-[0.82rem] font-inter-semibold"
+                    >
+                      Cancelar
+                    </button>
+                  } @else if (isWaitingApproval(meeting)) {
                     <span
                       class="inline-flex h-9 items-center gap-2 rounded-full bg-warning/10 px-4 text-[0.82rem] text-warning font-inter-bold"
                     >
                       <i class="far fa-clock text-xs"></i>
-                      Pendiente
+                      Esperando aprobacion
                     </span>
                     <button
                       (click)="updateMeetingStatus(meeting.id, 'cancelada')"

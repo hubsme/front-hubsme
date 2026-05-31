@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, inject, signal, ViewChild, ElementRef, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiResponse } from 'api/backend.api';
@@ -7,6 +7,8 @@ import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { QuillModule } from 'ngx-quill';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
+import { ConsultantService } from '@service/admin/consultant.service';
+import { TeamsCallService } from '@module/admin/services/teams-call.service';
 import {
   ConsultantInputSearch,
   ConsultantInputSearchFilters,
@@ -39,6 +41,16 @@ type Match = ApiResponse<'pyme', 'consultantContacts'>['data'][number];
 export class PymeMeetings implements OnInit {
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
+  public teamsCall = inject(TeamsCallService);
+
+  currentUserName = computed(() => {
+    try {
+      const user = this.hubsme.currentUser();
+      return user?.name || 'Usuario Hubsme';
+    } catch {
+      return 'Usuario Hubsme';
+    }
+  });
 
   readonly consultantFilters = {
     source: 'matches',
@@ -46,6 +58,8 @@ export class PymeMeetings implements OnInit {
   } satisfies ConsultantInputSearchFilters;
   meetings = signal<ApiResponse<'meeting', 'findAll'>['data']>([]);
   acceptedMatches = signal<Match[]>([]);
+  private consultantService = inject(ConsultantService);
+  consultantPhotos = signal<Record<number, string | null>>({});
   loading = signal(false);
   creating = signal(false);
   showCreate = signal(false);
@@ -110,9 +124,26 @@ export class PymeMeetings implements OnInit {
     this.loading.set(true);
     this.hubsme
       .listMeetings()
-      .then((res) => this.meetings.set(res.data.data))
+      .then((res) => {
+        this.meetings.set(res.data.data);
+        this.loadConsultantPhotos(res.data.data);
+      })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
+  }
+
+  private loadConsultantPhotos(meetings: ApiResponse<'meeting', 'findAll'>['data']) {
+    const uniqueIds = [...new Set(meetings.map((m) => m.consultantId))];
+    uniqueIds.forEach((id) => {
+      this.consultantService
+        .findByUser(id)
+        .then((consultant) => {
+          this.consultantPhotos.update((current) => ({ ...current, [id]: consultant.photoUrl }));
+        })
+        .catch(() => {
+          this.consultantPhotos.update((current) => ({ ...current, [id]: null }));
+        });
+    });
   }
 
   updateForm<K extends keyof MeetingForm>(key: K, value: MeetingForm[K]) {
@@ -135,7 +166,6 @@ export class PymeMeetings implements OnInit {
         startTime: new Date(data.startTime).toISOString(),
         durationMinutes: Number(data.durationMinutes) || 60,
         description: data.description || undefined,
-        status: 'solicitada',
         requestedBy: 'pyme',
       })
       .then(() => {
@@ -147,19 +177,26 @@ export class PymeMeetings implements OnInit {
       .finally(() => this.creating.set(false));
   }
 
+  updatingId = signal<number | null>(null);
+
   updateMeetingStatus(
     id: number,
     status: ApiResponse<'meeting', 'findAll'>['data'][number]['status'],
   ) {
-    this.hubsme
-      .updateMeeting(id, { status })
+    this.updatingId.set(id);
+    const request = status === 'confirmada'
+      ? this.hubsme.confirmMeeting(id)
+      : this.hubsme.updateMeeting(id, { status });
+
+    request
       .then(() => {
         this.toastService.success(
           status === 'confirmada' ? 'Reunion aprobada' : 'Reunion cancelada',
         );
         this.load();
       })
-      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.updatingId.set(null));
   }
 
   startFinalize(id: number) {

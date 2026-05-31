@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, inject, signal, ViewChild, ElementRef, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiResponse } from 'api/backend.api';
@@ -7,6 +7,8 @@ import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { QuillModule } from 'ngx-quill';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
+import { PymeService } from '@service/admin/pyme.service';
+import { TeamsCallService } from '@module/admin/services/teams-call.service';
 import {
   PymeInputSearch,
   PymeInputSearchFilters,
@@ -40,6 +42,16 @@ type Meeting = ApiResponse<'meeting', 'findAll'>['data'][number];
 export class ConsultorMeetings implements OnInit {
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
+  public teamsCall = inject(TeamsCallService);
+
+  currentUserName = computed(() => {
+    try {
+      const user = this.hubsme.currentUser();
+      return user?.name || 'Usuario Hubsme';
+    } catch {
+      return 'Usuario Hubsme';
+    }
+  });
 
   readonly pymeFilters = {
     source: 'matches',
@@ -47,6 +59,8 @@ export class ConsultorMeetings implements OnInit {
   } satisfies PymeInputSearchFilters;
   meetings = signal<ApiResponse<'meeting', 'findAll'>['data']>([]);
   acceptedMatches = signal<Match[]>([]);
+  private pymeService = inject(PymeService);
+  pymeLogos = signal<Record<number, string | null>>({});
   loading = signal(false);
   creating = signal(false);
   showCreate = signal(false);
@@ -109,9 +123,26 @@ export class ConsultorMeetings implements OnInit {
     this.loading.set(true);
     this.hubsme
       .listMeetings()
-      .then((res) => this.meetings.set(res.data.data))
+      .then((res) => {
+        this.meetings.set(res.data.data);
+        this.loadPymeLogos(res.data.data);
+      })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
+  }
+
+  private loadPymeLogos(meetings: ApiResponse<'meeting', 'findAll'>['data']) {
+    const uniqueIds = [...new Set(meetings.map((m) => m.pymeId))];
+    uniqueIds.forEach((id) => {
+      this.pymeService
+        .findByUser(id)
+        .then((pyme) => {
+          this.pymeLogos.update((current) => ({ ...current, [id]: pyme.logoUrl }));
+        })
+        .catch(() => {
+          this.pymeLogos.update((current) => ({ ...current, [id]: null }));
+        });
+    });
   }
 
   updateForm<K extends keyof MeetingForm>(key: K, value: MeetingForm[K]) {
@@ -134,7 +165,6 @@ export class ConsultorMeetings implements OnInit {
         startTime: new Date(data.startTime).toISOString(),
         durationMinutes: Number(data.durationMinutes) || 60,
         description: data.description || undefined,
-        status: 'solicitada',
         requestedBy: 'consultor',
       })
       .then(() => {
@@ -205,19 +235,26 @@ export class ConsultorMeetings implements OnInit {
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
   }
 
+  updatingId = signal<number | null>(null);
+
   updateMeetingStatus(
     id: number,
     status: ApiResponse<'meeting', 'findAll'>['data'][number]['status'],
   ) {
-    this.hubsme
-      .updateMeeting(id, { status })
+    this.updatingId.set(id);
+    const request = status === 'confirmada'
+      ? this.hubsme.confirmMeeting(id)
+      : this.hubsme.updateMeeting(id, { status });
+
+    request
       .then(() => {
         this.toastService.success(
           status === 'confirmada' ? 'Reunion aprobada' : 'Reunion cancelada',
         );
         this.load();
       })
-      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.updatingId.set(null));
   }
 
   private defaultDateTime(): string {

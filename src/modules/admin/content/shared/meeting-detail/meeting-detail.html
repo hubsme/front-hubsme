@@ -1,0 +1,240 @@
+<div class="font-inter-regular text-text">
+  @if (loading()) {
+    <div class="py-16 text-center text-muted">
+      <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+    </div>
+  } @else if (meeting(); as current) {
+    <div class="mx-auto max-w-2xl py-4">
+        <section
+          class="relative overflow-hidden rounded-2xl bg-surface shadow-[0_8px_30px_rgba(15,23,42,0.06)]"
+        >
+        <!-- Ticket cutouts - sides -->
+        <div
+          class="absolute -left-3.5 top-[42%] z-10 h-7 w-7 rounded-full border border-border bg-background"
+        ></div>
+        <div
+          class="absolute -right-3.5 top-[42%] z-10 h-7 w-7 rounded-full border border-border bg-background"
+        ></div>
+
+        <div class="px-6 py-8 sm:px-10">
+
+          <!-- Header -->
+          <header class="text-center">
+            <span
+              class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.7rem] capitalize font-inter-bold"
+              [class]="statusClass(current.status)"
+            >
+              <i class="fas fa-circle text-[0.25rem]"></i>
+              {{ current.status }}
+            </span>
+            <h1 class="mt-3 text-xl leading-snug font-plus-jakarta-sans font-bold sm:text-2xl">
+              {{ current.title }}
+            </h1>
+            <p class="mx-auto mt-1.5 max-w-md text-[0.78rem] leading-relaxed text-muted">
+              Solicitud creada el {{ meetingDate(current.createdAt) }} para una sesion con
+              {{ consultantName() }}.
+            </p>
+          </header>
+
+          <!-- Dashed divider -->
+          <div class="my-6 border-t border-dashed border-border"></div>
+
+          <!-- Consultant row -->
+          <div class="flex flex-col items-center gap-4 text-center">
+            <div class="flex items-center gap-3">
+              <div
+                class="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-border bg-background text-secondary"
+              >
+                @if (consultant()?.photoUrl) {
+                  <img
+                    [src]="consultant()?.photoUrl"
+                    [alt]="consultantName()"
+                    class="h-full w-full object-cover"
+                  />
+                } @else {
+                  <i class="fas fa-user-tie text-sm"></i>
+                }
+              </div>
+              <div>
+                <p class="text-[0.6rem] uppercase tracking-[0.15em] text-muted font-inter-bold">
+                  Consultor asignado
+                </p>
+                <p class="text-[0.88rem] leading-tight font-plus-jakarta-sans font-bold">
+                  {{ consultantName() }}
+                </p>
+              </div>
+            </div>
+            <div class="flex flex-wrap justify-center gap-1.5">
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-[0.68rem] text-muted font-inter-medium">
+                <i class="fas fa-building text-[0.55rem] text-secondary/60"></i>
+                {{ pymeName() }}
+              </span>
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-[0.68rem] text-muted font-inter-medium">
+                <i class="fas fa-video text-[0.55rem] text-secondary/60"></i>
+                {{ meetingModeLabel(current.meetingUrl) }}
+              </span>
+              <span class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-[0.68rem] text-muted font-inter-medium">
+                <i class="fas fa-paper-plane text-[0.55rem] text-secondary/60"></i>
+                {{ requestedByLabel(current.requestedBy) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Date/time centered block -->
+          <div class="mt-6 flex flex-col items-center rounded-xl bg-background px-5 py-5">
+            <p class="text-[0.6rem] uppercase tracking-[0.18em] text-muted font-inter-bold">
+              Fecha de sesion
+            </p>
+            <p class="mt-1.5 text-[0.88rem] leading-tight font-plus-jakarta-sans font-bold">
+              {{ meetingDate(current.startTime) }}
+            </p>
+            <p class="mt-1 text-[1.65rem] leading-none text-secondary font-inter-bold sm:text-[2rem]">
+              {{ meetingTime(current.startTime) }}
+            </p>
+          </div>
+
+          <!-- Info grid -->
+          <div class="mt-5 grid grid-cols-3 gap-3">
+            <div class="rounded-xl border border-border p-3.5">
+              <div class="flex items-center gap-2.5">
+                <div class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-secondary-50 text-secondary">
+                  <i class="far fa-clock text-[0.7rem]"></i>
+                </div>
+                <div>
+                  <p class="text-[0.58rem] uppercase tracking-wide text-muted font-inter-bold">Duracion</p>
+                  <p class="mt-0.5 text-[0.78rem] font-inter-bold">{{ current.durationMinutes }} min</p>
+                </div>
+              </div>
+            </div>
+            <div class="rounded-xl border border-border p-3.5">
+              <div class="flex items-center gap-2.5">
+                <div class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-secondary-50 text-secondary">
+                  <i class="far fa-flag text-[0.7rem]"></i>
+                </div>
+                <div>
+                  <p class="text-[0.58rem] uppercase tracking-wide text-muted font-inter-bold">Finalizacion</p>
+                  <p class="mt-0.5 text-[0.78rem] font-inter-bold">
+                    {{ current.completedAt ? shortDate(current.completedAt) : 'Pendiente' }}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="rounded-xl border border-border p-3.5">
+              <div class="flex items-center gap-2.5">
+                <div class="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-secondary-50 text-secondary">
+                  <i class="fas fa-user-check text-[0.7rem]"></i>
+                </div>
+                <div>
+                  <p class="text-[0.58rem] uppercase tracking-wide text-muted font-inter-bold">Solicitante</p>
+                  <p class="mt-0.5 text-[0.78rem] font-inter-bold">{{ requestedByLabel(current.requestedBy) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="mt-5 rounded-xl border border-border p-4">
+            <div class="mb-2.5 flex items-center gap-2">
+              <div class="grid h-7 w-7 place-items-center rounded-lg bg-secondary-50 text-secondary">
+                <i class="far fa-file-lines text-[0.65rem]"></i>
+              </div>
+              <p class="text-[0.62rem] uppercase tracking-[0.12em] text-muted font-inter-bold">Descripcion</p>
+            </div>
+            <p class="whitespace-pre-line text-[0.82rem] leading-6 text-text-700">
+              {{ current.description || 'Esta reunion no tiene descripcion registrada.' }}
+            </p>
+          </div>
+
+          @if (current.meetingUrl) {
+            <div class="mt-5 rounded-xl border border-border p-4">
+              <div class="mb-2.5 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="grid h-7 w-7 place-items-center rounded-lg bg-secondary-50 text-secondary">
+                    <i class="fas fa-link text-[0.65rem]"></i>
+                  </div>
+                  <p class="text-[0.62rem] uppercase tracking-[0.12em] text-muted font-inter-bold">Enlace de la Reunion</p>
+                </div>
+                <button
+                  type="button"
+                  (click)="copyToClipboard(current.meetingUrl)"
+                  class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-border bg-background text-muted hover:text-secondary hover:bg-secondary-50 transition-colors"
+                  title="Copiar enlace"
+                >
+                  <i class="far fa-copy text-xs"></i>
+                </button>
+              </div>
+              <a
+                [href]="current.meetingUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="break-all text-[0.82rem] text-muted font-inter-medium hover:text-secondary hover:underline transition-colors line-clamp-2"
+              >
+                {{ current.meetingUrl }}
+              </a>
+            </div>
+          }
+
+          <!-- Dashed divider before actions -->
+          <div class="my-6 border-t border-dashed border-border"></div>
+
+          <!-- Actions -->
+          <div class="flex flex-col gap-2.5 sm:flex-row">
+            @if (canApprove()) {
+              <button
+                type="button"
+                (click)="acceptMeeting()"
+                [disabled]="updatingStatus()"
+                class="inline-flex h-10 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-secondary px-4 text-[0.8rem] text-fixed-background-50 font-inter-bold transition-all hover:bg-secondary-600 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                @if (updatingStatus()) {
+                  <i class="fas fa-spinner fa-spin text-[0.7rem]"></i>
+                  Aprobando...
+                } @else {
+                  <i class="fas fa-check text-[0.7rem]"></i>
+                  Aceptar
+                }
+              </button>
+            }
+
+            @if (current.status === 'solicitada') {
+              <button
+                type="button"
+                (click)="cancelMeeting()"
+                [disabled]="updatingStatus()"
+                class="inline-flex h-10 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-[0.8rem] text-muted font-inter-bold transition-all hover:border-danger/40 hover:text-danger disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <i class="fas fa-xmark text-[0.7rem]"></i>
+                Cancelar
+              </button>
+            }
+          </div>
+
+          @if (current.meetingUrl) {
+            <button
+              type="button"
+              (click)="teamsCall.startCall(current.id, currentUserName())"
+              class="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-[0.78rem] text-fixed-background-50 font-inter-bold shadow-sm hover:bg-secondary/90 transition-all cursor-pointer"
+            >
+              <i class="fas fa-video text-[0.65rem]"></i>
+              Unirse desde la Web
+            </button>
+            <a
+              [href]="current.meetingUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="mt-2 flex items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-[0.78rem] text-muted font-inter-bold transition-all hover:bg-background-50"
+            >
+              <i class="fas fa-external-link-alt text-[0.65rem]"></i>
+              Abrir en Teams
+            </a>
+          }
+
+        </div>
+      </section>
+    </div>
+  } @else {
+    <div class="rounded-2xl border border-dashed border-border bg-surface py-14 text-center text-muted">
+      Reunion no encontrada.
+    </div>
+  }
+</div>

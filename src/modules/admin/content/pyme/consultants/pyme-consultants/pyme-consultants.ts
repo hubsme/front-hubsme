@@ -122,7 +122,7 @@ export class PymeConsultants implements OnInit {
         startTime: new Date(form.startTime).toISOString(),
         durationMinutes: Number(form.durationMinutes) || 60,
         description: form.description.trim() || undefined,
-        status: 'solicitada',
+        requestedBy: 'pyme',
       })
       .then(() => {
         this.toastService.success('Solicitud de reunion enviada para aprobacion');

@@ -13,7 +13,7 @@
 export interface LoginDto {
   /**
    * User email address
-   * @example "erick@gmail.com"
+   * @example "miguel.salinas@hubsme.com"
    */
   email: string;
   /**
@@ -537,21 +537,36 @@ export interface MeetingCreateDto {
   startTime: string;
   /** @example 60 */
   durationMinutes?: number;
-  /** @example "https://meet.google.com/demo" */
-  meetingUrl?: string;
   /** @example "Revisar objetivos, contexto y dudas principales para la sesion." */
   description?: string;
-  /** @default "solicitada" */
-  status?: "solicitada" | "confirmada" | "finalizada" | "cancelada";
   /** @default "pyme" */
   requestedBy?: "pyme" | "consultor";
 }
 
+export interface MeetingTeamsJoinDto {
+  /** @example "Maria Torres" */
+  displayName?: string;
+}
+
+export interface MeetingTeamsJoinResponseDto {
+  /** @example 12 */
+  meetingId: number;
+  /** @example "https://teams.microsoft.com/l/meetup-join/..." */
+  meetingUrl: string;
+  /** @example "8:acs:00000000-0000-0000-0000-000000000000_00000000-0000-0000-0000-000000000000" */
+  acsUserId: string;
+  /** @example "eyJhbGciOiJSUzI1NiIsImtpZCI6Ij..." */
+  token: string;
+  /**
+   * @format date-time
+   * @example "2026-05-19T18:30:00.000Z"
+   */
+  expiresOn: string;
+  /** @example "Maria Torres" */
+  displayName?: string;
+}
+
 export interface MeetingUpdateDto {
-  /** @example 2 */
-  pymeId?: number;
-  /** @example 3 */
-  consultantId?: number;
   /** @example "Sesion de diagnostico empresarial" */
   title?: string;
   /**
@@ -561,14 +576,9 @@ export interface MeetingUpdateDto {
   startTime?: string;
   /** @example 60 */
   durationMinutes?: number;
-  /** @example "https://meet.google.com/demo" */
-  meetingUrl?: string;
   /** @example "Revisar objetivos, contexto y dudas principales para la sesion." */
   description?: string;
-  /** @default "solicitada" */
   status?: "solicitada" | "confirmada" | "finalizada" | "cancelada";
-  /** @default "pyme" */
-  requestedBy?: "pyme" | "consultor";
 }
 
 export interface MeetingFinalizeTaskDto {
@@ -1167,6 +1177,22 @@ export type MeetingFindOneError = HttpErrorDto;
 export type MeetingCreateData = MeetingResultDto;
 
 export type MeetingCreateError = HttpErrorDto;
+
+export interface MeetingConfirmParams {
+  id: number;
+}
+
+export type MeetingConfirmData = MeetingResultDto;
+
+export type MeetingConfirmError = HttpErrorDto;
+
+export interface MeetingCreateTeamsJoinTokenParams {
+  id: number;
+}
+
+export type MeetingCreateTeamsJoinTokenData = MeetingTeamsJoinResponseDto;
+
+export type MeetingCreateTeamsJoinTokenError = HttpErrorDto;
 
 export interface MeetingUpdateParams {
   id: number;
@@ -2229,6 +2255,46 @@ export namespace Meeting {
     export type RequestBody = MeetingCreateDto;
     export type RequestHeaders = {};
     export type ResponseBody = MeetingCreateData;
+  }
+
+  /**
+   * No description
+   * @tags meeting
+   * @name MeetingConfirm
+   * @summary Confirm a requested meeting and create its Teams meeting URL internally
+   * @request POST:/admin/meeting/confirm/{id}
+   * @secure
+   * @response `200` `MeetingConfirmData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MeetingConfirm {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingConfirmData;
+  }
+
+  /**
+   * No description
+   * @tags meeting
+   * @name MeetingCreateTeamsJoinToken
+   * @summary Create an anonymous ACS token to join a Teams meeting inside the app
+   * @request POST:/admin/meeting/teams-join/{id}
+   * @secure
+   * @response `200` `MeetingCreateTeamsJoinTokenData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MeetingCreateTeamsJoinToken {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = MeetingTeamsJoinDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingCreateTeamsJoinTokenData;
   }
 
   /**
@@ -3901,6 +3967,58 @@ export class Api<SecurityDataType extends unknown> {
     create: (data: MeetingCreateDto, params: RequestParams = {}) =>
       this.http.request<MeetingCreateData, MeetingCreateError>({
         path: `/admin/meeting/create`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meeting
+     * @name MeetingConfirm
+     * @summary Confirm a requested meeting and create its Teams meeting URL internally
+     * @request POST:/admin/meeting/confirm/{id}
+     * @secure
+     * @response `200` `MeetingConfirmData`
+     * @response `400` `HttpErrorDto`
+     */
+    confirm: (
+      { id, ...query }: MeetingConfirmParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<MeetingConfirmData, MeetingConfirmError>({
+        path: `/admin/meeting/confirm/${id}`,
+        method: "POST",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meeting
+     * @name MeetingCreateTeamsJoinToken
+     * @summary Create an anonymous ACS token to join a Teams meeting inside the app
+     * @request POST:/admin/meeting/teams-join/{id}
+     * @secure
+     * @response `200` `MeetingCreateTeamsJoinTokenData`
+     * @response `400` `HttpErrorDto`
+     */
+    createTeamsJoinToken: (
+      { id, ...query }: MeetingCreateTeamsJoinTokenParams,
+      data: MeetingTeamsJoinDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MeetingCreateTeamsJoinTokenData,
+        MeetingCreateTeamsJoinTokenError
+      >({
+        path: `/admin/meeting/teams-join/${id}`,
         method: "POST",
         body: data,
         secure: true,

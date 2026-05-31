@@ -94,84 +94,133 @@
     <div class="space-y-4">
       @for (meeting of meetings(); track meeting.id) {
         <article
-          class="overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_10px_24px_rgba(15,23,42,0.05)]"
+          class="overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_10px_28px_rgba(15,23,42,0.06)]"
         >
-          <div class="flex flex-col lg:flex-row lg:items-stretch">
+          <div class="flex flex-col lg:flex-row">
             <div
-              class="flex w-full items-center justify-center bg-background-50 px-8 py-6 text-center lg:w-48"
+              class="flex min-h-32 w-full items-center justify-center bg-background px-8 py-6 text-center lg:w-48"
             >
               <div>
-                <p class="text-xs uppercase text-text font-inter-bold">{{ month(meeting) }}</p>
-                <p class="text-[2.45rem] leading-none text-text font-inter-bold">
+                <p class="text-[0.82rem] uppercase font-inter-bold">
+                  {{ month(meeting) }}
+                </p>
+                <p class="text-[2.5rem] leading-none font-inter-bold">
                   {{ day(meeting) }}
                 </p>
-                <p class="mt-1 text-sm text-muted font-inter-medium">{{ hour(meeting) }}</p>
+                <p class="mt-1 text-[0.78rem] text-muted font-inter-semibold">
+                  {{ hour(meeting) }}
+                </p>
               </div>
             </div>
 
-            <div
-              class="flex flex-1 flex-col gap-4 p-6 lg:flex-row lg:items-center lg:justify-between"
-            >
-              <div>
+            <div class="flex flex-1 flex-col gap-2 p-6">
+              <!-- Row 1: Status + Detalles -->
+              <div class="flex items-center justify-between">
                 <span
-                  class="rounded-full px-3 py-1 text-xs font-inter-semibold"
+                  class="inline-flex rounded-full px-3 py-1 text-[0.68rem] font-inter-bold"
                   [class]="statusClass(meeting.status)"
                 >
                   {{ meeting.status }}
                 </span>
-                <h2 class="mt-3 text-xl text-text font-anton lowercase">{{ meeting.title }}</h2>
-                <div class="mt-3 flex flex-wrap items-center gap-4 text-sm text-muted">
-                  <span><i class="far fa-clock mr-1.5"></i>{{ meeting.durationMinutes }} min</span>
-                  <span
-                    ><i class="fas fa-video mr-1.5"></i
-                    >{{ meeting.meetingUrl ? 'Google Meet' : 'Virtual' }}</span
-                  >
-                </div>
+                <span
+                  [routerLink]="['/consultor/meetings', meeting.id]"
+                  class="cursor-pointer text-[0.78rem] text-muted font-inter-semibold transition-colors hover:text-secondary"
+                >
+                  Detalles
+                </span>
               </div>
 
-              <div class="flex min-w-fit flex-col items-end gap-4 self-stretch lg:justify-between">
-                <button class="h-10 px-2 text-sm font-inter-semibold">Detalles</button>
+              <!-- Row 2: Photo + Info + Actions -->
+              <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div class="flex items-center gap-4">
+                  <div
+                    class="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-border bg-background text-secondary"
+                  >
+                    @if (pymeLogos()[meeting.pymeId]) {
+                      <img
+                        [src]="pymeLogos()[meeting.pymeId]"
+                        alt="PYME"
+                        class="h-full w-full object-cover"
+                      />
+                    } @else {
+                      <i class="fas fa-building text-sm"></i>
+                    }
+                  </div>
+                  <div>
+                    <h2 class="text-xl leading-tight font-anton lowercase text-text">
+                      {{ meeting.title }}
+                    </h2>
+                    <div class="mt-1 flex flex-wrap items-center gap-4 text-[0.82rem] text-muted">
+                      <span class="inline-flex items-center gap-1.5"
+                        ><i class="far fa-clock"></i>{{ meeting.durationMinutes }} min</span
+                      >
+                      <span class="inline-flex items-center gap-1.5"
+                        ><i class="fas fa-video text-xs"></i
+                        >{{ meeting.meetingUrl ? 'Google Meet' : 'Virtual' }}</span
+                      >
+                    </div>
+                  </div>
+                </div>
 
-                <div class="flex flex-wrap items-center justify-end gap-3">
+                <div class="flex flex-wrap items-center gap-3">
                   @if (canApprove(meeting)) {
                     <button
                       (click)="updateMeetingStatus(meeting.id, 'confirmada')"
-                      class="h-10 rounded-full bg-success px-4 text-sm text-fixed-background-50 font-inter-semibold"
+                      [disabled]="updatingId() === meeting.id"
+                      class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full bg-success px-4 text-[0.82rem] text-fixed-background-50 font-inter-bold disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <i class="fas fa-check mr-2"></i>Aprobar
+                      @if (updatingId() === meeting.id) {
+                        <i class="fas fa-spinner fa-spin text-xs"></i>
+                        Aprobando...
+                      } @else {
+                        <i class="fas fa-check text-xs"></i>
+                        Aprobar
+                      }
                     </button>
                     <button
                       (click)="updateMeetingStatus(meeting.id, 'cancelada')"
-                      class="h-10 rounded-full border border-border px-4 text-sm font-inter-semibold"
+                      [disabled]="updatingId() === meeting.id"
+                      class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border border-border px-4 text-[0.82rem] font-inter-semibold disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       Cancelar
                     </button>
                   } @else if (isWaitingApproval(meeting)) {
                     <span
-                      class="inline-flex h-10 items-center gap-2 rounded-full bg-warning/10 px-4 text-sm text-warning font-inter-bold"
+                      class="inline-flex h-9 items-center gap-2 rounded-full bg-warning/10 px-4 text-[0.82rem] text-warning font-inter-bold"
                     >
                       <i class="far fa-clock text-xs"></i>
                       Esperando aprobacion
                     </span>
                     <button
                       (click)="updateMeetingStatus(meeting.id, 'cancelada')"
-                      class="h-10 rounded-full border border-border px-4 text-sm font-inter-semibold"
+                      [disabled]="updatingId() === meeting.id"
+                      class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border border-border px-4 text-[0.82rem] font-inter-semibold disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       Cancelar
                     </button>
                   } @else if (meeting.status === 'confirmada' && finalizingId() !== meeting.id) {
+                    @if (meeting.meetingUrl) {
+                      <button
+                        type="button"
+                        (click)="teamsCall.startCall(meeting.id, currentUserName())"
+                        class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full bg-secondary px-4 text-[0.82rem] text-fixed-background-50 font-inter-bold shadow-sm hover:bg-secondary/90 transition-colors"
+                      >
+                        <i class="fas fa-video text-xs"></i>
+                        Join
+                      </button>
+                    }
                     <button
                       (click)="startFinalize(meeting)"
-                      class="h-10 rounded-full bg-secondary px-4 text-sm text-fixed-background-50 font-inter-semibold"
+                      class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border border-border px-4 text-[0.82rem] font-inter-semibold"
                     >
-                      <i class="fas fa-check-circle mr-2"></i>Finalizar y Generar Acta
+                      <i class="fas fa-check-circle text-xs"></i>Finalizar y Generar Acta
                     </button>
                   } @else if (meeting.status === 'finalizada') {
                     <button
                       [routerLink]="['/consultor/documents', meeting.id]"
-                      class="h-10 rounded-full border border-border px-4 text-sm font-inter-semibold"
+                      class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border border-border px-4 text-[0.82rem] font-inter-semibold"
                     >
-                      <i class="far fa-file-lines mr-2"></i>Ver Acta
+                      <i class="far fa-file-lines text-xs"></i>Ver Acta
                     </button>
                   }
                 </div>

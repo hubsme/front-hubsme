@@ -54,6 +54,26 @@
           <i class="fas fa-expand-alt text-xs"></i>
         </button>
       } @else {
+        <!-- Botón de Grabación -->
+        <button 
+          type="button"
+          class="p-2 hover:bg-background/80 rounded-lg transition-all cursor-pointer flex items-center gap-1.5"
+          [class.text-danger]="teamsCall.isRecording()"
+          [class.text-muted]="!teamsCall.isRecording()"
+          [title]="teamsCall.isRecording() ? 'Detener grabación' : 'Grabar reunión'"
+          (click)="teamsCall.toggleRecording()"
+        >
+          @if (teamsCall.isRecording()) {
+            <span class="relative flex h-2.5 w-2.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-danger opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-danger"></span>
+            </span>
+            <span class="text-xs font-inter-semibold text-danger">Grabando</span>
+          } @else {
+            <i class="fas fa-dot-circle text-sm"></i>
+          }
+        </button>
+
         <!-- Botón de Pantalla Completa / Restaurar -->
         <button 
           type="button"

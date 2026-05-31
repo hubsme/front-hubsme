@@ -70,6 +70,10 @@ export class HubsmeService {
     return this.api.meeting.createTeamsJoinToken({ id }, data);
   }
 
+  getMeetingRecording(id: number) {
+    return this.api.meeting.getRecording({ id });
+  }
+
   listTasks(page = 1, limit = 100, status?: ApiBody<'task', 'updateStatus'>['status']) {
     const user = this.currentUser();
     return this.api.task.findAll({

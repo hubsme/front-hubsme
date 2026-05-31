@@ -1194,6 +1194,12 @@ export type MeetingCreateTeamsJoinTokenData = MeetingTeamsJoinResponseDto;
 
 export type MeetingCreateTeamsJoinTokenError = HttpErrorDto;
 
+export interface MeetingGetRecordingParams {
+  id: number;
+}
+
+export type MeetingGetRecordingData = any;
+
 export interface MeetingUpdateParams {
   id: number;
 }
@@ -2295,6 +2301,25 @@ export namespace Meeting {
     export type RequestBody = MeetingTeamsJoinDto;
     export type RequestHeaders = {};
     export type ResponseBody = MeetingCreateTeamsJoinTokenData;
+  }
+
+  /**
+   * No description
+   * @tags meeting
+   * @name MeetingGetRecording
+   * @summary Get meeting recording from OneDrive
+   * @request GET:/admin/meeting/recording/{id}
+   * @secure
+   * @response `200` `MeetingGetRecordingData`
+   */
+  export namespace MeetingGetRecording {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingGetRecordingData;
   }
 
   /**
@@ -4024,6 +4049,27 @@ export class Api<SecurityDataType extends unknown> {
         secure: true,
         type: ContentType.Json,
         format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meeting
+     * @name MeetingGetRecording
+     * @summary Get meeting recording from OneDrive
+     * @request GET:/admin/meeting/recording/{id}
+     * @secure
+     * @response `200` `MeetingGetRecordingData`
+     */
+    getRecording: (
+      { id, ...query }: MeetingGetRecordingParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<MeetingGetRecordingData, any>({
+        path: `/admin/meeting/recording/${id}`,
+        method: "GET",
+        secure: true,
         ...params,
       }),
 

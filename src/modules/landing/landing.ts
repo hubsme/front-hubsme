@@ -35,6 +35,7 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
 
   protected consultants = signal<LandingConsultant[]>([]);
   protected consultantsLoading = signal(false);
+  protected activeConsultantMediaKey = signal<string | null>(null);
   private consultantAudioEnabled = false;
   private activeConsultantVideo?: HTMLVideoElement;
   private readonly interactionCleanups: (() => void)[] = [];
@@ -173,6 +174,22 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
       this.updateConsultantAudioButton(video, false);
       return video.play().catch(() => undefined);
     });
+  }
+
+  protected activateConsultantMedia(key: string, event: Event): void {
+    this.activeConsultantMediaKey.set(key);
+    this.playConsultantVideo(event);
+  }
+
+  protected deactivateConsultantMedia(key: string, event: Event): void {
+    if (this.activeConsultantMediaKey() === key) {
+      this.activeConsultantMediaKey.set(null);
+    }
+    this.pauseConsultantVideo(event);
+  }
+
+  protected isConsultantMediaActive(key: string): boolean {
+    return this.activeConsultantMediaKey() === key;
   }
 
   protected pauseConsultantVideo(event: Event): void {

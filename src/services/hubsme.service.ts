@@ -58,8 +58,20 @@ export class HubsmeService {
     return this.api.meeting.update({ id }, data);
   }
 
+  confirmMeeting(id: number) {
+    return this.api.meeting.confirm({ id });
+  }
+
   finalizeMeeting(id: number, data: ApiBody<'meeting', 'finalize'>) {
     return this.api.meeting.finalize({ id }, data);
+  }
+
+  createTeamsJoinToken(id: number, data: ApiBody<'meeting', 'createTeamsJoinToken'>) {
+    return this.api.meeting.createTeamsJoinToken({ id }, data);
+  }
+
+  getMeetingRecordings(id: number) {
+    return this.api.meeting.getRecordings({ id });
   }
 
   listTasks(page = 1, limit = 100, status?: ApiBody<'task', 'updateStatus'>['status']) {

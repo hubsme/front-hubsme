@@ -12,7 +12,7 @@
             <button
               type="button"
               (click)="setRole('pyme')"
-              class="flex items-start gap-3 rounded-xl border p-4 text-left transition-all duration-200 cursor-pointer shadow-xs hover:border-secondary/40 hover:bg-secondary/[0.02]"
+              class="flex min-h-28 items-center gap-3 rounded-xl border p-4 text-left transition-all duration-200 cursor-pointer shadow-xs hover:border-secondary/40 hover:bg-secondary/[0.02]"
               [class.border-secondary]="role() === 'pyme'"
               [class.bg-secondary/[0.05]]="role() === 'pyme'"
               [class.border-border]="role() !== 'pyme'"
@@ -33,7 +33,7 @@
             <button
               type="button"
               (click)="setRole('consultor')"
-              class="flex items-start gap-3 rounded-xl border p-4 text-left transition-all duration-200 cursor-pointer shadow-xs hover:border-secondary/40 hover:bg-secondary/[0.02]"
+              class="flex min-h-28 items-center gap-3 rounded-xl border p-4 text-left transition-all duration-200 cursor-pointer shadow-xs hover:border-secondary/40 hover:bg-secondary/[0.02]"
               [class.border-secondary]="role() === 'consultor'"
               [class.bg-secondary/[0.05]]="role() === 'consultor'"
               [class.border-border]="role() !== 'consultor'"
@@ -47,7 +47,7 @@
                 <i class="fas fa-user-tie text-base"></i>
               </div>
               <div class="space-y-1">
-                <p class="font-inter-bold text-sm text-text leading-tight">Soy consultor</p>
+                <p class="font-inter-bold text-sm text-text leading-tight">Soy Consultor</p>
                 <p class="text-xs text-text/50 leading-normal">Gestiono clientes y sesiones.</p>
               </div>
             </button>

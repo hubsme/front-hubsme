@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiResponse } from 'api/backend.api';
@@ -7,6 +7,7 @@ import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { QuillModule } from 'ngx-quill';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
+import { PymeService } from '@service/admin/pyme.service';
 import {
   PymeInputSearch,
   PymeInputSearchFilters,
@@ -47,6 +48,8 @@ export class ConsultorMeetings implements OnInit {
   } satisfies PymeInputSearchFilters;
   meetings = signal<ApiResponse<'meeting', 'findAll'>['data']>([]);
   acceptedMatches = signal<Match[]>([]);
+  private pymeService = inject(PymeService);
+  pymeLogos = signal<Record<number, string | null>>({});
   loading = signal(false);
   creating = signal(false);
   showCreate = signal(false);
@@ -109,9 +112,26 @@ export class ConsultorMeetings implements OnInit {
     this.loading.set(true);
     this.hubsme
       .listMeetings()
-      .then((res) => this.meetings.set(res.data.data))
+      .then((res) => {
+        this.meetings.set(res.data.data);
+        this.loadPymeLogos(res.data.data);
+      })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
+  }
+
+  private loadPymeLogos(meetings: ApiResponse<'meeting', 'findAll'>['data']) {
+    const uniqueIds = [...new Set(meetings.map((m) => m.pymeId))];
+    uniqueIds.forEach((id) => {
+      this.pymeService
+        .findByUser(id)
+        .then((pyme) => {
+          this.pymeLogos.update((current) => ({ ...current, [id]: pyme.logoUrl }));
+        })
+        .catch(() => {
+          this.pymeLogos.update((current) => ({ ...current, [id]: null }));
+        });
+    });
   }
 
   updateForm<K extends keyof MeetingForm>(key: K, value: MeetingForm[K]) {
@@ -134,10 +154,10 @@ export class ConsultorMeetings implements OnInit {
         startTime: new Date(data.startTime).toISOString(),
         durationMinutes: Number(data.durationMinutes) || 60,
         description: data.description || undefined,
-        status: 'confirmada',
+        requestedBy: 'consultor',
       })
       .then(() => {
-        this.toastService.success('Reunion creada');
+        this.toastService.success('Solicitud de reunion enviada');
         this.showCreate.set(false);
         this.load();
       })
@@ -168,7 +188,7 @@ export class ConsultorMeetings implements OnInit {
     this.finalTasks.update((current) => current.filter((_, i) => i !== index));
   }
 
-  updateTask<K extends keyof FinalizeTask>(index: number, key: K, value: any) {
+  updateTask<K extends keyof FinalizeTask>(index: number, key: K, value: FinalizeTask[K]) {
     this.finalTasks.update((current) => {
       const updated = [...current];
       updated[index] = { ...updated[index], [key]: value };
@@ -204,27 +224,50 @@ export class ConsultorMeetings implements OnInit {
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
   }
 
+  finalizeDirect(id: number) {
+    this.updatingId.set(id);
+    this.hubsme
+      .finalizeMeeting(id, {
+        description: '.',
+        tasks: [],
+      })
+      .then(() => {
+        this.toastService.success('Reunión finalizada');
+        this.load();
+      })
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.updatingId.set(null));
+  }
+
+  updatingId = signal<number | null>(null);
+
   updateMeetingStatus(
     id: number,
     status: ApiResponse<'meeting', 'findAll'>['data'][number]['status'],
   ) {
-    this.hubsme
-      .updateMeeting(id, { status })
+    this.updatingId.set(id);
+    const request = status === 'confirmada'
+      ? this.hubsme.confirmMeeting(id)
+      : this.hubsme.updateMeeting(id, { status });
+
+    request
       .then(() => {
         this.toastService.success(
           status === 'confirmada' ? 'Reunion aprobada' : 'Reunion cancelada',
         );
         this.load();
       })
-      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.updatingId.set(null));
   }
 
   private defaultDateTime(): string {
     const date = new Date();
-    date.setDate(date.getDate() + 1);
-    date.setMinutes(0, 0, 0);
-    return date.toISOString().slice(0, 16);
+    date.setMinutes(date.getMinutes() + 10);
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
   }
+
 
 
 
@@ -251,5 +294,13 @@ export class ConsultorMeetings implements OnInit {
     if (status === 'cancelada') return 'bg-danger/10 text-danger';
     if (status === 'solicitada') return 'bg-warning/10 text-warning';
     return 'bg-success/10 text-success';
+  }
+
+  canApprove(meeting: Meeting) {
+    return meeting.status === 'solicitada' && meeting.requestedBy === 'pyme';
+  }
+
+  isWaitingApproval(meeting: Meeting) {
+    return meeting.status === 'solicitada' && meeting.requestedBy === 'consultor';
   }
 }

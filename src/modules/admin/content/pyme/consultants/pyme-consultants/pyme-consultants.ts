@@ -122,7 +122,7 @@ export class PymeConsultants implements OnInit {
         startTime: new Date(form.startTime).toISOString(),
         durationMinutes: Number(form.durationMinutes) || 60,
         description: form.description.trim() || undefined,
-        status: 'solicitada',
+        requestedBy: 'pyme',
       })
       .then(() => {
         this.toastService.success('Solicitud de reunion enviada para aprobacion');
@@ -217,8 +217,9 @@ export class PymeConsultants implements OnInit {
 
   private defaultDateTime(): string {
     const date = new Date();
-    date.setDate(date.getDate() + 1);
-    date.setMinutes(0, 0, 0);
-    return date.toISOString().slice(0, 16);
+    date.setMinutes(date.getMinutes() + 10);
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
   }
+
 }

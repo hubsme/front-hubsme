@@ -206,23 +206,27 @@
               <!-- Loop 1 -->
               @for (consultant of consultants(); track consultant.id + '-1') {
                 <article
-                  class="group relative flex h-[500px] w-[280px] shrink-0 flex-col overflow-hidden rounded-3xl border border-border bg-surface shadow-sm transition-all hover:-translate-y-2 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/10"
-                  (mouseenter)="playConsultantVideo($event)"
-                  (mouseleave)="pauseConsultantVideo($event)"
+                  class="relative flex h-[500px] w-[280px] shrink-0 flex-col overflow-hidden rounded-3xl border border-border bg-surface shadow-sm transition-all hover:-translate-y-2 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/10"
                 >
                   <!-- Capa de Media (Expansible) -->
                   <div
-                    class="absolute top-0 left-0 z-0 h-[55%] w-full overflow-hidden bg-background-50 transition-all duration-500 ease-in-out group-hover:h-full"
+                    class="absolute top-0 left-0 z-0 w-full overflow-hidden bg-background-50 transition-all duration-500 ease-in-out"
+                    [class.h-[55%]]="!isConsultantMediaActive(consultant.id + '-1')"
+                    [class.h-full]="isConsultantMediaActive(consultant.id + '-1')"
+                    (mouseenter)="activateConsultantMedia(consultant.id + '-1', $event)"
+                    (mouseleave)="deactivateConsultantMedia(consultant.id + '-1', $event)"
                   >
                     <img
                       [src]="consultantPhoto(consultant)"
                       [alt]="consultant.fullName"
-                      class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      class="h-full w-full object-cover transition-transform duration-700"
+                      [class.scale-110]="isConsultantMediaActive(consultant.id + '-1')"
                     />
                     @if (consultant.videoUrl) {
                       <video
                         [src]="consultant.videoUrl"
-                        class="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                        class="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500"
+                        [class.opacity-100]="isConsultantMediaActive(consultant.id + '-1')"
                         muted
                         loop
                         playsinline
@@ -231,14 +235,16 @@
                       ></video>
                     }
                     <div
-                      class="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                      class="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-500"
+                      [class.opacity-100]="isConsultantMediaActive(consultant.id + '-1')"
                     ></div>
                     @if (consultant.videoUrl) {
                       <button
                         type="button"
                         aria-label="Activar o silenciar audio"
                         data-consultant-audio-toggle
-                        class="absolute right-3 top-3 z-20 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-text/70 text-fixed-background-50 opacity-0 shadow-lg shadow-text/20 backdrop-blur transition hover:bg-text group-hover:opacity-100"
+                        class="absolute right-3 top-3 z-20 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-text/70 text-fixed-background-50 opacity-0 shadow-lg shadow-text/20 backdrop-blur transition hover:bg-text"
+                        [class.opacity-100]="isConsultantMediaActive(consultant.id + '-1')"
                         (pointerdown)="$event.stopPropagation()"
                         (click)="unmuteConsultantVideo($event)"
                       >
@@ -249,7 +255,9 @@
 
                   <!-- Contenido (Visible por defecto) -->
                   <div
-                    class="absolute bottom-0 left-0 z-10 flex h-[45%] w-full flex-col items-center justify-center bg-surface p-6 text-center transition-all duration-500 ease-in-out group-hover:translate-y-full group-hover:opacity-0"
+                    class="absolute bottom-0 left-0 z-10 flex h-[45%] w-full flex-col items-center justify-center bg-surface p-6 text-center transition-all duration-500 ease-in-out"
+                    [class.translate-y-full]="isConsultantMediaActive(consultant.id + '-1')"
+                    [class.opacity-0]="isConsultantMediaActive(consultant.id + '-1')"
                   >
                     <h3 class="text-xl font-inter-bold text-text">{{ consultant.fullName }}</h3>
                     <div
@@ -281,23 +289,27 @@
               <!-- Loop 2 -->
               @for (consultant of consultants(); track consultant.id + '-2') {
                 <article
-                  class="group relative flex h-[500px] w-[280px] shrink-0 flex-col overflow-hidden rounded-3xl border border-border bg-surface shadow-sm transition-all hover:-translate-y-2 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/10"
-                  (mouseenter)="playConsultantVideo($event)"
-                  (mouseleave)="pauseConsultantVideo($event)"
+                  class="relative flex h-[500px] w-[280px] shrink-0 flex-col overflow-hidden rounded-3xl border border-border bg-surface shadow-sm transition-all hover:-translate-y-2 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/10"
                 >
                   <!-- Capa de Media (Expansible) -->
                   <div
-                    class="absolute top-0 left-0 z-0 h-[55%] w-full overflow-hidden bg-background-50 transition-all duration-500 ease-in-out group-hover:h-full"
+                    class="absolute top-0 left-0 z-0 w-full overflow-hidden bg-background-50 transition-all duration-500 ease-in-out"
+                    [class.h-[55%]]="!isConsultantMediaActive(consultant.id + '-2')"
+                    [class.h-full]="isConsultantMediaActive(consultant.id + '-2')"
+                    (mouseenter)="activateConsultantMedia(consultant.id + '-2', $event)"
+                    (mouseleave)="deactivateConsultantMedia(consultant.id + '-2', $event)"
                   >
                     <img
                       [src]="consultantPhoto(consultant)"
                       [alt]="consultant.fullName"
-                      class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      class="h-full w-full object-cover transition-transform duration-700"
+                      [class.scale-110]="isConsultantMediaActive(consultant.id + '-2')"
                     />
                     @if (consultant.videoUrl) {
                       <video
                         [src]="consultant.videoUrl"
-                        class="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                        class="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500"
+                        [class.opacity-100]="isConsultantMediaActive(consultant.id + '-2')"
                         muted
                         loop
                         playsinline
@@ -306,14 +318,16 @@
                       ></video>
                     }
                     <div
-                      class="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                      class="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-500"
+                      [class.opacity-100]="isConsultantMediaActive(consultant.id + '-2')"
                     ></div>
                     @if (consultant.videoUrl) {
                       <button
                         type="button"
                         aria-label="Activar o silenciar audio"
                         data-consultant-audio-toggle
-                        class="absolute right-3 top-3 z-20 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-text/70 text-fixed-background-50 opacity-0 shadow-lg shadow-text/20 backdrop-blur transition hover:bg-text group-hover:opacity-100"
+                        class="absolute right-3 top-3 z-20 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-text/70 text-fixed-background-50 opacity-0 shadow-lg shadow-text/20 backdrop-blur transition hover:bg-text"
+                        [class.opacity-100]="isConsultantMediaActive(consultant.id + '-2')"
                         (pointerdown)="$event.stopPropagation()"
                         (click)="unmuteConsultantVideo($event)"
                       >
@@ -324,7 +338,9 @@
 
                   <!-- Contenido (Visible por defecto) -->
                   <div
-                    class="absolute bottom-0 left-0 z-10 flex h-[45%] w-full flex-col items-center justify-center bg-surface p-6 text-center transition-all duration-500 ease-in-out group-hover:translate-y-full group-hover:opacity-0"
+                    class="absolute bottom-0 left-0 z-10 flex h-[45%] w-full flex-col items-center justify-center bg-surface p-6 text-center transition-all duration-500 ease-in-out"
+                    [class.translate-y-full]="isConsultantMediaActive(consultant.id + '-2')"
+                    [class.opacity-0]="isConsultantMediaActive(consultant.id + '-2')"
                   >
                     <h3 class="text-xl font-inter-bold text-text">{{ consultant.fullName }}</h3>
                     <div

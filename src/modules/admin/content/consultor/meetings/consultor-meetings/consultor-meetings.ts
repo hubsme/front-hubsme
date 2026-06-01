@@ -224,6 +224,21 @@ export class ConsultorMeetings implements OnInit {
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
   }
 
+  finalizeDirect(id: number) {
+    this.updatingId.set(id);
+    this.hubsme
+      .finalizeMeeting(id, {
+        description: '.',
+        tasks: [],
+      })
+      .then(() => {
+        this.toastService.success('Reunión finalizada');
+        this.load();
+      })
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.updatingId.set(null));
+  }
+
   updatingId = signal<number | null>(null);
 
   updateMeetingStatus(

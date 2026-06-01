@@ -11,6 +11,14 @@ import { FormsModule } from '@angular/forms';
 type Meeting = ApiResponse<'meeting', 'findOne'>;
 type MeetingRecording = ApiResponse<'meeting', 'getRecordings'>[number];
 
+type FinalizeTask = {
+  title: string;
+  description: string;
+  assignedTo: 'pyme' | 'consultor';
+  priority: 'alta' | 'media' | 'baja';
+  dueDate?: string;
+};
+
 @Component({
   selector: 'app-meeting-minutes-detail',
   imports: [CommonModule, FormsModule, QuillModule],
@@ -27,7 +35,22 @@ export class MeetingMinutesDetail implements OnInit {
   recordingsLoading = signal(false);
   recordingsError = signal('');
 
+  // Editing state signals
+  isEditing = signal(false);
+  isSaving = signal(false);
+  editDescription = signal('');
+  editTasks = signal<FinalizeTask[]>([]);
+
   quillModulesReadOnly = {
+    toolbar: [
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ header: 1 }, { header: 2 }],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['clean'],
+    ],
+  };
+
+  quillModules = {
     toolbar: [
       ['bold', 'italic', 'underline', 'strike'],
       [{ header: 1 }, { header: 2 }],
@@ -164,4 +187,112 @@ export class MeetingMinutesDetail implements OnInit {
     if (priority === 'media') return 'bg-secondary-50 text-secondary';
     return 'bg-success/10 text-success';
   }
+
+  isConsultant() {
+    return this.hubsme.currentUser()?.role === 'consultor';
+  }
+
+  startEdit() {
+    const current = this.meeting();
+    if (!current) return;
+
+    this.editDescription.set(current.description || '');
+
+    const mappedTasks: FinalizeTask[] = (current.tasks || []).map((t: any) => {
+      let dueDateStr = '';
+      if (t.dueDate) {
+        const date = new Date(t.dueDate);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        dueDateStr = `${year}-${month}-${day}`;
+      }
+      return {
+        title: t.title || '',
+        description: t.description || '',
+        assignedTo: (t.assignedTo?.toLowerCase() === 'pyme' ? 'pyme' : 'consultor') as 'pyme' | 'consultor',
+        priority: (t.priority?.toLowerCase() || 'media') as 'alta' | 'media' | 'baja',
+        dueDate: dueDateStr,
+      };
+    });
+
+    this.editTasks.set(mappedTasks);
+    this.isEditing.set(true);
+  }
+
+  cancelEdit() {
+    this.isEditing.set(false);
+  }
+
+  addTask() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const defaultDate = `${year}-${month}-${day}`;
+
+    this.editTasks.update((tasks) => [
+      ...tasks,
+      {
+        title: '',
+        description: '',
+        assignedTo: 'pyme',
+        priority: 'media',
+        dueDate: defaultDate,
+      },
+    ]);
+  }
+
+  removeTask(index: number) {
+    this.editTasks.update((tasks) => tasks.filter((_, i) => i !== index));
+  }
+
+  updateTask<K extends keyof FinalizeTask>(index: number, key: K, value: FinalizeTask[K]) {
+    this.editTasks.update((tasks) => {
+      const updated = [...tasks];
+      updated[index] = { ...updated[index], [key]: value };
+      return updated;
+    });
+  }
+
+  saveChanges() {
+    const current = this.meeting();
+    if (!current) return;
+
+    const description = this.editDescription();
+    if (!description || !description.trim()) {
+      this.toastService.error('El acta no puede estar vacía');
+      return;
+    }
+
+    this.isSaving.set(true);
+
+    const tasksPayload = this.editTasks().map((t) => ({
+      ...t,
+      dueDate: t.dueDate ? new Date(t.dueDate + 'T12:00:00').toISOString() : undefined,
+    }));
+
+    this.hubsme
+      .finalizeMeeting(current.id, {
+        description,
+        tasks: tasksPayload,
+      })
+      .then((res) => {
+        this.toastService.success('Acta y tareas actualizadas con éxito');
+        this.isEditing.set(false);
+        this.loading.set(true);
+        return this.hubsme.getMeeting(current.id);
+      })
+      .then((response) => {
+        if (response) {
+          this.meeting.set(response.data);
+        }
+      })
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => {
+        this.isSaving.set(false);
+        this.loading.set(false);
+      });
+  }
 }
+

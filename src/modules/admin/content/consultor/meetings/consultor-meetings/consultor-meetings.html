@@ -198,7 +198,7 @@
                     >
                       Cancelar
                     </button>
-                  } @else if (meeting.status === 'confirmada' && finalizingId() !== meeting.id) {
+                  } @else if (meeting.status === 'confirmada') {
                     @if (meeting.meetingUrl) {
                       <a
                         [href]="meeting.meetingUrl"
@@ -206,15 +206,21 @@
                         rel="noopener noreferrer"
                         class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full bg-secondary px-4 text-[0.82rem] text-fixed-background-50 font-inter-bold shadow-sm hover:bg-secondary/90 transition-colors"
                       >
-                        <i class="fas fa-external-link-alt text-xs"></i>
+                        <i class="fas fa-video text-xs"></i>
                         Unirse
                       </a>
                     }
                     <button
-                      (click)="startFinalize(meeting)"
-                      class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border border-border px-4 text-[0.82rem] font-inter-semibold"
+                      (click)="finalizeDirect(meeting.id)"
+                      [disabled]="updatingId() === meeting.id"
+                      class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border border-border px-4 text-[0.82rem] font-inter-semibold hover:text-secondary hover:border-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      <i class="fas fa-check-circle text-xs"></i>Finalizar y Generar Acta
+                      @if (updatingId() === meeting.id) {
+                        <i class="fas fa-spinner fa-spin text-xs"></i>
+                        Finalizando...
+                      } @else {
+                        <i class="fas fa-check-circle text-xs"></i>Finalizar
+                      }
                     </button>
                   } @else if (meeting.status === 'finalizada') {
                     <button
@@ -228,138 +234,6 @@
               </div>
             </div>
           </div>
-
-          @if (finalizingId() === meeting.id) {
-            <div class="border-t border-border bg-background/20 p-6">
-              <div class="grid gap-6 lg:grid-cols-[1fr_400px]">
-                <!-- Rich Text Editor (Quill) -->
-                <div class="space-y-4">
-                  <div class="flex items-center justify-between">
-                    <h3 class="text-sm text-text font-inter-bold">Acta de la sesión</h3>
-                    <span class="text-[0.65rem] text-muted uppercase font-inter-bold bg-background/50 px-2 py-1 rounded-md">
-                      Editor Enriquecido
-                    </span>
-                  </div>
-                  <quill-editor
-                    [ngModel]="finalDescription()"
-                    (ngModelChange)="finalDescription.set($event)"
-                    [modules]="quillModules"
-                    placeholder="Escribe el acta de la reunión..."
-                    class="block min-h-[400px] w-full"
-                    theme="snow"
-                  ></quill-editor>
-                </div>
-
-                <!-- Tasks Manager -->
-                <div class="space-y-4">
-                  <div class="flex items-center justify-between">
-                    <h3 class="text-sm text-text font-inter-bold">Tareas generadas</h3>
-                    <button
-                      type="button"
-                      (click)="addTask()"
-                      class="h-8 rounded-full bg-secondary/10 px-3 text-[0.7rem] text-secondary font-inter-bold hover:bg-secondary/20 transition-colors"
-                    >
-                      <i class="fas fa-plus mr-1.5"></i>Nueva Tarea
-                    </button>
-                  </div>
-
-                  <div class="space-y-3 max-h-[400px] overflow-y-auto pr-1">
-                    @for (task of finalTasks(); track $index) {
-                      <div class="group relative rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all hover:border-secondary/30 hover:shadow-md animate-in fade-in slide-in-from-right-4">
-                        <div class="space-y-3">
-                          <div class="flex items-center gap-2">
-                            <i class="fas fa-thumbtack text-[0.7rem] text-secondary/40"></i>
-                            <input
-                              [ngModel]="task.title"
-                              (ngModelChange)="updateTask($index, 'title', $event)"
-                              placeholder="Título de la tarea"
-                              class="w-full bg-transparent text-[0.85rem] font-inter-bold outline-none focus:text-secondary"
-                            />
-                          </div>
-
-                          <textarea
-                            [ngModel]="task.description"
-                            (ngModelChange)="updateTask($index, 'description', $event)"
-                            placeholder="Descripción de la acción..."
-                            class="min-h-12 w-full resize-none bg-transparent text-[0.78rem] text-muted outline-none"
-                          ></textarea>
-
-                          <div class="grid grid-cols-2 gap-2">
-                            <div class="space-y-1">
-                              <span class="text-[0.65rem] text-muted uppercase font-inter-bold">Asignado</span>
-                              <select
-                                [ngModel]="task.assignedTo"
-                                (ngModelChange)="updateTask($index, 'assignedTo', $event)"
-                                class="h-8 w-full rounded-lg border border-border bg-background px-2 text-[0.72rem] outline-none"
-                              >
-                                <option value="pyme">PYME</option>
-                                <option value="consultor">Consultor</option>
-                              </select>
-                            </div>
-                            <div class="space-y-1">
-                              <span class="text-[0.65rem] text-muted uppercase font-inter-bold">Prioridad</span>
-                              <select
-                                [ngModel]="task.priority"
-                                (ngModelChange)="updateTask($index, 'priority', $event)"
-                                class="h-8 w-full rounded-lg border border-border bg-background px-2 text-[0.72rem] outline-none"
-                              >
-                                <option value="alta">Alta</option>
-                                <option value="media">Media</option>
-                                <option value="baja">Baja</option>
-                              </select>
-                            </div>
-                          </div>
-
-                          <div class="flex items-center justify-between border-t border-border/50 pt-3">
-                            <input
-                              type="date"
-                              [ngModel]="task.dueDate"
-                              (ngModelChange)="updateTask($index, 'dueDate', $event)"
-                              class="h-7 border-none bg-transparent text-[0.72rem] text-muted outline-none"
-                            />
-
-                            <button
-                              (click)="removeTask($index)"
-                              class="flex h-7 w-7 items-center justify-center rounded-lg text-muted hover:bg-danger/10 hover:text-danger transition-all opacity-0 group-hover:opacity-100"
-                              title="Eliminar tarea"
-                            >
-                              <i class="far fa-trash-alt text-xs"></i>
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    } @empty {
-                      <div class="rounded-2xl border border-dashed border-border py-10 text-center">
-                        <i class="fas fa-clipboard-check mb-2 block text-xl text-muted/30"></i>
-                        <p class="text-[0.75rem] text-muted">No se han añadido tareas todavía.</p>
-                      </div>
-                    }
-                  </div>
-                </div>
-              </div>
-
-              <div class="mt-8 flex items-center justify-between border-t border-border pt-6">
-                <p class="text-xs text-muted">
-                  <i class="fas fa-info-circle mr-1.5"></i>
-                  El acta se guardará en formato Markdown y las tareas se crearán individualmente.
-                </p>
-                <div class="flex gap-3">
-                  <button
-                    (click)="finalizingId.set(null)"
-                    class="h-10 rounded-xl border border-border px-6 text-sm font-inter-semibold hover:bg-background transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    (click)="finalize()"
-                    class="h-10 rounded-xl bg-secondary px-6 text-sm text-fixed-background-50 font-inter-bold shadow-md shadow-secondary/20 hover:bg-secondary/90 transition-all active:scale-95"
-                  >
-                    Generar acta y finalizar
-                  </button>
-                </div>
-              </div>
-            </div>
-          }
         </article>
       } @empty {
         <div

@@ -217,8 +217,9 @@ export class PymeConsultants implements OnInit {
 
   private defaultDateTime(): string {
     const date = new Date();
-    date.setDate(date.getDate() + 1);
-    date.setMinutes(0, 0, 0);
-    return date.toISOString().slice(0, 16);
+    date.setMinutes(date.getMinutes() + 10);
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
   }
+
 }

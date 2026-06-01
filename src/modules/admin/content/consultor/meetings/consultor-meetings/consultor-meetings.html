@@ -156,7 +156,7 @@
                       >
                       <span class="inline-flex items-center gap-1.5"
                         ><i class="fas fa-video text-xs"></i
-                        >{{ meeting.meetingUrl ? 'Google Meet' : 'Virtual' }}</span
+                        >{{ meeting.meetingUrl ? 'Videollamada' : 'Virtual' }}</span
                       >
                     </div>
                   </div>
@@ -200,14 +200,15 @@
                     </button>
                   } @else if (meeting.status === 'confirmada' && finalizingId() !== meeting.id) {
                     @if (meeting.meetingUrl) {
-                      <button
-                        type="button"
-                        (click)="teamsCall.startCall(meeting.id, currentUserName())"
+                      <a
+                        [href]="meeting.meetingUrl"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full bg-secondary px-4 text-[0.82rem] text-fixed-background-50 font-inter-bold shadow-sm hover:bg-secondary/90 transition-colors"
                       >
-                        <i class="fas fa-video text-xs"></i>
-                        Join
-                      </button>
+                        <i class="fas fa-external-link-alt text-xs"></i>
+                        Unirse
+                      </a>
                     }
                     <button
                       (click)="startFinalize(meeting)"

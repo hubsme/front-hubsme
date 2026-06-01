@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal, ViewChild, ElementRef, computed } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiResponse } from 'api/backend.api';
@@ -8,7 +8,6 @@ import { ToastService } from '@service/toast.service';
 import { QuillModule } from 'ngx-quill';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { PymeService } from '@service/admin/pyme.service';
-import { TeamsCallService } from '@module/admin/services/teams-call.service';
 import {
   PymeInputSearch,
   PymeInputSearchFilters,
@@ -42,16 +41,6 @@ type Meeting = ApiResponse<'meeting', 'findAll'>['data'][number];
 export class ConsultorMeetings implements OnInit {
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
-  public teamsCall = inject(TeamsCallService);
-
-  currentUserName = computed(() => {
-    try {
-      const user = this.hubsme.currentUser();
-      return user?.name || 'Usuario Hubsme';
-    } catch {
-      return 'Usuario Hubsme';
-    }
-  });
 
   readonly pymeFilters = {
     source: 'matches',
@@ -199,7 +188,7 @@ export class ConsultorMeetings implements OnInit {
     this.finalTasks.update((current) => current.filter((_, i) => i !== index));
   }
 
-  updateTask<K extends keyof FinalizeTask>(index: number, key: K, value: any) {
+  updateTask<K extends keyof FinalizeTask>(index: number, key: K, value: FinalizeTask[K]) {
     this.finalTasks.update((current) => {
       const updated = [...current];
       updated[index] = { ...updated[index], [key]: value };
@@ -259,10 +248,11 @@ export class ConsultorMeetings implements OnInit {
 
   private defaultDateTime(): string {
     const date = new Date();
-    date.setDate(date.getDate() + 1);
-    date.setMinutes(0, 0, 0);
-    return date.toISOString().slice(0, 16);
+    date.setMinutes(date.getMinutes() + 10);
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
   }
+
 
 
 

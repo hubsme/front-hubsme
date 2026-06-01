@@ -6,12 +6,11 @@
           {{ title() }}
         </h1>
         @if (meeting(); as current) {
-          <span
-            class="inline-flex items-center gap-2 rounded-full bg-secondary-50 px-3 py-1 text-[0.75rem] capitalize text-secondary font-inter-bold"
-          >
-            <i class="fas fa-check-circle text-[0.7rem]"></i>
-            {{ current.status }}
-          </span>
+        <span
+          class="inline-flex items-center gap-2 rounded-full bg-secondary-50 px-3 py-1 text-[0.75rem] capitalize text-secondary font-inter-bold">
+          <i class="fas fa-check-circle text-[0.7rem]"></i>
+          {{ current.status }}
+        </span>
         }
       </div>
       <p class="mt-1 text-[0.92rem] text-muted">Detalle generado al finalizar la sesion.</p>
@@ -19,127 +18,214 @@
   </div>
 
   @if (loading()) {
-    <div class="py-16 text-center text-muted">
-      <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
-    </div>
+  <div class="py-16 text-center text-muted">
+    <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+  </div>
   } @else if (meeting(); as current) {
-    <section class="rounded-3xl border border-border bg-surface p-6 shadow-[0_14px_44px_-10px_rgba(0,0,0,0.08)]">
-      <div class="flex flex-col gap-6 xl:flex-row xl:items-center">
-        <!-- Icon & Title Section -->
-        <div class="flex items-center gap-4 flex-1 min-w-0">
-          <div class="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-secondary-50/50 text-secondary border border-secondary/10">
-            <i class="fas fa-users text-2xl"></i>
-          </div>
+  <section class="rounded-3xl border border-border bg-surface p-6 shadow-[0_14px_44px_-10px_rgba(0,0,0,0.08)]">
+    <div class="flex flex-col gap-6 xl:flex-row xl:items-center">
+      <!-- Icon & Title Section -->
+      <div class="flex items-center gap-4 flex-1 min-w-0">
+        <div
+          class="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-secondary-50/50 text-secondary border border-secondary/10">
+          <i class="fas fa-users text-2xl"></i>
+        </div>
+        <div class="min-w-0">
+          <h3 class="text-xl text-text font-anton lowercase leading-tight break-words">
+            {{ displayTitle() }}
+          </h3>
+          <p class="mt-1 text-xs md:text-sm text-muted">
+            Sesión finalizada y documentada en Hubsme.
+          </p>
+        </div>
+      </div>
+
+      <!-- Info List (Responsive Grid) -->
+      <dl
+        class="grid grid-cols-1 md:grid-cols-3 gap-4 xl:gap-8 pt-6 xl:pt-0 border-t xl:border-t-0 border-border xl:min-w-[480px]">
+        <div class="flex items-center gap-3">
+          <span
+            class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-background/50 text-secondary border border-border/50">
+            <i class="far fa-calendar"></i>
+          </span>
           <div class="min-w-0">
-            <h3 class="text-xl text-text font-anton lowercase leading-tight break-words">{{ displayTitle() }}</h3>
-            <p class="mt-1 text-xs md:text-sm text-muted">Sesión finalizada y documentada en Hubsme.</p>
+            <dt class="text-[0.65rem] uppercase font-inter-bold text-muted tracking-wider">
+              Fecha
+            </dt>
+            <dd class="text-[0.9rem] font-inter-semibold text-text truncate">
+              {{ meetingDate(current.completedAt || current.startTime) }}
+            </dd>
           </div>
         </div>
+        <div class="flex items-center gap-3">
+          <span
+            class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-background/50 text-secondary border border-border/50">
+            <i class="far fa-clock"></i>
+          </span>
+          <div class="min-w-0">
+            <dt class="text-[0.65rem] uppercase font-inter-bold text-muted tracking-wider">
+              Duración
+            </dt>
+            <dd class="text-[0.9rem] font-inter-semibold text-text truncate">
+              {{ current.durationMinutes }} min
+            </dd>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span
+            class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-background/50 text-secondary border border-border/50">
+            <i class="far fa-hourglass"></i>
+          </span>
+          <div class="min-w-0">
+            <dt class="text-[0.65rem] uppercase font-inter-bold text-muted tracking-wider">
+              Hora
+            </dt>
+            <dd class="text-[0.9rem] font-inter-semibold text-text truncate">
+              {{ meetingTime(current.startTime) }}
+            </dd>
+          </div>
+        </div>
+      </dl>
+    </div>
+  </section>
 
-        <!-- Info List (Responsive Grid) -->
-        <dl class="grid grid-cols-1 md:grid-cols-3 gap-4 xl:gap-8 pt-6 xl:pt-0 border-t xl:border-t-0 border-border xl:min-w-[480px]">
-          <div class="flex items-center gap-3">
-            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-background/50 text-secondary border border-border/50">
-              <i class="far fa-calendar"></i>
-            </span>
-            <div class="min-w-0">
-              <dt class="text-[0.65rem] uppercase font-inter-bold text-muted tracking-wider">Fecha</dt>
-              <dd class="text-[0.9rem] font-inter-semibold text-text truncate">{{ meetingDate(current.completedAt || current.startTime) }}</dd>
+  <div class="grid gap-6 lg:grid-cols-[1fr_360px]">
+    <div class="space-y-6">
+      <section class="rounded-2xl border border-border bg-surface p-6 shadow-[0_12px_28px_rgba(15,23,42,0.04)]">
+        <div class="flex items-center gap-3 border-b border-border pb-4 mb-6">
+          <span class="grid h-10 w-10 place-items-center rounded-xl bg-secondary-50 text-secondary">
+            <i class="far fa-file-alt text-lg"></i>
+          </span>
+          <h3 class="text-xl font-anton lowercase text-text">Acta de la sesión</h3>
+        </div>
+        <quill-editor [ngModel]="renderMarkdown(current.description)" [readOnly]="true" [modules]="quillModulesReadOnly"
+          theme="snow" class="block w-full hide-toolbar"></quill-editor>
+        @if (!current.description) {
+        <p class="py-10 text-center text-sm text-muted italic">
+          No hay contenido registrado en esta acta.
+        </p>
+        }
+      </section>
+    </div>
+
+    <div class="space-y-6">
+      <section class="rounded-2xl border border-border bg-surface p-6 shadow-[0_12px_28px_rgba(15,23,42,0.04)]">
+        <div class="flex items-center gap-3 border-b border-border pb-4 mb-5">
+          <span class="grid h-10 w-10 place-items-center rounded-xl bg-secondary-50 text-secondary">
+            <i class="fas fa-tasks text-lg"></i>
+          </span>
+          <h3 class="text-xl font-anton lowercase text-text">Tareas de seguimiento</h3>
+        </div>
+
+        <div class="space-y-4">
+          @for (task of current.tasks; track task.id) {
+          <article
+            class="rounded-xl border border-border bg-background/30 p-4 transition-hover hover:border-secondary/30">
+            <div class="flex items-start justify-between gap-3">
+              <h4 class="text-[1rem] font-inter-bold leading-tight text-text">
+                {{ task.title }}
+              </h4>
+              <span class="shrink-0 rounded-full px-2.5 py-0.5 text-[0.65rem] uppercase font-inter-bold"
+                [class]="priorityClass(task.priority)">
+                {{ task.priority }}
+              </span>
             </div>
-          </div>
-          <div class="flex items-center gap-3">
-            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-background/50 text-secondary border border-border/50">
-              <i class="far fa-clock"></i>
-            </span>
-            <div class="min-w-0">
-              <dt class="text-[0.65rem] uppercase font-inter-bold text-muted tracking-wider">Duración</dt>
-              <dd class="text-[0.9rem] font-inter-semibold text-text truncate">{{ current.durationMinutes }} min</dd>
-            </div>
-          </div>
-          <div class="flex items-center gap-3">
-            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-background/50 text-secondary border border-border/50">
-              <i class="far fa-hourglass"></i>
-            </span>
-            <div class="min-w-0">
-              <dt class="text-[0.65rem] uppercase font-inter-bold text-muted tracking-wider">Hora</dt>
-              <dd class="text-[0.9rem] font-inter-semibold text-text truncate">{{ meetingTime(current.startTime) }}</dd>
-            </div>
-          </div>
-        </dl>
-      </div>
-    </section>
+            <p class="mt-2 text-[0.85rem] leading-relaxed text-muted line-clamp-4">
+              {{ task.description }}
+            </p>
 
-    <div class="grid gap-6 lg:grid-cols-[1fr_360px]">
-      <div class="space-y-6">
-        <section class="rounded-2xl border border-border bg-surface p-6 shadow-[0_12px_28px_rgba(15,23,42,0.04)]">
-          <div class="flex items-center gap-3 border-b border-border pb-4 mb-6">
-            <span class="grid h-10 w-10 place-items-center rounded-xl bg-secondary-50 text-secondary">
-              <i class="far fa-file-alt text-lg"></i>
-            </span>
-            <h3 class="text-xl font-anton lowercase text-text">Acta de la sesión</h3>
-          </div>
-          <quill-editor
-            [ngModel]="renderMarkdown(current.description)"
-            [readOnly]="true"
-            [modules]="quillModulesReadOnly"
-            theme="snow"
-            class="block w-full hide-toolbar"
-          ></quill-editor>
-          @if (!current.description) {
-            <p class="py-10 text-center text-sm text-muted italic">No hay contenido registrado en esta acta.</p>
-          }
-        </section>
-      </div>
-
-      <div class="space-y-6">
-        <section class="rounded-2xl border border-border bg-surface p-6 shadow-[0_12px_28px_rgba(15,23,42,0.04)]">
-          <div class="flex items-center gap-3 border-b border-border pb-4 mb-5">
-            <span class="grid h-10 w-10 place-items-center rounded-xl bg-secondary-50 text-secondary">
-              <i class="fas fa-tasks text-lg"></i>
-            </span>
-            <h3 class="text-xl font-anton lowercase text-text">Tareas de seguimiento</h3>
-          </div>
-
-          <div class="space-y-4">
-            @for (task of current.tasks; track task.id) {
-              <article class="rounded-xl border border-border bg-background/30 p-4 transition-hover hover:border-secondary/30">
-                <div class="flex items-start justify-between gap-3">
-                  <h4 class="text-[1rem] font-inter-bold leading-tight text-text">{{ task.title }}</h4>
-                  <span
-                    class="shrink-0 rounded-full px-2.5 py-0.5 text-[0.65rem] uppercase font-inter-bold"
-                    [class]="priorityClass(task.priority)"
-                  >
-                    {{ task.priority }}
-                  </span>
-                </div>
-                <p class="mt-2 text-[0.85rem] leading-relaxed text-muted line-clamp-4">{{ task.description }}</p>
-
-                <div class="mt-4 flex items-center justify-between border-t border-border/50 pt-3 text-[0.75rem]">
-                  <div class="flex items-center gap-1.5 text-muted">
-                    <i class="far fa-user text-[0.7rem]"></i>
-                    <span>{{ responsibleLabel(task.assignedTo) }}</span>
-                  </div>
-                  @if (task.dueDate) {
-                    <div class="flex items-center gap-1.5 text-muted">
-                      <i class="far fa-calendar text-[0.7rem]"></i>
-                      <span>{{ meetingDate(task.dueDate) }}</span>
-                    </div>
-                  }
-                </div>
-              </article>
-            } @empty {
-              <div class="py-8 text-center">
-                <i class="fas fa-clipboard-check mb-2 block text-2xl text-muted/30"></i>
-                <p class="text-sm text-muted">No se generaron tareas en esta sesion.</p>
+            <div class="mt-4 flex items-center justify-between border-t border-border/50 pt-3 text-[0.75rem]">
+              <div class="flex items-center gap-1.5 text-muted">
+                <i class="far fa-user text-[0.7rem]"></i>
+                <span>{{ responsibleLabel(task.assignedTo) }}</span>
               </div>
-            }
+              @if (task.dueDate) {
+              <div class="flex items-center gap-1.5 text-muted">
+                <i class="far fa-calendar text-[0.7rem]"></i>
+                <span>{{ meetingDate(task.dueDate) }}</span>
+              </div>
+              }
+            </div>
+          </article>
+          } @empty {
+          <div class="py-8 text-center">
+            <i class="fas fa-clipboard-check mb-2 block text-2xl text-muted/30"></i>
+            <p class="text-sm text-muted">No se generaron tareas en esta sesion.</p>
           </div>
-        </section>
-      </div>
+          }
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-border bg-surface p-6 shadow-[0_12px_28px_rgba(15,23,42,0.04)]">
+        <div class="mb-5 flex items-center gap-3 border-b border-border pb-4">
+          <span class="grid h-10 w-10 place-items-center rounded-xl bg-secondary-50 text-secondary">
+            <i class="fas fa-video text-lg"></i>
+          </span>
+          <h3 class="text-xl font-anton lowercase text-text">Grabaciones</h3>
+        </div>
+
+        @if (recordingsLoading()) {
+        <div class="py-8 text-center text-muted">
+          <i class="fas fa-spinner fa-spin text-2xl text-secondary"></i>
+        </div>
+        } @else if (recordingsError()) {
+        <p class="text-sm leading-6 text-danger">
+          {{ recordingsError() }}
+        </p>
+        } @else if (recordings().length) {
+        <div class="space-y-3">
+          @for (recording of recordings(); track recording.id ?? recording.callId ?? $index) {
+          @if (recordingUrl(recording); as url) {
+          <a [href]="url" target="_blank" rel="noopener noreferrer"
+            class="flex items-center justify-between gap-3 rounded-xl border border-border bg-background/30 p-3.5 transition-colors hover:border-secondary/40 hover:bg-secondary-50/30">
+            <div class="flex items-center gap-3.5 min-w-0">
+              <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-secondary-50 text-secondary border border-secondary/10">
+                <i class="fas fa-clapperboard text-sm"></i>
+              </span>
+              <div class="min-w-0">
+                <span class="block text-sm text-text font-inter-bold truncate capitalize">
+                  {{ recordingDate(recording.createdDateTime) }}
+                </span>
+                <span class="mt-0.5 block text-xs text-muted">
+                  Duración: {{ recordingDuration(recording) }}
+                </span>
+              </div>
+            </div>
+            <i class="fas fa-arrow-up-right-from-square shrink-0 text-xs text-secondary pr-1"></i>
+          </a>
+          } @else {
+          <div
+            class="flex items-center justify-between gap-3 rounded-xl border border-border bg-background/30 p-3.5 opacity-70">
+            <div class="flex items-center gap-3.5 min-w-0">
+              <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-background text-muted border border-border">
+                <i class="fas fa-clapperboard text-sm"></i>
+              </span>
+              <div class="min-w-0">
+                <span class="block text-sm text-text font-inter-bold truncate capitalize">
+                  {{ recordingDate(recording.createdDateTime) }}
+                </span>
+                <span class="mt-0.5 block text-xs text-muted">
+                  Link no disponible · {{ recordingDuration(recording) }}
+                </span>
+              </div>
+            </div>
+            <i class="fas fa-link-slash shrink-0 text-xs text-muted pr-1"></i>
+          </div>
+          }
+          }
+        </div>
+        } @else {
+        <div class="py-8 text-center">
+          <i class="fas fa-video-slash mb-2 block text-2xl text-muted/30"></i>
+          <p class="text-sm text-muted">Aun no hay grabaciones disponibles para esta acta.</p>
+        </div>
+        }
+      </section>
     </div>
+  </div>
   } @else {
-    <div class="rounded-2xl border border-dashed border-border bg-surface py-14 text-center text-muted">
-      Acta no encontrada.
-    </div>
+  <div class="rounded-2xl border border-dashed border-border bg-surface py-14 text-center text-muted">
+    Acta no encontrada.
+  </div>
   }
 </div>

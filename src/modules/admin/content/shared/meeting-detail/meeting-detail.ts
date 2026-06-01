@@ -41,6 +41,14 @@ export class MeetingDetail implements OnInit {
     }
   });
 
+  canJoinFromWeb = computed(() => {
+    try {
+      return this.hubsme.currentUser().role !== 'consultor';
+    } catch {
+      return false;
+    }
+  });
+
   canApprove = computed(() => {
     const meeting = this.meeting();
     if (!meeting) return false;
@@ -51,7 +59,10 @@ export class MeetingDetail implements OnInit {
 
   consultantName = computed(() => {
     const meeting = this.meeting();
-    return this.consultant()?.fullName || (meeting ? `Consultor ID ${meeting.consultantId}` : 'Consultor');
+    return (
+      this.consultant()?.fullName ||
+      (meeting ? `Consultor ID ${meeting.consultantId}` : 'Consultor')
+    );
   });
 
   pymeName = computed(() => {
@@ -159,7 +170,8 @@ export class MeetingDetail implements OnInit {
   }
 
   copyToClipboard(url: string) {
-    navigator.clipboard.writeText(url)
+    navigator.clipboard
+      .writeText(url)
       .then(() => this.toastService.success('Enlace copiado al portapapeles'))
       .catch(() => this.toastService.error('No se pudo copiar el enlace'));
   }

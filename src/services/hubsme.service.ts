@@ -70,8 +70,8 @@ export class HubsmeService {
     return this.api.meeting.createTeamsJoinToken({ id }, data);
   }
 
-  getMeetingRecording(id: number) {
-    return this.api.meeting.getRecording({ id });
+  getMeetingRecordings(id: number) {
+    return this.api.meeting.getRecordings({ id });
   }
 
   listTasks(page = 1, limit = 100, status?: ApiBody<'task', 'updateStatus'>['status']) {

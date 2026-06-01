@@ -37,22 +37,6 @@ export class TeamsCallService {
     this.isFullscreen.update((v) => !v);
   }
 
-  toggleRecording() {
-    const meetingId = this.meetingId();
-    if (!meetingId) return;
-
-    this.isRecording.update((v) => !v);
-    
-    if (this.isRecording()) {
-      this.toast.success(
-        'Grabación iniciada. Teams grabará de forma nativa. Al finalizar, podrás obtenerla desde tu OneDrive.'
-      );
-    } else {
-      this.toast.success(
-        'Grabación detenida. La grabación se procesará y guardará en tu OneDrive corporativo.'
-      );
-    }
-  }
 
   closeCall() {
     this.isOpen.set(false);

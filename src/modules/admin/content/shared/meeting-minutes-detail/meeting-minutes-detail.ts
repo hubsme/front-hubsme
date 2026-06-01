@@ -9,6 +9,7 @@ import { QuillModule } from 'ngx-quill';
 import { FormsModule } from '@angular/forms';
 
 type Meeting = ApiResponse<'meeting', 'findOne'>;
+type MeetingRecording = ApiResponse<'meeting', 'getRecordings'>[number];
 
 @Component({
   selector: 'app-meeting-minutes-detail',
@@ -21,15 +22,18 @@ export class MeetingMinutesDetail implements OnInit {
   private toastService = inject(ToastService);
 
   meeting = signal<Meeting | null>(null);
+  recordings = signal<MeetingRecording[]>([]);
   loading = signal(false);
+  recordingsLoading = signal(false);
+  recordingsError = signal('');
 
   quillModulesReadOnly = {
     toolbar: [
       ['bold', 'italic', 'underline', 'strike'],
-      [{ 'header': 1 }, { 'header': 2 }],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      ['clean']
-    ]
+      [{ header: 1 }, { header: 2 }],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['clean'],
+    ],
   };
 
   ngOnInit() {
@@ -42,9 +46,30 @@ export class MeetingMinutesDetail implements OnInit {
     this.loading.set(true);
     this.hubsme
       .getMeeting(id)
-      .then((response) => this.meeting.set(response.data))
+      .then((response) => {
+        this.meeting.set(response.data);
+        this.loadRecordings(response.data.id);
+      })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
+  }
+
+  private loadRecordings(meetingId: number) {
+    this.recordingsLoading.set(true);
+    this.recordingsError.set('');
+
+    this.hubsme
+      .getMeetingRecordings(meetingId)
+      .then((response) => this.recordings.set(this.toRecordings(response.data)))
+      .catch((error) => {
+        this.recordings.set([]);
+        this.recordingsError.set(this.hubsme.getErrorMessage(error));
+      })
+      .finally(() => this.recordingsLoading.set(false));
+  }
+
+  private toRecordings(value: unknown): MeetingRecording[] {
+    return Array.isArray(value) ? (value as MeetingRecording[]) : [];
   }
 
   documentsPath() {
@@ -71,7 +96,10 @@ export class MeetingMinutesDetail implements OnInit {
 
     let html = text
       .replace(/^### (.*$)/gim, '<h4 class="text-lg font-bold mt-4 mb-2">$1</h4>')
-      .replace(/^## (.*$)/gim, '<h3 class="text-xl font-anton lowercase mt-6 mb-3 border-b border-border pb-2">$1</h3>')
+      .replace(
+        /^## (.*$)/gim,
+        '<h3 class="text-xl font-anton lowercase mt-6 mb-3 border-b border-border pb-2">$1</h3>',
+      )
       .replace(/^# (.*$)/gim, '<h2 class="text-2xl font-anton lowercase mt-8 mb-4">$1</h2>')
       .replace(/\*\*(.*)\*\*/gim, '<b>$1</b>')
       .replace(/\*(.*)\*/gim, '<i>$1</i>')
@@ -95,6 +123,30 @@ export class MeetingMinutesDetail implements OnInit {
       hour: '2-digit',
       minute: '2-digit',
     });
+  }
+
+  recordingDate(value?: string) {
+    if (!value) return 'Fecha no disponible';
+
+    return new Date(value).toLocaleString('es-PE', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  recordingDuration(recording: MeetingRecording) {
+    if (!recording.createdDateTime || !recording.endDateTime) return 'Duracion no disponible';
+
+    const start = new Date(recording.createdDateTime).getTime();
+    const end = new Date(recording.endDateTime).getTime();
+    const minutes = Math.max(1, Math.round((end - start) / 60_000));
+    return `${minutes} min`;
+  }
+
+  recordingUrl(recording: MeetingRecording) {
+    return recording.publicUrl || recording.downloadUrl || recording.webUrl || null;
   }
 
   responsibleLabel(value: string) {

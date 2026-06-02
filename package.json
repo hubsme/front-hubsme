@@ -9,7 +9,8 @@
     "test": "ng test",
     "serve:ssr:front-hubsme": "node dist/front-hubsme/server/server.mjs",
     "vercel:deploy": "vercel --prod",
-    "vercel:dev": "vercel dev"
+    "vercel:dev": "vercel dev",
+    "postinstall": "node patch-azure.js"
   },
   "prettier": {
     "printWidth": 100,

@@ -15,12 +15,6 @@
           "options": {
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
-            "externalDependencies": [
-              "@azure/communication-react",
-              "@azure/communication-calling",
-              "@azure/communication-calling-effects",
-              "@fluentui/react"
-            ],
             "assets": [
               {
                 "glob": "**/*",

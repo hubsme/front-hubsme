@@ -8,8 +8,6 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "serve:ssr:front-hubsme": "node dist/front-hubsme/server/server.mjs",
-    "vercel:deploy": "vercel --prod",
-    "vercel:dev": "vercel dev",
     "postinstall": "node patch-azure.js"
   },
   "prettier": {

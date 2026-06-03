@@ -602,6 +602,22 @@ export interface MeetingRecordingDto {
   meetingOrganizer: MeetingRecordingOrganizerDto | null;
 }
 
+export interface CopilotMeetingNoteDto {
+  title: string;
+  text: string;
+}
+
+export interface CopilotActionItemDto {
+  title: string;
+  text: string;
+  ownerDisplayName: string | null;
+}
+
+export interface MeetingCopilotSummaryDto {
+  meetingNotes: CopilotMeetingNoteDto[];
+  actionItems: CopilotActionItemDto[];
+}
+
 export interface MeetingUpdateDto {
   /** @example "Sesion de diagnostico empresarial" */
   title?: string;
@@ -1237,6 +1253,14 @@ export interface MeetingGetRecordingsParams {
 export type MeetingGetRecordingsData = MeetingRecordingDto[];
 
 export type MeetingGetRecordingsError = HttpErrorDto;
+
+export interface MeetingGetCopilotSummaryParams {
+  id: number;
+}
+
+export type MeetingGetCopilotSummaryData = MeetingCopilotSummaryDto;
+
+export type MeetingGetCopilotSummaryError = HttpErrorDto;
 
 export interface MeetingUpdateParams {
   id: number;
@@ -2364,6 +2388,26 @@ export namespace Meeting {
   /**
    * No description
    * @tags meeting
+   * @name MeetingGetCopilotSummary
+   * @summary Get Microsoft Copilot AI insights (notes & action items) for a meeting
+   * @request GET:/admin/meeting/copilot-summary/{id}
+   * @secure
+   * @response `200` `MeetingGetCopilotSummaryData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MeetingGetCopilotSummary {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingGetCopilotSummaryData;
+  }
+
+  /**
+   * No description
+   * @tags meeting
    * @name MeetingUpdate
    * @summary Update a meeting
    * @request PATCH:/admin/meeting/update/{id}
@@ -3179,7 +3223,10 @@ export class Api<SecurityDataType extends unknown> {
      * @response `200` `AuthGoogleUrlData`
      * @response `400` `HttpErrorDto`
      */
-    googleUrl: (query: AuthGoogleUrlParams, params: RequestParams = {}) =>
+    googleUrl: (
+      query: AuthGoogleUrlParams = {},
+      params: RequestParams = {},
+    ) =>
       this.http.request<AuthGoogleUrlData, AuthGoogleUrlError>({
         path: `/auth/google/url`,
         method: "GET",
@@ -3198,7 +3245,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `200` `AuthGoogleCallbackData` HTML response that posts the session to the opener window
      */
     googleCallback: (
-      query: AuthGoogleCallbackParams,
+      query: AuthGoogleCallbackParams = {},
       params: RequestParams = {},
     ) =>
       this.http.request<AuthGoogleCallbackData, any>({
@@ -3239,7 +3286,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `200` `UserFindAllData`
      * @response `400` `HttpErrorDto`
      */
-    findAll: (query: UserFindAllParams, params: RequestParams = {}) =>
+    findAll: (query: UserFindAllParams = {}, params: RequestParams = {}) =>
       this.http.request<UserFindAllData, UserFindAllError>({
         path: `/admin/user/find-all`,
         method: "GET",
@@ -3260,10 +3307,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `200` `UserFindOneData`
      * @response `400` `HttpErrorDto`
      */
-    findOne: (
-      { id, ...query }: UserFindOneParams,
-      params: RequestParams = {},
-    ) =>
+    findOne: ({ id }: UserFindOneParams, params: RequestParams = {}) =>
       this.http.request<UserFindOneData, UserFindOneError>({
         path: `/admin/user/find-one/${id}`,
         method: "GET",
@@ -3306,7 +3350,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     update: (
-      { id, ...query }: UserUpdateParams,
+      { id }: UserUpdateParams,
       data: UserUpdateDto,
       params: RequestParams = {},
     ) =>
@@ -3331,10 +3375,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `200` `UserRemoveData`
      * @response `400` `HttpErrorDto`
      */
-    remove: (
-      { id, ...query }: UserRemoveParams,
-      params: RequestParams = {},
-    ) =>
+    remove: ({ id }: UserRemoveParams, params: RequestParams = {}) =>
       this.http.request<UserRemoveData, UserRemoveError>({
         path: `/admin/user/delete/${id}`,
         method: "DELETE",
@@ -3355,7 +3396,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `200` `PymeFindAllData`
      * @response `400` `HttpErrorDto`
      */
-    findAll: (query: PymeFindAllParams, params: RequestParams = {}) =>
+    findAll: (query: PymeFindAllParams = {}, params: RequestParams = {}) =>
       this.http.request<PymeFindAllData, PymeFindAllError>({
         path: `/admin/pyme/find-all`,
         method: "GET",
@@ -3376,10 +3417,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `200` `PymeFindOneData`
      * @response `400` `HttpErrorDto`
      */
-    findOne: (
-      { id, ...query }: PymeFindOneParams,
-      params: RequestParams = {},
-    ) =>
+    findOne: ({ id }: PymeFindOneParams, params: RequestParams = {}) =>
       this.http.request<PymeFindOneData, PymeFindOneError>({
         path: `/admin/pyme/find-one/${id}`,
         method: "GET",
@@ -3400,7 +3438,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     findByUser: (
-      { userId, ...query }: PymeFindByUserParams,
+      { userId }: PymeFindByUserParams,
       params: RequestParams = {},
     ) =>
       this.http.request<PymeFindByUserData, PymeFindByUserError>({
@@ -3608,7 +3646,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     update: (
-      { id, ...query }: PymeUpdateParams,
+      { id }: PymeUpdateParams,
       data: PymeUpdateDto,
       params: RequestParams = {},
     ) =>
@@ -3633,10 +3671,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `200` `PymeRemoveData`
      * @response `400` `HttpErrorDto`
      */
-    remove: (
-      { id, ...query }: PymeRemoveParams,
-      params: RequestParams = {},
-    ) =>
+    remove: ({ id }: PymeRemoveParams, params: RequestParams = {}) =>
       this.http.request<PymeRemoveData, PymeRemoveError>({
         path: `/admin/pyme/delete/${id}`,
         method: "DELETE",
@@ -3658,7 +3693,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     findAll: (
-      query: ConsultantFindAllParams,
+      query: ConsultantFindAllParams = {},
       params: RequestParams = {},
     ) =>
       this.http.request<ConsultantFindAllData, ConsultantFindAllError>({
@@ -3682,7 +3717,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     findOne: (
-      { id, ...query }: ConsultantFindOneParams,
+      { id }: ConsultantFindOneParams,
       params: RequestParams = {},
     ) =>
       this.http.request<ConsultantFindOneData, ConsultantFindOneError>({
@@ -3705,7 +3740,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     findByUser: (
-      { userId, ...query }: ConsultantFindByUserParams,
+      { userId }: ConsultantFindByUserParams,
       params: RequestParams = {},
     ) =>
       this.http.request<ConsultantFindByUserData, ConsultantFindByUserError>({
@@ -3913,7 +3948,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     update: (
-      { id, ...query }: ConsultantUpdateParams,
+      { id }: ConsultantUpdateParams,
       data: ConsultantUpdateDto,
       params: RequestParams = {},
     ) =>
@@ -3939,7 +3974,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     remove: (
-      { id, ...query }: ConsultantRemoveParams,
+      { id }: ConsultantRemoveParams,
       params: RequestParams = {},
     ) =>
       this.http.request<ConsultantRemoveData, ConsultantRemoveError>({
@@ -3961,7 +3996,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `200` `PublicconsultantFindAllData`
      */
     publicconsultantFindAll: (
-      query: PublicconsultantFindAllParams,
+      query: PublicconsultantFindAllParams = {},
       params: RequestParams = {},
     ) =>
       this.http.request<PublicconsultantFindAllData, any>({
@@ -3984,7 +4019,10 @@ export class Api<SecurityDataType extends unknown> {
      * @response `200` `MeetingFindAllData`
      * @response `400` `HttpErrorDto`
      */
-    findAll: (query: MeetingFindAllParams, params: RequestParams = {}) =>
+    findAll: (
+      query: MeetingFindAllParams = {},
+      params: RequestParams = {},
+    ) =>
       this.http.request<MeetingFindAllData, MeetingFindAllError>({
         path: `/admin/meeting/find-all`,
         method: "GET",
@@ -4006,7 +4044,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     findOne: (
-      { id, ...query }: MeetingFindOneParams,
+      { id }: MeetingFindOneParams,
       params: RequestParams = {},
     ) =>
       this.http.request<MeetingFindOneData, MeetingFindOneError>({
@@ -4051,7 +4089,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     confirm: (
-      { id, ...query }: MeetingConfirmParams,
+      { id }: MeetingConfirmParams,
       params: RequestParams = {},
     ) =>
       this.http.request<MeetingConfirmData, MeetingConfirmError>({
@@ -4074,7 +4112,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     createTeamsJoinToken: (
-      { id, ...query }: MeetingCreateTeamsJoinTokenParams,
+      { id }: MeetingCreateTeamsJoinTokenParams,
       data: MeetingTeamsJoinDto,
       params: RequestParams = {},
     ) =>
@@ -4103,11 +4141,37 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     getRecordings: (
-      { id, ...query }: MeetingGetRecordingsParams,
+      { id }: MeetingGetRecordingsParams,
       params: RequestParams = {},
     ) =>
       this.http.request<MeetingGetRecordingsData, MeetingGetRecordingsError>({
         path: `/admin/meeting/recordings/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meeting
+     * @name MeetingGetCopilotSummary
+     * @summary Get Microsoft Copilot AI insights (notes & action items) for a meeting
+     * @request GET:/admin/meeting/copilot-summary/{id}
+     * @secure
+     * @response `200` `MeetingGetCopilotSummaryData`
+     * @response `400` `HttpErrorDto`
+     */
+    getCopilotSummary: (
+      { id }: MeetingGetCopilotSummaryParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MeetingGetCopilotSummaryData,
+        MeetingGetCopilotSummaryError
+      >({
+        path: `/admin/meeting/copilot-summary/${id}`,
         method: "GET",
         secure: true,
         format: "json",
@@ -4126,7 +4190,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     update: (
-      { id, ...query }: MeetingUpdateParams,
+      { id }: MeetingUpdateParams,
       data: MeetingUpdateDto,
       params: RequestParams = {},
     ) =>
@@ -4152,7 +4216,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     finalize: (
-      { id, ...query }: MeetingFinalizeParams,
+      { id }: MeetingFinalizeParams,
       data: MeetingFinalizeDto,
       params: RequestParams = {},
     ) =>
@@ -4177,10 +4241,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `200` `MeetingRemoveData`
      * @response `400` `HttpErrorDto`
      */
-    remove: (
-      { id, ...query }: MeetingRemoveParams,
-      params: RequestParams = {},
-    ) =>
+    remove: ({ id }: MeetingRemoveParams, params: RequestParams = {}) =>
       this.http.request<MeetingRemoveData, MeetingRemoveError>({
         path: `/admin/meeting/delete/${id}`,
         method: "DELETE",
@@ -4201,7 +4262,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `200` `TaskFindAllData`
      * @response `400` `HttpErrorDto`
      */
-    findAll: (query: TaskFindAllParams, params: RequestParams = {}) =>
+    findAll: (query: TaskFindAllParams = {}, params: RequestParams = {}) =>
       this.http.request<TaskFindAllData, TaskFindAllError>({
         path: `/admin/task/find-all`,
         method: "GET",
@@ -4222,10 +4283,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `200` `TaskFindOneData`
      * @response `400` `HttpErrorDto`
      */
-    findOne: (
-      { id, ...query }: TaskFindOneParams,
-      params: RequestParams = {},
-    ) =>
+    findOne: ({ id }: TaskFindOneParams, params: RequestParams = {}) =>
       this.http.request<TaskFindOneData, TaskFindOneError>({
         path: `/admin/task/find-one/${id}`,
         method: "GET",
@@ -4268,7 +4326,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     update: (
-      { id, ...query }: TaskUpdateParams,
+      { id }: TaskUpdateParams,
       data: TaskUpdateDto,
       params: RequestParams = {},
     ) =>
@@ -4294,7 +4352,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     updateStatus: (
-      { id, ...query }: TaskUpdateStatusParams,
+      { id }: TaskUpdateStatusParams,
       data: TaskStatusDto,
       params: RequestParams = {},
     ) =>
@@ -4319,10 +4377,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `200` `TaskRemoveData`
      * @response `400` `HttpErrorDto`
      */
-    remove: (
-      { id, ...query }: TaskRemoveParams,
-      params: RequestParams = {},
-    ) =>
+    remove: ({ id }: TaskRemoveParams, params: RequestParams = {}) =>
       this.http.request<TaskRemoveData, TaskRemoveError>({
         path: `/admin/task/delete/${id}`,
         method: "DELETE",
@@ -4344,7 +4399,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     findAll: (
-      query: DiagnosticFindAllParams,
+      query: DiagnosticFindAllParams = {},
       params: RequestParams = {},
     ) =>
       this.http.request<DiagnosticFindAllData, DiagnosticFindAllError>({
@@ -4368,7 +4423,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     findOne: (
-      { id, ...query }: DiagnosticFindOneParams,
+      { id }: DiagnosticFindOneParams,
       params: RequestParams = {},
     ) =>
       this.http.request<DiagnosticFindOneData, DiagnosticFindOneError>({
@@ -4416,7 +4471,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     remove: (
-      { id, ...query }: DiagnosticRemoveParams,
+      { id }: DiagnosticRemoveParams,
       params: RequestParams = {},
     ) =>
       this.http.request<DiagnosticRemoveData, DiagnosticRemoveError>({
@@ -4459,7 +4514,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     findAll: (
-      query: SubscriptionFindAllParams,
+      query: SubscriptionFindAllParams = {},
       params: RequestParams = {},
     ) =>
       this.http.request<SubscriptionFindAllData, SubscriptionFindAllError>({
@@ -4483,7 +4538,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     findOne: (
-      { id, ...query }: SubscriptionFindOneParams,
+      { id }: SubscriptionFindOneParams,
       params: RequestParams = {},
     ) =>
       this.http.request<SubscriptionFindOneData, SubscriptionFindOneError>({
@@ -4506,7 +4561,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     findByUser: (
-      { userId, ...query }: SubscriptionFindByUserParams,
+      { userId }: SubscriptionFindByUserParams,
       params: RequestParams = {},
     ) =>
       this.http.request<
@@ -4558,7 +4613,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     summary: (
-      query: DashboardSummaryParams,
+      query: DashboardSummaryParams = {},
       params: RequestParams = {},
     ) =>
       this.http.request<DashboardSummaryData, DashboardSummaryError>({
@@ -4608,7 +4663,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `200` `StorageDeleteData`
      */
     delete: (
-      { publicId, ...query }: StorageDeleteParams,
+      { publicId }: StorageDeleteParams,
       params: RequestParams = {},
     ) =>
       this.http.request<StorageDeleteData, any>({
@@ -4690,7 +4745,7 @@ export type ApiBody<
 export type ApiQuery<
   Module extends keyof Api<unknown>,
   Method extends keyof Api<unknown>[Module]
-> = ApiArgs<Module, Method> extends [infer Query, ...any[]]
+> = Required<ApiArgs<Module, Method>> extends [infer Query, ...any[]]
   ? Query
   : never;
 
@@ -4702,10 +4757,10 @@ export type ApiQuery<
 export type ApiParam<
   Module extends keyof Api<unknown>,
   Method extends keyof Api<unknown>[Module],
-  ParamName extends ApiArgs<Module, Method> extends [infer Arg1, ...any[]]
+  ParamName extends Required<ApiArgs<Module, Method>> extends [infer Arg1, ...any[]]
     ? keyof Arg1
     : never
-> = ApiArgs<Module, Method> extends [infer Arg1, ...any[]]
+> = Required<ApiArgs<Module, Method>> extends [infer Arg1, ...any[]]
   ? ParamName extends keyof Arg1
     ? Arg1[ParamName]
     : never

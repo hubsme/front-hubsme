@@ -41,6 +41,12 @@ export class MeetingMinutesDetail implements OnInit {
   editDescription = signal('');
   editTasks = signal<FinalizeTask[]>([]);
 
+  // Copilot summary signals
+  copilotSummary = signal<{ meetingNotes: any[]; actionItems: any[] } | null>(null);
+  copilotLoading = signal(false);
+  copilotError = signal('');
+  showCopilotSummary = signal(false);
+
   quillModulesReadOnly = {
     toolbar: [
       ['bold', 'italic', 'underline', 'strike'],
@@ -293,6 +299,33 @@ export class MeetingMinutesDetail implements OnInit {
         this.isSaving.set(false);
         this.loading.set(false);
       });
+  }
+
+  generateCopilotSummary() {
+    const current = this.meeting();
+    if (!current) return;
+
+    this.copilotLoading.set(true);
+    this.copilotError.set('');
+
+    this.hubsme
+      .getCopilotSummary(current.id)
+      .then((response) => {
+        this.copilotSummary.set(response.data);
+        this.showCopilotSummary.set(true);
+        this.toastService.success('Resumen de Copilot generado con éxito');
+      })
+      .catch((error) => {
+        this.copilotError.set(this.hubsme.getErrorMessage(error));
+        this.toastService.error(this.hubsme.getErrorMessage(error));
+      })
+      .finally(() => {
+        this.copilotLoading.set(false);
+      });
+  }
+
+  toggleCopilotSummary() {
+    this.showCopilotSummary.update((v) => !v);
   }
 }
 

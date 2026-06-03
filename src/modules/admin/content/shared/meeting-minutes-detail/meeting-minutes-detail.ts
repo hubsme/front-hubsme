@@ -42,10 +42,8 @@ export class MeetingMinutesDetail implements OnInit {
   editTasks = signal<FinalizeTask[]>([]);
 
   // Copilot summary signals
-  copilotSummary = signal<{ meetingNotes: any[]; actionItems: any[] } | null>(null);
   copilotLoading = signal(false);
   copilotError = signal('');
-  showCopilotSummary = signal(false);
 
   quillModulesReadOnly = {
     toolbar: [
@@ -311,9 +309,21 @@ export class MeetingMinutesDetail implements OnInit {
     this.hubsme
       .getCopilotSummary(current.id)
       .then((response) => {
-        this.copilotSummary.set(response.data);
-        this.showCopilotSummary.set(true);
-        this.toastService.success('Resumen de Copilot generado con éxito');
+        const summaryText = response.data.summary || '';
+        this.editDescription.set(summaryText);
+
+        if (response.data.tasks && response.data.tasks.length > 0) {
+          const suggestedTasks: FinalizeTask[] = response.data.tasks.map((t) => ({
+            title: t.title,
+            description: t.description,
+            assignedTo: t.assignedTo,
+            priority: t.priority,
+            dueDate: t.dueDate || undefined,
+          }));
+          this.editTasks.set(suggestedTasks);
+        }
+
+        this.toastService.success('Resumen y tareas sugeridas de Copilot generados e inyectados');
       })
       .catch((error) => {
         this.copilotError.set(this.hubsme.getErrorMessage(error));
@@ -322,10 +332,6 @@ export class MeetingMinutesDetail implements OnInit {
       .finally(() => {
         this.copilotLoading.set(false);
       });
-  }
-
-  toggleCopilotSummary() {
-    this.showCopilotSummary.update((v) => !v);
   }
 }
 

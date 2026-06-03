@@ -602,20 +602,27 @@ export interface MeetingRecordingDto {
   meetingOrganizer: MeetingRecordingOrganizerDto | null;
 }
 
-export interface CopilotMeetingNoteDto {
+export interface TaskSuggestionDto {
+  /** Título accionable de la tarea sugerida */
   title: string;
-  text: string;
-}
-
-export interface CopilotActionItemDto {
-  title: string;
-  text: string;
-  ownerDisplayName: string | null;
+  /** Descripción detallada de la tarea */
+  description: string;
+  /** Responsable asignado */
+  assignedTo: "pyme" | "consultor";
+  /** Prioridad de la tarea */
+  priority: "alta" | "media" | "baja";
+  /**
+   * Fecha límite sugerida en formato YYYY-MM-DD
+   * @example "2026-06-15"
+   */
+  dueDate?: string;
 }
 
 export interface MeetingCopilotSummaryDto {
-  meetingNotes: CopilotMeetingNoteDto[];
-  actionItems: CopilotActionItemDto[];
+  /** Resumen en texto plano de la reunión */
+  summary: string;
+  /** Listado de tareas sugeridas extraídas por IA */
+  tasks: TaskSuggestionDto[];
 }
 
 export interface MeetingUpdateDto {
@@ -662,6 +669,20 @@ export interface MeetingFinalizeDto {
 export interface MeetingFinalizeResultDto {
   meeting: MeetingResultDto;
   tasks: TaskResultDto[];
+}
+
+export interface HubsmeAiRunDto {
+  /** Texto de la transcripción a procesar */
+  text: string;
+  /** Instrucciones o prompt opcional para el modelo de IA */
+  prompt?: string;
+}
+
+export interface HubsmeAiResultDto {
+  /** Resumen ejecutivo de la reunión */
+  summary: string;
+  /** Listado de tareas sugeridas extraídas por IA */
+  tasks: TaskSuggestionDto[];
 }
 
 export interface TaskListDto {
@@ -1285,6 +1306,10 @@ export interface MeetingRemoveParams {
 export type MeetingRemoveData = MeetingResultDto;
 
 export type MeetingRemoveError = HttpErrorDto;
+
+export type PowerautomateRunHubsmeAiData = HubsmeAiResultDto;
+
+export type PowerautomateRunHubsmeAiError = HttpErrorDto;
 
 export interface TaskFindAllParams {
   /**
@@ -2389,8 +2414,8 @@ export namespace Meeting {
    * No description
    * @tags meeting
    * @name MeetingGetCopilotSummary
-   * @summary Get Microsoft Copilot AI insights (notes & action items) for a meeting
-   * @request GET:/admin/meeting/copilot-summary/{id}
+   * @summary Get Hubsme AI insights (summary & action tasks) for a meeting
+   * @request GET:/admin/meeting/hubsme-ai/{id}
    * @secure
    * @response `200` `MeetingGetCopilotSummaryData`
    * @response `400` `HttpErrorDto`
@@ -2463,6 +2488,26 @@ export namespace Meeting {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = MeetingRemoveData;
+  }
+}
+
+export namespace Powerautomate {
+  /**
+   * No description
+   * @tags powerautomate
+   * @name PowerautomateRunHubsmeAi
+   * @summary Ejecutar flujo de Power Automate para obtener resumen y tareas sugeridas
+   * @request POST:/admin/powerautomate/hubsme-ai
+   * @secure
+   * @response `201` `PowerautomateRunHubsmeAiData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PowerautomateRunHubsmeAi {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = HubsmeAiRunDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PowerautomateRunHubsmeAiData;
   }
 }
 
@@ -4157,8 +4202,8 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags meeting
      * @name MeetingGetCopilotSummary
-     * @summary Get Microsoft Copilot AI insights (notes & action items) for a meeting
-     * @request GET:/admin/meeting/copilot-summary/{id}
+     * @summary Get Hubsme AI insights (summary & action tasks) for a meeting
+     * @request GET:/admin/meeting/hubsme-ai/{id}
      * @secure
      * @response `200` `MeetingGetCopilotSummaryData`
      * @response `400` `HttpErrorDto`
@@ -4171,7 +4216,7 @@ export class Api<SecurityDataType extends unknown> {
         MeetingGetCopilotSummaryData,
         MeetingGetCopilotSummaryError
       >({
-        path: `/admin/meeting/copilot-summary/${id}`,
+        path: `/admin/meeting/hubsme-ai/${id}`,
         method: "GET",
         secure: true,
         format: "json",
@@ -4246,6 +4291,35 @@ export class Api<SecurityDataType extends unknown> {
         path: `/admin/meeting/delete/${id}`,
         method: "DELETE",
         secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
+  powerautomate = {
+    /**
+     * No description
+     *
+     * @tags powerautomate
+     * @name PowerautomateRunHubsmeAi
+     * @summary Ejecutar flujo de Power Automate para obtener resumen y tareas sugeridas
+     * @request POST:/admin/powerautomate/hubsme-ai
+     * @secure
+     * @response `201` `PowerautomateRunHubsmeAiData`
+     * @response `400` `HttpErrorDto`
+     */
+    runHubsmeAi: (
+      data: HubsmeAiRunDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PowerautomateRunHubsmeAiData,
+        PowerautomateRunHubsmeAiError
+      >({
+        path: `/admin/powerautomate/hubsme-ai`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

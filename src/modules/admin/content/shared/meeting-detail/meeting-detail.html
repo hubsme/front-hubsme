@@ -240,7 +240,16 @@
             }
           </div>
 
-          @if (current.meetingUrl) {
+          @if (current.status === 'finalizada') {
+            <button
+              type="button"
+              [routerLink]="actaLink()"
+              class="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-[0.78rem] text-fixed-background-50 font-inter-bold shadow-sm hover:bg-secondary/90 transition-all cursor-pointer"
+            >
+              <i class="far fa-file-lines text-[0.65rem]"></i>
+              Ver Acta
+            </button>
+          } @else if (current.meetingUrl) {
             @if (canJoinFromWeb()) {
               <button
                 type="button"

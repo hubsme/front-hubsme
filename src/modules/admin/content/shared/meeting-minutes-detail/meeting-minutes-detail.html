@@ -225,6 +225,131 @@
             }
           </div>
         </section>
+
+        <!-- Grabaciones con Copilot en modo edición -->
+        <section class="rounded-2xl border border-border bg-surface p-6 shadow-[0_12px_28px_rgba(15,23,42,0.04)]">
+          <div class="mb-5 flex items-center gap-3 border-b border-border pb-4">
+            <span class="grid h-10 w-10 place-items-center rounded-xl bg-secondary-50 text-secondary">
+              <i class="fas fa-video text-lg"></i>
+            </span>
+            <h3 class="text-xl font-anton lowercase text-text">Grabaciones de la reunión</h3>
+          </div>
+
+          @if (recordingsLoading()) {
+            <div class="py-8 text-center text-muted">
+              <i class="fas fa-spinner fa-spin text-2xl text-secondary"></i>
+            </div>
+          } @else if (recordingsError()) {
+            <p class="text-sm leading-6 text-danger">
+              {{ recordingsError() }}
+            </p>
+          } @else if (recordings().length) {
+            <div class="divide-y divide-border">
+              @for (recording of recordings(); track recording.id ?? recording.callId ?? $index) {
+                <div class="py-4 space-y-3">
+                  <!-- Detalles de Grabación -->
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-3.5 min-w-0">
+                      <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-secondary-50/25 text-secondary border border-secondary/5">
+                        <i class="fas fa-clapperboard text-sm"></i>
+                      </span>
+                      <div class="min-w-0">
+                        <span class="block text-sm text-text font-inter-semibold truncate capitalize">
+                          {{ recordingDate(recording.createdDateTime) }}
+                        </span>
+                        <span class="mt-0.5 block text-xs text-muted font-inter-medium">
+                          Duración: {{ recordingDuration(recording) }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Botón de Copilot (IA Sparkles Icon) -->
+                    <button
+                      type="button"
+                      (click)="generateCopilotSummary()"
+                      [disabled]="copilotLoading()"
+                      class="flex h-8 w-8 items-center justify-center rounded-full bg-secondary-50 text-secondary hover:bg-secondary-100 transition-colors cursor-pointer disabled:opacity-50"
+                      title="Generar resumen con IA"
+                    >
+                      @if (copilotLoading()) {
+                        <i class="fas fa-spinner fa-spin text-[0.75rem]"></i>
+                      } @else {
+                        <i class="fas fa-wand-magic-sparkles text-xs"></i>
+                      }
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Vista del Resumen Generado -->
+            @if (copilotSummary(); as summary) {
+              <div class="mt-4 rounded-xl border border-secondary/20 bg-secondary-50/10 p-4 space-y-4 animate-in fade-in duration-200">
+                <div class="flex items-center justify-between border-b border-border/50 pb-2">
+                  <div class="flex items-center gap-2 text-secondary">
+                    <i class="fas fa-wand-magic-sparkles text-sm animate-pulse"></i>
+                    <h4 class="text-xs font-inter-bold uppercase tracking-wider">Resumen de Copilot</h4>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="toggleCopilotSummary()"
+                    class="text-xs text-muted hover:text-secondary font-inter-semibold cursor-pointer"
+                  >
+                    {{ showCopilotSummary() ? 'Ocultar' : 'Mostrar' }}
+                  </button>
+                </div>
+
+                @if (showCopilotSummary()) {
+                  <div class="space-y-4 text-xs leading-relaxed text-text pr-1">
+                    <!-- Notas / Resumen General -->
+                    @if (summary.meetingNotes.length) {
+                      <div class="space-y-2">
+                        <p class="font-inter-bold text-text-800">Notas de la Reunión:</p>
+                        <ul class="space-y-2">
+                          @for (note of summary.meetingNotes; track $index) {
+                            <li class="pl-3 border-l-2 border-secondary/30">
+                              <strong class="text-text-950 font-inter-semibold">{{ note.title }}:</strong> {{ note.text }}
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                    }
+
+                    <!-- Tareas / Compromisos Extraídos -->
+                    @if (summary.actionItems.length) {
+                      <div class="space-y-2 pt-2 border-t border-border/30">
+                        <p class="font-inter-bold text-text-800">Tareas extraídas (Acciones):</p>
+                        <ul class="space-y-2">
+                          @for (item of summary.actionItems; track $index) {
+                            <li class="flex items-start gap-2 pl-3 border-l-2 border-success/30">
+                              <i class="far fa-circle-check text-success text-[0.7rem] mt-0.5 shrink-0"></i>
+                              <div>
+                                <p class="font-inter-semibold text-text-950">{{ item.title }}</p>
+                                <p class="text-[0.7rem] text-muted">{{ item.text }}</p>
+                                @if (item.ownerDisplayName) {
+                                  <p class="text-[0.65rem] text-secondary font-inter-medium mt-0.5">Asignado a: {{ item.ownerDisplayName }}</p>
+                                }
+                              </div>
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                    }
+
+                    @if (!summary.meetingNotes.length && !summary.actionItems.length) {
+                      <p class="italic text-muted text-center py-2">Copilot no encontró notas ni tareas en esta sesión.</p>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          } @else {
+            <div class="py-8 text-center">
+              <i class="fas fa-video-slash mb-2 block text-2xl text-muted/30"></i>
+              <p class="text-xs text-muted">Aún no hay grabaciones disponibles para esta acta.</p>
+            </div>
+          }
+        </section>
       </div>
     </div>
 

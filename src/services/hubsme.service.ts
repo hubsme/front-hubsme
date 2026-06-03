@@ -74,6 +74,10 @@ export class HubsmeService {
     return this.api.meeting.getRecordings({ id });
   }
 
+  getCopilotSummary(id: number) {
+    return this.api.meeting.getCopilotSummary({ id });
+  }
+
   listTasks(page = 1, limit = 100, status?: ApiBody<'task', 'updateStatus'>['status']) {
     const user = this.currentUser();
     return this.api.task.findAll({

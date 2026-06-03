@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
@@ -15,7 +15,7 @@ type Pyme = ApiResponse<'pyme', 'findByUser'>;
 
 @Component({
   selector: 'app-meeting-detail',
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './meeting-detail.html',
 })
 export class MeetingDetail implements OnInit {
@@ -46,6 +46,17 @@ export class MeetingDetail implements OnInit {
       return this.hubsme.currentUser().role !== 'consultor';
     } catch {
       return false;
+    }
+  });
+
+  actaLink = computed(() => {
+    const meeting = this.meeting();
+    if (!meeting) return [];
+    try {
+      const role = this.hubsme.currentUser().role;
+      return [role === 'consultor' ? '/consultor/documents' : '/pyme/documents', meeting.id];
+    } catch {
+      return [];
     }
   });
 

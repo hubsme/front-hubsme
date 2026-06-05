@@ -200,7 +200,7 @@
                     >
                       Cancelar
                     </button>
-                  } @else if (meeting.status === 'confirmada') {
+                  } @else if (meeting.status === 'confirmada' && !meeting.description) {
                     @if (meeting.meetingUrl) {
                       <button
                         type="button"
@@ -215,7 +215,7 @@
                         Esperando que el consultor genere el acta...
                       </span>
                     }
-                  } @else if (meeting.status === 'finalizada') {
+                  } @else if (meeting.status === 'finalizada' || meeting.description) {
                     <button
                       [routerLink]="['/pyme/documents', meeting.id]"
                       class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border border-border px-4 text-[0.82rem] font-inter-semibold"

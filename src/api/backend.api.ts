@@ -619,9 +619,9 @@ export interface TaskSuggestionDto {
 }
 
 export interface MeetingCopilotSummaryDto {
-  /** Resumen en texto plano de la reunión */
+  /** Acta de reunion estructurada en Markdown */
   summary: string;
-  /** Listado de tareas sugeridas extraídas por IA */
+  /** Listado de compromisos sugeridos para la PYME */
   tasks: TaskSuggestionDto[];
 }
 
@@ -679,9 +679,9 @@ export interface HubsmeAiRunDto {
 }
 
 export interface HubsmeAiResultDto {
-  /** Resumen ejecutivo de la reunión */
+  /** Acta de reunion estructurada en Markdown */
   summary: string;
-  /** Listado de tareas sugeridas extraídas por IA */
+  /** Listado de compromisos sugeridos para la PYME */
   tasks: TaskSuggestionDto[];
 }
 
@@ -765,6 +765,7 @@ export interface DiagnosticRecommendationDto {
 export interface DiagnosticPayloadDto {
   resumenEjecutivo: string;
   puntajeGeneral: number;
+  feedbackIa: string;
   areasEvaluadas: DiagnosticAreaDto[];
   problemasCriticos: DiagnosticProblemDto[];
   recomendaciones: DiagnosticRecommendationDto[];
@@ -798,6 +799,26 @@ export interface DiagnosticGenerateDto {
   pymeData?: object;
   /** @example {"revenue":"500000","techLevel":6,"challenges":"Falta de liquidez"} */
   responses: object;
+}
+
+export interface DiagnosticDocumentResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  diagnosticId: number;
+  pymeId: number;
+  title: string;
+  type: "informe" | "plan_accion" | "respuestas";
+  content: string;
+}
+
+export interface DiagnosticDocumentListDto {
+  data: DiagnosticDocumentResultDto[];
+  meta: PaginationMetaDto;
 }
 
 export interface PlanResultDto {
@@ -1411,6 +1432,46 @@ export interface DiagnosticRemoveParams {
 export type DiagnosticRemoveData = DiagnosticResultDto;
 
 export type DiagnosticRemoveError = HttpErrorDto;
+
+export interface DiagnosticdocumentFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by title */
+  search?: string;
+  /** @example 1 */
+  diagnosticId?: number;
+  /** @example 2 */
+  pymeId?: number;
+  type?: "informe" | "plan_accion" | "respuestas";
+}
+
+export type DiagnosticdocumentFindAllData = DiagnosticDocumentListDto;
+
+export type DiagnosticdocumentFindAllError = HttpErrorDto;
+
+export interface DiagnosticdocumentFindOneParams {
+  id: number;
+}
+
+export type DiagnosticdocumentFindOneData = DiagnosticDocumentResultDto;
+
+export type DiagnosticdocumentFindOneError = HttpErrorDto;
+
+export interface DiagnosticdocumentRemoveParams {
+  id: number;
+}
+
+export type DiagnosticdocumentRemoveData = DiagnosticDocumentResultDto;
+
+export type DiagnosticdocumentRemoveError = HttpErrorDto;
 
 export type SubscriptionPlansData = PlanResultDto[];
 
@@ -2737,6 +2798,84 @@ export namespace Diagnostic {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = DiagnosticRemoveData;
+  }
+}
+
+export namespace DiagnosticDocument {
+  /**
+   * No description
+   * @tags diagnosticDocument
+   * @name DiagnosticdocumentFindAll
+   * @summary Get all diagnostic documents paginated
+   * @request GET:/admin/diagnostic-document/find-all
+   * @secure
+   * @response `200` `DiagnosticdocumentFindAllData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace DiagnosticdocumentFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by title */
+      search?: string;
+      /** @example 1 */
+      diagnosticId?: number;
+      /** @example 2 */
+      pymeId?: number;
+      type?: "informe" | "plan_accion" | "respuestas";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = DiagnosticdocumentFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags diagnosticDocument
+   * @name DiagnosticdocumentFindOne
+   * @summary Get a diagnostic document by ID
+   * @request GET:/admin/diagnostic-document/find-one/{id}
+   * @secure
+   * @response `200` `DiagnosticdocumentFindOneData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace DiagnosticdocumentFindOne {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = DiagnosticdocumentFindOneData;
+  }
+
+  /**
+   * No description
+   * @tags diagnosticDocument
+   * @name DiagnosticdocumentRemove
+   * @summary Soft-delete a diagnostic document
+   * @request DELETE:/admin/diagnostic-document/delete/{id}
+   * @secure
+   * @response `200` `DiagnosticdocumentRemoveData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace DiagnosticdocumentRemove {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = DiagnosticdocumentRemoveData;
   }
 }
 
@@ -4550,6 +4689,86 @@ export class Api<SecurityDataType extends unknown> {
     ) =>
       this.http.request<DiagnosticRemoveData, DiagnosticRemoveError>({
         path: `/admin/diagnostic/delete/${id}`,
+        method: "DELETE",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
+  diagnosticDocument = {
+    /**
+     * No description
+     *
+     * @tags diagnosticDocument
+     * @name DiagnosticdocumentFindAll
+     * @summary Get all diagnostic documents paginated
+     * @request GET:/admin/diagnostic-document/find-all
+     * @secure
+     * @response `200` `DiagnosticdocumentFindAllData`
+     * @response `400` `HttpErrorDto`
+     */
+    diagnosticdocumentFindAll: (
+      query: DiagnosticdocumentFindAllParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        DiagnosticdocumentFindAllData,
+        DiagnosticdocumentFindAllError
+      >({
+        path: `/admin/diagnostic-document/find-all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags diagnosticDocument
+     * @name DiagnosticdocumentFindOne
+     * @summary Get a diagnostic document by ID
+     * @request GET:/admin/diagnostic-document/find-one/{id}
+     * @secure
+     * @response `200` `DiagnosticdocumentFindOneData`
+     * @response `400` `HttpErrorDto`
+     */
+    diagnosticdocumentFindOne: (
+      { id }: DiagnosticdocumentFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        DiagnosticdocumentFindOneData,
+        DiagnosticdocumentFindOneError
+      >({
+        path: `/admin/diagnostic-document/find-one/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags diagnosticDocument
+     * @name DiagnosticdocumentRemove
+     * @summary Soft-delete a diagnostic document
+     * @request DELETE:/admin/diagnostic-document/delete/{id}
+     * @secure
+     * @response `200` `DiagnosticdocumentRemoveData`
+     * @response `400` `HttpErrorDto`
+     */
+    diagnosticdocumentRemove: (
+      { id }: DiagnosticdocumentRemoveParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        DiagnosticdocumentRemoveData,
+        DiagnosticdocumentRemoveError
+      >({
+        path: `/admin/diagnostic-document/delete/${id}`,
         method: "DELETE",
         secure: true,
         format: "json",

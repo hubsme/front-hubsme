@@ -198,7 +198,7 @@
                     >
                       Cancelar
                     </button>
-                  } @else if (meeting.status === 'confirmada') {
+                  } @else if (meeting.status === 'confirmada' && !meeting.description) {
                     @if (meeting.meetingUrl) {
                       <a
                         [href]="meeting.meetingUrl"
@@ -211,18 +211,12 @@
                       </a>
                     }
                     <button
-                      (click)="finalizeDirect(meeting.id)"
-                      [disabled]="updatingId() === meeting.id"
-                      class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border border-border px-4 text-[0.82rem] font-inter-semibold hover:text-secondary hover:border-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                      [routerLink]="['/consultor/documents', meeting.id]"
+                      class="inline-flex h-9 cursor-pointer items-center justify-center rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold shadow-sm transition-colors hover:border-secondary hover:text-secondary"
                     >
-                      @if (updatingId() === meeting.id) {
-                        <i class="fas fa-spinner fa-spin text-xs"></i>
-                        Finalizando...
-                      } @else {
-                        <i class="fas fa-check-circle text-xs"></i>Finalizar
-                      }
+                      Finalizar
                     </button>
-                  } @else if (meeting.status === 'finalizada') {
+                  } @else if (meeting.status === 'finalizada' || meeting.description) {
                     <button
                       [routerLink]="['/consultor/documents', meeting.id]"
                       class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border border-border px-4 text-[0.82rem] font-inter-semibold"

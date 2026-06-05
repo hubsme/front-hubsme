@@ -83,6 +83,13 @@ const workspaceRoutes = (role: AppRole): Routes => {
                 ),
         },
         {
+          path: `${getPath(path.documents)}/diagnostic/:id`,
+          loadComponent: () =>
+            import('@module/admin/content/shared/diagnostic-document-detail/diagnostic-document-detail').then(
+              (m) => m.DiagnosticDocumentDetail,
+            ),
+        },
+        {
           path: `${getPath(path.documents)}/:id`,
           loadComponent: () =>
             import('@module/admin/content/shared/meeting-minutes-detail/meeting-minutes-detail').then(
@@ -97,6 +104,11 @@ const workspaceRoutes = (role: AppRole): Routes => {
               : import('@module/admin/content/consultor/documents/consultor-documents/consultor-documents').then(
                   (m) => m.ConsultorDocuments,
                 ),
+        },
+        {
+          path: `${getPath(path.diagnostics)}/:id`,
+          loadComponent: () =>
+            import('@module/admin/content/shared/diagnostic-detail/diagnostic-detail').then((m) => m.DiagnosticDetail),
         },
         {
           path: getPath(path.diagnostics),

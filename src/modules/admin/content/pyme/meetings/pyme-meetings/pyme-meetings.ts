@@ -224,7 +224,7 @@ export class PymeMeetings implements OnInit {
     this.finalTasks.update((current) => current.filter((_, i) => i !== index));
   }
 
-  updateTask<K extends keyof FinalizeTask>(index: number, key: K, value: any) {
+  updateTask<K extends keyof FinalizeTask>(index: number, key: K, value: FinalizeTask[K]) {
     this.finalTasks.update((current) => {
       const updated = [...current];
       updated[index] = { ...updated[index], [key]: value };
@@ -245,10 +245,13 @@ export class PymeMeetings implements OnInit {
     this.hubsme
       .finalizeMeeting(id, {
         description,
-        tasks: tasks.map((t) => ({
-          ...t,
-          dueDate: t.dueDate ? new Date(t.dueDate).toISOString() : undefined,
-        })),
+        tasks: tasks
+          .filter((task) => task.assignedTo === 'pyme')
+          .map((t) => ({
+            ...t,
+            assignedTo: 'pyme' as const,
+            dueDate: t.dueDate ? new Date(t.dueDate).toISOString() : undefined,
+          })),
       })
       .then(() => {
         this.toastService.success('Reunion finalizada y acta generada');

@@ -211,13 +211,16 @@ export class ConsultorMeetings implements OnInit {
     this.hubsme
       .finalizeMeeting(id, {
         description,
-        tasks: tasks.map((t) => ({
-          ...t,
-          dueDate: t.dueDate ? new Date(t.dueDate).toISOString() : undefined,
-        })),
+        tasks: tasks
+          .filter((task) => task.assignedTo === 'pyme')
+          .map((t) => ({
+            ...t,
+            assignedTo: 'pyme' as const,
+            dueDate: t.dueDate ? new Date(t.dueDate).toISOString() : undefined,
+          })),
       })
       .then((res) => {
-        this.toastService.success(`Acta creada y ${res.data.tasks.length} tareas generadas`);
+        this.toastService.success(`Acta creada y ${res.data.tasks.length} compromisos de la PYME generados`);
         this.finalizingId.set(null);
         this.load();
       })

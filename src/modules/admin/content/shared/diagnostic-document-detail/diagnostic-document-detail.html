@@ -1,0 +1,63 @@
+<div class="space-y-6 font-inter-regular text-text">
+  <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <div>
+      <a
+        [routerLink]="documentsPath()"
+        class="inline-flex items-center gap-2 text-[0.82rem] text-muted transition-colors hover:text-secondary"
+      >
+        <i class="fas fa-arrow-left text-xs"></i>
+        Volver a documentos
+      </a>
+      <h1 class="mt-3 text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold">
+        Documento de diagnóstico
+      </h1>
+      <p class="mt-1 text-[0.92rem] text-muted">Resultado integral generado por Hubsme IA.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="py-16 text-center text-muted">
+      <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+    </div>
+  } @else if (diagnostic(); as current) {
+    <section class="rounded-3xl border border-border bg-surface p-6 shadow-[0_14px_44px_-10px_rgba(0,0,0,0.08)]">
+      <div class="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+        <div class="flex items-center gap-4">
+          <div class="grid h-16 w-16 shrink-0 place-items-center rounded-2xl border border-secondary/10 bg-secondary-50/50 text-secondary">
+            <i class="fas fa-chart-line text-2xl"></i>
+          </div>
+          <div>
+            <h2 class="text-xl leading-tight font-anton lowercase text-text">{{ current.title }}</h2>
+            <p class="mt-1 text-sm text-muted">{{ meetingDate(current.createdAt) }}</p>
+          </div>
+        </div>
+
+        <div class="rounded-2xl bg-text px-8 py-5 text-center text-background">
+          <p class="text-[0.68rem] uppercase tracking-widest opacity-80">Tipo</p>
+          <p class="mt-1 text-xl font-inter-bold">{{ current.type }}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border border-border bg-surface p-6 shadow-[0_12px_28px_rgba(15,23,42,0.04)]">
+      <div class="mb-6 flex items-center gap-3 border-b border-border pb-4">
+        <span class="grid h-10 w-10 place-items-center rounded-xl bg-secondary-50 text-secondary">
+          <i class="far fa-file-alt text-lg"></i>
+        </span>
+        <h3 class="text-xl font-anton lowercase text-text">Informe generado</h3>
+      </div>
+
+      <quill-editor
+        [ngModel]="renderMarkdown(current.content)"
+        [readOnly]="true"
+        [modules]="quillModulesReadOnly"
+        theme="snow"
+        class="block w-full hide-toolbar"
+      ></quill-editor>
+    </section>
+  } @else {
+    <div class="rounded-2xl border border-dashed border-border bg-surface py-14 text-center text-muted">
+      Documento no encontrado.
+    </div>
+  }
+</div>

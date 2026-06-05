@@ -12,7 +12,7 @@
               class="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-secondary px-4 text-xs text-fixed-background-50 font-inter-semibold shadow-sm hover:bg-secondary/90 transition-colors"
             >
               <i class="fas fa-edit"></i>
-              Editar
+              {{ meeting()?.description ? 'Editar' : 'Crear acta' }}
             </button>
           }
           @if (meeting(); as current) {
@@ -136,7 +136,7 @@
               <span class="grid h-10 w-10 place-items-center rounded-xl bg-secondary-50 text-secondary">
                 <i class="fas fa-tasks text-lg"></i>
               </span>
-              <h3 class="text-xl font-anton lowercase text-text">Tareas generadas</h3>
+            <h3 class="text-xl font-anton lowercase text-text">tareas</h3>
             </div>
             
             <button
@@ -192,7 +192,6 @@
                       class="h-9 w-full appearance-none rounded-lg border border-border bg-surface pl-3 pr-8 text-xs text-text outline-none focus:border-secondary"
                     >
                       <option value="pyme">PYME</option>
-                      <option value="consultor">Consultor</option>
                     </select>
                     <i class="fas fa-chevron-down absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-[0.6rem] text-muted"></i>
                   </div>
@@ -256,36 +255,35 @@
               @for (recording of recordings(); track recording.id ?? recording.callId ?? $index) {
                 <div class="py-4 space-y-3">
                   <!-- Detalles de Grabación -->
-                  <div class="flex items-center justify-between gap-3">
-                    <div class="flex items-center gap-3.5 min-w-0">
-                      <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-secondary-50/25 text-secondary border border-secondary/5">
-                        <i class="fas fa-clapperboard text-sm"></i>
+                  <div class="flex items-center gap-3.5 min-w-0">
+                    <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-secondary-50/25 text-secondary border border-secondary/5">
+                      <i class="fas fa-clapperboard text-sm"></i>
+                    </span>
+                    <div class="min-w-0">
+                      <span class="block text-sm text-text font-inter-semibold truncate capitalize">
+                        {{ recordingDate(recording.createdDateTime) }}
                       </span>
-                      <div class="min-w-0">
-                        <span class="block text-sm text-text font-inter-semibold truncate capitalize">
-                          {{ recordingDate(recording.createdDateTime) }}
-                        </span>
-                        <span class="mt-0.5 block text-xs text-muted font-inter-medium">
-                          Duración: {{ recordingDuration(recording) }}
-                        </span>
-                      </div>
+                      <span class="mt-0.5 block text-xs text-muted font-inter-medium">
+                        Duración: {{ recordingDuration(recording) }}
+                      </span>
                     </div>
-
-                    <!-- Botón de Copilot (IA Sparkles Icon) -->
-                    <button
-                      type="button"
-                      (click)="generateCopilotSummary()"
-                      [disabled]="copilotLoading()"
-                      class="flex h-8 w-8 items-center justify-center rounded-full bg-secondary-50 text-secondary hover:bg-secondary-100 transition-colors cursor-pointer disabled:opacity-50"
-                      title="Generar resumen con IA"
-                    >
-                      @if (copilotLoading()) {
-                        <i class="fas fa-spinner fa-spin text-[0.75rem]"></i>
-                      } @else {
-                        <i class="fas fa-wand-magic-sparkles text-xs"></i>
-                      }
-                    </button>
                   </div>
+
+                  <button
+                    type="button"
+                    (click)="generateCopilotSummary()"
+                    [disabled]="copilotLoading()"
+                    class="w-full inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-secondary px-4 text-[0.78rem] text-fixed-background-50 font-inter-bold shadow-sm transition-colors hover:bg-secondary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                    title="Generar acta con IA"
+                  >
+                    @if (copilotLoading()) {
+                      <i class="fas fa-spinner fa-spin text-[0.75rem]"></i>
+                      Generando...
+                    } @else {
+                      <i class="fas fa-wand-magic-sparkles text-xs"></i>
+                      Generar acta con IA
+                    }
+                  </button>
                 </div>
               }
             </div>
@@ -349,7 +347,7 @@
             <span class="grid h-10 w-10 place-items-center rounded-xl bg-secondary-50 text-secondary">
               <i class="fas fa-tasks text-lg"></i>
             </span>
-            <h3 class="text-xl font-anton lowercase text-text">Tareas de seguimiento</h3>
+            <h3 class="text-xl font-anton lowercase text-text">tareas</h3>
           </div>
 
           <div class="space-y-4">

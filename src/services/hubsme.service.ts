@@ -101,13 +101,31 @@ export class HubsmeService {
     return this.api.task.updateStatus({ id }, { status });
   }
 
-  listDiagnostics(page = 1, limit = 10) {
+  listDiagnostics(page = 1, limit = 10, pymeId?: number) {
     const user = this.currentUser();
     return this.api.diagnostic.findAll({
       page,
       limit,
-      pymeId: user.role === 'pyme' ? user.id : undefined,
+      pymeId: user.role === 'pyme' ? user.id : pymeId,
     });
+  }
+
+  getDiagnostic(id: number) {
+    return this.api.diagnostic.findOne({ id });
+  }
+
+  listDiagnosticDocuments(page = 1, limit = 100, pymeId?: number, diagnosticId?: number) {
+    const user = this.currentUser();
+    return this.api.diagnosticDocument.diagnosticdocumentFindAll({
+      page,
+      limit,
+      pymeId: user.role === 'pyme' ? user.id : pymeId,
+      diagnosticId,
+    });
+  }
+
+  getDiagnosticDocument(id: number) {
+    return this.api.diagnosticDocument.diagnosticdocumentFindOne({ id });
   }
 
   generateDiagnostic(data: ApiBody<'diagnostic', 'generate'>) {

@@ -9,6 +9,7 @@ import { QuillModule } from 'ngx-quill';
 import { FormsModule } from '@angular/forms';
 
 type Meeting = ApiResponse<'meeting', 'findOne'>;
+type MeetingTask = NonNullable<Meeting['tasks']>[number];
 type MeetingRecording = ApiResponse<'meeting', 'getRecordings'>[number];
 
 type FinalizeTask = {
@@ -202,7 +203,7 @@ export class MeetingMinutesDetail implements OnInit {
 
     this.editDescription.set(current.description || '');
 
-    const mappedTasks: FinalizeTask[] = (current.tasks || []).map((t: any) => {
+    const mappedTasks: FinalizeTask[] = (current.tasks || []).map((t: MeetingTask) => {
       let dueDateStr = '';
       if (t.dueDate) {
         const date = new Date(t.dueDate);
@@ -214,7 +215,7 @@ export class MeetingMinutesDetail implements OnInit {
       return {
         title: t.title || '',
         description: t.description || '',
-        assignedTo: (t.assignedTo?.toLowerCase() === 'pyme' ? 'pyme' : 'consultor') as 'pyme' | 'consultor',
+        assignedTo: 'pyme',
         priority: (t.priority?.toLowerCase() || 'media') as 'alta' | 'media' | 'baja',
         dueDate: dueDateStr,
       };
@@ -271,10 +272,13 @@ export class MeetingMinutesDetail implements OnInit {
 
     this.isSaving.set(true);
 
-    const tasksPayload = this.editTasks().map((t) => ({
-      ...t,
-      dueDate: t.dueDate ? new Date(t.dueDate + 'T12:00:00').toISOString() : undefined,
-    }));
+    const tasksPayload = this.editTasks()
+      .filter((task) => task.assignedTo === 'pyme')
+      .map((t) => ({
+        ...t,
+        assignedTo: 'pyme' as const,
+        dueDate: t.dueDate ? new Date(t.dueDate + 'T12:00:00').toISOString() : undefined,
+      }));
 
     this.hubsme
       .finalizeMeeting(current.id, {
@@ -282,7 +286,7 @@ export class MeetingMinutesDetail implements OnInit {
         tasks: tasksPayload,
       })
       .then((res) => {
-        this.toastService.success('Acta y tareas actualizadas con éxito');
+        this.toastService.success('Acta y compromisos de la PYME actualizados con éxito');
         this.isEditing.set(false);
         this.loading.set(true);
         return this.hubsme.getMeeting(current.id);
@@ -309,21 +313,23 @@ export class MeetingMinutesDetail implements OnInit {
     this.hubsme
       .getCopilotSummary(current.id)
       .then((response) => {
-        const summaryText = response.data.summary || '';
-        this.editDescription.set(summaryText);
+        const actaText = response.data.summary || '';
+        this.editDescription.set(actaText);
 
         if (response.data.tasks && response.data.tasks.length > 0) {
-          const suggestedTasks: FinalizeTask[] = response.data.tasks.map((t) => ({
-            title: t.title,
-            description: t.description,
-            assignedTo: t.assignedTo,
-            priority: t.priority,
-            dueDate: t.dueDate || undefined,
-          }));
+          const suggestedTasks: FinalizeTask[] = response.data.tasks
+            .filter((t) => t.assignedTo === 'pyme')
+            .map((t) => ({
+              title: t.title,
+              description: t.description,
+              assignedTo: 'pyme',
+              priority: t.priority,
+              dueDate: t.dueDate || undefined,
+            }));
           this.editTasks.set(suggestedTasks);
         }
 
-        this.toastService.success('Resumen y tareas sugeridas de Copilot generados e inyectados');
+        this.toastService.success('Acta y compromisos sugeridos generados con IA');
       })
       .catch((error) => {
         this.copilotError.set(this.hubsme.getErrorMessage(error));
@@ -334,4 +340,3 @@ export class MeetingMinutesDetail implements OnInit {
       });
   }
 }
-

@@ -14,6 +14,7 @@ export class ModalForm {
   cancelText = input<string>('Cancelar');
   loading = input<boolean>(false);
   maxWidth = input<'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl'>('md');
+  submitVariant = input<'primary' | 'danger'>('primary');
 
   // Outputs
   onSubmit = output<void>();
@@ -56,7 +57,7 @@ export class ModalForm {
     }
     this.resetTimeout = setTimeout(() => {
       this.isSubmitting.set(false);
-    }, 5000);
+    }, 6000);
   }
 
   handleClose() {
@@ -74,5 +75,13 @@ export class ModalForm {
       '4xl': 'max-w-4xl'
     };
     return widthMap[this.maxWidth()];
+  }
+
+  getSubmitButtonClass(): string {
+    if (this.submitVariant() === 'danger') {
+      return 'bg-danger text-fixed-text-50 hover:bg-danger/90';
+    }
+
+    return 'bg-secondary text-fixed-text-50 hover:bg-secondary/90';
   }
 }

@@ -511,7 +511,12 @@ export interface MeetingResultDto {
   durationMinutes: number;
   meetingUrl: string | null;
   teamsOnlineMeetingId: string | null;
-  status: "solicitada" | "confirmada" | "finalizada" | "cancelada";
+  status:
+    | "solicitada"
+    | "pago_pendiente"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada";
   requestedBy: "pyme" | "consultor";
   description: string | null;
   /** @format date-time */
@@ -637,7 +642,12 @@ export interface MeetingUpdateDto {
   durationMinutes?: number;
   /** @example "Revisar objetivos, contexto y dudas principales para la sesion." */
   description?: string;
-  status?: "solicitada" | "confirmada" | "finalizada" | "cancelada";
+  status?:
+    | "solicitada"
+    | "pago_pendiente"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada";
 }
 
 export interface MeetingFinalizeTaskDto {
@@ -683,6 +693,93 @@ export interface HubsmeAiResultDto {
   summary: string;
   /** Listado de compromisos sugeridos para la PYME */
   tasks: TaskSuggestionDto[];
+}
+
+export interface ConsultantAvailabilityListItemDto {
+  id: number;
+  consultantId: number;
+  /** @format date-time */
+  startTime: string;
+  /** @format date-time */
+  endTime: string;
+  status: "disponible" | "bloqueado";
+  notes: string | null;
+  /** @format date-time */
+  createdAt: string;
+}
+
+export interface ConsultantAvailabilityListDto {
+  data: ConsultantAvailabilityListItemDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface ConsultantAvailabilityMonthDto {
+  data: ConsultantAvailabilityListItemDto[];
+}
+
+export interface ConsultantAvailabilityResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  consultantId: number;
+  /** @format date-time */
+  startTime: string;
+  /** @format date-time */
+  endTime: string;
+  status: "disponible" | "bloqueado";
+  notes: string | null;
+}
+
+export interface ConsultantAvailabilityCreateDto {
+  /** @example 3 */
+  consultantId: number;
+  /**
+   * @format date-time
+   * @example "2026-06-15T14:00:00.000Z"
+   */
+  startTime: string;
+  /**
+   * @format date-time
+   * @example "2026-06-15T16:00:00.000Z"
+   */
+  endTime: string;
+  /** @default "disponible" */
+  status?: "disponible" | "bloqueado";
+  /** @example "Horario disponible para consultoria estrategica." */
+  notes?: string;
+}
+
+export interface ConsultantAvailabilityReplaceMonthDto {
+  /** @example 3 */
+  consultantId: number;
+  /** @example 2026 */
+  year: number;
+  /** @example 6 */
+  month: number;
+  slots: ConsultantAvailabilityCreateDto[];
+}
+
+export interface ConsultantAvailabilityUpdateDto {
+  /** @example 3 */
+  consultantId?: number;
+  /**
+   * @format date-time
+   * @example "2026-06-15T14:00:00.000Z"
+   */
+  startTime?: string;
+  /**
+   * @format date-time
+   * @example "2026-06-15T16:00:00.000Z"
+   */
+  endTime?: string;
+  /** @default "disponible" */
+  status?: "disponible" | "bloqueado";
+  /** @example "Horario disponible para consultoria estrategica." */
+  notes?: string;
 }
 
 export interface TaskListDto {
@@ -797,7 +894,7 @@ export interface DiagnosticGenerateDto {
   pymeId: number;
   /** @example {"name":"Textiles del Sur SAC","sector":"Manufactura"} */
   pymeData?: object;
-  /** @example {"revenue":"500000","techLevel":6,"challenges":"Falta de liquidez"} */
+  /** @example {"revenue":"600000","techLevel":6,"challenges":"Falta de liquidez"} */
   responses: object;
 }
 
@@ -1253,7 +1350,12 @@ export interface MeetingFindAllParams {
   pymeId?: number;
   /** @example 3 */
   consultantId?: number;
-  status?: "solicitada" | "confirmada" | "finalizada" | "cancelada";
+  status?:
+    | "solicitada"
+    | "pago_pendiente"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada";
 }
 
 export type MeetingFindAllData = MeetingListDto;
@@ -1331,6 +1433,99 @@ export type MeetingRemoveError = HttpErrorDto;
 export type PowerautomateRunHubsmeAiData = HubsmeAiResultDto;
 
 export type PowerautomateRunHubsmeAiError = HttpErrorDto;
+
+export interface ConsultantAvailabilityFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** @example 3 */
+  consultantId?: number;
+  /**
+   * @format date-time
+   * @example "2026-06-01T00:00:00.000Z"
+   */
+  startFrom?: string;
+  /**
+   * @format date-time
+   * @example "2026-06-30T23:59:59.999Z"
+   */
+  startTo?: string;
+  status?: "disponible" | "bloqueado";
+}
+
+export type ConsultantAvailabilityFindAllData = ConsultantAvailabilityListDto;
+
+export type ConsultantAvailabilityFindAllError = HttpErrorDto;
+
+export interface ConsultantAvailabilityFindMonthParams {
+  /** @example 3 */
+  consultantId: number;
+  /** @example 2026 */
+  year: number;
+  /** @example 6 */
+  month: number;
+  status?: "disponible" | "bloqueado";
+}
+
+export type ConsultantAvailabilityFindMonthData =
+  ConsultantAvailabilityMonthDto;
+
+export type ConsultantAvailabilityFindMonthError = HttpErrorDto;
+
+export interface ConsultantAvailabilityVisibleMonthParams {
+  /** @example 3 */
+  consultantId: number;
+  /** @example 2026 */
+  year: number;
+  /** @example 6 */
+  month: number;
+  status?: "disponible" | "bloqueado";
+}
+
+export type ConsultantAvailabilityVisibleMonthData =
+  ConsultantAvailabilityMonthDto;
+
+export type ConsultantAvailabilityVisibleMonthError = HttpErrorDto;
+
+export interface ConsultantAvailabilityFindOneParams {
+  id: number;
+}
+
+export type ConsultantAvailabilityFindOneData = ConsultantAvailabilityResultDto;
+
+export type ConsultantAvailabilityFindOneError = HttpErrorDto;
+
+export type ConsultantAvailabilityCreateData = ConsultantAvailabilityResultDto;
+
+export type ConsultantAvailabilityCreateError = HttpErrorDto;
+
+export type ConsultantAvailabilityReplaceMonthData =
+  ConsultantAvailabilityMonthDto;
+
+export type ConsultantAvailabilityReplaceMonthError = HttpErrorDto;
+
+export interface ConsultantAvailabilityUpdateParams {
+  id: number;
+}
+
+export type ConsultantAvailabilityUpdateData = ConsultantAvailabilityResultDto;
+
+export type ConsultantAvailabilityUpdateError = HttpErrorDto;
+
+export interface ConsultantAvailabilityRemoveParams {
+  id: number;
+}
+
+export type ConsultantAvailabilityRemoveData = ConsultantAvailabilityResultDto;
+
+export type ConsultantAvailabilityRemoveError = HttpErrorDto;
 
 export interface TaskFindAllParams {
   /**
@@ -2366,7 +2561,12 @@ export namespace Meeting {
       pymeId?: number;
       /** @example 3 */
       consultantId?: number;
-      status?: "solicitada" | "confirmada" | "finalizada" | "cancelada";
+      status?:
+        | "solicitada"
+        | "pago_pendiente"
+        | "confirmada"
+        | "finalizada"
+        | "cancelada";
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
@@ -2569,6 +2769,198 @@ export namespace Powerautomate {
     export type RequestBody = HubsmeAiRunDto;
     export type RequestHeaders = {};
     export type ResponseBody = PowerautomateRunHubsmeAiData;
+  }
+}
+
+export namespace ConsultantAvailability {
+  /**
+   * No description
+   * @tags consultant-availability
+   * @name ConsultantAvailabilityFindAll
+   * @summary Get consultant availability slots paginated
+   * @request GET:/admin/consultant-availability/find-all
+   * @secure
+   * @response `200` `ConsultantAvailabilityFindAllData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantAvailabilityFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** @example 3 */
+      consultantId?: number;
+      /**
+       * @format date-time
+       * @example "2026-06-01T00:00:00.000Z"
+       */
+      startFrom?: string;
+      /**
+       * @format date-time
+       * @example "2026-06-30T23:59:59.999Z"
+       */
+      startTo?: string;
+      status?: "disponible" | "bloqueado";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantAvailabilityFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags consultant-availability
+   * @name ConsultantAvailabilityFindMonth
+   * @summary Get consultant availability slots for a month
+   * @request GET:/admin/consultant-availability/find-month
+   * @secure
+   * @response `200` `ConsultantAvailabilityFindMonthData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantAvailabilityFindMonth {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example 3 */
+      consultantId: number;
+      /** @example 2026 */
+      year: number;
+      /** @example 6 */
+      month: number;
+      status?: "disponible" | "bloqueado";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantAvailabilityFindMonthData;
+  }
+
+  /**
+   * No description
+   * @tags consultant-availability
+   * @name ConsultantAvailabilityVisibleMonth
+   * @summary Get available consultant slots visible for PYMES in a month
+   * @request GET:/admin/consultant-availability/visible-month
+   * @secure
+   * @response `200` `ConsultantAvailabilityVisibleMonthData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantAvailabilityVisibleMonth {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example 3 */
+      consultantId: number;
+      /** @example 2026 */
+      year: number;
+      /** @example 6 */
+      month: number;
+      status?: "disponible" | "bloqueado";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantAvailabilityVisibleMonthData;
+  }
+
+  /**
+   * No description
+   * @tags consultant-availability
+   * @name ConsultantAvailabilityFindOne
+   * @summary Get a consultant availability slot by ID
+   * @request GET:/admin/consultant-availability/find-one/{id}
+   * @secure
+   * @response `200` `ConsultantAvailabilityFindOneData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantAvailabilityFindOne {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantAvailabilityFindOneData;
+  }
+
+  /**
+   * No description
+   * @tags consultant-availability
+   * @name ConsultantAvailabilityCreate
+   * @summary Create a consultant availability slot
+   * @request POST:/admin/consultant-availability/create
+   * @secure
+   * @response `200` `ConsultantAvailabilityCreateData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantAvailabilityCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantAvailabilityCreateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantAvailabilityCreateData;
+  }
+
+  /**
+   * No description
+   * @tags consultant-availability
+   * @name ConsultantAvailabilityReplaceMonth
+   * @summary Replace all consultant availability slots for a month
+   * @request POST:/admin/consultant-availability/replace-month
+   * @secure
+   * @response `200` `ConsultantAvailabilityReplaceMonthData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantAvailabilityReplaceMonth {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantAvailabilityReplaceMonthDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantAvailabilityReplaceMonthData;
+  }
+
+  /**
+   * No description
+   * @tags consultant-availability
+   * @name ConsultantAvailabilityUpdate
+   * @summary Update a consultant availability slot
+   * @request PATCH:/admin/consultant-availability/update/{id}
+   * @secure
+   * @response `200` `ConsultantAvailabilityUpdateData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantAvailabilityUpdate {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantAvailabilityUpdateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantAvailabilityUpdateData;
+  }
+
+  /**
+   * No description
+   * @tags consultant-availability
+   * @name ConsultantAvailabilityRemove
+   * @summary Soft-delete a consultant availability slot
+   * @request DELETE:/admin/consultant-availability/delete/{id}
+   * @secure
+   * @response `200` `ConsultantAvailabilityRemoveData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantAvailabilityRemove {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantAvailabilityRemoveData;
   }
 }
 
@@ -4459,6 +4851,225 @@ export class Api<SecurityDataType extends unknown> {
         body: data,
         secure: true,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  consultantAvailability = {
+    /**
+     * No description
+     *
+     * @tags consultant-availability
+     * @name ConsultantAvailabilityFindAll
+     * @summary Get consultant availability slots paginated
+     * @request GET:/admin/consultant-availability/find-all
+     * @secure
+     * @response `200` `ConsultantAvailabilityFindAllData`
+     * @response `400` `HttpErrorDto`
+     */
+    "consultant-availabilityFindAll": (
+      query: ConsultantAvailabilityFindAllParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantAvailabilityFindAllData,
+        ConsultantAvailabilityFindAllError
+      >({
+        path: `/admin/consultant-availability/find-all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant-availability
+     * @name ConsultantAvailabilityFindMonth
+     * @summary Get consultant availability slots for a month
+     * @request GET:/admin/consultant-availability/find-month
+     * @secure
+     * @response `200` `ConsultantAvailabilityFindMonthData`
+     * @response `400` `HttpErrorDto`
+     */
+    "consultant-availabilityFindMonth": (
+      query: ConsultantAvailabilityFindMonthParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantAvailabilityFindMonthData,
+        ConsultantAvailabilityFindMonthError
+      >({
+        path: `/admin/consultant-availability/find-month`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant-availability
+     * @name ConsultantAvailabilityVisibleMonth
+     * @summary Get available consultant slots visible for PYMES in a month
+     * @request GET:/admin/consultant-availability/visible-month
+     * @secure
+     * @response `200` `ConsultantAvailabilityVisibleMonthData`
+     * @response `400` `HttpErrorDto`
+     */
+    "consultant-availabilityVisibleMonth": (
+      query: ConsultantAvailabilityVisibleMonthParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantAvailabilityVisibleMonthData,
+        ConsultantAvailabilityVisibleMonthError
+      >({
+        path: `/admin/consultant-availability/visible-month`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant-availability
+     * @name ConsultantAvailabilityFindOne
+     * @summary Get a consultant availability slot by ID
+     * @request GET:/admin/consultant-availability/find-one/{id}
+     * @secure
+     * @response `200` `ConsultantAvailabilityFindOneData`
+     * @response `400` `HttpErrorDto`
+     */
+    "consultant-availabilityFindOne": (
+      { id }: ConsultantAvailabilityFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantAvailabilityFindOneData,
+        ConsultantAvailabilityFindOneError
+      >({
+        path: `/admin/consultant-availability/find-one/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant-availability
+     * @name ConsultantAvailabilityCreate
+     * @summary Create a consultant availability slot
+     * @request POST:/admin/consultant-availability/create
+     * @secure
+     * @response `200` `ConsultantAvailabilityCreateData`
+     * @response `400` `HttpErrorDto`
+     */
+    "consultant-availabilityCreate": (
+      data: ConsultantAvailabilityCreateDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantAvailabilityCreateData,
+        ConsultantAvailabilityCreateError
+      >({
+        path: `/admin/consultant-availability/create`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant-availability
+     * @name ConsultantAvailabilityReplaceMonth
+     * @summary Replace all consultant availability slots for a month
+     * @request POST:/admin/consultant-availability/replace-month
+     * @secure
+     * @response `200` `ConsultantAvailabilityReplaceMonthData`
+     * @response `400` `HttpErrorDto`
+     */
+    "consultant-availabilityReplaceMonth": (
+      data: ConsultantAvailabilityReplaceMonthDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantAvailabilityReplaceMonthData,
+        ConsultantAvailabilityReplaceMonthError
+      >({
+        path: `/admin/consultant-availability/replace-month`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant-availability
+     * @name ConsultantAvailabilityUpdate
+     * @summary Update a consultant availability slot
+     * @request PATCH:/admin/consultant-availability/update/{id}
+     * @secure
+     * @response `200` `ConsultantAvailabilityUpdateData`
+     * @response `400` `HttpErrorDto`
+     */
+    "consultant-availabilityUpdate": (
+      { id }: ConsultantAvailabilityUpdateParams,
+      data: ConsultantAvailabilityUpdateDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantAvailabilityUpdateData,
+        ConsultantAvailabilityUpdateError
+      >({
+        path: `/admin/consultant-availability/update/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant-availability
+     * @name ConsultantAvailabilityRemove
+     * @summary Soft-delete a consultant availability slot
+     * @request DELETE:/admin/consultant-availability/delete/{id}
+     * @secure
+     * @response `200` `ConsultantAvailabilityRemoveData`
+     * @response `400` `HttpErrorDto`
+     */
+    "consultant-availabilityRemove": (
+      { id }: ConsultantAvailabilityRemoveParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantAvailabilityRemoveData,
+        ConsultantAvailabilityRemoveError
+      >({
+        path: `/admin/consultant-availability/delete/${id}`,
+        method: "DELETE",
+        secure: true,
         format: "json",
         ...params,
       }),

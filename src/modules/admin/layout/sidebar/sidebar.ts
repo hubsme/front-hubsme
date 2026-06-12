@@ -56,6 +56,7 @@ export class Sidebar {
       { label: 'Mis Clientes', path: buildPath(consultorPath.pymes), icon: 'fas fa-user-group' },
       { label: 'Inbox', path: buildPath(consultorPath.inbox), icon: 'fas fa-inbox' },
       { label: 'Reuniones', path: buildPath(consultorPath.meetings), icon: 'fas fa-calendar' },
+      { label: 'Disponibilidad', path: buildPath(consultorPath.availability), icon: 'fas fa-calendar-days' },
       { label: 'Tareas', path: buildPath(consultorPath.tasks), icon: 'fas fa-square-check' },
       { label: 'Documentos', path: buildPath(consultorPath.documents), icon: 'fas fa-file-lines' },
       { label: 'Suscripcion', path: buildPath(consultorPath.subscription), icon: 'fas fa-credit-card' },

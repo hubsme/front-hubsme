@@ -256,7 +256,7 @@ export class ConsultorMeetings implements OnInit {
     request
       .then(() => {
         this.toastService.success(
-          status === 'confirmada' ? 'Reunion aprobada' : 'Reunion cancelada',
+          status === 'pago_pendiente' ? 'Solicitud aceptada, esperando pago' : 'Reunion cancelada',
         );
         this.load();
       })
@@ -296,7 +296,19 @@ export class ConsultorMeetings implements OnInit {
     if (status === 'finalizada') return 'bg-slate-100 text-slate-700';
     if (status === 'cancelada') return 'bg-danger/10 text-danger';
     if (status === 'solicitada') return 'bg-warning/10 text-warning';
+    if (status === 'pago_pendiente') return 'bg-secondary/10 text-secondary';
     return 'bg-success/10 text-success';
+  }
+
+  statusLabel(status: ApiResponse<'meeting', 'findAll'>['data'][number]['status']) {
+    const labels: Record<ApiResponse<'meeting', 'findAll'>['data'][number]['status'], string> = {
+      solicitada: 'Solicitada',
+      pago_pendiente: 'Pago pendiente',
+      confirmada: 'Confirmada',
+      finalizada: 'Finalizada',
+      cancelada: 'Cancelada',
+    };
+    return labels[status];
   }
 
   canApprove(meeting: Meeting) {
@@ -305,5 +317,9 @@ export class ConsultorMeetings implements OnInit {
 
   isWaitingApproval(meeting: Meeting) {
     return meeting.status === 'solicitada' && meeting.requestedBy === 'consultor';
+  }
+
+  isPendingPayment(meeting: Meeting) {
+    return meeting.status === 'pago_pendiente';
   }
 }

@@ -32,6 +32,11 @@ type FinalizeTask = {
 };
 
 type Match = ApiResponse<'pyme', 'consultantContacts'>['data'][number];
+type Meeting = ApiResponse<'meeting', 'findAll'>['data'][number];
+type ConsultantBilling = {
+  photoUrl: string | null;
+  pricePerHour: string;
+};
 
 @Component({
   selector: 'app-pyme-meetings',
@@ -59,10 +64,11 @@ export class PymeMeetings implements OnInit {
   meetings = signal<ApiResponse<'meeting', 'findAll'>['data']>([]);
   acceptedMatches = signal<Match[]>([]);
   private consultantService = inject(ConsultantService);
-  consultantPhotos = signal<Record<number, string | null>>({});
+  consultantBilling = signal<Record<number, ConsultantBilling>>({});
   loading = signal(false);
   creating = signal(false);
   showCreate = signal(false);
+  paymentMeeting = signal<Meeting | null>(null);
 
   form = signal<MeetingForm>({
     pymeId: 0,
@@ -126,22 +132,31 @@ export class PymeMeetings implements OnInit {
       .listMeetings()
       .then((res) => {
         this.meetings.set(res.data.data);
-        this.loadConsultantPhotos(res.data.data);
+        this.loadConsultantBilling(res.data.data);
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
   }
 
-  private loadConsultantPhotos(meetings: ApiResponse<'meeting', 'findAll'>['data']) {
+  private loadConsultantBilling(meetings: ApiResponse<'meeting', 'findAll'>['data']) {
     const uniqueIds = [...new Set(meetings.map((m) => m.consultantId))];
     uniqueIds.forEach((id) => {
       this.consultantService
         .findByUser(id)
         .then((consultant) => {
-          this.consultantPhotos.update((current) => ({ ...current, [id]: consultant.photoUrl }));
+          this.consultantBilling.update((current) => ({
+            ...current,
+            [id]: {
+              photoUrl: consultant.photoUrl,
+              pricePerHour: consultant.pricePerHour,
+            },
+          }));
         })
         .catch(() => {
-          this.consultantPhotos.update((current) => ({ ...current, [id]: null }));
+          this.consultantBilling.update((current) => ({
+            ...current,
+            [id]: { photoUrl: null, pricePerHour: '0.00' },
+          }));
         });
     });
   }
@@ -181,7 +196,7 @@ export class PymeMeetings implements OnInit {
 
   updateMeetingStatus(
     id: number,
-    status: ApiResponse<'meeting', 'findAll'>['data'][number]['status'],
+    status: Meeting['status'],
   ) {
     this.updatingId.set(id);
     const request = status === 'confirmada'
@@ -193,6 +208,30 @@ export class PymeMeetings implements OnInit {
         this.toastService.success(
           status === 'confirmada' ? 'Reunion aprobada' : 'Reunion cancelada',
         );
+        this.load();
+      })
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.updatingId.set(null));
+  }
+
+  openPaymentModal(meeting: Meeting) {
+    this.paymentMeeting.set(meeting);
+  }
+
+  closePaymentModal() {
+    this.paymentMeeting.set(null);
+  }
+
+  payMeeting() {
+    const meeting = this.paymentMeeting();
+    if (!meeting) return;
+
+    this.updatingId.set(meeting.id);
+    this.hubsme
+      .confirmMeeting(meeting.id)
+      .then(() => {
+        this.toastService.success('Pago registrado y reunion confirmada');
+        this.paymentMeeting.set(null);
         this.load();
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
@@ -291,18 +330,53 @@ export class PymeMeetings implements OnInit {
     return new Date(startTime).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
   }
 
-  statusClass(status: string) {
+  statusLabel(status: Meeting['status']) {
+    const labels: Record<Meeting['status'], string> = {
+      solicitada: 'Solicitada',
+      pago_pendiente: 'Pago pendiente',
+      confirmada: 'Confirmada',
+      finalizada: 'Finalizada',
+      cancelada: 'Cancelada',
+    };
+    return labels[status];
+  }
+
+  statusClass(status: Meeting['status']) {
     if (status === 'solicitada') return 'bg-warning/10 text-warning';
+    if (status === 'pago_pendiente') return 'bg-secondary/10 text-secondary';
     if (status === 'cancelada') return 'bg-danger/10 text-danger';
     if (status === 'finalizada') return 'bg-text/5 text-text';
     return 'bg-success/10 text-success';
   }
 
-  canApprove(meeting: ApiResponse<'meeting', 'findAll'>['data'][number]) {
+  canApprove(meeting: Meeting) {
     return meeting.status === 'solicitada' && meeting.requestedBy === 'consultor';
   }
 
-  isWaitingApproval(meeting: ApiResponse<'meeting', 'findAll'>['data'][number]) {
+  isWaitingApproval(meeting: Meeting) {
     return meeting.status === 'solicitada' && meeting.requestedBy === 'pyme';
+  }
+
+  canPay(meeting: Meeting) {
+    return meeting.status === 'pago_pendiente';
+  }
+
+  consultantPhoto(meeting: Meeting) {
+    return this.consultantBilling()[meeting.consultantId]?.photoUrl ?? null;
+  }
+
+  pricePerHour(meeting: Meeting) {
+    return Number(this.consultantBilling()[meeting.consultantId]?.pricePerHour ?? 0);
+  }
+
+  meetingTotal(meeting: Meeting) {
+    return this.pricePerHour(meeting) * (meeting.durationMinutes / 60);
+  }
+
+  currency(value: number) {
+    return value.toLocaleString('es-PE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   }
 }

@@ -12,7 +12,6 @@
     <button
       type="button"
       (click)="showCreate.set(true)"
-      style="display: none !important;"
       class="inline-flex h-9 items-center gap-2 self-start rounded-full bg-secondary px-4 text-[0.82rem] text-background font-inter-bold shadow-sm hover:bg-secondary/90 transition-colors"
     >
       <i class="fas fa-plus text-xs"></i>
@@ -23,7 +22,7 @@
   @if (showCreate()) {
     <app-modal-form
       title="Nueva reunion"
-      submitText="Crear reunion"
+      submitText="Solicitar reunion"
       [loading]="creating()"
       maxWidth="3xl"
       (onSubmit)="create()"
@@ -122,7 +121,7 @@
                   class="inline-flex rounded-full px-3 py-1 text-[0.68rem] font-inter-bold"
                   [class]="statusClass(meeting.status)"
                 >
-                  {{ meeting.status }}
+                  {{ statusLabel(meeting.status) }}
                 </span>
                 <span
                   [routerLink]="['/pyme/meetings', meeting.id]"
@@ -138,9 +137,9 @@
                   <div
                     class="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-border bg-background text-secondary"
                   >
-                    @if (consultantPhotos()[meeting.consultantId]) {
+                    @if (consultantPhoto(meeting); as photo) {
                       <img
-                        [src]="consultantPhotos()[meeting.consultantId]"
+                        [src]="photo"
                         alt="Consultor"
                         class="h-full w-full object-cover"
                       />
@@ -167,17 +166,33 @@
                 <div class="flex flex-wrap items-center gap-3">
                   @if (canApprove(meeting)) {
                     <button
-                      (click)="updateMeetingStatus(meeting.id, 'confirmada')"
+                      (click)="openPaymentModal(meeting)"
                       [disabled]="updatingId() === meeting.id"
                       class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full bg-success px-4 text-[0.82rem] text-fixed-background-50 font-inter-bold disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       @if (updatingId() === meeting.id) {
                         <i class="fas fa-spinner fa-spin text-xs"></i>
-                        Aprobando...
+                        Procesando...
                       } @else {
-                        <i class="fas fa-check text-xs"></i>
-                        Aprobar
+                        <i class="fas fa-credit-card text-xs"></i>
+                        Revisar y pagar
                       }
+                    </button>
+                    <button
+                      (click)="updateMeetingStatus(meeting.id, 'cancelada')"
+                      [disabled]="updatingId() === meeting.id"
+                      class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full border border-border px-4 text-[0.82rem] font-inter-semibold disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Cancelar
+                    </button>
+                  } @else if (canPay(meeting)) {
+                    <button
+                      (click)="openPaymentModal(meeting)"
+                      [disabled]="updatingId() === meeting.id"
+                      class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full bg-secondary px-4 text-[0.82rem] text-fixed-background-50 font-inter-bold disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <i class="fas fa-credit-card text-xs"></i>
+                      Pagar
                     </button>
                     <button
                       (click)="updateMeetingStatus(meeting.id, 'cancelada')"
@@ -241,4 +256,62 @@
       }
     }
   </div>
+
+  @if (paymentMeeting(); as meeting) {
+    <app-modal-form
+      title="Confirmar pago"
+      submitText="Pagar"
+      cancelText="Volver"
+      [loading]="updatingId() === meeting.id"
+      maxWidth="lg"
+      (onSubmit)="payMeeting()"
+      (onClose)="closePaymentModal()"
+    >
+      <div class="space-y-4 p-5">
+        <div class="rounded-2xl border border-border bg-background p-4">
+          <p class="text-xs font-inter-bold uppercase text-muted">Reunion</p>
+          <h3 class="mt-1 text-lg font-inter-bold text-text">{{ meeting.title }}</h3>
+          <div class="mt-4 grid gap-3 text-sm text-muted sm:grid-cols-2">
+            <span class="inline-flex items-center gap-2">
+              <i class="far fa-calendar"></i>
+              {{ day(meeting.startTime) }} {{ month(meeting.startTime) }}
+            </span>
+            <span class="inline-flex items-center gap-2">
+              <i class="far fa-clock"></i>
+              {{ time(meeting.startTime) }}
+            </span>
+            <span class="inline-flex items-center gap-2">
+              <i class="fas fa-hourglass-half"></i>
+              {{ meeting.durationMinutes }} min
+            </span>
+            <span class="inline-flex items-center gap-2">
+              <i class="fas fa-user-tie"></i>
+              Consultor
+            </span>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-secondary/20 bg-secondary/5 p-4">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-xs font-inter-bold uppercase text-muted">Precio por hora</p>
+              <p class="mt-1 text-xl font-inter-bold text-text">
+                S/ {{ currency(pricePerHour(meeting)) }}
+              </p>
+            </div>
+            <div class="text-right">
+              <p class="text-xs font-inter-bold uppercase text-muted">Total</p>
+              <p class="mt-1 text-2xl font-inter-bold text-secondary">
+                S/ {{ currency(meetingTotal(meeting)) }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <p class="text-sm leading-6 text-muted">
+          Por ahora este boton simula el pago y confirma la reunion creando el enlace de Teams.
+        </p>
+      </div>
+    </app-modal-form>
+  }
 </div>

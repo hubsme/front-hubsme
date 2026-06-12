@@ -120,7 +120,7 @@
                   class="inline-flex rounded-full px-3 py-1 text-[0.68rem] font-inter-bold"
                   [class]="statusClass(meeting.status)"
                 >
-                  {{ meeting.status }}
+                  {{ statusLabel(meeting.status) }}
                 </span>
                 <span
                   [routerLink]="['/consultor/meetings', meeting.id]"
@@ -165,16 +165,16 @@
                 <div class="flex flex-wrap items-center gap-3">
                   @if (canApprove(meeting)) {
                     <button
-                      (click)="updateMeetingStatus(meeting.id, 'confirmada')"
+                      (click)="updateMeetingStatus(meeting.id, 'pago_pendiente')"
                       [disabled]="updatingId() === meeting.id"
                       class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-full bg-success px-4 text-[0.82rem] text-fixed-background-50 font-inter-bold disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       @if (updatingId() === meeting.id) {
                         <i class="fas fa-spinner fa-spin text-xs"></i>
-                        Aprobando...
+                        Aceptando...
                       } @else {
                         <i class="fas fa-check text-xs"></i>
-                        Aprobar
+                        Aceptar
                       }
                     </button>
                     <button
@@ -184,6 +184,13 @@
                     >
                       Cancelar
                     </button>
+                  } @else if (isPendingPayment(meeting)) {
+                    <span
+                      class="inline-flex h-9 items-center gap-2 rounded-full bg-secondary/10 px-4 text-[0.82rem] text-secondary font-inter-bold"
+                    >
+                      <i class="fas fa-credit-card text-xs"></i>
+                      Esperando pago
+                    </span>
                   } @else if (isWaitingApproval(meeting)) {
                     <span
                       class="inline-flex h-9 items-center gap-2 rounded-full bg-warning/10 px-4 text-[0.82rem] text-warning font-inter-bold"

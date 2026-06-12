@@ -82,6 +82,17 @@ const workspaceRoutes = (role: AppRole): Routes => {
                   (m) => m.ConsultorTasks,
                 ),
         },
+        ...(role === 'consultor'
+          ? [
+              {
+                path: getPath(PATH.consultor.availability),
+                loadComponent: () =>
+                  import('@module/admin/content/consultor/availability/consultor-availability/consultor-availability').then(
+                    (m) => m.ConsultorAvailability,
+                  ),
+              },
+            ]
+          : []),
         {
           path: `${getPath(path.documents)}/diagnostic/:id`,
           loadComponent: () =>

@@ -406,18 +406,6 @@
   background: var(--color-secondary);
 }
 
-/* Select dropdown options in dark mode */
-[data-theme='dark'] select option {
-  background-color: var(--color-background);
-  color: var(--color-text);
-}
-
-/* Global input style to match the new lighter background theme */
-input.bg-background,
-select.bg-background,
-textarea.bg-background {
-  @apply bg-background/40!;
-}
 
 /* Custom Animations */
 @keyframes marquee {
@@ -494,6 +482,15 @@ textarea.bg-background {
 .cal-month-view .cal-event {
   color: var(--color-text) !important;
   box-shadow: none !important;
+}
+
+.cal-week-view .calendar-event-google-busy,
+.cal-day-view .calendar-event-google-busy {
+  pointer-events: none !important;
+}
+
+.cal-month-view .cal-day-cell.calendar-day-available {
+  background-color: rgba(14, 159, 110, 0.06) !important;
 }
 
 /* Quill Editor Custom Styles */

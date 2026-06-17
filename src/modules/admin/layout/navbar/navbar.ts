@@ -76,9 +76,9 @@ export class Navbar {
   goToProfile() {
     const role = this.userRole();
     if (role === 'pyme') {
-      this.router.navigate(['/pyme/profile']);
+      this.router.navigate([buildPath(PATH.pyme.profile)]);
     } else if (role === 'consultor') {
-      this.router.navigate(['/consultor/profile']);
+      this.router.navigate([buildPath(PATH.consultor.profile)]);
     }
     this.isDropdownOpen.set(false);
   }

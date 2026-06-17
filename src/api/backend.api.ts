@@ -255,77 +255,6 @@ export interface PymeCreateDto {
   logoUrl?: string;
 }
 
-export interface PymeConsultantActionDto {
-  /** @example 5 */
-  pymeId: number;
-  /** @example 1 */
-  consultantId: number;
-  /** @example "Nos interesa coordinar una primera conversacion." */
-  notes?: string;
-}
-
-export interface PymeConsultantMatchResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  /** @format date-time */
-  deletedAt: string | null;
-  pymeId: number;
-  pymeName: string | null;
-  pymeSector: string | null;
-  pymeNumEmployees: number | null;
-  pymeYearsInOperation: number | null;
-  pymeDescription: string | null;
-  pymeLogoUrl: string | null;
-  consultantId: number;
-  consultantName: string | null;
-  consultantBio: string | null;
-  consultantSpecialties: string[];
-  consultantPhotoUrl: string | null;
-  consultantPricePerHour: string;
-  consultantRating: string;
-  status: "pendiente" | "aceptado" | "rechazado" | "finalizado";
-  source: string;
-  notes: string | null;
-}
-
-export interface PymeConsultantMatchListDto {
-  data: PymeConsultantMatchResultDto[];
-  meta: PaginationMetaDto;
-}
-
-export interface PymeConsultantMessageResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  /** @format date-time */
-  deletedAt: string | null;
-  matchId: number;
-  senderId: number;
-  senderName: string | null;
-  senderRole: "admin" | "pyme" | "consultor" | null;
-  message: string;
-  /** @format date-time */
-  readAt: string | null;
-}
-
-export interface PymeConsultantMessageListDto {
-  data: PymeConsultantMessageResultDto[];
-}
-
-export interface PymeConsultantMessageActionDto {
-  /** @example 5 */
-  pymeId: number;
-  /** @example 1 */
-  consultantId: number;
-  /** @example "Hola, quisiera revisar una primera sesion esta semana." */
-  message: string;
-}
-
 export interface PymeUpdateDto {
   /** @example 2 */
   userId?: number;
@@ -428,24 +357,6 @@ export interface ConsultantCreateDto {
   active?: "true" | "false";
   /** @default "false" */
   validated?: "true" | "false";
-}
-
-export interface ConsultantPymeActionDto {
-  /** @example 1 */
-  consultantId: number;
-  /** @example 5 */
-  pymeId: number;
-  /** @example "Puedo ayudarte con este diagnostico." */
-  notes?: string;
-}
-
-export interface ConsultantPymeMessageActionDto {
-  /** @example 1 */
-  consultantId: number;
-  /** @example 5 */
-  pymeId: number;
-  /** @example "Hola, te propongo revisar los avances en una llamada." */
-  message: string;
 }
 
 export interface ConsultantUpdateDto {
@@ -695,28 +606,6 @@ export interface HubsmeAiResultDto {
   tasks: TaskSuggestionDto[];
 }
 
-export interface ConsultantAvailabilityListItemDto {
-  id: number;
-  consultantId: number;
-  /** @format date-time */
-  startTime: string;
-  /** @format date-time */
-  endTime: string;
-  status: "disponible" | "bloqueado";
-  notes: string | null;
-  /** @format date-time */
-  createdAt: string;
-}
-
-export interface ConsultantAvailabilityListDto {
-  data: ConsultantAvailabilityListItemDto[];
-  meta: PaginationMetaDto;
-}
-
-export interface ConsultantAvailabilityMonthDto {
-  data: ConsultantAvailabilityListItemDto[];
-}
-
 export interface ConsultantAvailabilityResultDto {
   id: number;
   /** @format date-time */
@@ -726,31 +615,37 @@ export interface ConsultantAvailabilityResultDto {
   /** @format date-time */
   deletedAt: string | null;
   consultantId: number;
-  /** @format date-time */
-  startTime: string;
-  /** @format date-time */
-  endTime: string;
-  status: "disponible" | "bloqueado";
-  notes: string | null;
+  /**
+   * @format date
+   * @example "2026-06-01"
+   */
+  month: string;
+  /** @example {"23":["08:00","08:30"]} */
+  availableSchedule: Record<string, string[]>;
+}
+
+export interface ConsultantAvailabilityListDto {
+  data: ConsultantAvailabilityResultDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface ConsultantAvailabilityMonthDto {
+  data: ConsultantAvailabilityResultDto[];
 }
 
 export interface ConsultantAvailabilityCreateDto {
   /** @example 3 */
   consultantId: number;
   /**
-   * @format date-time
-   * @example "2026-06-15T14:00:00.000Z"
+   * @format date
+   * @example "2026-06-01"
    */
-  startTime: string;
+  month: string;
   /**
-   * @format date-time
-   * @example "2026-06-15T16:00:00.000Z"
+   * Dias del mes con horas disponibles en bloques de 30 minutos. Cada hora representa el inicio del bloque.
+   * @example {"23":["08:00","08:30"]}
    */
-  endTime: string;
-  /** @default "disponible" */
-  status?: "disponible" | "bloqueado";
-  /** @example "Horario disponible para consultoria estrategica." */
-  notes?: string;
+  availableSchedule: Record<string, string[]>;
 }
 
 export interface ConsultantAvailabilityReplaceMonthDto {
@@ -760,26 +655,26 @@ export interface ConsultantAvailabilityReplaceMonthDto {
   year: number;
   /** @example 6 */
   month: number;
-  slots: ConsultantAvailabilityCreateDto[];
+  /**
+   * Dias del mes con horas disponibles en bloques de 30 minutos. Cada hora representa el inicio del bloque.
+   * @example {"23":["08:00","08:30"]}
+   */
+  availableSchedule: Record<string, string[]>;
 }
 
 export interface ConsultantAvailabilityUpdateDto {
   /** @example 3 */
   consultantId?: number;
   /**
-   * @format date-time
-   * @example "2026-06-15T14:00:00.000Z"
+   * @format date
+   * @example "2026-06-01"
    */
-  startTime?: string;
+  month?: string;
   /**
-   * @format date-time
-   * @example "2026-06-15T16:00:00.000Z"
+   * Dias del mes con horas disponibles en bloques de 30 minutos. Cada hora representa el inicio del bloque.
+   * @example {"23":["08:00","08:30"]}
    */
-  endTime?: string;
-  /** @default "disponible" */
-  status?: "disponible" | "bloqueado";
-  /** @example "Horario disponible para consultoria estrategica." */
-  notes?: string;
+  availableSchedule?: Record<string, string[]>;
 }
 
 export interface TaskListDto {
@@ -1016,6 +911,48 @@ export interface StorageResultDto {
   createdAt: string;
 }
 
+export interface ConsultantGoogleCalendarAuthUrlResponseDto {
+  /** @example "https://accounts.google.com/o/oauth2/v2/auth?..." */
+  url: string;
+}
+
+export interface ConsultantGoogleCalendarStatusDto {
+  /** @example true */
+  connected: boolean;
+  /** @example "consultor@gmail.com" */
+  googleEmail: string | null;
+  /** @example "primary" */
+  googleCalendarId: string | null;
+  /**
+   * @format date-time
+   * @example "2026-06-11T15:00:00.000Z"
+   */
+  connectedAt: string | null;
+}
+
+export interface ConsultantGoogleCalendarBusyItemDto {
+  /** @example "google-calendar-event-id" */
+  id: string;
+  /** @example "Reunion privada" */
+  summary: string | null;
+  /**
+   * @format date-time
+   * @example "2026-06-11T14:00:00.000Z"
+   */
+  startTime: string;
+  /**
+   * @format date-time
+   * @example "2026-06-11T15:00:00.000Z"
+   */
+  endTime: string;
+  /** @example "google-calendar" */
+  source: string;
+}
+
+export interface ConsultantGoogleCalendarBusyMonthResponseDto {
+  data: ConsultantGoogleCalendarBusyItemDto[];
+}
+
 export type AppGetHelloData = any;
 
 export type AuthLoginData = LoginResponseDto;
@@ -1139,55 +1076,6 @@ export type PymeCreateData = PymeResultDto;
 
 export type PymeCreateError = HttpErrorDto;
 
-export type PymeContactConsultantData = PymeConsultantMatchResultDto;
-
-export type PymeContactConsultantError = HttpErrorDto;
-
-export interface PymeConsultantContactsParams {
-  /**
-   * Page number
-   * @default 1
-   */
-  page?: number;
-  /**
-   * Items per page
-   * @default 10
-   */
-  limit?: number;
-  /** @example 1 */
-  pymeId: number;
-  status?: "pendiente" | "aceptado" | "rechazado" | "finalizado";
-  /** Search by consultant name or specialty */
-  search?: string;
-}
-
-export type PymeConsultantContactsData = PymeConsultantMatchListDto;
-
-export type PymeConsultantContactsError = HttpErrorDto;
-
-export type PymeAcceptConsultantContactData = PymeConsultantMatchResultDto;
-
-export type PymeAcceptConsultantContactError = HttpErrorDto;
-
-export type PymeRejectConsultantContactData = PymeConsultantMatchResultDto;
-
-export type PymeRejectConsultantContactError = HttpErrorDto;
-
-export interface PymeConsultantMessagesParams {
-  /** @example 1 */
-  pymeId: number;
-  /** @example 1 */
-  consultantId: number;
-}
-
-export type PymeConsultantMessagesData = PymeConsultantMessageListDto;
-
-export type PymeConsultantMessagesError = HttpErrorDto;
-
-export type PymeSendConsultantMessageData = PymeConsultantMessageResultDto;
-
-export type PymeSendConsultantMessageError = HttpErrorDto;
-
 export interface PymeUpdateParams {
   id: number;
 }
@@ -1246,55 +1134,6 @@ export type ConsultantFindByUserError = HttpErrorDto;
 export type ConsultantCreateData = ConsultantResultDto;
 
 export type ConsultantCreateError = HttpErrorDto;
-
-export type ConsultantContactPymeData = PymeConsultantMatchResultDto;
-
-export type ConsultantContactPymeError = HttpErrorDto;
-
-export interface ConsultantPymeContactsParams {
-  /**
-   * Page number
-   * @default 1
-   */
-  page?: number;
-  /**
-   * Items per page
-   * @default 10
-   */
-  limit?: number;
-  /** @example 1 */
-  consultantId: number;
-  status?: "pendiente" | "aceptado" | "rechazado" | "finalizado";
-  /** Search by PYME name or sector */
-  search?: string;
-}
-
-export type ConsultantPymeContactsData = PymeConsultantMatchListDto;
-
-export type ConsultantPymeContactsError = HttpErrorDto;
-
-export type ConsultantAcceptPymeContactData = PymeConsultantMatchResultDto;
-
-export type ConsultantAcceptPymeContactError = HttpErrorDto;
-
-export type ConsultantRejectPymeContactData = PymeConsultantMatchResultDto;
-
-export type ConsultantRejectPymeContactError = HttpErrorDto;
-
-export interface ConsultantPymeMessagesParams {
-  /** @example 1 */
-  consultantId: number;
-  /** @example 1 */
-  pymeId: number;
-}
-
-export type ConsultantPymeMessagesData = PymeConsultantMessageListDto;
-
-export type ConsultantPymeMessagesError = HttpErrorDto;
-
-export type ConsultantSendPymeMessageData = PymeConsultantMessageResultDto;
-
-export type ConsultantSendPymeMessageError = HttpErrorDto;
 
 export interface ConsultantUpdateParams {
   id: number;
@@ -1457,7 +1296,6 @@ export interface ConsultantAvailabilityFindAllParams {
    * @example "2026-06-30T23:59:59.999Z"
    */
   startTo?: string;
-  status?: "disponible" | "bloqueado";
 }
 
 export type ConsultantAvailabilityFindAllData = ConsultantAvailabilityListDto;
@@ -1471,7 +1309,6 @@ export interface ConsultantAvailabilityFindMonthParams {
   year: number;
   /** @example 6 */
   month: number;
-  status?: "disponible" | "bloqueado";
 }
 
 export type ConsultantAvailabilityFindMonthData =
@@ -1486,7 +1323,6 @@ export interface ConsultantAvailabilityVisibleMonthParams {
   year: number;
   /** @example 6 */
   month: number;
-  status?: "disponible" | "bloqueado";
 }
 
 export type ConsultantAvailabilityVisibleMonthData =
@@ -1743,6 +1579,58 @@ export interface StorageDownloadParams {
 }
 
 export type StorageDownloadData = any;
+
+export interface ConsultantgooglecalendarAuthUrlParams {
+  /** @example 3 */
+  consultantId: number;
+}
+
+export type ConsultantgooglecalendarAuthUrlData =
+  ConsultantGoogleCalendarAuthUrlResponseDto;
+
+export type ConsultantgooglecalendarAuthUrlError = HttpErrorDto;
+
+export interface ConsultantgooglecalendarCallbackParams {
+  code?: string;
+  state?: string;
+  error?: string;
+}
+
+export type ConsultantgooglecalendarCallbackData = any;
+
+export interface ConsultantgooglecalendarStatusParams {
+  /** @example 3 */
+  consultantId: number;
+}
+
+export type ConsultantgooglecalendarStatusData =
+  ConsultantGoogleCalendarStatusDto;
+
+export type ConsultantgooglecalendarStatusError = HttpErrorDto;
+
+export interface ConsultantgooglecalendarBusyMonthParams {
+  /** @example 3 */
+  consultantId: number;
+  /** @example 2026 */
+  year: number;
+  /** @example 6 */
+  month: number;
+}
+
+export type ConsultantgooglecalendarBusyMonthData =
+  ConsultantGoogleCalendarBusyMonthResponseDto;
+
+export type ConsultantgooglecalendarBusyMonthError = HttpErrorDto;
+
+export interface ConsultantgooglecalendarDisconnectParams {
+  /** @example 3 */
+  consultantId: number;
+}
+
+export type ConsultantgooglecalendarDisconnectData =
+  ConsultantGoogleCalendarStatusDto;
+
+export type ConsultantgooglecalendarDisconnectError = HttpErrorDto;
 
 export namespace App {
   /**
@@ -2065,135 +1953,6 @@ export namespace Pyme {
   /**
    * No description
    * @tags pyme
-   * @name PymeContactConsultant
-   * @summary Request contact with a consultant from a PYME
-   * @request POST:/admin/pyme/contact-consultant
-   * @secure
-   * @response `200` `PymeContactConsultantData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PymeContactConsultant {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = PymeConsultantActionDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = PymeContactConsultantData;
-  }
-
-  /**
-   * No description
-   * @tags pyme
-   * @name PymeConsultantContacts
-   * @summary Get consultant contacts for a PYME
-   * @request GET:/admin/pyme/consultant-contacts
-   * @secure
-   * @response `200` `PymeConsultantContactsData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PymeConsultantContacts {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /**
-       * Page number
-       * @default 1
-       */
-      page?: number;
-      /**
-       * Items per page
-       * @default 10
-       */
-      limit?: number;
-      /** @example 1 */
-      pymeId: number;
-      status?: "pendiente" | "aceptado" | "rechazado" | "finalizado";
-      /** Search by consultant name or specialty */
-      search?: string;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = PymeConsultantContactsData;
-  }
-
-  /**
-   * No description
-   * @tags pyme
-   * @name PymeAcceptConsultantContact
-   * @summary Accept a consultant contact request from a PYME
-   * @request PATCH:/admin/pyme/accept-consultant-contact
-   * @secure
-   * @response `200` `PymeAcceptConsultantContactData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PymeAcceptConsultantContact {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = PymeConsultantActionDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = PymeAcceptConsultantContactData;
-  }
-
-  /**
-   * No description
-   * @tags pyme
-   * @name PymeRejectConsultantContact
-   * @summary Reject a consultant contact request from a PYME
-   * @request PATCH:/admin/pyme/reject-consultant-contact
-   * @secure
-   * @response `200` `PymeRejectConsultantContactData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PymeRejectConsultantContact {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = PymeConsultantActionDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = PymeRejectConsultantContactData;
-  }
-
-  /**
-   * No description
-   * @tags pyme
-   * @name PymeConsultantMessages
-   * @summary Get messages with a consultant from a PYME
-   * @request GET:/admin/pyme/consultant-messages
-   * @secure
-   * @response `200` `PymeConsultantMessagesData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PymeConsultantMessages {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /** @example 1 */
-      pymeId: number;
-      /** @example 1 */
-      consultantId: number;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = PymeConsultantMessagesData;
-  }
-
-  /**
-   * No description
-   * @tags pyme
-   * @name PymeSendConsultantMessage
-   * @summary Send a message from a PYME to a consultant
-   * @request POST:/admin/pyme/send-consultant-message
-   * @secure
-   * @response `200` `PymeSendConsultantMessageData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PymeSendConsultantMessage {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = PymeConsultantMessageActionDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = PymeSendConsultantMessageData;
-  }
-
-  /**
-   * No description
-   * @tags pyme
    * @name PymeUpdate
    * @summary Update a PYME profile
    * @request PATCH:/admin/pyme/update/{id}
@@ -2324,135 +2083,6 @@ export namespace Consultant {
     export type RequestBody = ConsultantCreateDto;
     export type RequestHeaders = {};
     export type ResponseBody = ConsultantCreateData;
-  }
-
-  /**
-   * No description
-   * @tags consultant
-   * @name ConsultantContactPyme
-   * @summary Request contact with a PYME from a consultant
-   * @request POST:/admin/consultant/contact-pyme
-   * @secure
-   * @response `200` `ConsultantContactPymeData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantContactPyme {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = ConsultantPymeActionDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantContactPymeData;
-  }
-
-  /**
-   * No description
-   * @tags consultant
-   * @name ConsultantPymeContacts
-   * @summary Get PYME contacts for a consultant
-   * @request GET:/admin/consultant/pyme-contacts
-   * @secure
-   * @response `200` `ConsultantPymeContactsData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantPymeContacts {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /**
-       * Page number
-       * @default 1
-       */
-      page?: number;
-      /**
-       * Items per page
-       * @default 10
-       */
-      limit?: number;
-      /** @example 1 */
-      consultantId: number;
-      status?: "pendiente" | "aceptado" | "rechazado" | "finalizado";
-      /** Search by PYME name or sector */
-      search?: string;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantPymeContactsData;
-  }
-
-  /**
-   * No description
-   * @tags consultant
-   * @name ConsultantAcceptPymeContact
-   * @summary Accept a PYME contact request from a consultant
-   * @request PATCH:/admin/consultant/accept-pyme-contact
-   * @secure
-   * @response `200` `ConsultantAcceptPymeContactData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantAcceptPymeContact {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = ConsultantPymeActionDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantAcceptPymeContactData;
-  }
-
-  /**
-   * No description
-   * @tags consultant
-   * @name ConsultantRejectPymeContact
-   * @summary Reject a PYME contact request from a consultant
-   * @request PATCH:/admin/consultant/reject-pyme-contact
-   * @secure
-   * @response `200` `ConsultantRejectPymeContactData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantRejectPymeContact {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = ConsultantPymeActionDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantRejectPymeContactData;
-  }
-
-  /**
-   * No description
-   * @tags consultant
-   * @name ConsultantPymeMessages
-   * @summary Get messages with a PYME from a consultant
-   * @request GET:/admin/consultant/pyme-messages
-   * @secure
-   * @response `200` `ConsultantPymeMessagesData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantPymeMessages {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /** @example 1 */
-      consultantId: number;
-      /** @example 1 */
-      pymeId: number;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantPymeMessagesData;
-  }
-
-  /**
-   * No description
-   * @tags consultant
-   * @name ConsultantSendPymeMessage
-   * @summary Send a message from a consultant to a PYME
-   * @request POST:/admin/consultant/send-pyme-message
-   * @secure
-   * @response `200` `ConsultantSendPymeMessageData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantSendPymeMessage {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = ConsultantPymeMessageActionDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantSendPymeMessageData;
   }
 
   /**
@@ -2777,7 +2407,7 @@ export namespace ConsultantAvailability {
    * No description
    * @tags consultant-availability
    * @name ConsultantAvailabilityFindAll
-   * @summary Get consultant availability slots paginated
+   * @summary Get consultant availability months paginated
    * @request GET:/admin/consultant-availability/find-all
    * @secure
    * @response `200` `ConsultantAvailabilityFindAllData`
@@ -2808,7 +2438,6 @@ export namespace ConsultantAvailability {
        * @example "2026-06-30T23:59:59.999Z"
        */
       startTo?: string;
-      status?: "disponible" | "bloqueado";
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
@@ -2819,7 +2448,7 @@ export namespace ConsultantAvailability {
    * No description
    * @tags consultant-availability
    * @name ConsultantAvailabilityFindMonth
-   * @summary Get consultant availability slots for a month
+   * @summary Get consultant availability for a month
    * @request GET:/admin/consultant-availability/find-month
    * @secure
    * @response `200` `ConsultantAvailabilityFindMonthData`
@@ -2834,7 +2463,6 @@ export namespace ConsultantAvailability {
       year: number;
       /** @example 6 */
       month: number;
-      status?: "disponible" | "bloqueado";
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
@@ -2845,7 +2473,7 @@ export namespace ConsultantAvailability {
    * No description
    * @tags consultant-availability
    * @name ConsultantAvailabilityVisibleMonth
-   * @summary Get available consultant slots visible for PYMES in a month
+   * @summary Get consultant availability visible for PYMES in a month
    * @request GET:/admin/consultant-availability/visible-month
    * @secure
    * @response `200` `ConsultantAvailabilityVisibleMonthData`
@@ -2860,7 +2488,6 @@ export namespace ConsultantAvailability {
       year: number;
       /** @example 6 */
       month: number;
-      status?: "disponible" | "bloqueado";
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
@@ -2871,7 +2498,7 @@ export namespace ConsultantAvailability {
    * No description
    * @tags consultant-availability
    * @name ConsultantAvailabilityFindOne
-   * @summary Get a consultant availability slot by ID
+   * @summary Get a consultant availability month by ID
    * @request GET:/admin/consultant-availability/find-one/{id}
    * @secure
    * @response `200` `ConsultantAvailabilityFindOneData`
@@ -2891,7 +2518,7 @@ export namespace ConsultantAvailability {
    * No description
    * @tags consultant-availability
    * @name ConsultantAvailabilityCreate
-   * @summary Create a consultant availability slot
+   * @summary Create a consultant availability month
    * @request POST:/admin/consultant-availability/create
    * @secure
    * @response `200` `ConsultantAvailabilityCreateData`
@@ -2909,7 +2536,7 @@ export namespace ConsultantAvailability {
    * No description
    * @tags consultant-availability
    * @name ConsultantAvailabilityReplaceMonth
-   * @summary Replace all consultant availability slots for a month
+   * @summary Replace consultant availability for a month
    * @request POST:/admin/consultant-availability/replace-month
    * @secure
    * @response `200` `ConsultantAvailabilityReplaceMonthData`
@@ -2927,7 +2554,7 @@ export namespace ConsultantAvailability {
    * No description
    * @tags consultant-availability
    * @name ConsultantAvailabilityUpdate
-   * @summary Update a consultant availability slot
+   * @summary Update a consultant availability month
    * @request PATCH:/admin/consultant-availability/update/{id}
    * @secure
    * @response `200` `ConsultantAvailabilityUpdateData`
@@ -2947,7 +2574,7 @@ export namespace ConsultantAvailability {
    * No description
    * @tags consultant-availability
    * @name ConsultantAvailabilityRemove
-   * @summary Soft-delete a consultant availability slot
+   * @summary Soft-delete a consultant availability month
    * @request DELETE:/admin/consultant-availability/delete/{id}
    * @secure
    * @response `200` `ConsultantAvailabilityRemoveData`
@@ -3460,6 +3087,116 @@ export namespace Storage {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = StorageDownloadData;
+  }
+}
+
+export namespace ConsultantGoogleCalendar {
+  /**
+   * No description
+   * @tags consultantGoogleCalendar
+   * @name ConsultantgooglecalendarAuthUrl
+   * @summary Get Google Calendar OAuth URL for a consultant
+   * @request GET:/admin/consultant-google-calendar/auth-url
+   * @secure
+   * @response `200` `ConsultantgooglecalendarAuthUrlData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantgooglecalendarAuthUrl {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example 3 */
+      consultantId: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantgooglecalendarAuthUrlData;
+  }
+
+  /**
+   * No description
+   * @tags consultantGoogleCalendar
+   * @name ConsultantgooglecalendarCallback
+   * @summary Google Calendar OAuth callback for consultant connection
+   * @request GET:/admin/consultant-google-calendar/callback
+   * @response `200` `ConsultantgooglecalendarCallbackData` HTML response that posts the connection result to the opener window
+   */
+  export namespace ConsultantgooglecalendarCallback {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      code?: string;
+      state?: string;
+      error?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantgooglecalendarCallbackData;
+  }
+
+  /**
+   * No description
+   * @tags consultantGoogleCalendar
+   * @name ConsultantgooglecalendarStatus
+   * @summary Get consultant Google Calendar connection status
+   * @request GET:/admin/consultant-google-calendar/status
+   * @secure
+   * @response `200` `ConsultantgooglecalendarStatusData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantgooglecalendarStatus {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example 3 */
+      consultantId: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantgooglecalendarStatusData;
+  }
+
+  /**
+   * No description
+   * @tags consultantGoogleCalendar
+   * @name ConsultantgooglecalendarBusyMonth
+   * @summary Get busy events from consultant Google Calendar for a month
+   * @request GET:/admin/consultant-google-calendar/busy-month
+   * @secure
+   * @response `200` `ConsultantgooglecalendarBusyMonthData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantgooglecalendarBusyMonth {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example 3 */
+      consultantId: number;
+      /** @example 2026 */
+      year: number;
+      /** @example 6 */
+      month: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantgooglecalendarBusyMonthData;
+  }
+
+  /**
+   * No description
+   * @tags consultantGoogleCalendar
+   * @name ConsultantgooglecalendarDisconnect
+   * @summary Disconnect consultant Google Calendar account
+   * @request DELETE:/admin/consultant-google-calendar/disconnect
+   * @secure
+   * @response `200` `ConsultantgooglecalendarDisconnectData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantgooglecalendarDisconnect {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example 3 */
+      consultantId: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantgooglecalendarDisconnectData;
   }
 }
 
@@ -4051,169 +3788,6 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags pyme
-     * @name PymeContactConsultant
-     * @summary Request contact with a consultant from a PYME
-     * @request POST:/admin/pyme/contact-consultant
-     * @secure
-     * @response `200` `PymeContactConsultantData`
-     * @response `400` `HttpErrorDto`
-     */
-    contactConsultant: (
-      data: PymeConsultantActionDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<PymeContactConsultantData, PymeContactConsultantError>({
-        path: `/admin/pyme/contact-consultant`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags pyme
-     * @name PymeConsultantContacts
-     * @summary Get consultant contacts for a PYME
-     * @request GET:/admin/pyme/consultant-contacts
-     * @secure
-     * @response `200` `PymeConsultantContactsData`
-     * @response `400` `HttpErrorDto`
-     */
-    consultantContacts: (
-      query: PymeConsultantContactsParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PymeConsultantContactsData,
-        PymeConsultantContactsError
-      >({
-        path: `/admin/pyme/consultant-contacts`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags pyme
-     * @name PymeAcceptConsultantContact
-     * @summary Accept a consultant contact request from a PYME
-     * @request PATCH:/admin/pyme/accept-consultant-contact
-     * @secure
-     * @response `200` `PymeAcceptConsultantContactData`
-     * @response `400` `HttpErrorDto`
-     */
-    acceptConsultantContact: (
-      data: PymeConsultantActionDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PymeAcceptConsultantContactData,
-        PymeAcceptConsultantContactError
-      >({
-        path: `/admin/pyme/accept-consultant-contact`,
-        method: "PATCH",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags pyme
-     * @name PymeRejectConsultantContact
-     * @summary Reject a consultant contact request from a PYME
-     * @request PATCH:/admin/pyme/reject-consultant-contact
-     * @secure
-     * @response `200` `PymeRejectConsultantContactData`
-     * @response `400` `HttpErrorDto`
-     */
-    rejectConsultantContact: (
-      data: PymeConsultantActionDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PymeRejectConsultantContactData,
-        PymeRejectConsultantContactError
-      >({
-        path: `/admin/pyme/reject-consultant-contact`,
-        method: "PATCH",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags pyme
-     * @name PymeConsultantMessages
-     * @summary Get messages with a consultant from a PYME
-     * @request GET:/admin/pyme/consultant-messages
-     * @secure
-     * @response `200` `PymeConsultantMessagesData`
-     * @response `400` `HttpErrorDto`
-     */
-    consultantMessages: (
-      query: PymeConsultantMessagesParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PymeConsultantMessagesData,
-        PymeConsultantMessagesError
-      >({
-        path: `/admin/pyme/consultant-messages`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags pyme
-     * @name PymeSendConsultantMessage
-     * @summary Send a message from a PYME to a consultant
-     * @request POST:/admin/pyme/send-consultant-message
-     * @secure
-     * @response `200` `PymeSendConsultantMessageData`
-     * @response `400` `HttpErrorDto`
-     */
-    sendConsultantMessage: (
-      data: PymeConsultantMessageActionDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PymeSendConsultantMessageData,
-        PymeSendConsultantMessageError
-      >({
-        path: `/admin/pyme/send-consultant-message`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags pyme
      * @name PymeUpdate
      * @summary Update a PYME profile
      * @request PATCH:/admin/pyme/update/{id}
@@ -4341,169 +3915,6 @@ export class Api<SecurityDataType extends unknown> {
     create: (data: ConsultantCreateDto, params: RequestParams = {}) =>
       this.http.request<ConsultantCreateData, ConsultantCreateError>({
         path: `/admin/consultant/create`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultant
-     * @name ConsultantContactPyme
-     * @summary Request contact with a PYME from a consultant
-     * @request POST:/admin/consultant/contact-pyme
-     * @secure
-     * @response `200` `ConsultantContactPymeData`
-     * @response `400` `HttpErrorDto`
-     */
-    contactPyme: (
-      data: ConsultantPymeActionDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<ConsultantContactPymeData, ConsultantContactPymeError>({
-        path: `/admin/consultant/contact-pyme`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultant
-     * @name ConsultantPymeContacts
-     * @summary Get PYME contacts for a consultant
-     * @request GET:/admin/consultant/pyme-contacts
-     * @secure
-     * @response `200` `ConsultantPymeContactsData`
-     * @response `400` `HttpErrorDto`
-     */
-    pymeContacts: (
-      query: ConsultantPymeContactsParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        ConsultantPymeContactsData,
-        ConsultantPymeContactsError
-      >({
-        path: `/admin/consultant/pyme-contacts`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultant
-     * @name ConsultantAcceptPymeContact
-     * @summary Accept a PYME contact request from a consultant
-     * @request PATCH:/admin/consultant/accept-pyme-contact
-     * @secure
-     * @response `200` `ConsultantAcceptPymeContactData`
-     * @response `400` `HttpErrorDto`
-     */
-    acceptPymeContact: (
-      data: ConsultantPymeActionDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        ConsultantAcceptPymeContactData,
-        ConsultantAcceptPymeContactError
-      >({
-        path: `/admin/consultant/accept-pyme-contact`,
-        method: "PATCH",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultant
-     * @name ConsultantRejectPymeContact
-     * @summary Reject a PYME contact request from a consultant
-     * @request PATCH:/admin/consultant/reject-pyme-contact
-     * @secure
-     * @response `200` `ConsultantRejectPymeContactData`
-     * @response `400` `HttpErrorDto`
-     */
-    rejectPymeContact: (
-      data: ConsultantPymeActionDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        ConsultantRejectPymeContactData,
-        ConsultantRejectPymeContactError
-      >({
-        path: `/admin/consultant/reject-pyme-contact`,
-        method: "PATCH",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultant
-     * @name ConsultantPymeMessages
-     * @summary Get messages with a PYME from a consultant
-     * @request GET:/admin/consultant/pyme-messages
-     * @secure
-     * @response `200` `ConsultantPymeMessagesData`
-     * @response `400` `HttpErrorDto`
-     */
-    pymeMessages: (
-      query: ConsultantPymeMessagesParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        ConsultantPymeMessagesData,
-        ConsultantPymeMessagesError
-      >({
-        path: `/admin/consultant/pyme-messages`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultant
-     * @name ConsultantSendPymeMessage
-     * @summary Send a message from a consultant to a PYME
-     * @request POST:/admin/consultant/send-pyme-message
-     * @secure
-     * @response `200` `ConsultantSendPymeMessageData`
-     * @response `400` `HttpErrorDto`
-     */
-    sendPymeMessage: (
-      data: ConsultantPymeMessageActionDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        ConsultantSendPymeMessageData,
-        ConsultantSendPymeMessageError
-      >({
-        path: `/admin/consultant/send-pyme-message`,
         method: "POST",
         body: data,
         secure: true,
@@ -4861,7 +4272,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags consultant-availability
      * @name ConsultantAvailabilityFindAll
-     * @summary Get consultant availability slots paginated
+     * @summary Get consultant availability months paginated
      * @request GET:/admin/consultant-availability/find-all
      * @secure
      * @response `200` `ConsultantAvailabilityFindAllData`
@@ -4888,7 +4299,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags consultant-availability
      * @name ConsultantAvailabilityFindMonth
-     * @summary Get consultant availability slots for a month
+     * @summary Get consultant availability for a month
      * @request GET:/admin/consultant-availability/find-month
      * @secure
      * @response `200` `ConsultantAvailabilityFindMonthData`
@@ -4915,7 +4326,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags consultant-availability
      * @name ConsultantAvailabilityVisibleMonth
-     * @summary Get available consultant slots visible for PYMES in a month
+     * @summary Get consultant availability visible for PYMES in a month
      * @request GET:/admin/consultant-availability/visible-month
      * @secure
      * @response `200` `ConsultantAvailabilityVisibleMonthData`
@@ -4942,7 +4353,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags consultant-availability
      * @name ConsultantAvailabilityFindOne
-     * @summary Get a consultant availability slot by ID
+     * @summary Get a consultant availability month by ID
      * @request GET:/admin/consultant-availability/find-one/{id}
      * @secure
      * @response `200` `ConsultantAvailabilityFindOneData`
@@ -4968,7 +4379,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags consultant-availability
      * @name ConsultantAvailabilityCreate
-     * @summary Create a consultant availability slot
+     * @summary Create a consultant availability month
      * @request POST:/admin/consultant-availability/create
      * @secure
      * @response `200` `ConsultantAvailabilityCreateData`
@@ -4996,7 +4407,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags consultant-availability
      * @name ConsultantAvailabilityReplaceMonth
-     * @summary Replace all consultant availability slots for a month
+     * @summary Replace consultant availability for a month
      * @request POST:/admin/consultant-availability/replace-month
      * @secure
      * @response `200` `ConsultantAvailabilityReplaceMonthData`
@@ -5024,7 +4435,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags consultant-availability
      * @name ConsultantAvailabilityUpdate
-     * @summary Update a consultant availability slot
+     * @summary Update a consultant availability month
      * @request PATCH:/admin/consultant-availability/update/{id}
      * @secure
      * @response `200` `ConsultantAvailabilityUpdateData`
@@ -5053,7 +4464,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags consultant-availability
      * @name ConsultantAvailabilityRemove
-     * @summary Soft-delete a consultant availability slot
+     * @summary Soft-delete a consultant availability month
      * @request DELETE:/admin/consultant-availability/delete/{id}
      * @secure
      * @response `200` `ConsultantAvailabilityRemoveData`
@@ -5594,6 +5005,135 @@ export class Api<SecurityDataType extends unknown> {
         path: `/storage/download-file`,
         method: "GET",
         query: query,
+        ...params,
+      }),
+  };
+  consultantGoogleCalendar = {
+    /**
+     * No description
+     *
+     * @tags consultantGoogleCalendar
+     * @name ConsultantgooglecalendarAuthUrl
+     * @summary Get Google Calendar OAuth URL for a consultant
+     * @request GET:/admin/consultant-google-calendar/auth-url
+     * @secure
+     * @response `200` `ConsultantgooglecalendarAuthUrlData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantgooglecalendarAuthUrl: (
+      query: ConsultantgooglecalendarAuthUrlParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantgooglecalendarAuthUrlData,
+        ConsultantgooglecalendarAuthUrlError
+      >({
+        path: `/admin/consultant-google-calendar/auth-url`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultantGoogleCalendar
+     * @name ConsultantgooglecalendarCallback
+     * @summary Google Calendar OAuth callback for consultant connection
+     * @request GET:/admin/consultant-google-calendar/callback
+     * @response `200` `ConsultantgooglecalendarCallbackData` HTML response that posts the connection result to the opener window
+     */
+    consultantgooglecalendarCallback: (
+      query: ConsultantgooglecalendarCallbackParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ConsultantgooglecalendarCallbackData, any>({
+        path: `/admin/consultant-google-calendar/callback`,
+        method: "GET",
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultantGoogleCalendar
+     * @name ConsultantgooglecalendarStatus
+     * @summary Get consultant Google Calendar connection status
+     * @request GET:/admin/consultant-google-calendar/status
+     * @secure
+     * @response `200` `ConsultantgooglecalendarStatusData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantgooglecalendarStatus: (
+      query: ConsultantgooglecalendarStatusParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantgooglecalendarStatusData,
+        ConsultantgooglecalendarStatusError
+      >({
+        path: `/admin/consultant-google-calendar/status`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultantGoogleCalendar
+     * @name ConsultantgooglecalendarBusyMonth
+     * @summary Get busy events from consultant Google Calendar for a month
+     * @request GET:/admin/consultant-google-calendar/busy-month
+     * @secure
+     * @response `200` `ConsultantgooglecalendarBusyMonthData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantgooglecalendarBusyMonth: (
+      query: ConsultantgooglecalendarBusyMonthParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantgooglecalendarBusyMonthData,
+        ConsultantgooglecalendarBusyMonthError
+      >({
+        path: `/admin/consultant-google-calendar/busy-month`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultantGoogleCalendar
+     * @name ConsultantgooglecalendarDisconnect
+     * @summary Disconnect consultant Google Calendar account
+     * @request DELETE:/admin/consultant-google-calendar/disconnect
+     * @secure
+     * @response `200` `ConsultantgooglecalendarDisconnectData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantgooglecalendarDisconnect: (
+      query: ConsultantgooglecalendarDisconnectParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantgooglecalendarDisconnectData,
+        ConsultantgooglecalendarDisconnectError
+      >({
+        path: `/admin/consultant-google-calendar/disconnect`,
+        method: "DELETE",
+        query: query,
+        secure: true,
+        format: "json",
         ...params,
       }),
   };

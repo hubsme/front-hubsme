@@ -1,0 +1,160 @@
+<div class="space-y-7 font-inter-regular text-text">
+  <div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+    <div>
+      <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold capitalize">mis documentos</h1>
+      <p class="mt-1 text-[0.95rem] text-muted">Accede a actas de reuniones y diagnósticos de tus PYMEs contactadas.</p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <label class="relative w-full xl:w-80">
+        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted"></i>
+        <input
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event)"
+          class="h-10 w-full rounded-xl border border-border bg-surface pl-11 pr-4 text-sm outline-none placeholder:text-text-400 focus:border-border"
+          placeholder="Buscar documentos..."
+        />
+      </label>
+      <button class="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface">
+        <i class="fas fa-filter text-sm"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="flex flex-wrap gap-2 border-b border-border">
+    <button
+      type="button"
+      (click)="activeTab.set('meetings')"
+      class="inline-flex h-10 items-center gap-2 border-b-2 px-3 text-[0.85rem] font-inter-semibold transition-colors"
+      [class.border-secondary]="activeTab() === 'meetings'"
+      [class.text-secondary]="activeTab() === 'meetings'"
+      [class.border-transparent]="activeTab() !== 'meetings'"
+      [class.text-muted]="activeTab() !== 'meetings'"
+    >
+      <i class="far fa-file-lines text-xs"></i>
+      Actas
+      <span class="rounded-full bg-background-100 px-2 py-0.5 text-[0.68rem] text-text-600">{{ meetingDocuments().length }}</span>
+    </button>
+    <button
+      type="button"
+      (click)="activeTab.set('diagnostics')"
+      class="inline-flex h-10 items-center gap-2 border-b-2 px-3 text-[0.85rem] font-inter-semibold transition-colors"
+      [class.border-secondary]="activeTab() === 'diagnostics'"
+      [class.text-secondary]="activeTab() === 'diagnostics'"
+      [class.border-transparent]="activeTab() !== 'diagnostics'"
+      [class.text-muted]="activeTab() !== 'diagnostics'"
+    >
+      <i class="fas fa-chart-line text-xs"></i>
+      Diagnósticos
+      <span class="rounded-full bg-background-100 px-2 py-0.5 text-[0.68rem] text-text-600">{{ diagnostics().length }}</span>
+    </button>
+  </div>
+
+  @if (loading()) {
+  <div class="py-16 text-center text-muted">
+    <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+  </div>
+  } @else if (activeTab() === 'meetings') {
+  <div class="grid grid-cols-1 gap-5 xl:grid-cols-2 2xl:grid-cols-3">
+    @for (document of filteredMeetingDocuments(); track document.id) {
+    <article class="rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]">
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-background-100 text-primary">
+          <i class="far fa-file-lines text-lg"></i>
+        </div>
+        <span class="rounded-full bg-background-100 px-3 py-1 text-xs text-text-700 font-inter-semibold">Acta de Reunion</span>
+      </div>
+
+      <h2 class="mt-7 text-xl font-anton lowercase text-text">{{ documentTitle(document) }}</h2>
+      <p class="mt-4 text-sm text-text/60">
+        <i class="far fa-calendar mr-2"></i>{{ document.completedAt || document.startTime | date : 'd MMMM y' }}
+      </p>
+
+      <div class="mt-8 flex items-center gap-4 rounded-2xl border border-border bg-background-50 p-4">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-surface text-muted">
+          @if (pymeLogos()[document.pymeId]) {
+            <img [src]="pymeLogos()[document.pymeId]" alt="PYME" class="h-full w-full object-cover" />
+          } @else {
+            <i class="fas fa-building text-sm"></i>
+          }
+        </div>
+        <div class="min-w-0">
+          <p class="text-xs text-muted">Pyme</p>
+          <p class="truncate text-sm font-inter-bold">{{ pymeNames()[document.pymeId] || 'PYME' }}</p>
+        </div>
+      </div>
+
+      <div class="mt-5 flex items-center gap-3">
+        <button
+          [routerLink]="[buildPath(PATH.consultor.documents), document.id]"
+          class="h-10 flex-1 rounded-xl bg-secondary text-sm text-fixed-background-50 font-inter-semibold"
+        >
+          <i class="far fa-file-lines mr-2"></i>Ver Acta
+        </button>
+      </div>
+    </article>
+    } @empty {
+    <div class="rounded-2xl border border-dashed border-border bg-surface py-16 text-center text-muted xl:col-span-2">
+      No hay documentos disponibles todavia.
+    </div>
+    }
+  </div>
+  } @else {
+  <div class="grid grid-cols-1 gap-5 xl:grid-cols-2 2xl:grid-cols-3">
+    @for (diagnostic of filteredDiagnosticDocuments(); track diagnostic.id) {
+    <article class="rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]">
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary-50 text-secondary">
+          <i class="fas fa-chart-line text-lg"></i>
+        </div>
+        <span class="rounded-full bg-background-100 px-3 py-1 text-xs text-text-700 font-inter-semibold">Diagnóstico IA</span>
+      </div>
+
+      <h2 class="mt-7 text-xl font-anton lowercase text-text">diagnostico realizado</h2>
+      <p class="mt-4 text-sm text-text/60">
+        <i class="far fa-calendar mr-2"></i>{{ diagnostic.createdAt | date : 'd MMMM y' }}
+      </p>
+
+      <div class="mt-8 grid grid-cols-2 gap-3">
+        <div class="flex items-center gap-3 rounded-2xl border border-border bg-background-50 p-3 min-w-0">
+          <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-surface text-muted">
+            @if (pymeLogos()[diagnostic.pymeId]) {
+              <img [src]="pymeLogos()[diagnostic.pymeId]" alt="PYME" class="h-full w-full object-cover" />
+            } @else {
+              <i class="fas fa-building text-sm"></i>
+            }
+          </div>
+          <div class="min-w-0">
+            <p class="text-[0.7rem] text-muted leading-none">Pyme</p>
+            <p class="truncate text-xs font-inter-bold mt-1">{{ pymeNames()[diagnostic.pymeId] || 'PYME' }}</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 rounded-2xl border border-border bg-background-50 p-3 min-w-0">
+          <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-muted">
+            <i class="fas fa-gauge-high text-sm"></i>
+          </div>
+          <div>
+            <p class="text-[0.7rem] text-muted leading-none">Puntaje</p>
+            <p class="text-xs font-inter-bold mt-1">{{ diagnostic.score }}/100</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 flex items-center gap-3">
+        <button
+          [routerLink]="[buildPath(PATH.consultor.diagnostics), diagnostic.id]"
+          class="h-10 flex-1 rounded-xl bg-secondary text-sm text-fixed-background-50 font-inter-semibold"
+        >
+          <i class="far fa-file-lines mr-2"></i>Ver Diagnóstico
+        </button>
+      </div>
+    </article>
+    } @empty {
+    <div class="rounded-2xl border border-dashed border-border bg-surface py-16 text-center text-muted xl:col-span-2">
+      No hay diagnósticos disponibles todavia.
+    </div>
+    }
+  </div>
+  }
+</div>

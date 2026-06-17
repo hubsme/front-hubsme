@@ -1,0 +1,208 @@
+<div class="space-y-6 font-inter-regular text-text">
+  <button
+    type="button"
+    (click)="goBack()"
+    class="inline-flex h-9 items-center gap-2 rounded-full border border-border bg-surface px-4 text-[0.82rem] text-muted transition hover:text-text font-inter-semibold"
+  >
+    <i class="fas fa-arrow-left text-xs"></i>
+    Volver
+  </button>
+
+  <div>
+    <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold">Agendar Reunion</h1>
+    <p class="mt-1 text-[0.92rem] text-muted">Selecciona una fecha y hora para tu sesion de consultoria.</p>
+  </div>
+
+  @if (loading()) {
+    <div class="py-16 text-center text-muted">
+      <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+    </div>
+  } @else if (consultant(); as consultant) {
+    <div class="grid grid-cols-1 gap-5 xl:grid-cols-[20rem_1fr]">
+      <aside class="rounded-xl border border-border bg-surface p-5 shadow-soft">
+        <div class="flex flex-col items-center text-center">
+          <img
+            [src]="consultantPhoto(consultant)"
+            [alt]="consultant.fullName"
+            class="h-24 w-24 rounded-full border border-border object-cover object-top"
+          />
+          <h2 class="mt-4 text-xl font-anton lowercase text-text">{{ consultant.fullName }}</h2>
+          <p class="mt-1 line-clamp-2 text-[0.82rem] leading-5 text-muted">
+            {{ consultant.bio || 'Consultor especializado para PYMES en crecimiento.' }}
+          </p>
+          <div class="mt-4 rounded-xl bg-background px-5 py-3">
+            <p class="text-xs uppercase text-muted font-inter-bold">Tarifa</p>
+            <p class="mt-1 text-lg text-text font-inter-bold">S/ {{ consultant.pricePerHour }} <span class="text-sm text-muted">/ hora</span></p>
+          </div>
+        </div>
+
+        <div class="mt-6 space-y-4 border-t border-border pt-5">
+          <div class="flex items-start gap-3 text-sm">
+            <i class="fas fa-video mt-1 text-muted"></i>
+            <div>
+              <p class="font-inter-bold text-text">Videoconferencia</p>
+              <p class="text-muted">Microsoft Teams</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 text-sm">
+            <i class="far fa-clock mt-1 text-muted"></i>
+            <div>
+              <p class="font-inter-bold text-text">Duracion</p>
+              <p class="text-muted">{{ durationMinutes() }} minutos</p>
+            </div>
+          </div>
+          <div class="flex items-start gap-3 text-sm">
+            <i class="fas fa-shield-halved mt-1 text-muted"></i>
+            <div>
+              <p class="font-inter-bold text-text">Pago seguro</p>
+              <p class="text-muted">Confirmacion antes de activar Teams</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="rounded-xl border border-border bg-surface p-5 shadow-soft">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_22rem]">
+          <div>
+            <div class="mb-5 flex items-center justify-between gap-3">
+              <h2 class="capitalize text-lg font-inter-bold text-text">{{ monthTitle() }}</h2>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  (click)="previousMonth()"
+                  class="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted transition hover:text-text"
+                  aria-label="Mes anterior"
+                >
+                  <i class="fas fa-chevron-left text-xs"></i>
+                </button>
+                <button
+                  type="button"
+                  (click)="nextMonth()"
+                  class="flex h-9 w-9 items-center justify-center rounded-full border border-border text-muted transition hover:text-text"
+                  aria-label="Mes siguiente"
+                >
+                  <i class="fas fa-chevron-right text-xs"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-7 gap-2 text-center">
+              @for (dayName of weekDays; track dayName) {
+                <span class="py-2 text-[0.7rem] uppercase text-muted font-inter-bold">{{ dayName }}</span>
+              }
+
+              @for (day of calendarDays(); track day.date.toISOString()) {
+                <button
+                  type="button"
+                  (click)="selectDate(day)"
+                  class="relative flex aspect-square items-center justify-center rounded-xl border text-sm transition font-inter-semibold"
+                  [class.border-secondary]="day.date.toDateString() === selectedDate().toDateString()"
+                  [class.bg-secondary]="day.date.toDateString() === selectedDate().toDateString()"
+                  [class.text-fixed-text-50]="day.date.toDateString() === selectedDate().toDateString()"
+                  [class.border-border]="day.date.toDateString() !== selectedDate().toDateString()"
+                  [class.text-muted]="!day.inMonth"
+                  [class.bg-background]="day.inMonth && day.date.toDateString() !== selectedDate().toDateString()"
+                  [class.opacity-40]="!day.inMonth || !day.hasAvailability"
+                  [disabled]="!day.inMonth || !day.hasAvailability"
+                >
+                  {{ day.day }}
+                  @if (day.hasAvailability) {
+                    <span class="absolute bottom-1.5 h-1.5 w-1.5 rounded-full bg-success"></span>
+                  }
+                </button>
+              }
+            </div>
+
+            <div class="mt-5 flex flex-wrap items-center gap-4 text-xs text-muted">
+              <span class="inline-flex items-center gap-2">
+                <span class="h-2.5 w-2.5 rounded-full bg-secondary"></span>
+                Seleccionado
+              </span>
+              <span class="inline-flex items-center gap-2">
+                <span class="h-2.5 w-2.5 rounded-full bg-success"></span>
+                Disponible
+              </span>
+            </div>
+          </div>
+
+          <div class="border-border lg:border-l lg:pl-6">
+            <div>
+              <p class="text-xs uppercase text-muted font-inter-bold">Horarios disponibles</p>
+              <h3 class="mt-1 capitalize text-base font-inter-bold text-text">{{ formatDate(selectedDate()) }}</h3>
+            </div>
+
+            <label class="mt-5 block text-xs text-muted font-inter-semibold">
+              <span class="mb-2 block">Duracion</span>
+              <select
+                [ngModel]="durationMinutes()"
+                (ngModelChange)="updateDuration($event)"
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
+              >
+                @for (duration of durations; track duration) {
+                  <option [value]="duration">{{ duration }} minutos</option>
+                }
+              </select>
+            </label>
+
+            <div class="mt-5 grid grid-cols-2 gap-3">
+              @for (option of timeOptions(); track option.startTime.toISOString()) {
+                <button
+                  type="button"
+                  (click)="selectTime(option)"
+                  class="h-11 rounded-xl border text-sm transition font-inter-bold"
+                  [class.border-secondary]="selectedStartIso() === option.startTime.toISOString()"
+                  [class.bg-secondary]="selectedStartIso() === option.startTime.toISOString()"
+                  [class.text-fixed-text-50]="selectedStartIso() === option.startTime.toISOString()"
+                  [class.border-border]="selectedStartIso() !== option.startTime.toISOString()"
+                  [class.bg-background]="selectedStartIso() !== option.startTime.toISOString()"
+                  [class.text-text]="selectedStartIso() !== option.startTime.toISOString()"
+                >
+                  {{ option.label }}
+                </button>
+              } @empty {
+                <div class="col-span-2 rounded-xl border border-dashed border-border bg-background py-8 text-center text-sm text-muted">
+                  No hay horarios para esta duracion.
+                </div>
+              }
+            </div>
+
+            <label class="mt-5 block text-xs text-muted font-inter-semibold">
+              <span class="mb-2 block">Notas para la sesion</span>
+              <textarea
+                [ngModel]="description()"
+                (ngModelChange)="updateDescription($event)"
+                class="min-h-24 w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm text-text outline-none focus:border-secondary"
+                placeholder="Cuéntale al consultor qué quieres revisar..."
+              ></textarea>
+            </label>
+
+            <div class="mt-5 rounded-xl border border-secondary/20 bg-secondary/5 p-4">
+              <div class="flex items-center justify-between gap-4">
+                <div>
+                  <p class="text-xs uppercase text-muted font-inter-bold">Total estimado</p>
+                  <p class="mt-1 text-2xl text-secondary font-inter-bold">S/ {{ currency(meetingTotal()) }}</p>
+                </div>
+                <i class="fas fa-credit-card text-xl text-secondary"></i>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              (click)="schedule()"
+              [disabled]="!selectedOption() || scheduling()"
+              class="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm text-fixed-text-50 transition hover:bg-secondary/90 disabled:opacity-50 font-inter-bold"
+            >
+              @if (scheduling()) {
+                <i class="fas fa-spinner fa-spin"></i>
+                Agendando
+              } @else {
+                <i class="fas fa-calendar-check"></i>
+                Agendar reunion
+              }
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  }
+</div>

@@ -11,6 +11,10 @@ export class ConsultantService {
     return this.api.consultant.findAll(query).then((response) => response.data);
   }
 
+  meetingPymes(query: ApiQuery<'consultant', 'meetingPymes'> = {}): Promise<ApiResponse<'consultant', 'meetingPymes'>> {
+    return this.api.consultant.meetingPymes(query).then((response) => response.data);
+  }
+
   findOne(id: number): Promise<ApiResponse<'consultant', 'findOne'>> {
     return this.api.consultant.findOne({ id }).then((response) => response.data);
   }

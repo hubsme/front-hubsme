@@ -51,13 +51,6 @@
               <p class="text-muted">{{ durationMinutes() }} minutos</p>
             </div>
           </div>
-          <div class="flex items-start gap-3 text-sm">
-            <i class="fas fa-shield-halved mt-1 text-muted"></i>
-            <div>
-              <p class="font-inter-bold text-text">Pago seguro</p>
-              <p class="text-muted">Confirmacion antes de activar Teams</p>
-            </div>
-          </div>
         </div>
       </aside>
 
@@ -133,15 +126,18 @@
 
             <label class="mt-5 block text-xs text-muted font-inter-semibold">
               <span class="mb-2 block">Duracion</span>
-              <select
-                [ngModel]="durationMinutes()"
-                (ngModelChange)="updateDuration($event)"
-                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
-              >
-                @for (duration of durations; track duration) {
-                  <option [value]="duration">{{ duration }} minutos</option>
-                }
-              </select>
+              <span class="relative block">
+                <select
+                  [ngModel]="durationMinutes()"
+                  (ngModelChange)="updateDuration($event)"
+                  class="h-10 w-full appearance-none rounded-xl border border-border bg-background pl-3 pr-10 text-sm text-text outline-none focus:border-secondary"
+                >
+                  @for (duration of durations; track duration) {
+                    <option [value]="duration">{{ duration }} minutos</option>
+                  }
+                </select>
+                <i class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text/40"></i>
+              </span>
             </label>
 
             <div class="mt-5 grid grid-cols-2 gap-3">

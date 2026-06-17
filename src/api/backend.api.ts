@@ -677,6 +677,48 @@ export interface ConsultantAvailabilityUpdateDto {
   availableSchedule?: Record<string, string[]>;
 }
 
+export interface ConsultantGoogleCalendarAuthUrlResponseDto {
+  /** @example "https://accounts.google.com/o/oauth2/v2/auth?..." */
+  url: string;
+}
+
+export interface ConsultantGoogleCalendarStatusDto {
+  /** @example true */
+  connected: boolean;
+  /** @example "consultor@gmail.com" */
+  googleEmail: string | null;
+  /** @example "primary" */
+  googleCalendarId: string | null;
+  /**
+   * @format date-time
+   * @example "2026-06-11T15:00:00.000Z"
+   */
+  connectedAt: string | null;
+}
+
+export interface ConsultantGoogleCalendarBusyItemDto {
+  /** @example "google-calendar-event-id" */
+  id: string;
+  /** @example "Reunion privada" */
+  summary: string | null;
+  /**
+   * @format date-time
+   * @example "2026-06-11T14:00:00.000Z"
+   */
+  startTime: string;
+  /**
+   * @format date-time
+   * @example "2026-06-11T15:00:00.000Z"
+   */
+  endTime: string;
+  /** @example "google-calendar" */
+  source: string;
+}
+
+export interface ConsultantGoogleCalendarBusyMonthResponseDto {
+  data: ConsultantGoogleCalendarBusyItemDto[];
+}
+
 export interface TaskListDto {
   data: TaskResultDto[];
   meta: PaginationMetaDto;
@@ -911,48 +953,6 @@ export interface StorageResultDto {
   createdAt: string;
 }
 
-export interface ConsultantGoogleCalendarAuthUrlResponseDto {
-  /** @example "https://accounts.google.com/o/oauth2/v2/auth?..." */
-  url: string;
-}
-
-export interface ConsultantGoogleCalendarStatusDto {
-  /** @example true */
-  connected: boolean;
-  /** @example "consultor@gmail.com" */
-  googleEmail: string | null;
-  /** @example "primary" */
-  googleCalendarId: string | null;
-  /**
-   * @format date-time
-   * @example "2026-06-11T15:00:00.000Z"
-   */
-  connectedAt: string | null;
-}
-
-export interface ConsultantGoogleCalendarBusyItemDto {
-  /** @example "google-calendar-event-id" */
-  id: string;
-  /** @example "Reunion privada" */
-  summary: string | null;
-  /**
-   * @format date-time
-   * @example "2026-06-11T14:00:00.000Z"
-   */
-  startTime: string;
-  /**
-   * @format date-time
-   * @example "2026-06-11T15:00:00.000Z"
-   */
-  endTime: string;
-  /** @example "google-calendar" */
-  source: string;
-}
-
-export interface ConsultantGoogleCalendarBusyMonthResponseDto {
-  data: ConsultantGoogleCalendarBusyItemDto[];
-}
-
 export type AppGetHelloData = any;
 
 export type AuthLoginData = LoginResponseDto;
@@ -1114,6 +1114,27 @@ export interface ConsultantFindAllParams {
 export type ConsultantFindAllData = ConsultantListDto;
 
 export type ConsultantFindAllError = HttpErrorDto;
+
+export interface ConsultantMeetingPymesParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by business name or RUC */
+  search?: string;
+  /** Filter by sector */
+  sector?: string;
+}
+
+export type ConsultantMeetingPymesData = PymeListDto;
+
+export type ConsultantMeetingPymesError = HttpErrorDto;
 
 export interface ConsultantFindOneParams {
   id: number;
@@ -1363,6 +1384,58 @@ export type ConsultantAvailabilityRemoveData = ConsultantAvailabilityResultDto;
 
 export type ConsultantAvailabilityRemoveError = HttpErrorDto;
 
+export interface ConsultantgooglecalendarAuthUrlParams {
+  /** @example 3 */
+  consultantId: number;
+}
+
+export type ConsultantgooglecalendarAuthUrlData =
+  ConsultantGoogleCalendarAuthUrlResponseDto;
+
+export type ConsultantgooglecalendarAuthUrlError = HttpErrorDto;
+
+export interface ConsultantgooglecalendarCallbackParams {
+  code?: string;
+  state?: string;
+  error?: string;
+}
+
+export type ConsultantgooglecalendarCallbackData = any;
+
+export interface ConsultantgooglecalendarStatusParams {
+  /** @example 3 */
+  consultantId: number;
+}
+
+export type ConsultantgooglecalendarStatusData =
+  ConsultantGoogleCalendarStatusDto;
+
+export type ConsultantgooglecalendarStatusError = HttpErrorDto;
+
+export interface ConsultantgooglecalendarBusyMonthParams {
+  /** @example 3 */
+  consultantId: number;
+  /** @example 2026 */
+  year: number;
+  /** @example 6 */
+  month: number;
+}
+
+export type ConsultantgooglecalendarBusyMonthData =
+  ConsultantGoogleCalendarBusyMonthResponseDto;
+
+export type ConsultantgooglecalendarBusyMonthError = HttpErrorDto;
+
+export interface ConsultantgooglecalendarDisconnectParams {
+  /** @example 3 */
+  consultantId: number;
+}
+
+export type ConsultantgooglecalendarDisconnectData =
+  ConsultantGoogleCalendarStatusDto;
+
+export type ConsultantgooglecalendarDisconnectError = HttpErrorDto;
+
 export interface TaskFindAllParams {
   /**
    * Page number
@@ -1579,58 +1652,6 @@ export interface StorageDownloadParams {
 }
 
 export type StorageDownloadData = any;
-
-export interface ConsultantgooglecalendarAuthUrlParams {
-  /** @example 3 */
-  consultantId: number;
-}
-
-export type ConsultantgooglecalendarAuthUrlData =
-  ConsultantGoogleCalendarAuthUrlResponseDto;
-
-export type ConsultantgooglecalendarAuthUrlError = HttpErrorDto;
-
-export interface ConsultantgooglecalendarCallbackParams {
-  code?: string;
-  state?: string;
-  error?: string;
-}
-
-export type ConsultantgooglecalendarCallbackData = any;
-
-export interface ConsultantgooglecalendarStatusParams {
-  /** @example 3 */
-  consultantId: number;
-}
-
-export type ConsultantgooglecalendarStatusData =
-  ConsultantGoogleCalendarStatusDto;
-
-export type ConsultantgooglecalendarStatusError = HttpErrorDto;
-
-export interface ConsultantgooglecalendarBusyMonthParams {
-  /** @example 3 */
-  consultantId: number;
-  /** @example 2026 */
-  year: number;
-  /** @example 6 */
-  month: number;
-}
-
-export type ConsultantgooglecalendarBusyMonthData =
-  ConsultantGoogleCalendarBusyMonthResponseDto;
-
-export type ConsultantgooglecalendarBusyMonthError = HttpErrorDto;
-
-export interface ConsultantgooglecalendarDisconnectParams {
-  /** @example 3 */
-  consultantId: number;
-}
-
-export type ConsultantgooglecalendarDisconnectData =
-  ConsultantGoogleCalendarStatusDto;
-
-export type ConsultantgooglecalendarDisconnectError = HttpErrorDto;
 
 export namespace App {
   /**
@@ -2025,6 +2046,39 @@ export namespace Consultant {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = ConsultantFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantMeetingPymes
+   * @summary Get PYMEs with at least one meeting with current consultant
+   * @request GET:/admin/consultant/meeting-pymes
+   * @secure
+   * @response `200` `ConsultantMeetingPymesData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantMeetingPymes {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by business name or RUC */
+      search?: string;
+      /** Filter by sector */
+      sector?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantMeetingPymesData;
   }
 
   /**
@@ -2591,6 +2645,116 @@ export namespace ConsultantAvailability {
   }
 }
 
+export namespace ConsultantGoogleCalendar {
+  /**
+   * No description
+   * @tags consultantGoogleCalendar
+   * @name ConsultantgooglecalendarAuthUrl
+   * @summary Get Google Calendar OAuth URL for a consultant
+   * @request GET:/admin/consultant-google-calendar/auth-url
+   * @secure
+   * @response `200` `ConsultantgooglecalendarAuthUrlData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantgooglecalendarAuthUrl {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example 3 */
+      consultantId: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantgooglecalendarAuthUrlData;
+  }
+
+  /**
+   * No description
+   * @tags consultantGoogleCalendar
+   * @name ConsultantgooglecalendarCallback
+   * @summary Google Calendar OAuth callback for consultant connection
+   * @request GET:/admin/consultant-google-calendar/callback
+   * @response `200` `ConsultantgooglecalendarCallbackData` HTML response that posts the connection result to the opener window
+   */
+  export namespace ConsultantgooglecalendarCallback {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      code?: string;
+      state?: string;
+      error?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantgooglecalendarCallbackData;
+  }
+
+  /**
+   * No description
+   * @tags consultantGoogleCalendar
+   * @name ConsultantgooglecalendarStatus
+   * @summary Get consultant Google Calendar connection status
+   * @request GET:/admin/consultant-google-calendar/status
+   * @secure
+   * @response `200` `ConsultantgooglecalendarStatusData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantgooglecalendarStatus {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example 3 */
+      consultantId: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantgooglecalendarStatusData;
+  }
+
+  /**
+   * No description
+   * @tags consultantGoogleCalendar
+   * @name ConsultantgooglecalendarBusyMonth
+   * @summary Get busy events from consultant Google Calendar for a month
+   * @request GET:/admin/consultant-google-calendar/busy-month
+   * @secure
+   * @response `200` `ConsultantgooglecalendarBusyMonthData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantgooglecalendarBusyMonth {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example 3 */
+      consultantId: number;
+      /** @example 2026 */
+      year: number;
+      /** @example 6 */
+      month: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantgooglecalendarBusyMonthData;
+  }
+
+  /**
+   * No description
+   * @tags consultantGoogleCalendar
+   * @name ConsultantgooglecalendarDisconnect
+   * @summary Disconnect consultant Google Calendar account
+   * @request DELETE:/admin/consultant-google-calendar/disconnect
+   * @secure
+   * @response `200` `ConsultantgooglecalendarDisconnectData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantgooglecalendarDisconnect {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example 3 */
+      consultantId: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantgooglecalendarDisconnectData;
+  }
+}
+
 export namespace Task {
   /**
    * No description
@@ -3087,116 +3251,6 @@ export namespace Storage {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = StorageDownloadData;
-  }
-}
-
-export namespace ConsultantGoogleCalendar {
-  /**
-   * No description
-   * @tags consultantGoogleCalendar
-   * @name ConsultantgooglecalendarAuthUrl
-   * @summary Get Google Calendar OAuth URL for a consultant
-   * @request GET:/admin/consultant-google-calendar/auth-url
-   * @secure
-   * @response `200` `ConsultantgooglecalendarAuthUrlData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantgooglecalendarAuthUrl {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /** @example 3 */
-      consultantId: number;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantgooglecalendarAuthUrlData;
-  }
-
-  /**
-   * No description
-   * @tags consultantGoogleCalendar
-   * @name ConsultantgooglecalendarCallback
-   * @summary Google Calendar OAuth callback for consultant connection
-   * @request GET:/admin/consultant-google-calendar/callback
-   * @response `200` `ConsultantgooglecalendarCallbackData` HTML response that posts the connection result to the opener window
-   */
-  export namespace ConsultantgooglecalendarCallback {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      code?: string;
-      state?: string;
-      error?: string;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantgooglecalendarCallbackData;
-  }
-
-  /**
-   * No description
-   * @tags consultantGoogleCalendar
-   * @name ConsultantgooglecalendarStatus
-   * @summary Get consultant Google Calendar connection status
-   * @request GET:/admin/consultant-google-calendar/status
-   * @secure
-   * @response `200` `ConsultantgooglecalendarStatusData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantgooglecalendarStatus {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /** @example 3 */
-      consultantId: number;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantgooglecalendarStatusData;
-  }
-
-  /**
-   * No description
-   * @tags consultantGoogleCalendar
-   * @name ConsultantgooglecalendarBusyMonth
-   * @summary Get busy events from consultant Google Calendar for a month
-   * @request GET:/admin/consultant-google-calendar/busy-month
-   * @secure
-   * @response `200` `ConsultantgooglecalendarBusyMonthData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantgooglecalendarBusyMonth {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /** @example 3 */
-      consultantId: number;
-      /** @example 2026 */
-      year: number;
-      /** @example 6 */
-      month: number;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantgooglecalendarBusyMonthData;
-  }
-
-  /**
-   * No description
-   * @tags consultantGoogleCalendar
-   * @name ConsultantgooglecalendarDisconnect
-   * @summary Disconnect consultant Google Calendar account
-   * @request DELETE:/admin/consultant-google-calendar/disconnect
-   * @secure
-   * @response `200` `ConsultantgooglecalendarDisconnectData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantgooglecalendarDisconnect {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /** @example 3 */
-      consultantId: number;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantgooglecalendarDisconnectData;
   }
 }
 
@@ -3859,6 +3913,33 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags consultant
+     * @name ConsultantMeetingPymes
+     * @summary Get PYMEs with at least one meeting with current consultant
+     * @request GET:/admin/consultant/meeting-pymes
+     * @secure
+     * @response `200` `ConsultantMeetingPymesData`
+     * @response `400` `HttpErrorDto`
+     */
+    meetingPymes: (
+      query: ConsultantMeetingPymesParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantMeetingPymesData,
+        ConsultantMeetingPymesError
+      >({
+        path: `/admin/consultant/meeting-pymes`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
      * @name ConsultantFindOne
      * @summary Get a consultant profile by ID
      * @request GET:/admin/consultant/find-one/{id}
@@ -4485,6 +4566,135 @@ export class Api<SecurityDataType extends unknown> {
         ...params,
       }),
   };
+  consultantGoogleCalendar = {
+    /**
+     * No description
+     *
+     * @tags consultantGoogleCalendar
+     * @name ConsultantgooglecalendarAuthUrl
+     * @summary Get Google Calendar OAuth URL for a consultant
+     * @request GET:/admin/consultant-google-calendar/auth-url
+     * @secure
+     * @response `200` `ConsultantgooglecalendarAuthUrlData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantgooglecalendarAuthUrl: (
+      query: ConsultantgooglecalendarAuthUrlParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantgooglecalendarAuthUrlData,
+        ConsultantgooglecalendarAuthUrlError
+      >({
+        path: `/admin/consultant-google-calendar/auth-url`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultantGoogleCalendar
+     * @name ConsultantgooglecalendarCallback
+     * @summary Google Calendar OAuth callback for consultant connection
+     * @request GET:/admin/consultant-google-calendar/callback
+     * @response `200` `ConsultantgooglecalendarCallbackData` HTML response that posts the connection result to the opener window
+     */
+    consultantgooglecalendarCallback: (
+      query: ConsultantgooglecalendarCallbackParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ConsultantgooglecalendarCallbackData, any>({
+        path: `/admin/consultant-google-calendar/callback`,
+        method: "GET",
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultantGoogleCalendar
+     * @name ConsultantgooglecalendarStatus
+     * @summary Get consultant Google Calendar connection status
+     * @request GET:/admin/consultant-google-calendar/status
+     * @secure
+     * @response `200` `ConsultantgooglecalendarStatusData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantgooglecalendarStatus: (
+      query: ConsultantgooglecalendarStatusParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantgooglecalendarStatusData,
+        ConsultantgooglecalendarStatusError
+      >({
+        path: `/admin/consultant-google-calendar/status`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultantGoogleCalendar
+     * @name ConsultantgooglecalendarBusyMonth
+     * @summary Get busy events from consultant Google Calendar for a month
+     * @request GET:/admin/consultant-google-calendar/busy-month
+     * @secure
+     * @response `200` `ConsultantgooglecalendarBusyMonthData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantgooglecalendarBusyMonth: (
+      query: ConsultantgooglecalendarBusyMonthParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantgooglecalendarBusyMonthData,
+        ConsultantgooglecalendarBusyMonthError
+      >({
+        path: `/admin/consultant-google-calendar/busy-month`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultantGoogleCalendar
+     * @name ConsultantgooglecalendarDisconnect
+     * @summary Disconnect consultant Google Calendar account
+     * @request DELETE:/admin/consultant-google-calendar/disconnect
+     * @secure
+     * @response `200` `ConsultantgooglecalendarDisconnectData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantgooglecalendarDisconnect: (
+      query: ConsultantgooglecalendarDisconnectParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantgooglecalendarDisconnectData,
+        ConsultantgooglecalendarDisconnectError
+      >({
+        path: `/admin/consultant-google-calendar/disconnect`,
+        method: "DELETE",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
   task = {
     /**
      * No description
@@ -5005,135 +5215,6 @@ export class Api<SecurityDataType extends unknown> {
         path: `/storage/download-file`,
         method: "GET",
         query: query,
-        ...params,
-      }),
-  };
-  consultantGoogleCalendar = {
-    /**
-     * No description
-     *
-     * @tags consultantGoogleCalendar
-     * @name ConsultantgooglecalendarAuthUrl
-     * @summary Get Google Calendar OAuth URL for a consultant
-     * @request GET:/admin/consultant-google-calendar/auth-url
-     * @secure
-     * @response `200` `ConsultantgooglecalendarAuthUrlData`
-     * @response `400` `HttpErrorDto`
-     */
-    consultantgooglecalendarAuthUrl: (
-      query: ConsultantgooglecalendarAuthUrlParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        ConsultantgooglecalendarAuthUrlData,
-        ConsultantgooglecalendarAuthUrlError
-      >({
-        path: `/admin/consultant-google-calendar/auth-url`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultantGoogleCalendar
-     * @name ConsultantgooglecalendarCallback
-     * @summary Google Calendar OAuth callback for consultant connection
-     * @request GET:/admin/consultant-google-calendar/callback
-     * @response `200` `ConsultantgooglecalendarCallbackData` HTML response that posts the connection result to the opener window
-     */
-    consultantgooglecalendarCallback: (
-      query: ConsultantgooglecalendarCallbackParams = {},
-      params: RequestParams = {},
-    ) =>
-      this.http.request<ConsultantgooglecalendarCallbackData, any>({
-        path: `/admin/consultant-google-calendar/callback`,
-        method: "GET",
-        query: query,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultantGoogleCalendar
-     * @name ConsultantgooglecalendarStatus
-     * @summary Get consultant Google Calendar connection status
-     * @request GET:/admin/consultant-google-calendar/status
-     * @secure
-     * @response `200` `ConsultantgooglecalendarStatusData`
-     * @response `400` `HttpErrorDto`
-     */
-    consultantgooglecalendarStatus: (
-      query: ConsultantgooglecalendarStatusParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        ConsultantgooglecalendarStatusData,
-        ConsultantgooglecalendarStatusError
-      >({
-        path: `/admin/consultant-google-calendar/status`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultantGoogleCalendar
-     * @name ConsultantgooglecalendarBusyMonth
-     * @summary Get busy events from consultant Google Calendar for a month
-     * @request GET:/admin/consultant-google-calendar/busy-month
-     * @secure
-     * @response `200` `ConsultantgooglecalendarBusyMonthData`
-     * @response `400` `HttpErrorDto`
-     */
-    consultantgooglecalendarBusyMonth: (
-      query: ConsultantgooglecalendarBusyMonthParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        ConsultantgooglecalendarBusyMonthData,
-        ConsultantgooglecalendarBusyMonthError
-      >({
-        path: `/admin/consultant-google-calendar/busy-month`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultantGoogleCalendar
-     * @name ConsultantgooglecalendarDisconnect
-     * @summary Disconnect consultant Google Calendar account
-     * @request DELETE:/admin/consultant-google-calendar/disconnect
-     * @secure
-     * @response `200` `ConsultantgooglecalendarDisconnectData`
-     * @response `400` `HttpErrorDto`
-     */
-    consultantgooglecalendarDisconnect: (
-      query: ConsultantgooglecalendarDisconnectParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        ConsultantgooglecalendarDisconnectData,
-        ConsultantgooglecalendarDisconnectError
-      >({
-        path: `/admin/consultant-google-calendar/disconnect`,
-        method: "DELETE",
-        query: query,
-        secure: true,
-        format: "json",
         ...params,
       }),
   };

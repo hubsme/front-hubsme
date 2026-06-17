@@ -2,10 +2,11 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiResponse } from 'api/backend.api';
+import { ConsultantService } from '@service/admin/consultant.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 
-type Pyme = ApiResponse<'pyme', 'findAll'>['data'][number];
+type Pyme = ApiResponse<'consultant', 'meetingPymes'>['data'][number];
 
 @Component({
   selector: 'app-pymes',
@@ -13,6 +14,7 @@ type Pyme = ApiResponse<'pyme', 'findAll'>['data'][number];
   templateUrl: './pymes.html',
 })
 export class Pymes implements OnInit {
+  private consultantService = inject(ConsultantService);
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
 
@@ -36,9 +38,9 @@ export class Pymes implements OnInit {
 
   load() {
     this.loading.set(true);
-    this.hubsme
-      .listPymes('', 1, 100)
-      .then((res) => this.pymes.set(res.data.data))
+    this.consultantService
+      .meetingPymes({ page: 1, limit: 100 })
+      .then((res) => this.pymes.set(res.data))
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
   }

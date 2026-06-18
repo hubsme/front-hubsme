@@ -1,150 +1,19 @@
-import { Routes } from '@angular/router';
 import { inject } from '@angular/core';
+import { Routes } from '@angular/router';
 import { authGuard } from '@guard/auth.guard';
 import { PATH, getPath } from '@route/path.route';
 import { SessionService } from '@service/session.service';
 
-type AppRole = 'pyme' | 'consultor';
-
-const roleMatch = (role: AppRole) => () => {
+const matchPyme = () => {
   const sessionService = inject(SessionService);
   sessionService.restoreSession();
-  return sessionService.session()?.user.role === role;
+  return sessionService.session()?.user.role === 'pyme';
 };
 
-const workspaceRoutes = (role: AppRole): Routes => {
-  const path = PATH[role];
-  return [
-    {
-      path: getPath(path),
-      loadComponent: () => import('@module/admin/admin').then((m) => m.Admin),
-      canActivate: [authGuard],
-      canMatch: [roleMatch(role)],
-      children: [
-        {
-          path: getPath(path.dashboard),
-          loadComponent: () =>
-            role === 'pyme'
-              ? import('@module/admin/content/pyme/dashboard/pyme-dashboard/pyme-dashboard').then((m) => m.PymeDashboard)
-              : import('@module/admin/content/consultor/dashboard/consultor-dashboard/consultor-dashboard').then(
-                  (m) => m.ConsultorDashboard,
-                ),
-        },
-        {
-          path: getPath(path.pymes),
-          loadComponent: () =>
-            role === 'pyme'
-              ? import('@module/admin/content/pyme/pymes/pyme-pymes/pyme-pymes').then((m) => m.PymePymes)
-              : import('@module/admin/content/consultor/pymes/consultor-pymes/consultor-pymes').then(
-                  (m) => m.ConsultorPymes,
-                ),
-        },
-        {
-          path: getPath(path.consultants),
-          loadComponent: () =>
-            role === 'pyme'
-              ? import('@module/admin/content/pyme/consultants/pyme-consultants/pyme-consultants').then(
-                  (m) => m.PymeConsultants,
-                )
-              : import('@module/admin/content/consultor/consultants/consultor-consultants/consultor-consultants').then(
-                  (m) => m.ConsultorConsultants,
-                ),
-        },
-        {
-          path: getPath(path.inbox),
-          loadComponent: () =>
-            role === 'pyme'
-              ? import('@module/admin/content/pyme/inbox/pyme-inbox/pyme-inbox').then((m) => m.PymeInbox)
-              : import('@module/admin/content/consultor/inbox/consultor-inbox/consultor-inbox').then(
-                  (m) => m.ConsultorInbox,
-                ),
-        },
-        {
-          path: `${getPath(path.meetings)}/:id`,
-          loadComponent: () =>
-            import('@module/admin/content/shared/meeting-detail/meeting-detail').then((m) => m.MeetingDetail),
-        },
-        {
-          path: getPath(path.meetings),
-          loadComponent: () =>
-            role === 'pyme'
-              ? import('@module/admin/content/pyme/meetings/pyme-meetings/pyme-meetings').then((m) => m.PymeMeetings)
-              : import('@module/admin/content/consultor/meetings/consultor-meetings/consultor-meetings').then(
-                  (m) => m.ConsultorMeetings,
-                ),
-        },
-        {
-          path: getPath(path.tasks),
-          loadComponent: () =>
-            role === 'pyme'
-              ? import('@module/admin/content/pyme/tasks/pyme-tasks/pyme-tasks').then((m) => m.PymeTasks)
-              : import('@module/admin/content/consultor/tasks/consultor-tasks/consultor-tasks').then(
-                  (m) => m.ConsultorTasks,
-                ),
-        },
-        {
-          path: `${getPath(path.documents)}/diagnostic/:id`,
-          loadComponent: () =>
-            import('@module/admin/content/shared/diagnostic-document-detail/diagnostic-document-detail').then(
-              (m) => m.DiagnosticDocumentDetail,
-            ),
-        },
-        {
-          path: `${getPath(path.documents)}/:id`,
-          loadComponent: () =>
-            import('@module/admin/content/shared/meeting-minutes-detail/meeting-minutes-detail').then(
-              (m) => m.MeetingMinutesDetail,
-            ),
-        },
-        {
-          path: getPath(path.documents),
-          loadComponent: () =>
-            role === 'pyme'
-              ? import('@module/admin/content/pyme/documents/pyme-documents/pyme-documents').then((m) => m.PymeDocuments)
-              : import('@module/admin/content/consultor/documents/consultor-documents/consultor-documents').then(
-                  (m) => m.ConsultorDocuments,
-                ),
-        },
-        {
-          path: `${getPath(path.diagnostics)}/:id`,
-          loadComponent: () =>
-            import('@module/admin/content/shared/diagnostic-detail/diagnostic-detail').then((m) => m.DiagnosticDetail),
-        },
-        {
-          path: getPath(path.diagnostics),
-          loadComponent: () =>
-            role === 'pyme'
-              ? import('@module/admin/content/pyme/diagnostics/pyme-diagnostics/pyme-diagnostics').then(
-                  (m) => m.PymeDiagnostics,
-                )
-              : import('@module/admin/content/consultor/diagnostics/consultor-diagnostics/consultor-diagnostics').then(
-                  (m) => m.ConsultorDiagnostics,
-                ),
-        },
-        {
-          path: getPath(path.subscription),
-          loadComponent: () =>
-            role === 'pyme'
-              ? import('@module/admin/content/pyme/subscription/pyme-subscription/pyme-subscription').then(
-                  (m) => m.PymeSubscription,
-                )
-              : import('@module/admin/content/consultor/subscription/consultor-subscription/consultor-subscription').then(
-                  (m) => m.ConsultorSubscription,
-                ),
-        },
-        {
-          path: getPath(path.profile),
-          loadComponent: () =>
-            role === 'pyme'
-              ? import('@module/admin/content/pyme/profile/pyme-profile/pyme-profile').then((m) => m.PymeProfile)
-              : import('@module/admin/content/consultor/profile/consultor-profile/consultor-profile').then(
-                  (m) => m.ConsultorProfile,
-                ),
-        },
-        { path: '**', redirectTo: getPath(path.dashboard), pathMatch: 'full' },
-      ],
-    },
-  ];
+const matchConsultor = () => {
+  const sessionService = inject(SessionService);
+  sessionService.restoreSession();
+  return sessionService.session()?.user.role === 'consultor';
 };
 
 export const routes: Routes = [
@@ -152,8 +21,128 @@ export const routes: Routes = [
     path: '',
     loadComponent: () => import('@module/landing/landing').then((m) => m.Landing),
   },
-  ...workspaceRoutes('pyme'),
-  ...workspaceRoutes('consultor'),
+  {
+    path: getPath(PATH.policyPrivacy),
+    loadComponent: () => import('@module/policy-privacy/policy-privacy').then((m) => m.PolicyPrivacy),
+  },
+  {
+    path: getPath(PATH.termsConditions),
+    loadComponent: () => import('@module/terms-conditions/terms-conditions').then((m) => m.TermsConditions),
+  },
+  {
+    path: getPath(PATH.admin),
+    canActivate: [authGuard],
+    children: [
+      {
+        path: getPath(PATH.admin.pyme),
+        loadComponent: () => import('@module/admin/admin').then((m) => m.Admin),
+        canMatch: [matchPyme],
+        children: [
+          {
+            path: getPath(PATH.admin.pyme.dashboard),
+            loadComponent: () => import('@module/admin/content/pyme/dashboard/dashboard').then((m) => m.Dashboard),
+          },
+          {
+            path: getPath(PATH.admin.pyme.profile),
+            loadComponent: () => import('@module/admin/content/pyme/profile/profile').then((m) => m.Profile),
+          },
+          {
+            path: getPath(PATH.admin.pyme.diagnostics),
+            loadComponent: () => import('@module/admin/content/pyme/diagnostics/diagnostics').then((m) => m.Diagnostics),
+          },
+          {
+            path: `${getPath(PATH.admin.pyme.diagnostics)}/:id`,
+            loadComponent: () => import('@module/admin/content/shared/diagnostic-detail/diagnostic-detail').then((m) => m.DiagnosticDetail),
+          },
+          {
+            path: getPath(PATH.admin.pyme.consultants),
+            loadComponent: () => import('@module/admin/content/pyme/consultants/consultants').then((m) => m.Consultants),
+          },
+          {
+            path: `${getPath(PATH.admin.pyme.consultant)}/:id`,
+            loadComponent: () => import('@module/admin/content/pyme/consultants/content/consultant-detail/consultant-detail').then((m) => m.ConsultantDetail),
+          },
+          {
+            path: `${getPath(PATH.admin.pyme.checkout)}/:id`,
+            loadComponent: () => import('@module/admin/content/pyme/consultants/content/checkout/checkout').then((m) => m.Checkout),
+          },
+          {
+            path: getPath(PATH.admin.pyme.meetings),
+            loadComponent: () => import('@module/admin/content/pyme/meetings/meetings').then((m) => m.Meetings),
+          },
+          {
+            path: `${getPath(PATH.admin.pyme.meetings)}/:id`,
+            loadComponent: () => import('@module/admin/content/shared/meeting-detail/meeting-detail').then((m) => m.MeetingDetail),
+          },
+          {
+            path: getPath(PATH.admin.pyme.tasks),
+            loadComponent: () => import('@module/admin/content/pyme/tasks/tasks').then((m) => m.Tasks),
+          },
+          {
+            path: `${getPath(PATH.admin.pyme.documents)}/diagnostic/:id`,
+            loadComponent: () => import('@module/admin/content/shared/diagnostic-document-detail/diagnostic-document-detail').then((m) => m.DiagnosticDocumentDetail),
+          },
+          {
+            path: `${getPath(PATH.admin.pyme.documents)}/:id`,
+            loadComponent: () => import('@module/admin/content/shared/meeting-minutes-detail/meeting-minutes-detail').then((m) => m.MeetingMinutesDetail),
+          },
+          {
+            path: getPath(PATH.admin.pyme.documents),
+            loadComponent: () => import('@module/admin/content/pyme/documents/documents').then((m) => m.Documents),
+          },
+          { path: '**', redirectTo: getPath(PATH.admin.pyme.dashboard), pathMatch: 'full' },
+        ],
+      },
+      {
+        path: getPath(PATH.admin.consultor),
+        loadComponent: () => import('@module/admin/admin').then((m) => m.Admin),
+        canMatch: [matchConsultor],
+        children: [
+          {
+            path: getPath(PATH.admin.consultor.dashboard),
+            loadComponent: () => import('@module/admin/content/consultor/dashboard/dashboard').then((m) => m.Dashboard),
+          },
+          {
+            path: getPath(PATH.admin.consultor.profile),
+            loadComponent: () => import('@module/admin/content/consultor/profile/profile').then((m) => m.Profile),
+          },
+          {
+            path: getPath(PATH.admin.consultor.pymes),
+            loadComponent: () => import('@module/admin/content/consultor/pymes/pymes').then((m) => m.Pymes),
+          },
+          {
+            path: getPath(PATH.admin.consultor.meetings),
+            loadComponent: () => import('@module/admin/content/consultor/meetings/meetings').then((m) => m.Meetings),
+          },
+          {
+            path: `${getPath(PATH.admin.consultor.meetings)}/:id`,
+            loadComponent: () => import('@module/admin/content/shared/meeting-detail/meeting-detail').then((m) => m.MeetingDetail),
+          },
+          {
+            path: getPath(PATH.admin.consultor.tasks),
+            loadComponent: () => import('@module/admin/content/consultor/tasks/tasks').then((m) => m.Tasks),
+          },
+          {
+            path: `${getPath(PATH.admin.consultor.documents)}/diagnostic/:id`,
+            loadComponent: () => import('@module/admin/content/shared/diagnostic-document-detail/diagnostic-document-detail').then((m) => m.DiagnosticDocumentDetail),
+          },
+          {
+            path: `${getPath(PATH.admin.consultor.documents)}/:id`,
+            loadComponent: () => import('@module/admin/content/shared/meeting-minutes-detail/meeting-minutes-detail').then((m) => m.MeetingMinutesDetail),
+          },
+          {
+            path: getPath(PATH.admin.consultor.documents),
+            loadComponent: () => import('@module/admin/content/consultor/documents/documents').then((m) => m.Documents),
+          },
+          {
+            path: getPath(PATH.admin.consultor.subscription),
+            loadComponent: () => import('@module/admin/content/consultor/subscription/subscription').then((m) => m.Subscription),
+          },
+          { path: '**', redirectTo: getPath(PATH.admin.consultor.dashboard), pathMatch: 'full' },
+        ],
+      },
+    ]
+  },
   {
     path: getPath(PATH.auth),
     children: [

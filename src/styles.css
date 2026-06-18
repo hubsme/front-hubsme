@@ -406,18 +406,6 @@
   background: var(--color-secondary);
 }
 
-/* Select dropdown options in dark mode */
-[data-theme='dark'] select option {
-  background-color: var(--color-background);
-  color: var(--color-text);
-}
-
-/* Global input style to match the new lighter background theme */
-input.bg-background,
-select.bg-background,
-textarea.bg-background {
-  @apply bg-background/40!;
-}
 
 /* Custom Animations */
 @keyframes marquee {
@@ -429,6 +417,80 @@ textarea.bg-background {
 }
 .animate-marquee:hover {
   animation-play-state: paused;
+}
+
+/* Angular Calendar theme overrides */
+.cal-month-view,
+.cal-week-view,
+.cal-day-view {
+  background-color: var(--color-surface) !important;
+  color: var(--color-text) !important;
+  border-color: var(--color-border) !important;
+}
+
+.cal-month-view .cal-cell-row,
+.cal-month-view .cal-days,
+.cal-month-view .cal-day-cell,
+.cal-week-view .cal-day-headers,
+.cal-week-view .cal-day-column,
+.cal-week-view .cal-hour,
+.cal-week-view .cal-hour-segment,
+.cal-day-view .cal-hour,
+.cal-day-view .cal-hour-segment {
+  border-color: var(--color-border) !important;
+}
+
+.cal-month-view .cal-header,
+.cal-month-view .cal-cell,
+.cal-week-view .cal-day-headers .cal-header,
+.cal-week-view .cal-hour-odd,
+.cal-day-view .cal-hour-odd {
+  background-color: var(--color-surface) !important;
+}
+
+.cal-month-view .cal-cell:hover,
+.cal-month-view .cal-day-cell.cal-today,
+.cal-week-view .cal-day-headers .cal-header.cal-today,
+.cal-week-view .cal-hour-segment:hover,
+.cal-day-view .cal-hour-segment:hover {
+  background-color: color-mix(in srgb, var(--color-secondary) 12%, var(--color-surface)) !important;
+}
+
+.cal-month-view .cal-day-number,
+.cal-month-view .cal-day-badge,
+.cal-month-view .cal-header .cal-cell,
+.cal-week-view .cal-day-headers .cal-header,
+.cal-week-view .cal-hour-segment .cal-time,
+.cal-day-view .cal-hour-segment .cal-time {
+  color: var(--color-text) !important;
+}
+
+.cal-month-view .cal-day-cell.cal-weekend .cal-day-number,
+.cal-week-view .cal-day-headers .cal-weekend span {
+  color: var(--color-danger) !important;
+}
+
+.cal-week-view .cal-time,
+.cal-day-view .cal-time,
+.cal-week-view .cal-day-headers .cal-header span,
+.cal-month-view .cal-day-number {
+  opacity: 0.78;
+}
+
+.cal-week-view .cal-event,
+.cal-day-view .cal-event,
+.cal-month-view .cal-event {
+  color: var(--color-text) !important;
+  box-shadow: none !important;
+}
+
+.cal-week-view .calendar-event-google-busy,
+.cal-day-view .calendar-event-google-busy {
+  pointer-events: none !important;
+}
+
+.cal-month-view .cal-day-cell.calendar-day-available {
+  background-color: rgba(14, 159, 110, 0.06) !important;
 }
 
 /* Quill Editor Custom Styles */

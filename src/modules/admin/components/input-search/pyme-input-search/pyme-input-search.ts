@@ -8,17 +8,13 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { PymeService } from '@service/admin/pyme.service';
-import { HubsmeService } from '@service/hubsme.service';
 import { ApiResponse } from 'api/backend.api';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 type PymeOption = ApiResponse<'pyme', 'findAll'>['data'][number];
-type MatchOption = ApiResponse<'consultant', 'pymeContacts'>['data'][number];
-type MatchStatus = MatchOption['status'];
 
 export type PymeInputSearchFilters = {
-  source?: 'all' | 'matches';
-  status?: MatchStatus;
+  source?: 'all';
 };
 
 @Component({
@@ -29,7 +25,6 @@ export type PymeInputSearchFilters = {
 })
 export class PymeInputSearch implements ControlValueAccessor {
   private pymeService = inject(PymeService);
-  private hubsmeService = inject(HubsmeService);
   private elementRef = inject<ElementRef<HTMLElement>>(ElementRef);
 
   initialData = input<PymeOption | null>(null);
@@ -64,7 +59,7 @@ export class PymeInputSearch implements ControlValueAccessor {
       return;
     }
     const initial = this.initialData();
-    if (initial?.id === value || initial?.userId === value) {
+    if (initial?.id === value) {
       this.selectedItem.set(initial);
       return;
     }
@@ -124,36 +119,17 @@ export class PymeInputSearch implements ControlValueAccessor {
 
   private search(term: string) {
     this.loading.set(true);
-    const filters = this.filters();
     const cleanTerm = term.trim();
-    const request =
-      filters?.source === 'matches'
-        ? this.hubsmeService
-            .listMatches(1, 10, filters.status, cleanTerm)
-            .then((response) => response.data.data.map((match) => this.matchToPyme(match)))
-        : this.pymeService
-            .findAll({ search: cleanTerm || undefined, limit: 10 })
-            .then((response) => response.data);
 
-    request
+    this.pymeService
+      .findAll({ search: cleanTerm || undefined, limit: 10 })
+      .then((response) => response.data)
       .then((items) => this.items.set(items))
       .catch(() => this.items.set([]))
       .finally(() => this.loading.set(false));
   }
 
   private loadInitial(id: number) {
-    const filters = this.filters();
-    if (filters?.source === 'matches') {
-      this.hubsmeService
-        .listMatches(1, 100, filters.status)
-        .then((response) => {
-          const match = response.data.data.find((item) => item.pymeId === id);
-          this.selectedItem.set(match ? this.matchToPyme(match) : null);
-        })
-        .catch(() => this.selectedItem.set(null));
-      return;
-    }
-
     this.pymeService
       .findByUser(id)
       .then((item) => this.selectedItem.set(item))
@@ -163,20 +139,5 @@ export class PymeInputSearch implements ControlValueAccessor {
           .then((item) => this.selectedItem.set(item))
           .catch(() => this.selectedItem.set(null)),
       );
-  }
-
-  private matchToPyme(match: MatchOption): PymeOption {
-    return {
-      id: match.pymeId,
-      userId: match.pymeId,
-      name: match.pymeName ?? 'PYME',
-      ruc: null,
-      ownerFirstName: null,
-      ownerLastName: null,
-      ownerEmail: null,
-      sector: match.pymeSector,
-      numEmployees: match.pymeNumEmployees,
-      createdAt: match.createdAt,
-    };
   }
 }

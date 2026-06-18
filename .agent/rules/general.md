@@ -1,4 +1,4 @@
-# REGLAS DEL PROYECTO - Frontend Transporte Terrestre
+# REGLAS DEL PROYECTO - Frontend Hubsme
 
 ## 🌐 IDIOMA
 

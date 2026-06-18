@@ -6,6 +6,7 @@ import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { ConsultantService } from '@service/admin/consultant.service';
 import { PymeService } from '@service/admin/pyme.service';
+import { PATH, buildPath } from '@route/path.route';
 
 import { TeamsCallService } from '@module/admin/services/teams-call.service';
 
@@ -54,7 +55,7 @@ export class MeetingDetail implements OnInit {
     if (!meeting) return [];
     try {
       const role = this.hubsme.currentUser().role;
-      return [role === 'consultor' ? '/consultor/documents' : '/pyme/documents', meeting.id];
+      return [role === 'consultor' ? buildPath(PATH.admin.consultor.documents) : buildPath(PATH.admin.pyme.documents), meeting.id];
     } catch {
       return [];
     }

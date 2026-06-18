@@ -1,0 +1,228 @@
+<div class="space-y-6 font-inter-regular text-text">
+  <div class="flex flex-col gap-2">
+    <h1 class="text-3xl font-plus-jakarta-sans font-bold capitalize">mi perfil</h1>
+    <p class="text-[0.82rem] text-muted">
+      Actualiza tu informacion publica, foto y video de presentacion.
+    </p>
+  </div>
+
+  @if (loading()) {
+    <div class="py-16 text-center text-muted">
+      <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+    </div>
+  } @else {
+    <section class="grid grid-cols-1 gap-6 xl:grid-cols-[22rem_1fr]">
+      <aside class="rounded-xl border border-border bg-surface p-6">
+        <h2 class="mb-5 block text-xs font-inter-semibold text-muted">Foto de perfil y video</h2>
+        <div class="mx-auto h-36 w-36 overflow-hidden rounded-full border border-border bg-text/5 shadow-inner">
+          @if (form().photoUrl && !photoError()) {
+            <img [src]="form().photoUrl" alt="Foto de perfil" (error)="onPhotoError()" class="h-full w-full object-cover" />
+          } @else {
+            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-secondary/60 font-plus-jakarta-sans text-4xl font-bold text-background uppercase select-none">
+              {{ getInitials() }}
+            </div>
+          }
+        </div>
+        <label
+          class="mt-5 flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border text-sm font-inter-semibold"
+        >
+          @if (uploadingPhoto()) {
+            <i class="fas fa-spinner fa-spin"></i>
+          } @else {
+            <i class="fas fa-image"></i>
+          }
+          Subir foto
+          <input type="file" accept="image/*" class="hidden" (change)="uploadPhoto($event)" />
+        </label>
+        @if (form().videoUrl) {
+          <div class="mt-5">
+            <p class="mb-3 text-xs text-muted font-inter-semibold">Preview</p>
+            <video
+              [src]="form().videoUrl"
+              class="mx-auto aspect-[9/16] max-h-[24rem] max-w-[15rem] rounded-2xl bg-text/5 object-contain"
+              controls
+              preload="metadata"
+            ></video>
+          </div>
+        }
+        <label
+          class="mt-4 flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border text-sm font-inter-semibold"
+        >
+          @if (uploadingVideo()) {
+            <i class="fas fa-spinner fa-spin"></i>
+          } @else {
+            <i class="fas fa-video"></i>
+          }
+          Subir video
+          <input type="file" accept="video/*" class="hidden" (change)="uploadVideo($event)" />
+        </label>
+      </aside>
+
+      <form (ngSubmit)="save()" class="rounded-xl border border-border bg-surface p-6 lg:p-8">
+        <h2 class="mb-6 font-anton text-xl lowercase text-text">mi información personal</h2>
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Nombres</span>
+            <input
+              [ngModel]="form().firstName"
+              name="consultantFirstName"
+              (ngModelChange)="updateForm('firstName', $event)"
+              class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
+            />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Apellidos</span>
+            <input
+              [ngModel]="form().lastName"
+              name="consultantLastName"
+              (ngModelChange)="updateForm('lastName', $event)"
+              class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
+            />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+            <span class="mb-2 block">Bio</span>
+            <textarea
+              [ngModel]="form().bio"
+              name="bio"
+              (ngModelChange)="updateForm('bio', $event)"
+              class="min-h-28 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-text outline-none focus:border-secondary"
+            ></textarea>
+          </label>
+          <div class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Especialidades</span>
+            <div
+              class="flex min-h-10 w-full flex-wrap items-center gap-2 rounded-xl border border-border bg-background px-2 py-2 focus-within:border-secondary"
+            >
+              @for (specialty of form().specialties; track $index) {
+                <span
+                  class="inline-flex h-7 items-center gap-2 rounded-full bg-text/5 px-3 text-xs text-muted font-inter-bold"
+                >
+                  {{ specialty }}
+                  <button
+                    type="button"
+                    class="cursor-pointer text-muted/70 transition-colors hover:text-text"
+                    aria-label="Quitar especialidad"
+                    (click)="removeChip('specialties', $index)"
+                  >
+                    <i class="fas fa-xmark"></i>
+                  </button>
+                </span>
+              }
+              <input
+                [ngModel]="specialtyInput()"
+                name="specialtyInput"
+                (ngModelChange)="updateChipInput('specialties', $event)"
+                (keydown)="handleChipKeydown($event, 'specialties')"
+                (blur)="addChip('specialties')"
+                placeholder="Agregar especialidad..."
+                class="min-w-40 flex-1 bg-transparent px-1 text-sm text-text outline-none placeholder:text-text-400"
+              />
+              <button
+                type="button"
+                class="h-7 w-7 shrink-0 cursor-pointer rounded-full bg-text text-background transition-colors hover:bg-text/90"
+                aria-label="Agregar especialidad"
+                (click)="addChip('specialties')"
+              >
+                <i class="fas fa-plus text-[0.7rem]"></i>
+              </button>
+            </div>
+          </div>
+          <div class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Sectores</span>
+            <div
+              class="flex min-h-10 w-full flex-wrap items-center gap-2 rounded-xl border border-border bg-background px-2 py-2 focus-within:border-secondary"
+            >
+              @for (sector of form().sectors; track $index) {
+                <span
+                  class="inline-flex h-7 items-center gap-2 rounded-full bg-text/5 px-3 text-xs text-muted font-inter-bold"
+                >
+                  {{ sector }}
+                  <button
+                    type="button"
+                    class="cursor-pointer text-muted/70 transition-colors hover:text-text"
+                    aria-label="Quitar sector"
+                    (click)="removeChip('sectors', $index)"
+                  >
+                    <i class="fas fa-xmark"></i>
+                  </button>
+                </span>
+              }
+              <input
+                [ngModel]="sectorInput()"
+                name="sectorInput"
+                (ngModelChange)="updateChipInput('sectors', $event)"
+                (keydown)="handleChipKeydown($event, 'sectors')"
+                (blur)="addChip('sectors')"
+                placeholder="Agregar sector..."
+                class="min-w-40 flex-1 bg-transparent px-1 text-sm text-text outline-none placeholder:text-text-400"
+              />
+              <button
+                type="button"
+                class="h-7 w-7 shrink-0 cursor-pointer rounded-full bg-text text-background transition-colors hover:bg-text/90"
+                aria-label="Agregar sector"
+                (click)="addChip('sectors')"
+              >
+                <i class="fas fa-plus text-[0.7rem]"></i>
+              </button>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 gap-3 md:col-span-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+            <label class="block text-xs text-muted font-inter-semibold">
+              <span class="mb-2 block">Precio por hora</span>
+              <input
+                type="number"
+                [ngModel]="form().pricePerHour"
+                name="pricePerHour"
+                (ngModelChange)="updateForm('pricePerHour', +$event)"
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
+              />
+            </label>
+            <div class="flex flex-col">
+              <span class="mb-2 flex items-center text-xs font-inter-semibold">
+                @if (mercadoPagoStatus().connected) {
+                  <span class="inline-flex items-center gap-1.5 text-success font-inter-bold">
+                    <span class="h-1.5 w-1.5 rounded-full bg-success"></span>
+                    Conectado
+                  </span>
+                } @else {
+                  <span class="inline-flex items-center gap-1.5 text-danger font-inter-bold">
+                    <span class="h-1.5 w-1.5 rounded-full bg-danger"></span>
+                    Desconectado
+                  </span>
+                }
+              </span>
+              <button
+                type="button"
+                [title]="mercadoPagoStatus().connected ? mercadoPagoAccountLabel() : 'Conectar Mercado Pago'"
+                [disabled]="mercadoPagoLoading() || !consultant()"
+                class="inline-flex h-10 min-w-56 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm font-inter-bold text-text shadow-sm transition-colors hover:bg-background-50 disabled:opacity-50"
+                (click)="mercadoPagoStatus().connected ? disconnectMercadoPago() : startMercadoPagoConnect()"
+              >
+                <img src="/avif/mercado_pago.avif" alt="Mercado Pago" class="h-5 w-5 object-contain" />
+                @if (mercadoPagoLoading()) {
+                  <i class="fas fa-spinner fa-spin"></i>
+                  Procesando...
+                } @else {
+                  Mercado Pago
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end">
+          <button
+            type="submit"
+            [disabled]="saving()"
+            class="h-10 rounded-xl bg-secondary px-5 text-sm text-background font-inter-bold hover:bg-secondary/90 transition-colors disabled:opacity-50"
+          >
+            @if (saving()) {
+              <i class="fas fa-spinner fa-spin mr-2"></i> Guardando...
+            } @else {
+              Guardar perfil
+            }
+          </button>
+        </div>
+      </form>
+    </section>
+  }
+</div>

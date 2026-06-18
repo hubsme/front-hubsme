@@ -9,115 +9,80 @@
 
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
       @if (googleStatus().connected) {
-        <button
-          type="button"
-          (click)="disconnectGoogleCalendar()"
-          [disabled]="googleLoading()"
-          class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-5 text-sm text-text font-inter-bold transition-colors hover:bg-background-100 disabled:opacity-50"
-        >
-          @if (googleLoading()) {
-            <i class="fas fa-spinner fa-spin"></i>
-          } @else {
-            <svg class="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06L5.84 9.9C6.71 7.3 9.14 5.38 12 5.38z"
-              />
-            </svg>
-          }
-          Calendario
-        </button>
+      <button type="button" (click)="disconnectGoogleCalendar()" [disabled]="googleLoading()"
+        class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-5 text-sm text-text font-inter-bold transition-colors hover:bg-background-100 disabled:opacity-50">
+        @if (googleLoading()) {
+        <i class="fas fa-spinner fa-spin"></i>
+        } @else {
+        <svg class="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#4285F4"
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+          <path fill="#34A853"
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+          <path fill="#FBBC05"
+            d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z" />
+          <path fill="#EA4335"
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06L5.84 9.9C6.71 7.3 9.14 5.38 12 5.38z" />
+        </svg>
+        }
+        Calendario
+      </button>
       } @else {
-        <button
-          type="button"
-          (click)="startGoogleCalendarConnect()"
-          [disabled]="googleLoading()"
-          class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-5 text-sm text-text font-inter-bold transition-colors hover:bg-background-100 disabled:opacity-50"
-        >
-          @if (googleLoading()) {
-            <i class="fas fa-spinner fa-spin"></i>
-            Conectando
-          } @else {
-            <svg class="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06L5.84 9.9C6.71 7.3 9.14 5.38 12 5.38z"
-              />
-            </svg>
-            Calendario
-          }
-        </button>
+      <button type="button" (click)="startGoogleCalendarConnect()" [disabled]="googleLoading()"
+        class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-5 text-sm text-text font-inter-bold transition-colors hover:bg-background-100 disabled:opacity-50">
+        @if (googleLoading()) {
+        <i class="fas fa-spinner fa-spin"></i>
+        Conectando
+        } @else {
+        <svg class="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#4285F4"
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+          <path fill="#34A853"
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+          <path fill="#FBBC05"
+            d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l3.66-2.84z" />
+          <path fill="#EA4335"
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06L5.84 9.9C6.71 7.3 9.14 5.38 12 5.38z" />
+        </svg>
+        Calendario
+        }
+      </button>
       }
       @if (view() === CalendarView.Week) {
-        <div class="relative">
-          <button
-            type="button"
-            (click)="toggleSaveMenu($event)"
-            [disabled]="saving() || loading()"
-            class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm text-fixed-text-50 font-inter-bold transition-colors hover:bg-secondary/90 disabled:opacity-50"
-          >
-            @if (saving()) {
-              <i class="fas fa-spinner fa-spin"></i>
-              Guardando
-            } @else {
-              <i class="fas fa-floppy-disk"></i>
-              Guardar
-              <i class="fas fa-chevron-down text-[0.65rem]"></i>
-            }
-          </button>
-
-          @if (isSaveMenuOpen()) {
-            <div
-              class="absolute right-0 z-30 mt-2 w-64 overflow-hidden rounded-xl border border-border bg-surface py-1 shadow-[0_16px_36px_rgba(15,23,42,0.14)]"
-              (click)="$event.stopPropagation()"
-            >
-              <button
-                type="button"
-                (click)="saveAvailability('week', $event)"
-                class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-text transition-colors hover:bg-background-100"
-              >
-                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
-                  <i class="fas fa-calendar-week text-xs"></i>
-                </span>
-                <span class="font-inter-bold">Solo esta semana</span>
-              </button>
-              <button
-                type="button"
-                (click)="saveAvailability('month', $event)"
-                class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-text transition-colors hover:bg-background-100"
-              >
-                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-success/10 text-success">
-                  <i class="fas fa-calendar-days text-xs"></i>
-                </span>
-                <span class="font-inter-bold">Todos los días del mes</span>
-              </button>
-            </div>
+      <div class="relative">
+        <button type="button" (click)="toggleSaveMenu($event)" [disabled]="saving() || loading()"
+          class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm text-fixed-text-50 font-inter-bold transition-colors hover:bg-secondary/90 disabled:opacity-50">
+          @if (saving()) {
+          <i class="fas fa-spinner fa-spin"></i>
+          Guardando
+          } @else {
+          <i class="fas fa-floppy-disk"></i>
+          Guardar
+          <i class="fas fa-chevron-down text-[0.65rem]"></i>
           }
+        </button>
+
+        @if (isSaveMenuOpen()) {
+        <div
+          class="absolute right-0 z-30 mt-2 w-64 overflow-hidden rounded-xl border border-border bg-surface py-1 shadow-[0_16px_36px_rgba(15,23,42,0.14)]"
+          (click)="$event.stopPropagation()">
+          <button type="button" (click)="saveAvailability('week', $event)"
+            class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-text transition-colors hover:bg-background-100">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
+              <i class="fas fa-calendar-week text-xs"></i>
+            </span>
+            <span class="font-inter-bold">Solo esta semana</span>
+          </button>
+          <button type="button" (click)="saveAvailability('month', $event)"
+            class="flex w-full items-center gap-3 px-4 py-3 text-left text-sm text-text transition-colors hover:bg-background-100">
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-success/10 text-success">
+              <i class="fas fa-calendar-days text-xs"></i>
+            </span>
+            <span class="font-inter-bold">Todos los días del mes</span>
+          </button>
         </div>
+        }
+      </div>
       }
     </div>
   </div>
@@ -125,35 +90,19 @@
   <section class="rounded-xl border border-border bg-surface p-4 shadow-[0_14px_32px_rgba(15,23,42,0.05)] lg:p-5">
     <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
       <div class="flex items-center gap-2">
-        <button
-          type="button"
-          mwlCalendarPreviousView
-          [view]="view()"
-          [viewDate]="viewDate()"
+        <button type="button" mwlCalendarPreviousView [view]="view()" [viewDate]="viewDate()"
           (viewDateChange)="previous()"
           class="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted transition-colors hover:bg-background-100 hover:text-text"
-          aria-label="Mes anterior"
-        >
+          aria-label="Mes anterior">
           <i class="fas fa-chevron-left text-xs"></i>
         </button>
-        <button
-          type="button"
-          mwlCalendarToday
-          [viewDate]="viewDate()"
-          (viewDateChange)="today()"
-          class="h-9 rounded-xl border border-border px-4 text-xs text-muted font-inter-bold transition-colors hover:bg-background-100 hover:text-text"
-        >
+        <button type="button" mwlCalendarToday [viewDate]="viewDate()" (viewDateChange)="today()"
+          class="h-9 rounded-xl border border-border px-4 text-xs text-muted font-inter-bold transition-colors hover:bg-background-100 hover:text-text">
           Hoy
         </button>
-        <button
-          type="button"
-          mwlCalendarNextView
-          [view]="view()"
-          [viewDate]="viewDate()"
-          (viewDateChange)="next()"
+        <button type="button" mwlCalendarNextView [view]="view()" [viewDate]="viewDate()" (viewDateChange)="next()"
           class="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted transition-colors hover:bg-background-100 hover:text-text"
-          aria-label="Mes siguiente"
-        >
+          aria-label="Mes siguiente">
           <i class="fas fa-chevron-right text-xs"></i>
         </button>
       </div>
@@ -163,127 +112,89 @@
       </h2>
 
       <div class="inline-flex rounded-xl border border-border bg-background-50 p-1">
-        <button
-          type="button"
-          (click)="setView(CalendarView.Month)"
+        <button type="button" (click)="setView(CalendarView.Month)"
           class="h-8 rounded-lg px-3 text-xs font-inter-bold transition-colors"
-          [class.bg-surface]="view() === CalendarView.Month"
-          [class.text-text]="view() === CalendarView.Month"
-          [class.text-muted]="view() !== CalendarView.Month"
-        >
+          [class.bg-surface]="view() === CalendarView.Month" [class.text-text]="view() === CalendarView.Month"
+          [class.text-muted]="view() !== CalendarView.Month">
           Mes
         </button>
-        <button
-          type="button"
-          (click)="setView(CalendarView.Week)"
+        <button type="button" (click)="setView(CalendarView.Week)"
           class="h-8 rounded-lg px-3 text-xs font-inter-bold transition-colors"
-          [class.bg-surface]="view() === CalendarView.Week"
-          [class.text-text]="view() === CalendarView.Week"
-          [class.text-muted]="view() !== CalendarView.Week"
-        >
+          [class.bg-surface]="view() === CalendarView.Week" [class.text-text]="view() === CalendarView.Week"
+          [class.text-muted]="view() !== CalendarView.Week">
           Semana
         </button>
       </div>
     </div>
 
     @if (view() === CalendarView.Week) {
-      <div class="mt-4 flex flex-col gap-3 rounded-xl border border-border bg-surface p-3 sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            (click)="setBrush('disponible')"
-            class="inline-flex h-9 items-center justify-center gap-2 rounded-full border px-4 text-xs font-inter-bold transition-colors"
-            [style.border-color]="activeBrush() === 'disponible' ? 'var(--color-success)' : 'var(--color-border)'"
-            [style.background-color]="activeBrush() === 'disponible' ? 'color-mix(in srgb, var(--color-success) 10%, var(--color-surface))' : 'var(--color-surface)'"
-            [style.color]="activeBrush() === 'disponible' ? 'var(--color-success)' : 'var(--color-text)'"
-            [style.box-shadow]="activeBrush() === 'disponible' ? '0 4px 10px rgba(15,23,42,0.08)' : 'none'"
-          >
-            <span class="h-4 w-4 rounded-full bg-success shadow-[0_0_0_4px_rgba(14,159,110,0.12)]"></span>
-            Disponible
-          </button>
-          <button
-            type="button"
-            (click)="setBrush('bloqueado')"
-            class="inline-flex h-9 items-center justify-center gap-2 rounded-full border px-4 text-xs font-inter-bold transition-colors"
-            [style.border-color]="activeBrush() === 'bloqueado' ? 'var(--color-border)' : 'color-mix(in srgb, var(--color-border) 72%, var(--color-surface))'"
-            [style.background-color]="'var(--color-surface)'"
-            [style.color]="activeBrush() === 'bloqueado' ? 'var(--color-text)' : 'var(--color-muted)'"
-            [style.box-shadow]="activeBrush() === 'bloqueado' ? '0 4px 10px rgba(15,23,42,0.08)' : 'none'"
-          >
-            <span class="h-4 w-4 rounded-full border border-border bg-surface shadow-[0_0_0_4px_rgba(148,163,184,0.12)]"></span>
-            No disponible
-          </button>
-        </div>
-        <span
-          class="inline-flex h-8 items-center rounded-full px-3 text-xs font-inter-bold"
-          [class.bg-success/10]="activeBrush() === 'disponible'"
-          [class.text-success]="activeBrush() === 'disponible'"
-          [class.bg-background-100]="activeBrush() === 'bloqueado'"
-          [class.text-muted]="activeBrush() === 'bloqueado'"
-        >
-          {{ brushLabel() }}
-        </span>
+    <div
+      class="mt-4 flex flex-col gap-3 rounded-xl border border-border bg-surface p-3 sm:flex-row sm:items-center sm:justify-between">
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" (click)="setBrush('disponible')"
+          class="inline-flex h-9 items-center justify-center gap-2 rounded-full border px-4 text-xs font-inter-bold transition-colors"
+          [style.border-color]="activeBrush() === 'disponible' ? 'var(--color-success)' : 'var(--color-border)'"
+          [style.background-color]="activeBrush() === 'disponible' ? 'color-mix(in srgb, var(--color-success) 10%, var(--color-surface))' : 'var(--color-surface)'"
+          [style.color]="activeBrush() === 'disponible' ? 'var(--color-success)' : 'var(--color-text)'"
+          [style.box-shadow]="activeBrush() === 'disponible' ? '0 4px 10px rgba(15,23,42,0.08)' : 'none'">
+          <span class="h-4 w-4 rounded-full bg-success shadow-[0_0_0_4px_rgba(14,159,110,0.12)]"></span>
+          Disponible
+        </button>
+        <button type="button" (click)="setBrush('bloqueado')"
+          class="inline-flex h-9 items-center justify-center gap-2 rounded-full border px-4 text-xs font-inter-bold transition-colors"
+          [style.border-color]="activeBrush() === 'bloqueado' ? 'var(--color-border)' : 'color-mix(in srgb, var(--color-border) 72%, var(--color-surface))'"
+          [style.background-color]="'var(--color-surface)'"
+          [style.color]="activeBrush() === 'bloqueado' ? 'var(--color-text)' : 'var(--color-muted)'"
+          [style.box-shadow]="activeBrush() === 'bloqueado' ? '0 4px 10px rgba(15,23,42,0.08)' : 'none'">
+          <span
+            class="h-4 w-4 rounded-full border border-border bg-surface shadow-[0_0_0_4px_rgba(148,163,184,0.12)]"></span>
+          No disponible
+        </button>
       </div>
+      <span class="inline-flex h-8 items-center rounded-full px-3 text-xs font-inter-bold"
+        [class.bg-success/10]="activeBrush() === 'disponible'" [class.text-success]="activeBrush() === 'disponible'"
+        [class.bg-background-100]="activeBrush() === 'bloqueado'" [class.text-muted]="activeBrush() === 'bloqueado'">
+        {{ brushLabel() }}
+      </span>
+    </div>
     }
 
     <ng-template #availabilityHourSegment let-segment="segment" let-isTimeLabel="isTimeLabel">
-      <div
-        class="flex h-full w-full select-none items-start transition-colors"
+      <div class="flex h-full w-full select-none items-start transition-colors"
         [style.background-color]="segmentBackgroundColor(segment.date, isTimeLabel)"
         [style.cursor]="isTimeLabel ? 'default' : brushCursor()"
         (mousedown)="!isTimeLabel && startSlotDrag(segment.date, $event)"
         (mouseenter)="!isTimeLabel && updateSlotDrag(segment.date)"
-        (mouseup)="!isTimeLabel && finishSlotDrag(segment.date, $event)"
-      >
+        (mouseup)="!isTimeLabel && finishSlotDrag(segment.date, $event)">
         @if (isTimeLabel && segment.isStart) {
-          <div class="cal-time text-muted">{{ segment.date | calendarDate: 'weekViewHour' : 'es-PE' }}</div>
+        <div class="cal-time text-muted">{{ segment.date | calendarDate: 'weekViewHour' : 'es-PE' }}</div>
         }
       </div>
     </ng-template>
 
     <div class="mt-5 min-h-[45rem] overflow-hidden rounded-xl border border-border bg-background text-text">
       @if (loading()) {
-        <div class="flex min-h-[45rem] items-center justify-center text-muted">
-          <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
-        </div>
+      <div class="flex min-h-[45rem] items-center justify-center text-muted">
+        <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+      </div>
       } @else {
-        @switch (view()) {
-          @case (CalendarView.Month) {
-            <mwl-calendar-month-view
-              [viewDate]="viewDate()"
-              [events]="events()"
-              (beforeViewRender)="beforeMonthViewRender($event)"
-              (eventClicked)="openEventDetail($event.event)"
-              locale="es-PE"
-            ></mwl-calendar-month-view>
-          }
-          @case (CalendarView.Week) {
-            <mwl-calendar-week-view
-              [viewDate]="viewDate()"
-              [events]="events()"
-              [hourSegments]="2"
-              [dayStartHour]="6"
-              [dayEndHour]="22"
-              [hourSegmentHeight]="46"
-              [hourSegmentTemplate]="availabilityHourSegment"
-              (eventClicked)="openEventDetail($event.event)"
-              locale="es-PE"
-            ></mwl-calendar-week-view>
-          }
-          @case (CalendarView.Day) {
-            <mwl-calendar-day-view
-              [viewDate]="viewDate()"
-              [events]="events()"
-              [hourSegments]="2"
-              [dayStartHour]="6"
-              [dayEndHour]="22"
-              [hourSegmentHeight]="46"
-              [hourSegmentTemplate]="availabilityHourSegment"
-              (eventClicked)="openEventDetail($event.event)"
-              locale="es-PE"
-            ></mwl-calendar-day-view>
-          }
-        }
+      @switch (view()) {
+      @case (CalendarView.Month) {
+      <mwl-calendar-month-view [viewDate]="viewDate()" [events]="events()"
+        (beforeViewRender)="beforeMonthViewRender($event)" (eventClicked)="openEventDetail($event.event)"
+        locale="es-PE"></mwl-calendar-month-view>
+      }
+      @case (CalendarView.Week) {
+      <mwl-calendar-week-view [viewDate]="viewDate()" [events]="events()" [hourSegments]="2" [dayStartHour]="6"
+        [dayEndHour]="22" [hourSegmentHeight]="46" [hourSegmentTemplate]="availabilityHourSegment"
+        (eventClicked)="openEventDetail($event.event)" locale="es-PE"></mwl-calendar-week-view>
+      }
+      @case (CalendarView.Day) {
+      <mwl-calendar-day-view [viewDate]="viewDate()" [events]="events()" [hourSegments]="2" [dayStartHour]="6"
+        [dayEndHour]="22" [hourSegmentHeight]="46" [hourSegmentTemplate]="availabilityHourSegment"
+        (eventClicked)="openEventDetail($event.event)" locale="es-PE"></mwl-calendar-day-view>
+      }
+      }
       }
     </div>
 
@@ -305,10 +216,10 @@
       <span class="font-inter-semibold">
         {{ sortedSlots().length }} bloques configurados
         @if (googleStatus().connected) {
-          · {{ googleBusySlots().length }} ocupados Google
-          @if (googleBusyLoading()) {
-            <i class="fas fa-spinner fa-spin text-secondary"></i>
-          }
+        · {{ googleBusySlots().length }} ocupados Google
+        @if (googleBusyLoading()) {
+        <i class="fas fa-spinner fa-spin text-secondary"></i>
+        }
         }
         · {{ meetings().length }} reuniones
       </span>
@@ -317,136 +228,100 @@
 </div>
 
 @if (isCreateModalOpen()) {
-  <app-modal-form
-    title="nuevo bloque"
-    submitText="Agregar bloque"
-    cancelText="Cancelar"
-    maxWidth="xl"
-    (onSubmit)="addSlot()"
-    (onClose)="closeCreateModal()"
-  >
-      <div class="space-y-4 p-6">
-        <label class="block text-xs text-muted font-inter-semibold">
-          <span class="mb-2 block">Fecha</span>
-          <input
-            type="date"
-            [ngModel]="form().date"
-            name="availabilityDate"
-            (ngModelChange)="updateForm('date', $event)"
-            class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
-          />
-        </label>
+<app-modal-form title="nuevo bloque" submitText="Agregar bloque" cancelText="Cancelar" maxWidth="xl"
+  (onSubmit)="addSlot()" (onClose)="closeCreateModal()">
+  <div class="space-y-4 p-6">
+    <label class="block text-xs text-muted font-inter-semibold">
+      <span class="mb-2 block">Fecha</span>
+      <input type="date" [ngModel]="form().date" name="availabilityDate" (ngModelChange)="updateForm('date', $event)"
+        class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary" />
+    </label>
 
-        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <label class="block text-xs text-muted font-inter-semibold">
-            <span class="mb-2 block">Inicio</span>
-            <input
-              type="time"
-              [ngModel]="form().startTime"
-              name="availabilityStartTime"
-              (ngModelChange)="updateForm('startTime', $event)"
-              class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
-            />
-          </label>
-          <label class="block text-xs text-muted font-inter-semibold">
-            <span class="mb-2 block">Fin</span>
-            <input
-              type="time"
-              [ngModel]="form().endTime"
-              name="availabilityEndTime"
-              (ngModelChange)="updateForm('endTime', $event)"
-              class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
-            />
-          </label>
-        </div>
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <label class="block text-xs text-muted font-inter-semibold">
+        <span class="mb-2 block">Inicio</span>
+        <input type="time" [ngModel]="form().startTime" name="availabilityStartTime"
+          (ngModelChange)="updateForm('startTime', $event)"
+          class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary" />
+      </label>
+      <label class="block text-xs text-muted font-inter-semibold">
+        <span class="mb-2 block">Fin</span>
+        <input type="time" [ngModel]="form().endTime" name="availabilityEndTime"
+          (ngModelChange)="updateForm('endTime', $event)"
+          class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary" />
+      </label>
+    </div>
 
-        <label class="block text-xs text-muted font-inter-semibold">
-          <span class="mb-2 block">Notas</span>
-          <textarea
-            [ngModel]="form().notes"
-            name="availabilityNotes"
-            (ngModelChange)="updateForm('notes', $event)"
-            class="min-h-24 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-text outline-none focus:border-secondary"
-          ></textarea>
-        </label>
-      </div>
-  </app-modal-form>
+    <label class="block text-xs text-muted font-inter-semibold">
+      <span class="mb-2 block">Notas</span>
+      <textarea [ngModel]="form().notes" name="availabilityNotes" (ngModelChange)="updateForm('notes', $event)"
+        class="min-h-24 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-text outline-none focus:border-secondary"></textarea>
+    </label>
+  </div>
+</app-modal-form>
 }
 
 @if (selectedMeeting(); as meeting) {
-  <app-modal-form
-    title="detalle de reunion"
-    [submitText]="canJoinMeeting(meeting) ? 'Unirse' : 'Cerrar'"
-    cancelText="Cerrar"
-    maxWidth="lg"
-    (onSubmit)="canJoinMeeting(meeting) ? joinMeeting(meeting) : closeMeetingDetail()"
-    (onClose)="closeMeetingDetail()"
-  >
-    <div class="space-y-4 p-6">
-      <div class="rounded-xl border border-border bg-background-50 p-4">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <p class="text-xs font-inter-bold uppercase text-muted">Reunion Hubsme</p>
-            <h3 class="mt-1 text-lg font-inter-bold text-text">{{ meeting.title }}</h3>
-          </div>
-          <span class="rounded-full px-3 py-1 text-[0.68rem] font-inter-bold" [class]="meetingStatusClass(meeting.status)">
-            {{ meetingStatusLabel(meeting.status) }}
-          </span>
+<app-modal-form title="detalle de reunion" [submitText]="canJoinMeeting(meeting) ? 'Unirse' : 'Cerrar'"
+  cancelText="Cerrar" maxWidth="lg" (onSubmit)="canJoinMeeting(meeting) ? joinMeeting(meeting) : closeMeetingDetail()"
+  (onClose)="closeMeetingDetail()">
+  <div class="space-y-4 p-6">
+    <div class="rounded-xl border border-border bg-background-50 p-4">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="text-xs font-inter-bold uppercase text-muted">Reunion Hubsme</p>
+          <h3 class="mt-1 text-lg font-inter-bold text-text">{{ meeting.title }}</h3>
         </div>
-
-        <div class="mt-4 grid gap-3 text-sm text-muted sm:grid-cols-2">
-          <span class="inline-flex items-center gap-2">
-            <i class="far fa-calendar"></i>
-            {{ formatDate(meeting.startTime) }}
-          </span>
-          <span class="inline-flex items-center gap-2">
-            <i class="far fa-clock"></i>
-            {{ formatHour(meeting.startTime) }} - {{ formatHour(meetingEnd(meeting)) }}
-          </span>
-          <span class="inline-flex items-center gap-2">
-            <i class="fas fa-hourglass-half"></i>
-            {{ meeting.durationMinutes }} min
-          </span>
-          <span class="inline-flex items-center gap-2">
-            <i class="fas fa-video"></i>
-            {{ meeting.meetingUrl ? 'Teams disponible' : 'Sin enlace aun' }}
-          </span>
-        </div>
-
-        @if (meeting.description) {
-          <p class="mt-4 text-sm leading-relaxed text-muted">{{ meeting.description }}</p>
-        }
+        <span class="rounded-full px-3 py-1 text-[0.68rem] font-inter-bold"
+          [class]="meetingStatusClass(meeting.status)">
+          {{ meetingStatusLabel(meeting.status) }}
+        </span>
       </div>
 
-      <div class="flex flex-wrap gap-3">
-        <button
-          type="button"
-          [routerLink]="[buildPath(PATH.consultor.meetings), meeting.id]"
-          (click)="closeMeetingDetail()"
-          class="inline-flex h-9 items-center justify-center rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold transition-colors hover:border-secondary hover:text-secondary"
-        >
-          Detalles
-        </button>
-        @if (canFinishMeeting(meeting)) {
-          <button
-            type="button"
-            (click)="finishMeeting(meeting)"
-            class="inline-flex h-9 items-center justify-center rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold transition-colors hover:border-secondary hover:text-secondary"
-          >
-            Finalizar
-          </button>
-        }
-        @if (meeting.status === 'finalizada' || meeting.description) {
-          <button
-            type="button"
-            [routerLink]="[buildPath(PATH.consultor.documents), meeting.id]"
-            (click)="closeMeetingDetail()"
-            class="inline-flex h-9 items-center justify-center rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold transition-colors hover:border-secondary hover:text-secondary"
-          >
-            Ver Acta
-          </button>
-        }
+      <div class="mt-4 grid gap-3 text-sm text-muted sm:grid-cols-2">
+        <span class="inline-flex items-center gap-2">
+          <i class="far fa-calendar"></i>
+          {{ formatDate(meeting.startTime) }}
+        </span>
+        <span class="inline-flex items-center gap-2">
+          <i class="far fa-clock"></i>
+          {{ formatHour(meeting.startTime) }} - {{ formatHour(meetingEnd(meeting)) }}
+        </span>
+        <span class="inline-flex items-center gap-2">
+          <i class="fas fa-hourglass-half"></i>
+          {{ meeting.durationMinutes }} min
+        </span>
+        <span class="inline-flex items-center gap-2">
+          <i class="fas fa-video"></i>
+          {{ meeting.meetingUrl ? 'Teams disponible' : 'Sin enlace aun' }}
+        </span>
       </div>
+
+      @if (meeting.description) {
+      <p class="mt-4 text-sm leading-relaxed text-muted">{{ meeting.description }}</p>
+      }
     </div>
-  </app-modal-form>
+
+    <div class="flex flex-wrap gap-3">
+      <button type="button" [routerLink]="[buildPath(PATH.admin.consultor.meetings), meeting.id]"
+        (click)="closeMeetingDetail()"
+        class="inline-flex h-9 items-center justify-center rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold transition-colors hover:border-secondary hover:text-secondary">
+        Detalles
+      </button>
+      @if (canFinishMeeting(meeting)) {
+      <button type="button" (click)="finishMeeting(meeting)"
+        class="inline-flex h-9 items-center justify-center rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold transition-colors hover:border-secondary hover:text-secondary">
+        Finalizar
+      </button>
+      }
+      @if (meeting.status === 'finalizada' || meeting.description) {
+      <button type="button" [routerLink]="[buildPath(PATH.admin.consultor.documents), meeting.id]"
+        (click)="closeMeetingDetail()"
+        class="inline-flex h-9 items-center justify-center rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold transition-colors hover:border-secondary hover:text-secondary">
+        Ver Acta
+      </button>
+      }
+    </div>
+  </div>
+</app-modal-form>
 }

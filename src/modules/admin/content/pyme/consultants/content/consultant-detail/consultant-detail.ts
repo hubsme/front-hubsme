@@ -5,6 +5,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ApiBody, ApiResponse } from 'api/backend.api';
 import { ConsultantAvailabilityService } from '@service/admin/consultant-availability.service';
 import { ConsultantService } from '@service/admin/consultant.service';
+import { MeetingService } from '@service/admin/meeting.service';
+import { MercadoPagoService } from '@service/admin/mercado-pago.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { PATH, buildPath } from '@route/path.route';
@@ -37,6 +39,8 @@ export class ConsultantDetail implements OnInit {
   private router = inject(Router);
   private consultantService = inject(ConsultantService);
   private availabilityService = inject(ConsultantAvailabilityService);
+  private meetingService = inject(MeetingService);
+  private mercadoPagoService = inject(MercadoPagoService);
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
 
@@ -131,29 +135,25 @@ export class ConsultantDetail implements OnInit {
       return;
     }
 
-    const payload: ApiBody<'meeting', 'create'> = {
-      pymeId: this.hubsme.currentUser().id,
-      consultantId: consultant.userId,
-      title: `Sesion con ${consultant.fullName}`,
-      startTime: option.startTime.toISOString(),
-      durationMinutes: this.durationMinutes(),
-      description: this.description().trim() || undefined,
-      requestedBy: 'pyme',
-    };
-
     this.scheduling.set(true);
-    this.hubsme
-      .createMeeting(payload)
-      .then(() => {
-        this.toastService.success('Reunion creada. Continua con el pago desde Mis Reuniones.');
-        this.router.navigate([buildPath(PATH.pyme.meetings)]);
+    this.mercadoPagoService
+      .createCheckout({
+        consultantId: consultant.userId,
+        startTime: option.startTime.toISOString(),
+        durationMinutes: this.durationMinutes(),
+        title: `Sesión con ${consultant.fullName}`,
+        description: this.description().trim() || undefined,
+      })
+      .then((checkout) => {
+        this.toastService.success('Checkout creado. Continúa con el pago.');
+        this.router.navigate([buildPath(PATH.admin.pyme.checkout), checkout.id]);
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.scheduling.set(false));
   }
 
   goBack() {
-    this.router.navigate([buildPath(PATH.pyme.consultants)]);
+    this.router.navigate([buildPath(PATH.admin.pyme.consultants)]);
   }
 
   consultantPhoto(consultant: Consultant) {

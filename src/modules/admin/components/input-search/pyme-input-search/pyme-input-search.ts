@@ -59,7 +59,7 @@ export class PymeInputSearch implements ControlValueAccessor {
       return;
     }
     const initial = this.initialData();
-    if (initial?.id === value || initial?.userId === value) {
+    if (initial?.id === value) {
       this.selectedItem.set(initial);
       return;
     }

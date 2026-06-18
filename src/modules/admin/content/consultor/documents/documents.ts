@@ -53,12 +53,12 @@ export class Documents implements OnInit {
     Promise.all([this.hubsme.listMeetings(1, 100), this.pymeService.findAll({ page: 1, limit: 100 })])
       .then(([meetingsRes, pymesRes]) => {
         const pymeIds = [...new Set(meetingsRes.data.data.map((meeting) => meeting.pymeId))];
-        const pymes = pymesRes.data.filter((pyme) => pymeIds.includes(pyme.userId));
+        const pymes = pymesRes.data.filter((pyme) => pymeIds.includes(pyme.id));
         const logos: Record<number, string | null> = {};
         const names: Record<number, string> = {};
         pymes.forEach((pyme) => {
-          logos[pyme.userId] = null;
-          names[pyme.userId] = pyme.name || 'PYME';
+          logos[pyme.id] = null;
+          names[pyme.id] = pyme.name || 'PYME';
         });
         this.pymeLogos.set(logos);
         this.pymeNames.set(names);

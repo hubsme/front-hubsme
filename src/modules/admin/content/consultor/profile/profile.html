@@ -166,16 +166,48 @@
               </button>
             </div>
           </div>
-          <label class="block text-xs text-muted font-inter-semibold">
-            <span class="mb-2 block">Precio por hora</span>
-            <input
-              type="number"
-              [ngModel]="form().pricePerHour"
-              name="pricePerHour"
-              (ngModelChange)="updateForm('pricePerHour', +$event)"
-              class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
-            />
-          </label>
+          <div class="grid grid-cols-1 gap-3 md:col-span-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+            <label class="block text-xs text-muted font-inter-semibold">
+              <span class="mb-2 block">Precio por hora</span>
+              <input
+                type="number"
+                [ngModel]="form().pricePerHour"
+                name="pricePerHour"
+                (ngModelChange)="updateForm('pricePerHour', +$event)"
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
+              />
+            </label>
+            <div class="flex flex-col">
+              <span class="mb-2 flex items-center text-xs font-inter-semibold">
+                @if (mercadoPagoStatus().connected) {
+                  <span class="inline-flex items-center gap-1.5 text-success font-inter-bold">
+                    <span class="h-1.5 w-1.5 rounded-full bg-success"></span>
+                    Conectado
+                  </span>
+                } @else {
+                  <span class="inline-flex items-center gap-1.5 text-danger font-inter-bold">
+                    <span class="h-1.5 w-1.5 rounded-full bg-danger"></span>
+                    Desconectado
+                  </span>
+                }
+              </span>
+              <button
+                type="button"
+                [title]="mercadoPagoStatus().connected ? mercadoPagoAccountLabel() : 'Conectar Mercado Pago'"
+                [disabled]="mercadoPagoLoading() || !consultant()"
+                class="inline-flex h-10 min-w-56 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm font-inter-bold text-text shadow-sm transition-colors hover:bg-background-50 disabled:opacity-50"
+                (click)="mercadoPagoStatus().connected ? disconnectMercadoPago() : startMercadoPagoConnect()"
+              >
+                <img src="/avif/mercado_pago.avif" alt="Mercado Pago" class="h-5 w-5 object-contain" />
+                @if (mercadoPagoLoading()) {
+                  <i class="fas fa-spinner fa-spin"></i>
+                  Procesando...
+                } @else {
+                  Mercado Pago
+                }
+              </button>
+            </div>
+          </div>
         </div>
         <div class="mt-6 flex justify-end">
           <button

@@ -408,7 +408,7 @@ export class Meetings implements OnInit, OnDestroy {
 
   finishMeeting(meeting: Meeting) {
     this.closeMeetingDetail();
-    this.router.navigate([buildPath(PATH.consultor.documents), meeting.id]);
+    this.router.navigate([buildPath(PATH.admin.consultor.documents), meeting.id]);
   }
 
   addSlot() {

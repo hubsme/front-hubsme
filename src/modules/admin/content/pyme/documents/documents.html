@@ -8,45 +8,35 @@
     <div class="flex w-full items-center gap-2 xl:w-auto">
       <div class="relative w-full xl:w-80">
         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted"></i>
-        <input
-          [ngModel]="search()"
-          (ngModelChange)="search.set($event)"
+        <input [ngModel]="search()" (ngModelChange)="search.set($event)"
           class="h-10 w-full rounded-xl border border-border bg-surface pl-9 pr-3 text-[0.82rem] outline-none focus:border-text placeholder:text-text-400"
-          placeholder="Buscar documentos..."
-        />
+          placeholder="Buscar documentos..." />
       </div>
-      <button type="button" class="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface">
+      <button type="button"
+        class="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface">
         <i class="fas fa-filter text-xs"></i>
       </button>
     </div>
   </div>
 
   <div class="flex flex-wrap gap-2 border-b border-border">
-    <button
-      type="button"
-      (click)="activeTab.set('meetings')"
+    <button type="button" (click)="activeTab.set('meetings')"
       class="inline-flex h-10 items-center gap-2 border-b-2 px-3 text-[0.85rem] font-inter-semibold transition-colors"
-      [class.border-secondary]="activeTab() === 'meetings'"
-      [class.text-secondary]="activeTab() === 'meetings'"
-      [class.border-transparent]="activeTab() !== 'meetings'"
-      [class.text-muted]="activeTab() !== 'meetings'"
-    >
+      [class.border-secondary]="activeTab() === 'meetings'" [class.text-secondary]="activeTab() === 'meetings'"
+      [class.border-transparent]="activeTab() !== 'meetings'" [class.text-muted]="activeTab() !== 'meetings'">
       <i class="far fa-file-lines text-xs"></i>
       Actas
-      <span class="rounded-full bg-background-100 px-2 py-0.5 text-[0.68rem] text-text-600">{{ meetingDocuments().length }}</span>
+      <span class="rounded-full bg-background-100 px-2 py-0.5 text-[0.68rem] text-text-600">{{ meetingDocuments().length
+        }}</span>
     </button>
-    <button
-      type="button"
-      (click)="activeTab.set('diagnostics')"
+    <button type="button" (click)="activeTab.set('diagnostics')"
       class="inline-flex h-10 items-center gap-2 border-b-2 px-3 text-[0.85rem] font-inter-semibold transition-colors"
-      [class.border-secondary]="activeTab() === 'diagnostics'"
-      [class.text-secondary]="activeTab() === 'diagnostics'"
-      [class.border-transparent]="activeTab() !== 'diagnostics'"
-      [class.text-muted]="activeTab() !== 'diagnostics'"
-    >
+      [class.border-secondary]="activeTab() === 'diagnostics'" [class.text-secondary]="activeTab() === 'diagnostics'"
+      [class.border-transparent]="activeTab() !== 'diagnostics'" [class.text-muted]="activeTab() !== 'diagnostics'">
       <i class="fas fa-chart-line text-xs"></i>
       Diagnósticos
-      <span class="rounded-full bg-background-100 px-2 py-0.5 text-[0.68rem] text-text-600">{{ diagnostics().length }}</span>
+      <span class="rounded-full bg-background-100 px-2 py-0.5 text-[0.68rem] text-text-600">{{ diagnostics().length
+        }}</span>
     </button>
   </div>
 
@@ -62,7 +52,8 @@
         <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-text/8 text-text">
           <i class="far fa-file-lines text-lg"></i>
         </div>
-        <span class="rounded-full bg-background-100 px-3 py-1 text-[0.72rem] text-text-600 font-inter-semibold">Acta de Reunion</span>
+        <span class="rounded-full bg-background-100 px-3 py-1 text-[0.72rem] text-text-600 font-inter-semibold">Acta de
+          Reunion</span>
       </div>
 
       <h2 class="mt-6 text-xl leading-tight font-anton lowercase text-text">{{ meetingTitle(document) }}</h2>
@@ -72,24 +63,24 @@
       </p>
 
       <div class="mt-6 flex items-center gap-3 rounded-2xl border border-border bg-background-50 px-4 py-3">
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-surface text-muted">
+        <div
+          class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-surface text-muted">
           @if (consultantPhotos()[document.consultantId]) {
-            <img [src]="consultantPhotos()[document.consultantId]" alt="Consultor" class="h-full w-full object-cover" />
+          <img [src]="consultantPhotos()[document.consultantId]" alt="Consultor" class="h-full w-full object-cover" />
           } @else {
-            <i class="far fa-user text-xs"></i>
+          <i class="far fa-user text-xs"></i>
           }
         </div>
         <div>
           <p class="text-[0.72rem] text-muted">Origen</p>
-          <p class="text-[0.82rem] font-inter-bold">{{ consultantNames()[document.consultantId] || 'Consultor asignado' }}</p>
+          <p class="text-[0.82rem] font-inter-bold">{{ consultantNames()[document.consultantId] || 'Consultor asignado'
+            }}</p>
         </div>
       </div>
 
       <div class="mt-5 flex items-center gap-3">
-        <button
-          [routerLink]="[buildPath(PATH.pyme.documents), document.id]"
-          class="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full bg-secondary px-4 text-[0.82rem] text-background font-inter-bold hover:bg-secondary/90 transition-colors"
-        >
+        <button [routerLink]="[buildPath(PATH.admin.pyme.documents), document.id]"
+          class="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full bg-secondary px-4 text-[0.82rem] text-background font-inter-bold hover:bg-secondary/90 transition-colors">
           <i class="far fa-file-lines text-xs"></i>
           Ver Acta
         </button>
@@ -109,7 +100,9 @@
         <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary-50 text-secondary">
           <i class="fas fa-chart-line text-lg"></i>
         </div>
-        <span class="rounded-full bg-background-100 px-3 py-1 text-[0.72rem] text-text-600 font-inter-semibold">Diagnóstico IA</span>
+        <span
+          class="rounded-full bg-background-100 px-3 py-1 text-[0.72rem] text-text-600 font-inter-semibold">Diagnóstico
+          IA</span>
       </div>
 
       <h2 class="mt-6 text-xl leading-tight font-anton lowercase text-text">diagnostico realizado</h2>
@@ -129,10 +122,8 @@
       </div>
 
       <div class="mt-5 flex items-center gap-3">
-        <button
-          [routerLink]="[buildPath(PATH.pyme.diagnostics), diagnostic.id]"
-          class="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full bg-secondary px-4 text-[0.82rem] text-background font-inter-bold hover:bg-secondary/90 transition-colors"
-        >
+        <button [routerLink]="[buildPath(PATH.admin.pyme.diagnostics), diagnostic.id]"
+          class="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full bg-secondary px-4 text-[0.82rem] text-background font-inter-bold hover:bg-secondary/90 transition-colors">
           <i class="far fa-file-lines text-xs"></i>
           Ver Diagnóstico
         </button>

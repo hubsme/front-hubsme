@@ -1,0 +1,112 @@
+<div class="space-y-6 font-inter-regular text-text">
+  <button
+    type="button"
+    (click)="goBack()"
+    class="inline-flex h-9 items-center gap-2 rounded-full border border-border bg-surface px-4 text-[0.82rem] text-muted transition hover:text-text font-inter-semibold"
+  >
+    <i class="fas fa-arrow-left text-xs"></i>
+    Volver
+  </button>
+
+  <div>
+    <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold">Checkout con Mercado Pago</h1>
+    <p class="mt-1 text-[0.92rem] text-muted">Revisa el resumen de tu sesion antes de continuar con el pago.</p>
+  </div>
+
+  @if (loading()) {
+    <div class="py-16 text-center text-muted">
+      <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+    </div>
+  } @else if (checkout(); as checkout) {
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_25rem]">
+      <section class="rounded-xl border border-border bg-surface p-6 shadow-soft">
+        <div class="flex items-center justify-between gap-4 border-b border-border pb-5">
+          <div class="inline-flex items-center gap-3">
+            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+              <i class="fas fa-credit-card"></i>
+            </span>
+            <div>
+              <p class="text-xs uppercase text-muted font-inter-bold">Pasarela segura</p>
+              <p class="font-inter-bold text-text">Mercado Pago</p>
+            </div>
+          </div>
+          <span class="rounded-full bg-success/10 px-3 py-1 text-xs text-success font-inter-bold">Pago protegido</span>
+        </div>
+
+        <div class="mt-6 rounded-xl border border-border bg-background p-5">
+          <p class="text-xs uppercase text-muted font-inter-bold">Estado del pago</p>
+          <p class="mt-2 text-lg capitalize font-inter-bold">{{ checkout.status }}</p>
+          <p class="mt-1 text-sm text-muted">Al pagar, Mercado Pago notificara al backend y se habilitara automaticamente la reunion de Teams.</p>
+        </div>
+
+        <button
+          type="button"
+          (click)="pay()"
+          [disabled]="!paymentUrl() || opening()"
+          class="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm text-fixed-text-50 transition hover:bg-secondary/90 disabled:opacity-50 font-inter-bold"
+        >
+          @if (opening()) {
+            <i class="fas fa-spinner fa-spin"></i>
+            Abriendo Mercado Pago
+          } @else {
+            <i class="fas fa-wallet"></i>
+            Pagar con Mercado Pago
+          }
+        </button>
+      </section>
+
+      <aside class="rounded-xl border border-border bg-surface p-6 shadow-soft">
+        <h2 class="text-lg font-inter-bold text-text">Resumen del pago</h2>
+
+        @if (consultant(); as consultant) {
+          <div class="mt-5 flex items-center gap-3 border-b border-border pb-5">
+            <img
+              [src]="consultantPhoto(consultant)"
+              [alt]="consultant.fullName"
+              class="h-14 w-14 rounded-full border border-border object-cover object-top"
+            />
+            <div>
+              <p class="font-anton text-lg text-text">{{ consultant.fullName }}</p>
+              <p class="text-xs text-muted">Consultoria Hubsme</p>
+            </div>
+          </div>
+        }
+
+        @if (meeting(); as meeting) {
+          <div class="mt-5 space-y-4 border-b border-border pb-5 text-sm">
+            <div class="flex items-start gap-3">
+              <i class="far fa-calendar mt-1 text-muted"></i>
+              <div>
+                <p class="font-inter-bold">{{ formatDate(meeting.startTime) }}</p>
+                <p class="text-muted">Microsoft Teams</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-3">
+              <i class="far fa-clock mt-1 text-muted"></i>
+              <div>
+                <p class="font-inter-bold">Duracion</p>
+                <p class="text-muted">{{ meeting.durationMinutes }} minutos</p>
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="mt-5 space-y-3 text-sm">
+          <div class="flex items-center justify-between gap-4">
+            <span class="text-muted">Sesion de consultoria</span>
+            <span class="font-inter-bold">S/ {{ currency(total()) }}</span>
+          </div>
+          <div class="flex items-center justify-between gap-4">
+            <span class="text-muted">Comision de plataforma</span>
+            <span class="font-inter-bold">S/ {{ currency(marketplaceFee()) }}</span>
+          </div>
+        </div>
+
+        <div class="mt-5 rounded-xl border border-secondary/20 bg-secondary/5 p-4">
+          <p class="text-xs uppercase text-muted font-inter-bold">Total</p>
+          <p class="mt-1 text-3xl text-secondary font-inter-bold">S/ {{ currency(total()) }}</p>
+        </div>
+      </aside>
+    </div>
+  }
+</div>

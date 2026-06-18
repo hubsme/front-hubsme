@@ -9,17 +9,17 @@ import { PATH, buildPath } from '@route/path.route';
 
 type DiagnosticQuestion =
   | {
-      id: string;
-      text: string;
-      type?: 'closed';
-      options: string[];
-    }
+    id: string;
+    text: string;
+    type?: 'closed';
+    options: string[];
+  }
   | {
-      id: string;
-      text: string;
-      type: 'open';
-      placeholder: string;
-    };
+    id: string;
+    text: string;
+    type: 'open';
+    placeholder: string;
+  };
 
 type DiagnosticStep = {
   title: string;
@@ -245,12 +245,12 @@ export class Diagnostics implements OnInit {
   diagnostics = signal<ApiResponse<'diagnostic', 'findAll'>['data']>([]);
   loading = signal(false);
   generating = signal(false);
-  
+
   steps = DIAGNOSTIC_STEPS;
   currentStepIndex = signal(0);
-  
+
   responses = signal<Record<string, string>>({});
-  
+
   // To keep compatibility with backend payload if needed
   pymeId = signal(0);
 
@@ -280,7 +280,7 @@ export class Diagnostics implements OnInit {
     const pct = ((this.currentStepIndex() + 1) / totalSteps) * 100;
     return `${pct.toFixed(2)}%`;
   }
-  
+
   isStepComplete() {
     const step = this.steps[this.currentStepIndex()];
     return step.questions.every(q => this.responses()[q.id]?.trim());
@@ -291,7 +291,7 @@ export class Diagnostics implements OnInit {
       this.toastService.error('Por favor responde todas las preguntas de esta sección.');
       return;
     }
-    
+
     if (this.currentStepIndex() < this.steps.length - 1) {
       this.currentStepIndex.update((i) => i + 1);
       return;
@@ -311,7 +311,7 @@ export class Diagnostics implements OnInit {
     }
 
     this.generating.set(true);
-    
+
     // Map responses to readable format for AI
     const mappedResponses: Record<string, string> = {};
     for (const step of this.steps) {
@@ -319,7 +319,7 @@ export class Diagnostics implements OnInit {
         mappedResponses[q.text] = this.responses()[q.id] || 'No respondido';
       }
     }
-    
+
     this.hubsme
       .generateDiagnostic({
         pymeId: this.pymeId(),
@@ -333,7 +333,7 @@ export class Diagnostics implements OnInit {
         this.load();
         this.currentStepIndex.set(0);
         this.responses.set({});
-        this.router.navigate([buildPath(PATH.pyme.diagnostics), res.data.id]);
+        this.router.navigate([buildPath(PATH.admin.pyme.diagnostics), res.data.id]);
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.generating.set(false));

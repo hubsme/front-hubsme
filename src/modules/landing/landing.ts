@@ -101,7 +101,7 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
   protected startFreeDiagnostic(): void {
     this.session.restoreSession();
     if (this.session.session()) {
-      this.router.navigate([buildPath(PATH.pyme.diagnostics)]);
+      this.router.navigate([buildPath(PATH.admin.pyme.diagnostics)]);
       return;
     }
 

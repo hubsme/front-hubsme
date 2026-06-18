@@ -23,56 +23,45 @@
 
       <div class="space-y-8">
         @for (question of steps[currentStepIndex()].questions; track question.id) {
-          <div>
-            <h3 class="text-[0.9rem] font-inter-semibold mb-4">{{ question.text }}</h3>
-            @if (question.type === 'open') {
-              <textarea
-                [ngModel]="responses()[question.id] || ''"
-                (ngModelChange)="setResponse(question.id, $event)"
-                [placeholder]="question.placeholder"
-                class="min-h-28 w-full resize-none rounded-xl border border-border bg-surface px-4 py-3 text-[0.85rem] leading-6 text-text outline-none placeholder:text-text-400 focus:border-primary"
-              ></textarea>
-            } @else {
-              <div class="grid grid-cols-1 gap-2">
-                @for (option of question.options; track option) {
-                  <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-background-50"
-                         [class.bg-background-50]="responses()[question.id] === option"
-                         [class.border-primary]="responses()[question.id] === option">
-                    <div class="relative flex h-5 w-5 items-center justify-center rounded-full border border-border"
-                         [class.border-primary]="responses()[question.id] === option">
-                      @if (responses()[question.id] === option) {
-                        <div class="h-2.5 w-2.5 rounded-full bg-primary"></div>
-                      }
-                    </div>
-                    <span class="text-[0.85rem]">{{ option }}</span>
-                    <input type="radio" [name]="question.id" [value]="option"
-                           (change)="setResponse(question.id, option)"
-                           class="hidden" />
-                  </label>
+        <div>
+          <h3 class="text-[0.9rem] font-inter-semibold mb-4">{{ question.text }}</h3>
+          @if (question.type === 'open') {
+          <textarea [ngModel]="responses()[question.id] || ''" (ngModelChange)="setResponse(question.id, $event)"
+            [placeholder]="question.placeholder"
+            class="min-h-28 w-full resize-none rounded-xl border border-border bg-surface px-4 py-3 text-[0.85rem] leading-6 text-text outline-none placeholder:text-text-400 focus:border-primary"></textarea>
+          } @else {
+          <div class="grid grid-cols-1 gap-2">
+            @for (option of question.options; track option) {
+            <label
+              class="flex cursor-pointer items-center gap-3 rounded-xl border border-border p-3 transition-colors hover:bg-background-50"
+              [class.bg-background-50]="responses()[question.id] === option"
+              [class.border-primary]="responses()[question.id] === option">
+              <div class="relative flex h-5 w-5 items-center justify-center rounded-full border border-border"
+                [class.border-primary]="responses()[question.id] === option">
+                @if (responses()[question.id] === option) {
+                <div class="h-2.5 w-2.5 rounded-full bg-primary"></div>
                 }
               </div>
+              <span class="text-[0.85rem]">{{ option }}</span>
+              <input type="radio" [name]="question.id" [value]="option" (change)="setResponse(question.id, option)"
+                class="hidden" />
+            </label>
             }
           </div>
+          }
+        </div>
         }
       </div>
 
       <div class="mt-10 border-t border-border pt-6">
         <div class="flex items-center justify-between gap-3">
-          <button
-            type="button"
-            (click)="previousStep()"
-            [disabled]="currentStepIndex() === 0"
-            class="inline-flex h-10 items-center gap-2 rounded-xl px-4 text-[0.85rem] text-muted font-inter-semibold transition-colors hover:bg-background-50 disabled:opacity-40 disabled:hover:bg-transparent"
-          >
+          <button type="button" (click)="previousStep()" [disabled]="currentStepIndex() === 0"
+            class="inline-flex h-10 items-center gap-2 rounded-xl px-4 text-[0.85rem] text-muted font-inter-semibold transition-colors hover:bg-background-50 disabled:opacity-40 disabled:hover:bg-transparent">
             <i class="fas fa-arrow-left text-xs"></i>
             Anterior
           </button>
-          <button
-            type="button"
-            (click)="nextStep()"
-            [disabled]="generating()"
-            class="inline-flex h-10 min-w-40 items-center justify-center gap-2 rounded-xl bg-secondary px-6 text-[0.85rem] text-background font-inter-bold transition-colors hover:bg-secondary/90 disabled:opacity-50"
-          >
+          <button type="button" (click)="nextStep()" [disabled]="generating()"
+            class="inline-flex h-10 min-w-40 items-center justify-center gap-2 rounded-xl bg-secondary px-6 text-[0.85rem] text-background font-inter-bold transition-colors hover:bg-secondary/90 disabled:opacity-50">
             @if (generating()) {
             <i class="fas fa-spinner fa-spin text-xs"></i>Analizando...
             } @else if (currentStepIndex() === steps.length - 1) {
@@ -89,32 +78,30 @@
       <div class="flex items-center justify-between gap-3">
         <h2 class="text-xl font-anton lowercase text-text">historial</h2>
         @if (loading()) {
-          <i class="fas fa-spinner fa-spin text-secondary"></i>
+        <i class="fas fa-spinner fa-spin text-secondary"></i>
         }
       </div>
 
       <div class="mt-4 divide-y divide-border">
         @for (diagnostic of diagnostics(); track diagnostic.id) {
-          <a
-            [routerLink]="[buildPath(PATH.pyme.diagnostics), diagnostic.id]"
-            class="group block py-3.5"
-          >
-            <span class="flex items-center justify-between gap-4">
-              <span class="min-w-0 flex items-center gap-3">
-                <span class="font-inter-bold text-[0.95rem] text-secondary-700 group-hover:text-secondary-500 transition-colors">
-                  #{{ diagnostic.id }}
-                </span>
-                <span class="flex items-center gap-1.5 text-[0.78rem] text-muted">
-                  {{ diagnostic.createdAt | date : 'd MMM y, h:mm a' }}
-                </span>
+        <a [routerLink]="[buildPath(PATH.admin.pyme.diagnostics), diagnostic.id]" class="group block py-3.5">
+          <span class="flex items-center justify-between gap-4">
+            <span class="min-w-0 flex items-center gap-3">
+              <span
+                class="font-inter-bold text-[0.95rem] text-secondary-700 group-hover:text-secondary-500 transition-colors">
+                #{{ diagnostic.id }}
               </span>
-              <span class="shrink-0 text-right font-inter-bold text-secondary-700 text-lg">
-                {{ diagnostic.score }}<span class="text-xs text-muted font-inter-regular">/100</span>
+              <span class="flex items-center gap-1.5 text-[0.78rem] text-muted">
+                {{ diagnostic.createdAt | date : 'd MMM y, h:mm a' }}
               </span>
             </span>
-          </a>
+            <span class="shrink-0 text-right font-inter-bold text-secondary-700 text-lg">
+              {{ diagnostic.score }}<span class="text-xs text-muted font-inter-regular">/100</span>
+            </span>
+          </span>
+        </a>
         } @empty {
-          <p class="py-10 text-center text-sm text-muted">No hay diagnósticos registrados todavía.</p>
+        <p class="py-10 text-center text-sm text-muted">No hay diagnósticos registrados todavía.</p>
         }
       </div>
     </aside>

@@ -37,8 +37,8 @@ export class Sidebar {
 
   menuItems = computed(() => {
     const role = this.sessionService.session()?.user.role;
-    const pymePath = PATH.pyme;
-    const consultorPath = PATH.consultor;
+    const pymePath = PATH.admin.pyme;
+    const consultorPath = PATH.admin.consultor;
     const pymeItems: MenuItem[] = [
       { label: 'Dashboard', path: buildPath(pymePath.dashboard), icon: 'fas fa-table-cells-large' },
       { label: 'Perfil', path: buildPath(pymePath.profile), icon: 'fas fa-user-gear' },

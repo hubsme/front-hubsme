@@ -55,7 +55,7 @@ export class MeetingDetail implements OnInit {
     if (!meeting) return [];
     try {
       const role = this.hubsme.currentUser().role;
-      return [role === 'consultor' ? buildPath(PATH.consultor.documents) : buildPath(PATH.pyme.documents), meeting.id];
+      return [role === 'consultor' ? buildPath(PATH.admin.consultor.documents) : buildPath(PATH.admin.pyme.documents), meeting.id];
     } catch {
       return [];
     }

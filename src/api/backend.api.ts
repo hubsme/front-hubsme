@@ -953,6 +953,104 @@ export interface StorageResultDto {
   createdAt: string;
 }
 
+export interface MercadoPagoAuthUrlResponseDto {
+  /** @example "https://auth.mercadopago.com/authorization?..." */
+  url: string;
+}
+
+export interface MercadoPagoStatusDto {
+  /** @example true */
+  connected: boolean;
+  /** @example "123456789" */
+  mercadoPagoUserId: string | null;
+  /** @example "consultor_mp" */
+  nickname: string | null;
+  /** @example "consultor@mail.com" */
+  email: string | null;
+  /**
+   * @format date-time
+   * @example "2026-06-17T15:00:00.000Z"
+   */
+  connectedAt: string | null;
+}
+
+export interface MercadoPagoCreateCheckoutDto {
+  /** @example 3 */
+  consultantId: number;
+  /** @example "2026-05-10T15:00:00.000Z" */
+  startTime: string;
+  /** @example 60 */
+  durationMinutes?: number;
+  /** @example "Sesión de consultoría" */
+  title: string;
+  /** @example "Detalle de la reunión" */
+  description?: string;
+}
+
+export interface CheckoutMeetingDetailsDto {
+  startTime: string;
+  durationMinutes: number;
+  title: string;
+  description?: string;
+}
+
+export interface MercadoPagoCheckoutDto {
+  id: number;
+  meetingId: number | null;
+  pymeId: number;
+  consultantId: number;
+  preferenceId: string | null;
+  initPoint: string | null;
+  sandboxInitPoint: string | null;
+  externalReference: string;
+  status:
+    | "created"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "expired";
+  amount: string;
+  marketplaceFee: string;
+  currency: string;
+  meetingDetails?: CheckoutMeetingDetailsDto | null;
+}
+
+export interface MercadoPagoPaymentWebhookDto {
+  /** @example "payment" */
+  type?: string;
+  /** @example "payment" */
+  topic?: string;
+  /** @example {"id":"123456789"} */
+  data?: object;
+  /** @example "123456789" */
+  id?: string;
+}
+
+export interface PublicConsultantListItemDto {
+  id: number;
+  userId: number;
+  fullName: string;
+  firstName: string | null;
+  lastName: string | null;
+  bio: string | null;
+  specialties: string[];
+  sectors: string[];
+  photoUrl: string | null;
+  videoUrl: string | null;
+  pricePerHour: string;
+  rating: string;
+  totalReviews: number;
+  active: "true" | "false";
+  /** @format date-time */
+  createdAt: string;
+}
+
+export interface PublicConsultantListDto {
+  data: PublicConsultantListItemDto[];
+  meta: PaginationMetaDto;
+}
+
 export type AppGetHelloData = any;
 
 export type AuthLoginData = LoginResponseDto;
@@ -1171,27 +1269,6 @@ export interface ConsultantRemoveParams {
 export type ConsultantRemoveData = ConsultantResultDto;
 
 export type ConsultantRemoveError = HttpErrorDto;
-
-export interface PublicconsultantFindAllParams {
-  /**
-   * Page number
-   * @default 1
-   */
-  page?: number;
-  /**
-   * Items per page
-   * @default 10
-   */
-  limit?: number;
-  /** Search by name, bio or specialty */
-  search?: string;
-  active?: "true" | "false";
-  validated?: "true" | "false";
-  /** Filter by sector */
-  sector?: string;
-}
-
-export type PublicconsultantFindAllData = ConsultantListDto;
 
 export interface MeetingFindAllParams {
   /**
@@ -1652,6 +1729,76 @@ export interface StorageDownloadParams {
 }
 
 export type StorageDownloadData = any;
+
+export interface MercadopagoAuthUrlParams {
+  /** @example 3 */
+  consultantId: number;
+}
+
+export type MercadopagoAuthUrlData = MercadoPagoAuthUrlResponseDto;
+
+export type MercadopagoAuthUrlError = HttpErrorDto;
+
+export interface MercadopagoCallbackParams {
+  code?: string;
+  state?: string;
+  error?: string;
+}
+
+export type MercadopagoCallbackData = any;
+
+export interface MercadopagoStatusParams {
+  /** @example 3 */
+  consultantId: number;
+}
+
+export type MercadopagoStatusData = MercadoPagoStatusDto;
+
+export type MercadopagoStatusError = HttpErrorDto;
+
+export interface MercadopagoDisconnectParams {
+  /** @example 3 */
+  consultantId: number;
+}
+
+export type MercadopagoDisconnectData = MercadoPagoStatusDto;
+
+export type MercadopagoDisconnectError = HttpErrorDto;
+
+export type MercadopagoCreateCheckoutData = MercadoPagoCheckoutDto;
+
+export type MercadopagoCreateCheckoutError = HttpErrorDto;
+
+export interface MercadopagoFindCheckoutParams {
+  id: number;
+}
+
+export type MercadopagoFindCheckoutData = MercadoPagoCheckoutDto;
+
+export type MercadopagoFindCheckoutError = HttpErrorDto;
+
+export type MercadopagoWebhookData = any;
+
+export interface PublicconsultantFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by name, bio or specialty */
+  search?: string;
+  active?: "true" | "false";
+  validated?: "true" | "false";
+  /** Filter by sector */
+  sector?: string;
+}
+
+export type PublicconsultantFindAllData = PublicConsultantListDto;
 
 export namespace App {
   /**
@@ -2177,41 +2324,6 @@ export namespace Consultant {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = ConsultantRemoveData;
-  }
-}
-
-export namespace PublicConsultant {
-  /**
-   * No description
-   * @tags publicConsultant
-   * @name PublicconsultantFindAll
-   * @summary Get public active consultants for landing
-   * @request GET:/public/consultant/find-all
-   * @response `200` `PublicconsultantFindAllData`
-   */
-  export namespace PublicconsultantFindAll {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /**
-       * Page number
-       * @default 1
-       */
-      page?: number;
-      /**
-       * Items per page
-       * @default 10
-       */
-      limit?: number;
-      /** Search by name, bio or specialty */
-      search?: string;
-      active?: "true" | "false";
-      validated?: "true" | "false";
-      /** Filter by sector */
-      sector?: string;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = PublicconsultantFindAllData;
   }
 }
 
@@ -3254,6 +3366,180 @@ export namespace Storage {
   }
 }
 
+export namespace MercadoPago {
+  /**
+   * No description
+   * @tags mercadoPago
+   * @name MercadopagoAuthUrl
+   * @summary Get Mercado Pago OAuth URL for a consultant
+   * @request GET:/admin/mercado-pago/auth-url
+   * @secure
+   * @response `200` `MercadopagoAuthUrlData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MercadopagoAuthUrl {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example 3 */
+      consultantId: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MercadopagoAuthUrlData;
+  }
+
+  /**
+   * No description
+   * @tags mercadoPago
+   * @name MercadopagoCallback
+   * @summary Mercado Pago OAuth callback for consultant connection
+   * @request GET:/admin/mercado-pago/callback
+   * @response `200` `MercadopagoCallbackData` HTML response that posts the connection result to the opener window
+   */
+  export namespace MercadopagoCallback {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      code?: string;
+      state?: string;
+      error?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MercadopagoCallbackData;
+  }
+
+  /**
+   * No description
+   * @tags mercadoPago
+   * @name MercadopagoStatus
+   * @summary Get consultant Mercado Pago connection status
+   * @request GET:/admin/mercado-pago/status
+   * @secure
+   * @response `200` `MercadopagoStatusData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MercadopagoStatus {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example 3 */
+      consultantId: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MercadopagoStatusData;
+  }
+
+  /**
+   * No description
+   * @tags mercadoPago
+   * @name MercadopagoDisconnect
+   * @summary Disconnect consultant Mercado Pago account
+   * @request DELETE:/admin/mercado-pago/disconnect
+   * @secure
+   * @response `200` `MercadopagoDisconnectData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MercadopagoDisconnect {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example 3 */
+      consultantId: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MercadopagoDisconnectData;
+  }
+
+  /**
+   * No description
+   * @tags mercadoPago
+   * @name MercadopagoCreateCheckout
+   * @summary Create a Mercado Pago checkout for a pending meeting
+   * @request POST:/admin/mercado-pago/checkout
+   * @secure
+   * @response `200` `MercadopagoCreateCheckoutData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MercadopagoCreateCheckout {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = MercadoPagoCreateCheckoutDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MercadopagoCreateCheckoutData;
+  }
+
+  /**
+   * No description
+   * @tags mercadoPago
+   * @name MercadopagoFindCheckout
+   * @summary Get a Mercado Pago checkout by ID
+   * @request GET:/admin/mercado-pago/checkout/{id}
+   * @secure
+   * @response `200` `MercadopagoFindCheckoutData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MercadopagoFindCheckout {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MercadopagoFindCheckoutData;
+  }
+
+  /**
+   * No description
+   * @tags mercadoPago
+   * @name MercadopagoWebhook
+   * @summary Mercado Pago payment webhook
+   * @request POST:/admin/mercado-pago/webhook
+   * @response `200` `MercadopagoWebhookData` Webhook processed
+   */
+  export namespace MercadopagoWebhook {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = MercadoPagoPaymentWebhookDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MercadopagoWebhookData;
+  }
+}
+
+export namespace PublicConsultant {
+  /**
+   * No description
+   * @tags publicConsultant
+   * @name PublicconsultantFindAll
+   * @summary Get public active consultants for landing
+   * @request GET:/public/consultant/find-all
+   * @response `200` `PublicconsultantFindAllData`
+   */
+  export namespace PublicconsultantFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by name, bio or specialty */
+      search?: string;
+      active?: "true" | "false";
+      validated?: "true" | "false";
+      /** Filter by sector */
+      sector?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PublicconsultantFindAllData;
+  }
+}
+
 export type QueryParamsType = Record<string | number, any>;
 export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
 
@@ -4049,28 +4335,6 @@ export class Api<SecurityDataType extends unknown> {
         path: `/admin/consultant/delete/${id}`,
         method: "DELETE",
         secure: true,
-        format: "json",
-        ...params,
-      }),
-  };
-  publicConsultant = {
-    /**
-     * No description
-     *
-     * @tags publicConsultant
-     * @name PublicconsultantFindAll
-     * @summary Get public active consultants for landing
-     * @request GET:/public/consultant/find-all
-     * @response `200` `PublicconsultantFindAllData`
-     */
-    publicconsultantFindAll: (
-      query: PublicconsultantFindAllParams = {},
-      params: RequestParams = {},
-    ) =>
-      this.http.request<PublicconsultantFindAllData, any>({
-        path: `/public/consultant/find-all`,
-        method: "GET",
-        query: query,
         format: "json",
         ...params,
       }),
@@ -5215,6 +5479,196 @@ export class Api<SecurityDataType extends unknown> {
         path: `/storage/download-file`,
         method: "GET",
         query: query,
+        ...params,
+      }),
+  };
+  mercadoPago = {
+    /**
+     * No description
+     *
+     * @tags mercadoPago
+     * @name MercadopagoAuthUrl
+     * @summary Get Mercado Pago OAuth URL for a consultant
+     * @request GET:/admin/mercado-pago/auth-url
+     * @secure
+     * @response `200` `MercadopagoAuthUrlData`
+     * @response `400` `HttpErrorDto`
+     */
+    mercadopagoAuthUrl: (
+      query: MercadopagoAuthUrlParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<MercadopagoAuthUrlData, MercadopagoAuthUrlError>({
+        path: `/admin/mercado-pago/auth-url`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags mercadoPago
+     * @name MercadopagoCallback
+     * @summary Mercado Pago OAuth callback for consultant connection
+     * @request GET:/admin/mercado-pago/callback
+     * @response `200` `MercadopagoCallbackData` HTML response that posts the connection result to the opener window
+     */
+    mercadopagoCallback: (
+      query: MercadopagoCallbackParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<MercadopagoCallbackData, any>({
+        path: `/admin/mercado-pago/callback`,
+        method: "GET",
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags mercadoPago
+     * @name MercadopagoStatus
+     * @summary Get consultant Mercado Pago connection status
+     * @request GET:/admin/mercado-pago/status
+     * @secure
+     * @response `200` `MercadopagoStatusData`
+     * @response `400` `HttpErrorDto`
+     */
+    mercadopagoStatus: (
+      query: MercadopagoStatusParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<MercadopagoStatusData, MercadopagoStatusError>({
+        path: `/admin/mercado-pago/status`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags mercadoPago
+     * @name MercadopagoDisconnect
+     * @summary Disconnect consultant Mercado Pago account
+     * @request DELETE:/admin/mercado-pago/disconnect
+     * @secure
+     * @response `200` `MercadopagoDisconnectData`
+     * @response `400` `HttpErrorDto`
+     */
+    mercadopagoDisconnect: (
+      query: MercadopagoDisconnectParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<MercadopagoDisconnectData, MercadopagoDisconnectError>({
+        path: `/admin/mercado-pago/disconnect`,
+        method: "DELETE",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags mercadoPago
+     * @name MercadopagoCreateCheckout
+     * @summary Create a Mercado Pago checkout for a pending meeting
+     * @request POST:/admin/mercado-pago/checkout
+     * @secure
+     * @response `200` `MercadopagoCreateCheckoutData`
+     * @response `400` `HttpErrorDto`
+     */
+    mercadopagoCreateCheckout: (
+      data: MercadoPagoCreateCheckoutDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MercadopagoCreateCheckoutData,
+        MercadopagoCreateCheckoutError
+      >({
+        path: `/admin/mercado-pago/checkout`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags mercadoPago
+     * @name MercadopagoFindCheckout
+     * @summary Get a Mercado Pago checkout by ID
+     * @request GET:/admin/mercado-pago/checkout/{id}
+     * @secure
+     * @response `200` `MercadopagoFindCheckoutData`
+     * @response `400` `HttpErrorDto`
+     */
+    mercadopagoFindCheckout: (
+      { id }: MercadopagoFindCheckoutParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MercadopagoFindCheckoutData,
+        MercadopagoFindCheckoutError
+      >({
+        path: `/admin/mercado-pago/checkout/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags mercadoPago
+     * @name MercadopagoWebhook
+     * @summary Mercado Pago payment webhook
+     * @request POST:/admin/mercado-pago/webhook
+     * @response `200` `MercadopagoWebhookData` Webhook processed
+     */
+    mercadopagoWebhook: (
+      data: MercadoPagoPaymentWebhookDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<MercadopagoWebhookData, any>({
+        path: `/admin/mercado-pago/webhook`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+  };
+  publicConsultant = {
+    /**
+     * No description
+     *
+     * @tags publicConsultant
+     * @name PublicconsultantFindAll
+     * @summary Get public active consultants for landing
+     * @request GET:/public/consultant/find-all
+     * @response `200` `PublicconsultantFindAllData`
+     */
+    publicconsultantFindAll: (
+      query: PublicconsultantFindAllParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PublicconsultantFindAllData, any>({
+        path: `/public/consultant/find-all`,
+        method: "GET",
+        query: query,
+        format: "json",
         ...params,
       }),
   };

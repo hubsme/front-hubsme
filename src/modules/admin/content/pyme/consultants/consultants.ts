@@ -54,7 +54,7 @@ export class Consultants implements OnInit {
   }
 
   schedule(consultant: Consultant) {
-    this.router.navigate([buildPath(PATH.pyme.consultants), consultant.userId]);
+    this.router.navigate([buildPath(PATH.admin.pyme.consultant), consultant.userId]);
   }
 
   consultantPhoto(consultant: Consultant): string {

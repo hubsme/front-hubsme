@@ -1,12 +1,15 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Api, ApiBody, ApiResponse } from 'api/backend.api';
+import { MercadoPagoService } from '@service/admin/mercado-pago.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { SessionService } from '@service/session.service';
 
 type ConsultantProfileData = ApiResponse<'consultant', 'findByUser'>;
+type MercadoPagoStatus = ApiResponse<'mercadoPago', 'mercadopagoStatus'>;
+type MercadoPagoMessage = { type: 'hubsme:mercado-pago'; connected?: boolean; nickname?: string; email?: string; error?: string };
 
 type ConsultantForm = {
   firstName: string;
@@ -27,17 +30,29 @@ type ChipField = 'specialties' | 'sectors';
   imports: [CommonModule, FormsModule],
   templateUrl: './profile.html',
 })
-export class Profile implements OnInit {
+export class Profile implements OnInit, OnDestroy {
   private api = inject(Api);
+  private mercadoPagoService = inject(MercadoPagoService);
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
   private sessionService = inject(SessionService);
+  private platformId = inject(PLATFORM_ID);
+  private mercadoPagoPopup: Window | null = null;
+  private mercadoPagoPopupTimer: ReturnType<typeof setInterval> | null = null;
 
   loading = signal(false);
   saving = signal(false);
+  mercadoPagoLoading = signal(false);
   uploadingPhoto = signal(false);
   uploadingVideo = signal(false);
   consultant = signal<ConsultantProfileData | null>(null);
+  mercadoPagoStatus = signal<MercadoPagoStatus>({
+    connected: false,
+    mercadoPagoUserId: null,
+    nickname: null,
+    email: null,
+    connectedAt: null,
+  });
   photoError = signal(false);
   specialtyInput = signal('');
   sectorInput = signal('');
@@ -56,6 +71,10 @@ export class Profile implements OnInit {
 
   ngOnInit(): void {
     this.load();
+  }
+
+  ngOnDestroy(): void {
+    this.clearMercadoPagoPopupTimer();
   }
 
   updateForm<K extends keyof ConsultantForm>(key: K, value: ConsultantForm[K]) {
@@ -83,6 +102,7 @@ export class Profile implements OnInit {
           photoUrl: data.photoUrl ?? '',
           videoUrl: data.videoUrl ?? '',
         });
+        this.loadMercadoPagoStatus(data.id);
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
@@ -138,6 +158,77 @@ export class Profile implements OnInit {
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.uploadingPhoto.set(false));
+  }
+
+  startMercadoPagoConnect(): void {
+    const consultantId = this.consultant()?.id;
+    if (!consultantId || !isPlatformBrowser(this.platformId)) return;
+
+    this.mercadoPagoLoading.set(true);
+    this.mercadoPagoService
+      .authUrl({ consultantId })
+      .then((response) => {
+        this.mercadoPagoPopup = window.open(response.url, 'hubsme_mercado_pago', this.getMercadoPagoPopupFeatures());
+
+        if (!this.mercadoPagoPopup) {
+          this.toastService.error('Permite popups para conectar Mercado Pago');
+          this.mercadoPagoLoading.set(false);
+          return;
+        }
+
+        this.mercadoPagoPopup.focus();
+        this.mercadoPagoPopupTimer = setInterval(() => {
+          if (this.mercadoPagoPopup?.closed) {
+            this.clearMercadoPagoPopupTimer();
+            this.mercadoPagoLoading.set(false);
+          }
+        }, 500);
+      })
+      .catch((error) => {
+        this.toastService.error(this.hubsme.getErrorMessage(error));
+        this.mercadoPagoLoading.set(false);
+      });
+  }
+
+  disconnectMercadoPago(): void {
+    const consultantId = this.consultant()?.id;
+    if (!consultantId) return;
+
+    this.mercadoPagoLoading.set(true);
+    this.mercadoPagoService
+      .disconnect({ consultantId })
+      .then((status) => {
+        this.mercadoPagoStatus.set(status);
+        this.toastService.success('Mercado Pago desconectado');
+      })
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.mercadoPagoLoading.set(false));
+  }
+
+  mercadoPagoAccountLabel(): string {
+    const status = this.mercadoPagoStatus();
+    return status.nickname || status.email || status.mercadoPagoUserId || 'Cuenta conectada';
+  }
+
+  @HostListener('window:message', ['$event'])
+  handleMercadoPagoMessage(event: MessageEvent<unknown>): void {
+    if (!this.isMercadoPagoMessage(event.data)) return;
+
+    this.clearMercadoPagoPopupTimer();
+    this.mercadoPagoPopup?.close();
+    this.mercadoPagoPopup = null;
+    this.mercadoPagoLoading.set(false);
+
+    if (event.data.error) {
+      this.toastService.error(event.data.error);
+      return;
+    }
+
+    this.toastService.success('Mercado Pago conectado');
+    const consultantId = this.consultant()?.id;
+    if (consultantId) {
+      this.loadMercadoPagoStatus(consultantId);
+    }
   }
 
   onPhotoError() {
@@ -213,5 +304,33 @@ export class Profile implements OnInit {
     const target = event.target;
     if (!(target instanceof HTMLInputElement)) return null;
     return target.files?.[0] ?? null;
+  }
+
+  private loadMercadoPagoStatus(consultantId: number): void {
+    this.mercadoPagoService
+      .status({ consultantId })
+      .then((status) => this.mercadoPagoStatus.set(status))
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
+  }
+
+  private clearMercadoPagoPopupTimer(): void {
+    if (!this.mercadoPagoPopupTimer) return;
+    clearInterval(this.mercadoPagoPopupTimer);
+    this.mercadoPagoPopupTimer = null;
+  }
+
+  private getMercadoPagoPopupFeatures(): string {
+    const width = 520;
+    const height = 700;
+    const left = Math.max(0, window.screenX + (window.outerWidth - width) / 2);
+    const top = Math.max(0, window.screenY + (window.outerHeight - height) / 2);
+
+    return `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no`;
+  }
+
+  private isMercadoPagoMessage(value: unknown): value is MercadoPagoMessage {
+    if (!value || typeof value !== 'object') return false;
+    const message = value as { type?: unknown };
+    return message.type === 'hubsme:mercado-pago';
   }
 }

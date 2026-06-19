@@ -109,4 +109,18 @@
       </aside>
     </div>
   }
+
+  @if (paymentModalOpen() && paymentFrameUrl(); as paymentFrameUrl) {
+    <app-modal-form title="Mercado Pago" maxWidth="6xl" [showFooter]="false" (onClose)="closePaymentModal()">
+      <div class="h-[78vh] bg-surface">
+        <iframe
+          [src]="paymentFrameUrl"
+          title="Checkout de Mercado Pago"
+          class="h-full w-full border-0 bg-surface"
+          referrerpolicy="no-referrer"
+          allow="payment *; clipboard-read; clipboard-write"
+        ></iframe>
+      </div>
+    </app-modal-form>
+  }
 </div>

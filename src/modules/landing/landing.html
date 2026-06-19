@@ -2,44 +2,27 @@
   <header class="sticky top-0 z-50 border-b border-border bg-surface/95 backdrop-blur">
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-5 lg:px-8">
       <a href="#top" (click)="scrollToSection('top', $event)" class="flex items-center">
-        <img
-          src="/avif/logo_completo.avif"
-          alt="HUBSME"
-          class="h-10 w-auto"
-          [class.brightness-0]="themeService.theme() === 'dark'"
-          [class.invert]="themeService.theme() === 'dark'"
-        />
+        <img src="/avif/logo_completo.avif" alt="HUBSME" class="h-10 w-auto"
+          [class.brightness-0]="themeService.theme() === 'dark'" [class.invert]="themeService.theme() === 'dark'" />
       </a>
 
       <nav class="hidden items-center gap-8 text-sm font-inter-semibold text-text-700 md:flex">
-        <a
-          href="#quienes-somos"
-          (click)="scrollToSection('quienes-somos', $event)"
-          class="transition hover:text-text"
-        >
+        <a href="#quienes-somos" (click)="scrollToSection('quienes-somos', $event)" class="transition hover:text-text">
           Quienes Somos
         </a>
-        <a
-          href="#servicios"
-          (click)="scrollToSection('servicios', $event)"
-          class="transition hover:text-text"
-        >
+        <a href="#servicios" (click)="scrollToSection('servicios', $event)" class="transition hover:text-text">
           Servicios
         </a>
-        <a
-          href="#consultores"
-          (click)="scrollToSection('consultores', $event)"
-          class="transition hover:text-text"
-        >
+        <a href="#consultores" (click)="scrollToSection('consultores', $event)" class="transition hover:text-text">
           Consultores
+        </a>
+        <a href="/politicas-de-privacidad" class="transition hover:text-text">
+          Privacidad
         </a>
       </nav>
 
-      <button
-        type="button"
-        (click)="goToLogin()"
-        class="rounded-full bg-primary px-6 py-3 text-sm font-inter-bold text-fixed-background-50 transition hover:bg-primary-600"
-      >
+      <button type="button" (click)="goToLogin()"
+        class="rounded-full bg-primary px-6 py-3 text-sm font-inter-bold text-fixed-background-50 transition hover:bg-primary-600">
         Login
       </button>
     </div>
@@ -47,29 +30,17 @@
 
   <main id="top">
     <section class="relative isolate overflow-hidden bg-primary-950">
-      <video
-        #heroVideo
-        class="absolute inset-0 -z-20 h-full w-full object-cover"
-        src="/video/video_hero.mp4"
-        autoplay
-        muted
-        loop
-        playsinline
-        preload="metadata"
-        [muted]="true"
-        (loadedmetadata)="syncHeroVideo()"
-        (ended)="restartHeroVideo()"
-      ></video>
+      <video #heroVideo class="absolute inset-0 -z-20 h-full w-full object-cover" src="/video/video_hero.mp4" autoplay
+        muted loop playsinline preload="metadata" [muted]="true" (loadedmetadata)="syncHeroVideo()"
+        (ended)="restartHeroVideo()"></video>
       <div class="absolute inset-0 -z-10 bg-primary-950/40"></div>
-      <div
-        class="absolute inset-0 -z-10 bg-gradient-to-r from-primary-950/50 via-primary-950/10 to-primary-950/50"
-      ></div>
+      <div class="absolute inset-0 -z-10 bg-gradient-to-r from-primary-950/50 via-primary-950/10 to-primary-950/50">
+      </div>
 
       <div class="mx-auto grid min-h-[calc(100vh-88px)] max-w-7xl items-end px-6 py-16 lg:px-8">
         <div class="max-w-3xl pb-8 text-fixed-background-50 lg:pb-16">
           <div
-            class="mb-5 inline-flex rounded-full border border-surface/25 bg-surface/10 px-4 py-2 text-sm font-inter-medium"
-          >
+            class="mb-5 inline-flex rounded-full border border-surface/25 bg-surface/10 px-4 py-2 text-sm font-inter-medium">
             Plataforma de diagnostico y consultoria para PYMES
           </div>
           <h1 class="max-w-2xl text-5xl font-inter-bold leading-none sm:text-6xl lg:text-7xl">
@@ -82,28 +53,22 @@
           </p>
 
           <div class="mt-8 flex flex-col gap-4 sm:flex-row">
-            <button
-              type="button"
-              (click)="startFreeDiagnostic()"
-              class="rounded-full bg-primary px-7 py-4 text-base font-inter-bold text-fixed-background-50 transition hover:bg-primary-600"
-            >
+            <button type="button" (click)="startFreeDiagnostic()"
+              class="rounded-full bg-primary px-7 py-4 text-base font-inter-bold text-fixed-background-50 transition hover:bg-primary-600">
               Empezar Diagnostico Gratis
             </button>
-            <button
-              type="button"
-              (click)="goToSignUp('consultor')"
-              class="rounded-full border border-surface/35 bg-surface/18 px-7 py-4 text-base font-inter-bold text-fixed-background-50 backdrop-blur transition hover:bg-surface/25"
-            >
+            <button type="button" (click)="goToSignUp('consultor')"
+              class="rounded-full border border-surface/35 bg-surface/18 px-7 py-4 text-base font-inter-bold text-fixed-background-50 backdrop-blur transition hover:bg-surface/25">
               Unirse como Consultor
             </button>
           </div>
 
           <div class="mt-12 grid gap-4 sm:grid-cols-3">
             @for (stat of stats; track stat.label) {
-              <article class="rounded-2xl border border-surface/15 bg-surface/10 p-5 backdrop-blur">
-                <div class="text-3xl font-inter-bold">{{ stat.value }}</div>
-                <div class="mt-2 text-sm text-text-100">{{ stat.label }}</div>
-              </article>
+            <article class="rounded-2xl border border-surface/15 bg-surface/10 p-5 backdrop-blur">
+              <div class="text-3xl font-inter-bold">{{ stat.value }}</div>
+              <div class="mt-2 text-sm text-text-100">{{ stat.label }}</div>
+            </article>
             }
           </div>
         </div>
@@ -115,8 +80,7 @@
         <div class="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
           <article class="rounded-3xl border border-border bg-surface p-6 shadow-sm lg:p-8">
             <div
-              class="mb-5 inline-flex rounded-full bg-primary-100 px-4 py-2 text-sm font-inter-semibold text-primary-700"
-            >
+              class="mb-5 inline-flex rounded-full bg-primary-100 px-4 py-2 text-sm font-inter-semibold text-primary-700">
               Proposito de la aplicacion
             </div>
             <h2 class="text-3xl font-inter-bold leading-tight text-text">
@@ -133,23 +97,20 @@
 
           <div class="grid gap-6 md:grid-cols-2">
             <article class="rounded-3xl border border-border bg-surface p-6 shadow-sm">
-              <div
-                class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-primary"
-              >
+              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-primary">
                 <i class="fab fa-google text-xl"></i>
               </div>
               <h3 class="mt-5 text-xl font-inter-bold text-text">Uso de Google</h3>
               <p class="mt-3 text-sm leading-7 text-text-600">
                 HUBSME puede usar Google para iniciar sesion y, si el consultor lo autoriza,
                 conectar Google Calendar para leer horarios ocupados. Esta informacion se usa para
-                evitar reservas en horas no disponibles y mejorar la coordinacion de reuniones.
+                autenticar usuarios, evitar reservas en horas no disponibles y mejorar la
+                coordinacion de reuniones dentro de la plataforma.
               </p>
             </article>
 
             <article class="rounded-3xl border border-border bg-surface p-6 shadow-sm">
-              <div
-                class="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/10 text-secondary"
-              >
+              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/10 text-secondary">
                 <i class="fas fa-shield-halved text-xl"></i>
               </div>
               <h3 class="mt-5 text-xl font-inter-bold text-text">Datos y seguridad</h3>
@@ -165,21 +126,14 @@
     </section>
 
     <section id="quienes-somos" class="bg-surface py-24">
-      <div
-        class="mx-auto grid max-w-7xl gap-14 px-6 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:px-8"
-      >
+      <div class="mx-auto grid max-w-7xl gap-14 px-6 lg:grid-cols-[1.05fr_1fr] lg:items-center lg:px-8">
         <div class="overflow-hidden rounded-[32px] shadow-2xl shadow-text-200/70">
-          <img
-            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80"
-            alt="Equipo colaborando en una mesa de trabajo"
-            class="h-full w-full object-cover"
-          />
+          <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80"
+            alt="Equipo colaborando en una mesa de trabajo" class="h-full w-full object-cover" />
         </div>
 
         <div>
-          <div
-            class="inline-flex rounded-full bg-primary-100 px-4 py-2 text-sm font-inter-semibold text-primary-700"
-          >
+          <div class="inline-flex rounded-full bg-primary-100 px-4 py-2 text-sm font-inter-semibold text-primary-700">
             Nuestra Historia
           </div>
           <h2 class="mt-6 max-w-xl text-3xl font-inter-bold leading-tight text-text sm:text-4xl">
@@ -194,8 +148,7 @@
           <div class="mt-8 space-y-5">
             <article class="flex items-center gap-4 rounded-2xl bg-background-50 p-5">
               <div
-                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-fixed-background-50 shadow-md shadow-primary-500/20"
-              >
+                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-fixed-background-50 shadow-md shadow-primary-500/20">
                 <i class="fas fa-bolt text-lg"></i>
               </div>
               <div>
@@ -208,8 +161,7 @@
             </article>
             <article class="flex items-center gap-4 rounded-2xl bg-background-50 p-5">
               <div
-                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-fixed-background-50 shadow-md shadow-primary-500/20"
-              >
+                class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary text-fixed-background-50 shadow-md shadow-primary-500/20">
                 <i class="fas fa-eye text-lg"></i>
               </div>
               <div>
@@ -237,203 +189,151 @@
         </div>
 
         <div
-          class="relative mt-16 overflow-hidden py-4 before:absolute before:left-0 before:top-0 before:z-10 before:h-full before:w-12 before:bg-gradient-to-r before:from-background-50 before:to-transparent after:absolute after:right-0 after:top-0 after:z-10 after:h-full after:w-12 after:bg-gradient-to-l after:from-background-50 after:to-transparent lg:before:w-32 lg:after:w-32"
-        >
+          class="relative mt-16 overflow-hidden py-4 before:absolute before:left-0 before:top-0 before:z-10 before:h-full before:w-12 before:bg-gradient-to-r before:from-background-50 before:to-transparent after:absolute after:right-0 after:top-0 after:z-10 after:h-full after:w-12 after:bg-gradient-to-l after:from-background-50 after:to-transparent lg:before:w-32 lg:after:w-32">
           @if (consultantsLoading()) {
-            <div class="flex gap-6">
-              @for (item of [1, 2, 3, 4, 5]; track item) {
-                <article
-                  class="flex w-[280px] shrink-0 animate-pulse flex-col items-center rounded-3xl border border-border bg-surface p-6 shadow-sm"
-                >
-                  <div
-                    class="mx-auto h-24 w-24 rounded-full bg-background-100 ring-4 ring-background-50 ring-offset-4 ring-offset-surface"
-                  ></div>
-                  <div class="mt-6 h-5 w-32 rounded-full bg-background-100"></div>
-                  <div class="mt-2 h-6 w-24 rounded-full bg-background-100"></div>
-                  <div class="mt-5 h-4 w-full rounded-full bg-background-100"></div>
-                  <div class="mt-2 h-4 w-4/5 rounded-full bg-background-100"></div>
-                  <div class="mt-6 h-10 w-full rounded-xl bg-background-100"></div>
-                </article>
-              }
-            </div>
+          <div class="flex gap-6">
+            @for (item of [1, 2, 3, 4, 5]; track item) {
+            <article
+              class="flex w-[280px] shrink-0 animate-pulse flex-col items-center rounded-3xl border border-border bg-surface p-6 shadow-sm">
+              <div
+                class="mx-auto h-24 w-24 rounded-full bg-background-100 ring-4 ring-background-50 ring-offset-4 ring-offset-surface">
+              </div>
+              <div class="mt-6 h-5 w-32 rounded-full bg-background-100"></div>
+              <div class="mt-2 h-6 w-24 rounded-full bg-background-100"></div>
+              <div class="mt-5 h-4 w-full rounded-full bg-background-100"></div>
+              <div class="mt-2 h-4 w-4/5 rounded-full bg-background-100"></div>
+              <div class="mt-6 h-10 w-full rounded-xl bg-background-100"></div>
+            </article>
+            }
+          </div>
           } @else {
-            <div class="flex w-max gap-6 animate-marquee">
-              <!-- Loop 1 -->
-              @for (consultant of consultants(); track consultant.id + '-1') {
-                <article
-                  class="relative flex h-[500px] w-[280px] shrink-0 flex-col overflow-hidden rounded-3xl border border-border bg-surface shadow-sm transition-all hover:-translate-y-2 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/10"
-                >
-                  <!-- Capa de Media (Expansible) -->
-                  <div
-                    class="absolute top-0 left-0 z-0 w-full overflow-hidden bg-background-50 transition-all duration-500 ease-in-out"
-                    [class.h-[55%]]="!isConsultantMediaActive(consultant.id + '-1')"
-                    [class.h-full]="isConsultantMediaActive(consultant.id + '-1')"
-                    (mouseenter)="activateConsultantMedia(consultant.id + '-1', $event)"
-                    (mouseleave)="deactivateConsultantMedia(consultant.id + '-1', $event)"
-                  >
-                    <img
-                      [src]="consultantPhoto(consultant)"
-                      [alt]="consultant.fullName"
-                      class="h-full w-full object-cover transition-transform duration-700"
-                      [class.scale-110]="isConsultantMediaActive(consultant.id + '-1')"
-                    />
-                    @if (consultant.videoUrl) {
-                      <video
-                        [src]="consultant.videoUrl"
-                        class="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500"
-                        [class.opacity-100]="isConsultantMediaActive(consultant.id + '-1')"
-                        muted
-                        loop
-                        playsinline
-                        preload="metadata"
-                        (loadedmetadata)="syncConsultantVideo($event)"
-                      ></video>
-                    }
-                    <div
-                      class="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-500"
-                      [class.opacity-100]="isConsultantMediaActive(consultant.id + '-1')"
-                    ></div>
-                    @if (consultant.videoUrl) {
-                      <button
-                        type="button"
-                        aria-label="Activar o silenciar audio"
-                        data-consultant-audio-toggle
-                        class="absolute right-3 top-3 z-20 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-text/70 text-fixed-background-50 opacity-0 shadow-lg shadow-text/20 backdrop-blur transition hover:bg-text"
-                        [class.opacity-100]="isConsultantMediaActive(consultant.id + '-1')"
-                        (pointerdown)="$event.stopPropagation()"
-                        (click)="unmuteConsultantVideo($event)"
-                      >
-                        <i class="fas fa-volume-xmark text-xs"></i>
-                      </button>
-                    }
-                  </div>
+          <div class="flex w-max gap-6 animate-marquee">
+            <!-- Loop 1 -->
+            @for (consultant of consultants(); track consultant.id + '-1') {
+            <article
+              class="relative flex h-[500px] w-[280px] shrink-0 flex-col overflow-hidden rounded-3xl border border-border bg-surface shadow-sm transition-all hover:-translate-y-2 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/10">
+              <!-- Capa de Media (Expansible) -->
+              <div
+                class="absolute top-0 left-0 z-0 w-full overflow-hidden bg-background-50 transition-all duration-500 ease-in-out"
+                [class.h-[55%]]="!isConsultantMediaActive(consultant.id + '-1')"
+                [class.h-full]="isConsultantMediaActive(consultant.id + '-1')"
+                (mouseenter)="activateConsultantMedia(consultant.id + '-1', $event)"
+                (mouseleave)="deactivateConsultantMedia(consultant.id + '-1', $event)">
+                <img [src]="consultantPhoto(consultant)" [alt]="consultant.fullName"
+                  class="h-full w-full object-cover transition-transform duration-700"
+                  [class.scale-110]="isConsultantMediaActive(consultant.id + '-1')" />
+                @if (consultant.videoUrl) {
+                <video [src]="consultant.videoUrl"
+                  class="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500"
+                  [class.opacity-100]="isConsultantMediaActive(consultant.id + '-1')" muted loop playsinline
+                  preload="metadata" (loadedmetadata)="syncConsultantVideo($event)"></video>
+                }
+                <div class="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-500"
+                  [class.opacity-100]="isConsultantMediaActive(consultant.id + '-1')"></div>
+                @if (consultant.videoUrl) {
+                <button type="button" aria-label="Activar o silenciar audio" data-consultant-audio-toggle
+                  class="absolute right-3 top-3 z-20 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-text/70 text-fixed-background-50 opacity-0 shadow-lg shadow-text/20 backdrop-blur transition hover:bg-text"
+                  [class.opacity-100]="isConsultantMediaActive(consultant.id + '-1')"
+                  (pointerdown)="$event.stopPropagation()" (click)="unmuteConsultantVideo($event)">
+                  <i class="fas fa-volume-xmark text-xs"></i>
+                </button>
+                }
+              </div>
 
-                  <!-- Contenido (Visible por defecto) -->
-                  <div
-                    class="absolute bottom-0 left-0 z-10 flex h-[45%] w-full flex-col items-center justify-center bg-surface p-6 text-center transition-all duration-500 ease-in-out"
-                    [class.translate-y-full]="isConsultantMediaActive(consultant.id + '-1')"
-                    [class.opacity-0]="isConsultantMediaActive(consultant.id + '-1')"
-                  >
-                    <h3 class="text-xl font-inter-bold text-text">{{ consultant.fullName }}</h3>
-                    <div
-                      class="mt-2 inline-flex rounded-full bg-primary-50 px-3 py-1 text-xs font-inter-bold text-primary-600"
-                    >
-                      {{ consultantSpecialty(consultant) }}
-                    </div>
-                    <p class="mt-3 line-clamp-2 text-xs leading-relaxed text-text-500">
-                      {{
-                        consultant.bio ||
-                          'Especialista validado para acompañar el crecimiento de tu PYME.'
-                      }}
-                    </p>
-                    <div
-                      class="mt-3 flex items-center gap-1.5 text-xs font-inter-bold text-text-700"
-                    >
-                      <i class="fas fa-star text-warning"></i>
-                      <span>{{ consultant.rating }}</span>
-                    </div>
-                    <button
-                      type="button"
-                      class="mt-5 w-full rounded-xl bg-primary px-5 py-2.5 text-xs font-inter-bold text-fixed-background-50 transition hover:bg-primary-600"
-                    >
-                      Ver Perfil
-                    </button>
-                  </div>
-                </article>
-              }
-              <!-- Loop 2 -->
-              @for (consultant of consultants(); track consultant.id + '-2') {
-                <article
-                  class="relative flex h-[500px] w-[280px] shrink-0 flex-col overflow-hidden rounded-3xl border border-border bg-surface shadow-sm transition-all hover:-translate-y-2 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/10"
-                >
-                  <!-- Capa de Media (Expansible) -->
-                  <div
-                    class="absolute top-0 left-0 z-0 w-full overflow-hidden bg-background-50 transition-all duration-500 ease-in-out"
-                    [class.h-[55%]]="!isConsultantMediaActive(consultant.id + '-2')"
-                    [class.h-full]="isConsultantMediaActive(consultant.id + '-2')"
-                    (mouseenter)="activateConsultantMedia(consultant.id + '-2', $event)"
-                    (mouseleave)="deactivateConsultantMedia(consultant.id + '-2', $event)"
-                  >
-                    <img
-                      [src]="consultantPhoto(consultant)"
-                      [alt]="consultant.fullName"
-                      class="h-full w-full object-cover transition-transform duration-700"
-                      [class.scale-110]="isConsultantMediaActive(consultant.id + '-2')"
-                    />
-                    @if (consultant.videoUrl) {
-                      <video
-                        [src]="consultant.videoUrl"
-                        class="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500"
-                        [class.opacity-100]="isConsultantMediaActive(consultant.id + '-2')"
-                        muted
-                        loop
-                        playsinline
-                        preload="metadata"
-                        (loadedmetadata)="syncConsultantVideo($event)"
-                      ></video>
-                    }
-                    <div
-                      class="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-500"
-                      [class.opacity-100]="isConsultantMediaActive(consultant.id + '-2')"
-                    ></div>
-                    @if (consultant.videoUrl) {
-                      <button
-                        type="button"
-                        aria-label="Activar o silenciar audio"
-                        data-consultant-audio-toggle
-                        class="absolute right-3 top-3 z-20 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-text/70 text-fixed-background-50 opacity-0 shadow-lg shadow-text/20 backdrop-blur transition hover:bg-text"
-                        [class.opacity-100]="isConsultantMediaActive(consultant.id + '-2')"
-                        (pointerdown)="$event.stopPropagation()"
-                        (click)="unmuteConsultantVideo($event)"
-                      >
-                        <i class="fas fa-volume-xmark text-xs"></i>
-                      </button>
-                    }
-                  </div>
+              <!-- Contenido (Visible por defecto) -->
+              <div
+                class="absolute bottom-0 left-0 z-10 flex h-[45%] w-full flex-col items-center justify-center bg-surface p-6 text-center transition-all duration-500 ease-in-out"
+                [class.translate-y-full]="isConsultantMediaActive(consultant.id + '-1')"
+                [class.opacity-0]="isConsultantMediaActive(consultant.id + '-1')">
+                <h3 class="text-xl font-inter-bold text-text">{{ consultant.fullName }}</h3>
+                <div
+                  class="mt-2 inline-flex rounded-full bg-primary-50 px-3 py-1 text-xs font-inter-bold text-primary-600">
+                  {{ consultantSpecialty(consultant) }}
+                </div>
+                <p class="mt-3 line-clamp-2 text-xs leading-relaxed text-text-500">
+                  {{
+                  consultant.bio ||
+                  'Especialista validado para acompañar el crecimiento de tu PYME.'
+                  }}
+                </p>
+                <div class="mt-3 flex items-center gap-1.5 text-xs font-inter-bold text-text-700">
+                  <i class="fas fa-star text-warning"></i>
+                  <span>{{ consultant.rating }}</span>
+                </div>
+                <button type="button"
+                  class="mt-5 w-full rounded-xl bg-primary px-5 py-2.5 text-xs font-inter-bold text-fixed-background-50 transition hover:bg-primary-600">
+                  Ver Perfil
+                </button>
+              </div>
+            </article>
+            }
+            <!-- Loop 2 -->
+            @for (consultant of consultants(); track consultant.id + '-2') {
+            <article
+              class="relative flex h-[500px] w-[280px] shrink-0 flex-col overflow-hidden rounded-3xl border border-border bg-surface shadow-sm transition-all hover:-translate-y-2 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/10">
+              <!-- Capa de Media (Expansible) -->
+              <div
+                class="absolute top-0 left-0 z-0 w-full overflow-hidden bg-background-50 transition-all duration-500 ease-in-out"
+                [class.h-[55%]]="!isConsultantMediaActive(consultant.id + '-2')"
+                [class.h-full]="isConsultantMediaActive(consultant.id + '-2')"
+                (mouseenter)="activateConsultantMedia(consultant.id + '-2', $event)"
+                (mouseleave)="deactivateConsultantMedia(consultant.id + '-2', $event)">
+                <img [src]="consultantPhoto(consultant)" [alt]="consultant.fullName"
+                  class="h-full w-full object-cover transition-transform duration-700"
+                  [class.scale-110]="isConsultantMediaActive(consultant.id + '-2')" />
+                @if (consultant.videoUrl) {
+                <video [src]="consultant.videoUrl"
+                  class="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-500"
+                  [class.opacity-100]="isConsultantMediaActive(consultant.id + '-2')" muted loop playsinline
+                  preload="metadata" (loadedmetadata)="syncConsultantVideo($event)"></video>
+                }
+                <div class="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-500"
+                  [class.opacity-100]="isConsultantMediaActive(consultant.id + '-2')"></div>
+                @if (consultant.videoUrl) {
+                <button type="button" aria-label="Activar o silenciar audio" data-consultant-audio-toggle
+                  class="absolute right-3 top-3 z-20 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-text/70 text-fixed-background-50 opacity-0 shadow-lg shadow-text/20 backdrop-blur transition hover:bg-text"
+                  [class.opacity-100]="isConsultantMediaActive(consultant.id + '-2')"
+                  (pointerdown)="$event.stopPropagation()" (click)="unmuteConsultantVideo($event)">
+                  <i class="fas fa-volume-xmark text-xs"></i>
+                </button>
+                }
+              </div>
 
-                  <!-- Contenido (Visible por defecto) -->
-                  <div
-                    class="absolute bottom-0 left-0 z-10 flex h-[45%] w-full flex-col items-center justify-center bg-surface p-6 text-center transition-all duration-500 ease-in-out"
-                    [class.translate-y-full]="isConsultantMediaActive(consultant.id + '-2')"
-                    [class.opacity-0]="isConsultantMediaActive(consultant.id + '-2')"
-                  >
-                    <h3 class="text-xl font-inter-bold text-text">{{ consultant.fullName }}</h3>
-                    <div
-                      class="mt-2 inline-flex rounded-full bg-primary-50 px-3 py-1 text-xs font-inter-bold text-primary-600"
-                    >
-                      {{ consultantSpecialty(consultant) }}
-                    </div>
-                    <p class="mt-3 line-clamp-2 text-xs leading-relaxed text-text-500">
-                      {{
-                        consultant.bio ||
-                          'Especialista validado para acompañar el crecimiento de tu PYME.'
-                      }}
-                    </p>
-                    <div
-                      class="mt-3 flex items-center gap-1.5 text-xs font-inter-bold text-text-700"
-                    >
-                      <i class="fas fa-star text-warning"></i>
-                      <span>{{ consultant.rating }}</span>
-                    </div>
-                    <button
-                      type="button"
-                      class="mt-5 w-full rounded-xl bg-primary px-5 py-2.5 text-xs font-inter-bold text-fixed-background-50 transition hover:bg-primary-600"
-                    >
-                      Ver Perfil
-                    </button>
-                  </div>
-                </article>
-              }
-            </div>
+              <!-- Contenido (Visible por defecto) -->
+              <div
+                class="absolute bottom-0 left-0 z-10 flex h-[45%] w-full flex-col items-center justify-center bg-surface p-6 text-center transition-all duration-500 ease-in-out"
+                [class.translate-y-full]="isConsultantMediaActive(consultant.id + '-2')"
+                [class.opacity-0]="isConsultantMediaActive(consultant.id + '-2')">
+                <h3 class="text-xl font-inter-bold text-text">{{ consultant.fullName }}</h3>
+                <div
+                  class="mt-2 inline-flex rounded-full bg-primary-50 px-3 py-1 text-xs font-inter-bold text-primary-600">
+                  {{ consultantSpecialty(consultant) }}
+                </div>
+                <p class="mt-3 line-clamp-2 text-xs leading-relaxed text-text-500">
+                  {{
+                  consultant.bio ||
+                  'Especialista validado para acompañar el crecimiento de tu PYME.'
+                  }}
+                </p>
+                <div class="mt-3 flex items-center gap-1.5 text-xs font-inter-bold text-text-700">
+                  <i class="fas fa-star text-warning"></i>
+                  <span>{{ consultant.rating }}</span>
+                </div>
+                <button type="button"
+                  class="mt-5 w-full rounded-xl bg-primary px-5 py-2.5 text-xs font-inter-bold text-fixed-background-50 transition hover:bg-primary-600">
+                  Ver Perfil
+                </button>
+              </div>
+            </article>
+            }
+          </div>
           }
         </div>
       </div>
     </section>
 
     <section id="servicios" class="bg-surface py-24">
-      <div
-        class="mx-auto grid max-w-7xl gap-14 px-6 lg:grid-cols-[1fr_0.95fr] lg:items-center lg:px-8"
-      >
+      <div class="mx-auto grid max-w-7xl gap-14 px-6 lg:grid-cols-[1fr_0.95fr] lg:items-center lg:px-8">
         <div>
           <h2 class="max-w-2xl text-3xl font-inter-bold leading-tight text-text sm:text-4xl">
             Consultoria Especializada para cada area de tu negocio
@@ -445,22 +345,18 @@
 
           <div class="mt-10 grid gap-5 md:grid-cols-2">
             @for (service of services; track service.title) {
-              <article
-                class="rounded-2xl bg-primary-50 border border-primary-100 p-5 transition hover:shadow-md hover:shadow-primary-500/10"
-              >
-                <h3 class="text-lg font-inter-bold text-text">{{ service.title }}</h3>
-                <p class="mt-1.5 text-sm text-text-600">{{ service.description }}</p>
-              </article>
+            <article
+              class="rounded-2xl bg-primary-50 border border-primary-100 p-5 transition hover:shadow-md hover:shadow-primary-500/10">
+              <h3 class="text-lg font-inter-bold text-text">{{ service.title }}</h3>
+              <p class="mt-1.5 text-sm text-text-600">{{ service.description }}</p>
+            </article>
             }
           </div>
         </div>
 
         <div class="overflow-hidden rounded-[32px] shadow-2xl shadow-text-200/70">
-          <img
-            src="https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1200&q=80"
-            alt="Sesion de consultoria en equipo"
-            class="h-full w-full object-cover"
-          />
+          <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1200&q=80"
+            alt="Sesion de consultoria en equipo" class="h-full w-full object-cover" />
         </div>
       </div>
     </section>
@@ -471,28 +367,20 @@
       <div class="grid grid-cols-1 gap-12 lg:grid-cols-4 lg:gap-8">
         <!-- Logo y Descripcion -->
         <div class="lg:col-span-1">
-          <img
-            src="/avif/logo_completo.avif"
-            alt="HUBSME"
-            class="h-10 w-auto brightness-0 invert"
-          />
+          <img src="/avif/logo_completo.avif" alt="HUBSME" class="h-10 w-auto brightness-0 invert" />
           <p class="mt-6 text-sm leading-relaxed text-text-400">
             Democratizando el acceso a consultoría de alto nivel con IA para el crecimiento
             sostenible de las PYMES en Latinoamérica.
           </p>
           <div class="mt-8 flex gap-5">
-            <a href="#" class="text-text-400 hover:text-fixed-background-50 transition-colors"
-              ><i class="fab fa-linkedin text-xl"></i
-            ></a>
-            <a href="#" class="text-text-400 hover:text-fixed-background-50 transition-colors"
-              ><i class="fab fa-instagram text-xl"></i
-            ></a>
-            <a href="#" class="text-text-400 hover:text-fixed-background-50 transition-colors"
-              ><i class="fab fa-x-twitter text-xl"></i
-            ></a>
-            <a href="#" class="text-text-400 hover:text-fixed-background-50 transition-colors"
-              ><i class="fab fa-youtube text-xl"></i
-            ></a>
+            <a href="#" class="text-text-400 hover:text-fixed-background-50 transition-colors"><i
+                class="fab fa-linkedin text-xl"></i></a>
+            <a href="#" class="text-text-400 hover:text-fixed-background-50 transition-colors"><i
+                class="fab fa-instagram text-xl"></i></a>
+            <a href="#" class="text-text-400 hover:text-fixed-background-50 transition-colors"><i
+                class="fab fa-x-twitter text-xl"></i></a>
+            <a href="#" class="text-text-400 hover:text-fixed-background-50 transition-colors"><i
+                class="fab fa-youtube text-xl"></i></a>
           </div>
         </div>
 
@@ -502,7 +390,7 @@
             Oficina Principal
           </h3>
           <p class="mt-4 text-sm text-text-400">
-            Av. Micoela Bastidas Mz U Lt 12, Chorrillos<br />Lima, Perú
+            Av Manuel Olguin 595 Santiago de Surco<br />Lima, Perú
           </p>
 
           <h3 class="mt-8 text-xs font-inter-bold uppercase tracking-wider text-text-300">
@@ -517,12 +405,10 @@
             Información Empresarial
           </h3>
           <ul class="mt-4 space-y-3 text-sm text-text-400">
-            <li>RUC: 20655555555</li>
+            <li>RUC: 20615904776</li>
             <li>
               Contacto:
-              <a href="mailto:contacto@hubsme.pe" class="hover:text-fixed-background-50"
-                >contacto@hubsme.pe</a
-              >
+              <a href="mailto:contacto@hubsme.pe" class="hover:text-fixed-background-50">contacto@hubsme.pe</a>
             </li>
             <li>T: +51 907 009 567</li>
           </ul>
@@ -535,36 +421,20 @@
           </h3>
           <ul class="mt-4 space-y-3 text-sm text-text-400">
             <li>
-              <a
-                href="#quienes-somos"
-                (click)="scrollToSection('quienes-somos', $event)"
-                class="hover:text-fixed-background-50 transition-colors"
-                >Quienes Somos</a
-              >
+              <a href="#quienes-somos" (click)="scrollToSection('quienes-somos', $event)"
+                class="hover:text-fixed-background-50 transition-colors">Quienes Somos</a>
             </li>
             <li>
-              <a
-                href="#servicios"
-                (click)="scrollToSection('servicios', $event)"
-                class="hover:text-fixed-background-50 transition-colors"
-                >Servicios</a
-              >
+              <a href="#servicios" (click)="scrollToSection('servicios', $event)"
+                class="hover:text-fixed-background-50 transition-colors">Servicios</a>
             </li>
             <li>
-              <a
-                href="#consultores"
-                (click)="scrollToSection('consultores', $event)"
-                class="hover:text-fixed-background-50 transition-colors"
-                >Consultores</a
-              >
+              <a href="#consultores" (click)="scrollToSection('consultores', $event)"
+                class="hover:text-fixed-background-50 transition-colors">Consultores</a>
             </li>
             <li>
-              <a
-                href="#top"
-                (click)="scrollToSection('top', $event)"
-                class="hover:text-fixed-background-50 transition-colors"
-                >Inicio</a
-              >
+              <a href="#top" (click)="scrollToSection('top', $event)"
+                class="hover:text-fixed-background-50 transition-colors">Inicio</a>
             </li>
           </ul>
         </div>
@@ -572,21 +442,14 @@
 
       <!-- Barra Inferior -->
       <div
-        class="mt-20 border-t border-surface/10 pt-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between"
-      >
+        class="mt-20 border-t border-surface/10 pt-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-text-500">
           <span class="font-inter-bold text-text-300">HUBSME S.A.C.</span>
           <span>© 2026 Todos los derechos reservados.</span>
-          <a
-            href="/politicas-de-privacidad"
-            class="hover:text-fixed-background-50 transition-colors"
-            >Politica de Privacidad</a
-          >
-          <a
-            href="/terminos-y-condiciones"
-            class="hover:text-fixed-background-50 transition-colors"
-            >Terminos y Condiciones</a
-          >
+          <a href="/politicas-de-privacidad" class="hover:text-fixed-background-50 transition-colors">Politica de
+            Privacidad</a>
+          <a href="/terminos-y-condiciones" class="hover:text-fixed-background-50 transition-colors">Terminos y
+            Condiciones</a>
         </div>
       </div>
     </div>

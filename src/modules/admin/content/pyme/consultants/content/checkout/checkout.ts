@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiResponse } from 'api/backend.api';
+import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { ConsultantService } from '@service/admin/consultant.service';
 import { MeetingService } from '@service/admin/meeting.service';
 import { MercadoPagoService } from '@service/admin/mercado-pago.service';
@@ -11,11 +13,12 @@ import { PATH, buildPath } from '@route/path.route';
 
 type CheckoutData = ApiResponse<'mercadoPago', 'mercadopagoFindCheckout'>;
 type MeetingData = ApiResponse<'meeting', 'findOne'>;
+type CheckoutMeetingData = Pick<MeetingData, 'startTime' | 'durationMinutes'>;
 type ConsultantData = ApiResponse<'consultant', 'findByUser'>;
 
 @Component({
   selector: 'app-checkout',
-  imports: [CommonModule],
+  imports: [CommonModule, ModalForm],
   templateUrl: './checkout.html',
 })
 export class Checkout implements OnInit {
@@ -26,15 +29,21 @@ export class Checkout implements OnInit {
   private consultantService = inject(ConsultantService);
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
+  private sanitizer = inject(DomSanitizer);
 
   checkout = signal<CheckoutData | null>(null);
-  meeting = signal<MeetingData | null>(null);
+  meeting = signal<MeetingData | CheckoutMeetingData | null>(null);
   consultant = signal<ConsultantData | null>(null);
   loading = signal(false);
   opening = signal(false);
+  paymentModalOpen = signal(false);
 
   checkoutId = computed(() => Number(this.route.snapshot.paramMap.get('id') ?? 0));
   paymentUrl = computed(() => this.checkout()?.initPoint ?? this.checkout()?.sandboxInitPoint ?? null);
+  paymentFrameUrl = computed<SafeResourceUrl | null>(() => {
+    const url = this.paymentUrl();
+    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
+  });
   total = computed(() => Number(this.checkout()?.amount ?? 0));
   marketplaceFee = computed(() => Number(this.checkout()?.marketplaceFee ?? 0));
 
@@ -64,7 +73,7 @@ export class Checkout implements OnInit {
           this.meeting.set({
             startTime: checkout.meetingDetails.startTime,
             durationMinutes: checkout.meetingDetails.durationMinutes,
-          } as any);
+          });
           return this.consultantService.findByUser(checkout.consultantId);
         } else {
           throw new Error('Informacion de reunion no encontrada en el checkout');
@@ -83,7 +92,13 @@ export class Checkout implements OnInit {
     }
 
     this.opening.set(true);
-    window.location.href = url;
+    this.paymentModalOpen.set(true);
+  }
+
+  closePaymentModal() {
+    this.paymentModalOpen.set(false);
+    this.opening.set(false);
+    this.load();
   }
 
   goBack() {

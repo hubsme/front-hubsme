@@ -24,23 +24,25 @@
     </div>
 
     <!-- Footer -->
-    <div class="flex items-center justify-end gap-2 p-4 border-t border-text/10 bg-surface shrink-0">
-      <button
-        type="button"
-        (click)="handleClose()"
-        class="px-3 py-1.5 text-sm bg-text/5 text-text rounded-lg font-inter-medium hover:bg-text/10"
-      >
-        {{ cancelText() }}
-      </button>
-      <button
-        type="button"
-        (click)="handleSubmit()"
-        [disabled]="loading() || isSubmitting()"
-        class="px-3 py-1.5 text-sm rounded-lg font-inter-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-        [ngClass]="getSubmitButtonClass()"
-      >
-        {{ loading() || isSubmitting() ? 'Guardando...' : submitText() }}
-      </button>
-    </div>
+    @if (showFooter()) {
+      <div class="flex items-center justify-end gap-2 p-4 border-t border-text/10 bg-surface shrink-0">
+        <button
+          type="button"
+          (click)="handleClose()"
+          class="px-3 py-1.5 text-sm bg-text/5 text-text rounded-lg font-inter-medium hover:bg-text/10"
+        >
+          {{ cancelText() }}
+        </button>
+        <button
+          type="button"
+          (click)="handleSubmit()"
+          [disabled]="loading() || isSubmitting()"
+          class="px-3 py-1.5 text-sm rounded-lg font-inter-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          [ngClass]="getSubmitButtonClass()"
+        >
+          {{ loading() || isSubmitting() ? 'Guardando...' : submitText() }}
+        </button>
+      </div>
+    }
   </div>
 </div>

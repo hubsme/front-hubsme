@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ToastService } from '@service/toast.service';
@@ -19,6 +19,7 @@ export class SingIn implements OnInit, OnDestroy {
   private session = inject(SessionService);
   private api = inject(Api);
   private platformId = inject(PLATFORM_ID);
+  private route = inject(ActivatedRoute);
 
   // Formulario de login
   email = signal('');
@@ -29,10 +30,15 @@ export class SingIn implements OnInit, OnDestroy {
   private readonly googleMessageHandler = (event: MessageEvent<unknown>) => this.handleGoogleMessage(event);
 
   ngOnInit(): void {
-    // Si ya está logueado, redirigir al dashboard
+    // Si ya está logueado, redirigir al dashboard o diagnóstico
     const currentSession = this.session.session();
     if (currentSession) {
-      this.router.navigate([getDefaultRoute([currentSession.user.role])]);
+      const diagnostic = this.route.snapshot.queryParamMap.get('diagnostic');
+      if (diagnostic === 'true' && currentSession.user.role === 'pyme') {
+        this.router.navigate([buildPath(PATH.diagnostic)]);
+      } else {
+        this.router.navigate([getDefaultRoute([currentSession.user.role])]);
+      }
     }
 
     if (isPlatformBrowser(this.platformId)) {
@@ -76,7 +82,12 @@ export class SingIn implements OnInit, OnDestroy {
           return;
         }
         this.session.setSession(res.data);
-        this.router.navigate([getDefaultRoute([res.data.user.role])]);
+        const diagnostic = this.route.snapshot.queryParamMap.get('diagnostic');
+        if (diagnostic === 'true' && res.data.user.role === 'pyme') {
+          this.router.navigate([buildPath(PATH.diagnostic)]);
+        } else {
+          this.router.navigate([getDefaultRoute([res.data.user.role])]);
+        }
         this.toastService.success('Bienvenido!');
       })
       .catch((error) => {
@@ -90,7 +101,10 @@ export class SingIn implements OnInit, OnDestroy {
   }
 
   goToSignUp(): void {
-    this.router.navigate([buildPath(PATH.auth.signUp)]);
+    const diagnostic = this.route.snapshot.queryParamMap.get('diagnostic');
+    this.router.navigate([buildPath(PATH.auth.signUp)], {
+      queryParams: diagnostic ? { role: 'pyme', locked: true, diagnostic } : {},
+    });
   }
 
   startGoogleLogin(): void {
@@ -139,10 +153,15 @@ export class SingIn implements OnInit, OnDestroy {
       return;
     }
 
-    if (!event.data.session) return;
-
-    this.session.setSession(event.data.session);
-    this.router.navigate([getDefaultRoute([event.data.session.user.role])]);
+    const session = event.data.session;
+    if (!session) return;
+    this.session.setSession(session);
+    const diagnostic = this.route.snapshot.queryParamMap.get('diagnostic');
+    if (diagnostic === 'true' && session.user.role === 'pyme') {
+      this.router.navigate([buildPath(PATH.diagnostic)]);
+    } else {
+      this.router.navigate([getDefaultRoute([session.user.role])]);
+    }
     this.toastService.success('Bienvenido!');
   }
 

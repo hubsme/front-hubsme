@@ -803,7 +803,6 @@ export interface DiagnosticPayloadDto {
   areasEvaluadas: DiagnosticAreaDto[];
   problemasCriticos: DiagnosticProblemDto[];
   recomendaciones: DiagnosticRecommendationDto[];
-  proximosPasos: string[];
 }
 
 export interface DiagnosticResultDto {
@@ -1016,17 +1015,6 @@ export interface MercadoPagoCheckoutDto {
   meetingDetails?: CheckoutMeetingDetailsDto | null;
 }
 
-export interface MercadoPagoPaymentWebhookDto {
-  /** @example "payment" */
-  type?: string;
-  /** @example "payment" */
-  topic?: string;
-  /** @example {"id":"123456789"} */
-  data?: object;
-  /** @example "123456789" */
-  id?: string;
-}
-
 export interface PublicConsultantListItemDto {
   id: number;
   userId: number;
@@ -1042,6 +1030,7 @@ export interface PublicConsultantListItemDto {
   rating: string;
   totalReviews: number;
   active: "true" | "false";
+  validated: "true" | "false";
   /** @format date-time */
   createdAt: string;
 }
@@ -1776,6 +1765,25 @@ export interface MercadopagoFindCheckoutParams {
 export type MercadopagoFindCheckoutData = MercadoPagoCheckoutDto;
 
 export type MercadopagoFindCheckoutError = HttpErrorDto;
+
+export interface MercadopagoWebhookParams {
+  /** @example "payment" */
+  type?: string;
+  /** @example "payment" */
+  topic?: string;
+  /** @example "123456789" */
+  id?: string;
+  /** @example "123456789" */
+  payment_id?: string;
+  /** @example "123456789" */
+  "data.id"?: string;
+  /** @example "https://api.mercadopago.com/v1/payments/123456789" */
+  resource?: string;
+  /** @example "payment.created" */
+  action?: string;
+  /** @example "pending:1:2:1792500000000" */
+  externalReference?: string;
+}
 
 export type MercadopagoWebhookData = any;
 
@@ -3498,8 +3506,25 @@ export namespace MercadoPago {
    */
   export namespace MercadopagoWebhook {
     export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = MercadoPagoPaymentWebhookDto;
+    export type RequestQuery = {
+      /** @example "payment" */
+      type?: string;
+      /** @example "payment" */
+      topic?: string;
+      /** @example "123456789" */
+      id?: string;
+      /** @example "123456789" */
+      payment_id?: string;
+      /** @example "123456789" */
+      "data.id"?: string;
+      /** @example "https://api.mercadopago.com/v1/payments/123456789" */
+      resource?: string;
+      /** @example "payment.created" */
+      action?: string;
+      /** @example "pending:1:2:1792500000000" */
+      externalReference?: string;
+    };
+    export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = MercadopagoWebhookData;
   }
@@ -5639,14 +5664,13 @@ export class Api<SecurityDataType extends unknown> {
      * @response `200` `MercadopagoWebhookData` Webhook processed
      */
     mercadopagoWebhook: (
-      data: MercadoPagoPaymentWebhookDto,
+      query: MercadopagoWebhookParams = {},
       params: RequestParams = {},
     ) =>
       this.http.request<MercadopagoWebhookData, any>({
         path: `/admin/mercado-pago/webhook`,
         method: "POST",
-        body: data,
-        type: ContentType.Json,
+        query: query,
         ...params,
       }),
   };

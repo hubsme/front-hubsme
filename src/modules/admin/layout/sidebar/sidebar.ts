@@ -42,7 +42,7 @@ export class Sidebar {
     const pymeItems: MenuItem[] = [
       { label: 'Dashboard', path: buildPath(pymePath.dashboard), icon: 'fas fa-table-cells-large' },
       { label: 'Perfil', path: buildPath(pymePath.profile), icon: 'fas fa-user-gear' },
-      { label: 'Diagnostico IA', path: buildPath(pymePath.diagnostics), icon: 'fas fa-clipboard-check' },
+      { label: 'Diagnósticos', path: buildPath(pymePath.diagnostics), icon: 'fas fa-clipboard-check' },
       { label: 'Consultores', path: buildPath(pymePath.consultants), icon: 'fas fa-user-group' },
       { label: 'Reuniones', path: buildPath(pymePath.meetings), icon: 'fas fa-calendar' },
       { label: 'Tareas', path: buildPath(pymePath.tasks), icon: 'fas fa-square-check' },

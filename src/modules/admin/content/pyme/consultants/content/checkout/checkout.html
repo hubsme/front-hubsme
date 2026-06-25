@@ -42,10 +42,13 @@
         <button
           type="button"
           (click)="pay()"
-          [disabled]="!paymentUrl() || opening()"
+          [disabled]="isPaid() || !paymentUrl() || opening()"
           class="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm text-fixed-text-50 transition hover:bg-secondary/90 disabled:opacity-50 font-inter-bold"
         >
-          @if (opening()) {
+          @if (isPaid()) {
+            <i class="fas fa-check-circle"></i>
+            Pago confirmado
+          } @else if (opening()) {
             <i class="fas fa-spinner fa-spin"></i>
             Abriendo Mercado Pago
           } @else {
@@ -95,10 +98,6 @@
           <div class="flex items-center justify-between gap-4">
             <span class="text-muted">Sesion de consultoria</span>
             <span class="font-inter-bold">S/ {{ currency(total()) }}</span>
-          </div>
-          <div class="flex items-center justify-between gap-4">
-            <span class="text-muted">Comision de plataforma</span>
-            <span class="font-inter-bold">S/ {{ currency(marketplaceFee()) }}</span>
           </div>
         </div>
 

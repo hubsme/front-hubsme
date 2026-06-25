@@ -46,6 +46,10 @@ export class Checkout implements OnInit {
   });
   total = computed(() => Number(this.checkout()?.amount ?? 0));
   marketplaceFee = computed(() => Number(this.checkout()?.marketplaceFee ?? 0));
+  isPaid = computed(() => {
+    const checkout = this.checkout();
+    return checkout?.status === 'approved' || Boolean(checkout?.meetingId);
+  });
 
   ngOnInit(): void {
     this.load();
@@ -85,6 +89,11 @@ export class Checkout implements OnInit {
   }
 
   pay() {
+    if (this.isPaid()) {
+      this.toastService.success('Este checkout ya fue pagado');
+      return;
+    }
+
     const url = this.paymentUrl();
     if (!url) {
       this.toastService.error('Mercado Pago no devolvio un enlace de pago');

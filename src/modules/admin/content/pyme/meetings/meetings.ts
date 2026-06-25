@@ -19,7 +19,6 @@ import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { ConsultantService } from '@service/admin/consultant.service';
-import { TeamsCallService } from '@module/admin/services/teams-call.service';
 import { PATH, buildPath } from '@route/path.route';
 
 type MeetingForm = {
@@ -71,7 +70,6 @@ type MeetingEventMeta = { meetingId: number };
 export class Meetings implements OnInit {
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
-  public teamsCall = inject(TeamsCallService);
   readonly CalendarView = CalendarView;
   readonly PATH = PATH;
   readonly buildPath = buildPath;
@@ -224,7 +222,7 @@ export class Meetings implements OnInit {
 
   joinMeeting(meeting: Meeting) {
     if (!this.canJoin(meeting)) return;
-    this.teamsCall.startCall(meeting.id, this.currentUserName());
+    window.open(meeting.meetingUrl ?? '', '_blank', 'noopener,noreferrer');
   }
 
   create() {

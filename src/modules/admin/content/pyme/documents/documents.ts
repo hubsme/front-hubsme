@@ -7,6 +7,8 @@ import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { ConsultantService } from '@service/admin/consultant.service';
 import { PATH, buildPath } from '@route/path.route';
+import { downloadPdf } from '../../../functions/download-pdf';
+import { downloadWord } from '../../../functions/download-word';
 
 @Component({
   selector: 'app-documents',
@@ -85,5 +87,82 @@ export class Documents implements OnInit {
 
   consultantName() {
     return 'Consultor asignado';
+  }
+
+  downloadPdf(diagnostic: any) {
+    if (!diagnostic) return;
+    try {
+      downloadPdf(diagnostic);
+    } catch (err) {
+      console.error('Error generating PDF', err);
+      this.toastService.error('Ocurrió un error al generar el PDF.');
+    }
+  }
+
+  downloadWord(diagnostic: any) {
+    if (!diagnostic) return;
+    try {
+      downloadWord(diagnostic);
+    } catch (err) {
+      console.error('Error generating Word', err);
+      this.toastService.error('Ocurrió un error al generar el archivo Word.');
+    }
+  }
+
+  date(value: string | Date | null | undefined) {
+    if (!value) return 'Sin fecha';
+    return new Date(value).toLocaleDateString('es-PE', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
+  responseEntries(diagnostic: any) {
+    const RESPONSE_LABELS: Record<string, string> = {
+      q_gen_1: 'Antiguedad',
+      q_gen_2: 'Regimen tributario',
+      q_gen_3: 'Regimen laboral',
+      q_gen_4: 'Nivel de ventas',
+      q_gen_5: 'Modelo de negocio',
+      q_int_1: 'Objetivos',
+      q_int_2: 'Revision de resultados',
+      q_int_3: 'Control de ganancias',
+      q_int_4: 'Caja y cobranzas',
+      q_int_5: 'Dependencia comercial',
+      q_int_6: 'Proceso comercial',
+      q_int_7: 'Seguimiento comercial',
+      q_int_8: 'Marketing',
+      q_int_9: 'Satisfaccion del cliente',
+      q_int_10: 'Procesos',
+      q_int_11: 'Inventarios o produccion',
+      q_int_12: 'Errores o retrasos',
+      q_int_13: 'Funciones',
+      q_int_14: 'Dependencia del dueno',
+      q_int_15: 'Capacitacion',
+      q_int_16: 'Herramientas digitales',
+      q_int_17: 'Documentacion',
+      q_int_18: 'Cumplimiento laboral',
+      q_int_19: 'Cumplimiento tributario',
+      q_int_20: 'Preparacion para crecer',
+      q_int_21: 'Objetivo financiero',
+      q_int_22: 'Problema comercial',
+      q_int_23: 'Proceso critico',
+      q_int_24: 'Rol dependiente',
+      q_int_25: 'Riesgo prioritario',
+    };
+    return Object.entries(diagnostic.responses || {})
+      .map(([key, value]) => ({
+        label: RESPONSE_LABELS[key] ?? key,
+        value: this.responseValue(value),
+      }))
+      .filter((entry) => entry.value && entry.value !== 'No respondido');
+  }
+
+  private responseValue(value: unknown) {
+    if (value === null || value === undefined) return 'No respondido';
+    if (typeof value === 'string') return value.trim() || 'No respondido';
+    if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+    return JSON.stringify(value);
   }
 }

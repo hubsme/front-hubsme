@@ -8,8 +8,6 @@ import { ConsultantService } from '@service/admin/consultant.service';
 import { PymeService } from '@service/admin/pyme.service';
 import { PATH, buildPath } from '@route/path.route';
 
-import { TeamsCallService } from '@module/admin/services/teams-call.service';
-
 type Meeting = ApiResponse<'meeting', 'findOne'>;
 type Consultant = ApiResponse<'consultant', 'findByUser'>;
 type Pyme = ApiResponse<'pyme', 'findByUser'>;
@@ -25,7 +23,6 @@ export class MeetingDetail implements OnInit {
   private toastService = inject(ToastService);
   private consultantService = inject(ConsultantService);
   private pymeService = inject(PymeService);
-  public teamsCall = inject(TeamsCallService);
 
   meeting = signal<Meeting | null>(null);
   consultant = signal<Consultant | null>(null);
@@ -39,14 +36,6 @@ export class MeetingDetail implements OnInit {
       return user?.name || 'Usuario Hubsme';
     } catch {
       return 'Usuario Hubsme';
-    }
-  });
-
-  canJoinFromWeb = computed(() => {
-    try {
-      return this.hubsme.currentUser().role !== 'consultor';
-    } catch {
-      return false;
     }
   });
 

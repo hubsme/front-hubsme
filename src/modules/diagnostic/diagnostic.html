@@ -1,0 +1,661 @@
+@if (showResult()) {
+  @if (diagnosticResult(); as current) {
+    <div class="min-h-screen flex flex-col bg-background text-text font-inter-regular select-none pb-12">
+      <!-- Sticky Header -->
+      <header class="h-16 shrink-0 px-6 sm:px-12 flex items-center justify-between border-b border-border bg-surface/85 backdrop-blur-md sticky top-0 z-30">
+        <div class="flex items-center gap-3">
+          <img src="/avif/logo_completo.avif" alt="HUBSME" class="h-8 w-auto" />
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <button 
+            type="button" 
+            (click)="goToAdmin()" 
+            class="flex items-center gap-2 text-xs font-inter-bold text-background bg-secondary hover:bg-secondary/95 cursor-pointer transition-all duration-200 px-4 py-2.5 rounded-xl border-none shadow-xs"
+          >
+            <span>Panel</span>
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Results Content -->
+      <main class="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-8 py-8 space-y-8 animate-fade-in">
+        <!-- Hero Banner Card -->
+        <div class="bg-surface border border-border rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md relative overflow-hidden">
+          <div class="absolute -right-24 -bottom-24 h-48 w-48 rounded-full bg-secondary/5 blur-3xl"></div>
+          
+          <div class="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+            <!-- Custom Vector SVG Document Illustration -->
+            <svg viewBox="0 0 120 120" class="h-24 w-24 text-secondary shrink-0">
+              <defs>
+                <linearGradient id="gradDoc" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#0870f7" stop-opacity="0.12" />
+                  <stop offset="100%" stop-color="#0870f7" stop-opacity="0.02" />
+                </linearGradient>
+              </defs>
+              <rect x="25" y="15" width="70" height="90" rx="12" fill="url(#gradDoc)" stroke="#0870f7" stroke-width="1.5" stroke-opacity="0.2" />
+              <rect x="40" y="35" width="40" height="6" rx="3" fill="#0870f7" fill-opacity="0.6" />
+              <rect x="40" y="47" width="25" height="4" rx="2" fill="#0870f7" fill-opacity="0.3" />
+              <rect x="40" y="80" width="6" height="12" rx="2" fill="#0870f7" fill-opacity="0.7" />
+              <rect x="52" y="70" width="6" height="22" rx="2" fill="#0e9f6e" fill-opacity="0.7" />
+              <rect x="64" y="65" width="6" height="27" rx="2" fill="#ff9f00" fill-opacity="0.7" />
+              <rect x="76" y="75" width="6" height="17" rx="2" fill="#7e3af2" fill-opacity="0.7" />
+              <circle cx="75" cy="40" r="10" stroke="#0870f7" stroke-width="3" stroke-opacity="0.8" fill="transparent" stroke-dasharray="40 20" />
+            </svg>
+
+            <div class="space-y-2">
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-inter-bold uppercase tracking-wider bg-secondary/10 text-secondary">
+                <i class="fas fa-check-circle"></i>
+                <span>Diagnóstico Completado</span>
+              </div>
+              <h1 class="text-2xl sm:text-3xl font-inter-bold text-text leading-tight">Tu informe estratégico está listo</h1>
+              <p class="text-xs sm:text-sm text-text/50">
+                Resumen ejecutivo de la salud y oportunidades de tu negocio.
+              </p>
+            </div>
+          </div>
+
+          <!-- Circular Score Gauge -->
+          <div class="flex items-center gap-6 shrink-0 bg-background/30 border border-border/50 rounded-2xl p-4 sm:p-5">
+            <div class="relative h-24 w-24 flex items-center justify-center shrink-0">
+              <svg class="h-24 w-24" viewBox="0 0 100 100">
+                <!-- Background Circle -->
+                <circle class="text-border stroke-current" stroke-width="8" fill="transparent" r="40" cx="50" cy="50"/>
+                <!-- Progress Circle -->
+                <circle class="text-secondary stroke-current" stroke-width="8" stroke-linecap="round" fill="transparent" r="40" cx="50" cy="50"
+                  [style.stroke-dasharray]="251.2"
+                  [style.stroke-dashoffset]="251.2 - (251.2 * current.score) / 100"
+                  transform="rotate(-90 50 50)"
+                />
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-2xl font-inter-bold text-text">{{ current.score }}</span>
+                <span class="text-[10px] text-text/40">/100</span>
+              </div>
+            </div>
+            <div class="space-y-1">
+              <span class="text-[10px] font-inter-bold text-text/40 uppercase tracking-widest block">Puntaje global</span>
+              <span 
+                class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-inter-bold uppercase border"
+                [class]="priorityBadgeClass()"
+              >
+                {{ priorityBadge() }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5 KPI Cards Row -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+          <!-- KPI 1: Puntaje global -->
+          <div class="bg-surface border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xs">
+            <div class="h-10 w-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
+              <i class="fas fa-bullseye text-sm"></i>
+            </div>
+            <div class="min-w-0">
+              <span class="text-[10px] font-inter-semibold text-text/40 block truncate">Puntaje global</span>
+              <span class="text-sm font-inter-bold text-text">{{ current.score }}<span class="text-xs text-text/30">/100</span></span>
+            </div>
+          </div>
+          
+          <!-- KPI 2: Nivel de prioridad -->
+          <div class="bg-surface border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xs">
+            <div class="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" 
+              [class.bg-danger/10]="priorityLevel() === 'Alta'" 
+              [class.bg-warning/10]="priorityLevel() === 'Media'" 
+              [class.bg-success/10]="priorityLevel() === 'Baja'"
+            >
+              <i class="fas fa-shield-alt text-sm" 
+                [class.text-danger]="priorityLevel() === 'Alta'" 
+                [class.text-warning]="priorityLevel() === 'Media'" 
+                [class.text-success]="priorityLevel() === 'Baja'"
+              ></i>
+            </div>
+            <div class="min-w-0">
+              <span class="text-[10px] font-inter-semibold text-text/40 block truncate">Nivel de prioridad</span>
+              <span class="text-sm font-inter-bold" [class]="priorityClass()">{{ priorityLevel() }}</span>
+            </div>
+          </div>
+          
+          <!-- KPI 3: Áreas evaluadas -->
+          <div class="bg-surface border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xs">
+            <div class="h-10 w-10 rounded-xl bg-success/10 text-success flex items-center justify-center shrink-0">
+              <i class="fas fa-th-large text-sm"></i>
+            </div>
+            <div class="min-w-0">
+              <span class="text-[10px] font-inter-semibold text-text/40 block truncate">Áreas evaluadas</span>
+              <span class="text-sm font-inter-bold text-text">{{ current.result.areasEvaluadas.length }}</span>
+            </div>
+          </div>
+          
+          <!-- KPI 4: Recomendaciones -->
+          <div class="bg-surface border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xs">
+            <div class="h-10 w-10 rounded-xl bg-warning/10 text-warning flex items-center justify-center shrink-0">
+              <i class="fas fa-star text-sm"></i>
+            </div>
+            <div class="min-w-0">
+              <span class="text-[10px] font-inter-semibold text-text/40 block truncate">Recomendaciones</span>
+              <span class="text-sm font-inter-bold text-text">{{ current.result.recomendaciones.length }}</span>
+            </div>
+          </div>
+          
+          <!-- KPI 5: Potencial de mejora -->
+          <div class="bg-surface border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xs">
+            <div class="h-10 w-10 rounded-xl bg-info/10 text-info flex items-center justify-center shrink-0">
+              <i class="fas fa-chart-line text-sm"></i>
+            </div>
+            <div class="min-w-0">
+              <span class="text-[10px] font-inter-semibold text-text/40 block truncate">Potencial de mejora</span>
+              <span class="text-sm font-inter-bold text-info">{{ improvementPotential() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Charts Row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Area Performance Bar Chart -->
+          <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+            <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text/50 mb-4">Desempeño por áreas</h3>
+            @if (isBrowser) {
+              <div class="flex-1 min-h-[220px]">
+                <apx-chart
+                  [series]="barChartOptions().series"
+                  [chart]="barChartOptions().chart"
+                  [colors]="barChartOptions().colors"
+                  [plotOptions]="barChartOptions().plotOptions"
+                  [dataLabels]="barChartOptions().dataLabels"
+                  [xaxis]="barChartOptions().xaxis"
+                  [yaxis]="barChartOptions().yaxis"
+                  [grid]="barChartOptions().grid"
+                  [legend]="barChartOptions().legend"
+                ></apx-chart>
+              </div>
+            }
+          </div>
+
+          <!-- Radar Chart (Capabilities) -->
+          <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+            <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text/50 mb-4">Capacidades del negocio</h3>
+            @if (isBrowser) {
+              <div class="flex-1 min-h-[220px]">
+                <apx-chart
+                  [series]="radarChartOptions().series"
+                  [chart]="radarChartOptions().chart"
+                  [colors]="radarChartOptions().colors"
+                  [xaxis]="radarChartOptions().xaxis"
+                  [yaxis]="radarChartOptions().yaxis"
+                  [plotOptions]="radarChartOptions().plotOptions"
+                  [markers]="radarChartOptions().markers"
+                ></apx-chart>
+              </div>
+            }
+          </div>
+
+          <!-- Evolution Projection (Line Chart) -->
+          <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+            <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text/50 mb-4">Proyección de evolución</h3>
+            @if (isBrowser) {
+              <div class="flex-1 min-h-[220px]">
+                <apx-chart
+                  [series]="lineChartOptions().series"
+                  [chart]="lineChartOptions().chart"
+                  [colors]="lineChartOptions().colors"
+                  [stroke]="lineChartOptions().stroke"
+                  [markers]="lineChartOptions().markers"
+                  [dataLabels]="lineChartOptions().dataLabels"
+                  [xaxis]="lineChartOptions().xaxis"
+                  [yaxis]="lineChartOptions().yaxis"
+                  [grid]="lineChartOptions().grid"
+                ></apx-chart>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- 4 Area Detail Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          @for (area of current.result.areasEvaluadas; track area.area) {
+            <div class="bg-surface border border-border rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md transition-all duration-200">
+              <div class="flex items-center gap-3">
+                <div 
+                  class="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 text-white"
+                  [class.bg-secondary]="area.area.toLowerCase().includes('finan')"
+                  [class.bg-success]="area.area.toLowerCase().includes('operac')"
+                  [class.bg-warning]="area.area.toLowerCase().includes('equip') || area.area.toLowerCase().includes('organi')"
+                  [class.bg-violet-600]="area.area.toLowerCase().includes('merca') || area.area.toLowerCase().includes('comerc')"
+                >
+                  <i 
+                    class="text-sm fas"
+                    [class.fa-dollar-sign]="area.area.toLowerCase().includes('finan')"
+                    [class.fa-cog]="area.area.toLowerCase().includes('operac')"
+                    [class.fa-users]="area.area.toLowerCase().includes('equip') || area.area.toLowerCase().includes('organi')"
+                    [class.fa-chart-pie]="area.area.toLowerCase().includes('merca') || area.area.toLowerCase().includes('comerc')"
+                  ></i>
+                </div>
+                <div class="min-w-0 flex-1 flex items-center justify-between">
+                  <span class="font-inter-bold text-sm text-text truncate">{{ area.area }}</span>
+                  <span class="text-xs font-inter-bold"
+                    [class.text-secondary]="area.area.toLowerCase().includes('finan')"
+                    [class.text-success]="area.area.toLowerCase().includes('operac')"
+                    [class.text-warning]="area.area.toLowerCase().includes('equip') || area.area.toLowerCase().includes('organi')"
+                    [class.text-violet-600]="area.area.toLowerCase().includes('merca') || area.area.toLowerCase().includes('comerc')"
+                  >
+                    {{ area.puntaje }}<span class="text-[10px] text-text/30">/100</span>
+                  </span>
+                </div>
+              </div>
+
+              <!-- Mini progress bar -->
+              <div class="w-full h-1.5 bg-background rounded-full overflow-hidden">
+                <div 
+                  class="h-full rounded-full transition-all duration-500"
+                  [class.bg-secondary]="area.area.toLowerCase().includes('finan')"
+                  [class.bg-success]="area.area.toLowerCase().includes('operac')"
+                  [class.bg-warning]="area.area.toLowerCase().includes('equip') || area.area.toLowerCase().includes('organi')"
+                  [class.bg-violet-600]="area.area.toLowerCase().includes('merca') || area.area.toLowerCase().includes('comerc')"
+                  [style.width]="area.puntaje + '%'"
+                ></div>
+              </div>
+
+              <p class="text-xs text-text/60 leading-relaxed font-inter-medium">
+                {{ areaDescription(area.area) }}
+              </p>
+            </div>
+          }
+        </div>
+
+        <!-- General Strategic Analysis Card -->
+        <div class="bg-surface border border-border rounded-3xl p-6 sm:p-8 shadow-xs space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
+              <i class="fas fa-brain text-sm"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-inter-bold text-text">Análisis Estratégico General</h2>
+              <p class="text-xs text-text/40">Diagnóstico detallado y ruta de mejora estructurada por Inteligencia Artificial.</p>
+            </div>
+          </div>
+          <div class="text-xs sm:text-sm text-text/70 leading-relaxed whitespace-pre-line space-y-2 border-t border-border/50 pt-4">
+            {{ current.result.feedbackIa }}
+          </div>
+        </div>
+
+        <!-- Suggested Consultants Section -->
+        @if (consultants().length > 0) {
+          <div class="space-y-4 pt-4">
+            <div class="flex items-end justify-between">
+              <div class="space-y-0.5">
+                <h2 class="text-lg font-inter-bold text-text">Especialistas recomendados para tu negocio</h2>
+                <p class="text-xs text-text/40">Conecta con expertos que impulsarán tus resultados.</p>
+              </div>
+              <a 
+                [routerLink]="['/' + buildPath(PATH.admin.pyme.consultants)]" 
+                class="text-xs font-inter-bold text-secondary hover:text-secondary/80 flex items-center gap-1 cursor-pointer transition-colors border-none shrink-0"
+              >
+                <span>Ver todos los especialistas</span>
+                <i class="fas fa-arrow-right text-[10px]"></i>
+              </a>
+            </div>
+
+            <div class="grid gap-4 grid-cols-1 md:grid-cols-3">
+              @for (consultant of consultants(); track consultant.id) {
+            <div class="bg-surface border border-border rounded-2xl flex gap-4 shadow-xs hover:shadow-sm transition-all duration-200 min-h-[145px] items-stretch overflow-hidden">
+              <!-- Left side (Photo) -->
+              <div class="relative w-24 sm:w-28 shrink-0 bg-text/5 shadow-inner">
+                <img 
+                  [src]="consultantPhoto(consultant)" 
+                  alt="{{ consultant.fullName }}" 
+                  class="h-full w-full object-cover"
+                />
+              </div>
+
+              <!-- Right side (Info & Actions) -->
+              <div class="flex-1 flex flex-col justify-between min-w-0 py-4 pr-4 pl-0">
+                <div class="space-y-1.5">
+                  <div>
+                    <h3 class="font-inter-bold text-sm sm:text-base text-text truncate leading-tight">
+                      {{ consultant.fullName }}
+                    </h3>
+                    <span class="text-[9px] font-inter-semibold text-secondary uppercase tracking-wider block mt-0.5">
+                      {{ consultant.specialties[0] || 'Consultor General' }}
+                    </span>
+                  </div>
+
+                  <!-- Specialties Pills -->
+                  <div class="flex flex-wrap gap-1">
+                    @for (spec of consultant.specialties.slice(0, 2); track spec) {
+                      <span class="inline-block px-1.5 py-0.5 rounded bg-secondary/5 text-secondary border border-secondary/10 text-[8px] font-inter-semibold truncate max-w-full">
+                        {{ spec }}
+                      </span>
+                    }
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-2 gap-2 pt-2.5 border-t border-border/50">
+                  <a 
+                    [routerLink]="['/' + buildPath(PATH.admin.pyme.consultant), consultant.id]"
+                    class="inline-flex h-8 items-center justify-center rounded-lg border border-border bg-surface text-[10px] font-inter-semibold text-text hover:border-secondary hover:text-secondary transition-all"
+                  >
+                    Ver perfil
+                  </a>
+                  <a 
+                    [routerLink]="['/' + buildPath(PATH.admin.pyme.consultant), consultant.id]"
+                    class="inline-flex h-8 items-center justify-center rounded-lg bg-secondary text-[10px] font-inter-semibold text-background hover:bg-secondary/95 transition-all border-none shadow-xs"
+                  >
+                    <i class="far fa-calendar-check text-[9px] mr-1"></i>
+                    <span>Agendar</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+              }
+            </div>
+          </div>
+        }
+
+
+
+        <!-- Recommendations List Section -->
+        @if (current.result.recomendaciones && current.result.recomendaciones.length > 0) {
+          <div class="space-y-4 pt-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-lg font-inter-bold text-text">Recomendaciones estratégicas</h2>
+            </div>
+            <div class="bg-surface border border-border rounded-2xl p-4 sm:p-5 shadow-xs">
+              <div class="grid gap-4 sm:grid-cols-2">
+                @for (rec of current.result.recomendaciones; track rec.accion; let idx = $index) {
+                  <div class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-background/40 transition-colors duration-150">
+                    <div class="h-6 w-6 rounded-full bg-success/10 text-success flex items-center justify-center shrink-0 mt-0.5 text-xs font-inter-bold">
+                      {{ idx + 1 }}
+                    </div>
+                    <div class="space-y-1">
+                      <p class="text-xs sm:text-sm text-text font-inter-bold leading-normal">{{ rec.accion }}</p>
+                      <p class="text-xs text-text/50 leading-relaxed"><strong class="font-inter-semibold text-text/60">Beneficio:</strong> {{ rec.beneficioEsperado }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+
+      </main>
+    </div>
+  }
+} @else {
+  <div class="min-h-screen flex flex-col bg-background text-text font-inter-regular select-none relative">
+    <!-- Sticky Header -->
+    <header class="h-16 shrink-0 px-6 sm:px-12 flex items-center justify-between border-b border-border bg-surface/85 backdrop-blur-md sticky top-0 z-30">
+      <div class="flex items-center gap-3">
+        <img src="/avif/logo_completo.avif" alt="HUBSME" class="h-8 w-auto" />
+        <span class="hidden sm:inline-block h-4 w-px bg-border"></span>
+        <span class="hidden sm:inline-block text-xs font-inter-semibold text-text/50 uppercase tracking-widest">Diagnóstico Inteligente</span>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        @if (isAdminMode()) {
+          <button
+            type="button"
+            (click)="autofill()"
+            class="flex items-center gap-2 text-xs font-inter-bold text-secondary hover:text-secondary/80 border border-secondary/20 bg-secondary/5 hover:bg-secondary/10 cursor-pointer transition-all duration-200 px-4 py-2 rounded-lg"
+          >
+            <i class="fas fa-magic text-xs"></i>
+            <span>Autocompletar</span>
+          </button>
+        }
+        
+        <button 
+          type="button" 
+          (click)="exitToDashboard()" 
+          class="flex items-center gap-2 text-sm font-inter-semibold text-text/60 hover:text-danger cursor-pointer transition-all duration-200 px-3 py-1.5 rounded-lg hover:bg-danger/5"
+        >
+          <i class="fas fa-arrow-left text-xs"></i>
+          <span>Salir al Dashboard</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Split Layout -->
+    <div class="flex-1 flex overflow-hidden">
+      <!-- Sidebar Stepper (Hidden on mobile/tablet) -->
+      <aside class="w-80 shrink-0 border-r border-border bg-surface/40 p-8 hidden lg:flex lg:flex-col justify-between overflow-y-auto">
+        <div class="space-y-8">
+          <div>
+            <h2 class="text-xs font-inter-bold uppercase tracking-wider text-text/40">Secciones del Diagnóstico</h2>
+            <p class="text-xs text-text/50 mt-1">Completa los bloques para generar tu reporte con Inteligencia Artificial.</p>
+          </div>
+
+          <nav class="space-y-1">
+            @for (step of [
+              { title: 'Perfil de Empresa', desc: 'Información general sobre tu negocio.' },
+              { title: 'Estratégica y Finanzas', desc: 'Dirección y gestión financiera.' },
+              { title: 'Comercial y Mercado', desc: 'Ventas, marketing y satisfacción.' },
+              { title: 'Operaciones', desc: 'Procesos, inventarios y calidad.' },
+              { title: 'Organización y RR.HH.', desc: 'Equipo, roles y cultura interna.' },
+              { title: 'Legal y Cumplimiento', desc: 'Obligaciones y contratos.' }
+            ]; track step.title; let idx = $index) {
+              <div 
+                class="relative pl-6 py-3 border-l-2 transition-all duration-300"
+                [class.border-secondary]="idx === currentStepIndex()"
+                [class.border-success]="idx < currentStepIndex()"
+                [class.border-border]="idx > currentStepIndex()"
+              >
+                <!-- Indicator Dot/Icon -->
+                <div 
+                  class="absolute -left-[11px] top-1/2 -translate-y-1/2 h-5 w-5 rounded-full flex items-center justify-center text-[10px] font-inter-bold transition-all duration-300"
+                  [class.bg-secondary]="idx === currentStepIndex()"
+                  [class.text-background]="idx === currentStepIndex()"
+                  [class.bg-success]="idx < currentStepIndex()"
+                  [class.text-background]="idx < currentStepIndex()"
+                  [class.bg-border]="idx > currentStepIndex()"
+                  [class.text-text/30]="idx > currentStepIndex()"
+                >
+                  @if (idx < currentStepIndex()) {
+                    <i class="fas fa-check text-[8px]"></i>
+                  } @else {
+                    {{ idx + 1 }}
+                  }
+                </div>
+
+                <!-- Text Details -->
+                <div class="space-y-0.5">
+                  <p 
+                    class="text-xs font-inter-bold leading-none transition-all duration-300"
+                    [class.text-secondary]="idx === currentStepIndex()"
+                    [class.text-success]="idx < currentStepIndex()"
+                    [class.text-text/40]="idx > currentStepIndex()"
+                  >
+                    {{ step.title }}
+                  </p>
+                  <p 
+                    class="text-[10px] leading-tight transition-all duration-300"
+                    [class.text-text/60]="idx <= currentStepIndex()"
+                    [class.text-text/30]="idx > currentStepIndex()"
+                  >
+                    {{ step.desc }}
+                  </p>
+                </div>
+              </div>
+            }
+          </nav>
+        </div>
+
+        <!-- General Progress Stats -->
+        <div class="rounded-xl border border-border bg-surface p-4 space-y-3">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-inter-semibold text-text/60">Progreso Total</span>
+            <span class="font-inter-bold text-secondary">{{ progressPercentage() }}%</span>
+          </div>
+          <div class="w-full h-1.5 bg-background rounded-full overflow-hidden">
+            <div 
+              class="h-full bg-secondary transition-all duration-500 rounded-full" 
+              [style.width]="progressPercentage() + '%'"
+            ></div>
+          </div>
+          <p class="text-[10px] text-text/40 leading-normal">
+            Pregunta {{ currentQuestionIndex() + 1 }} de {{ questions().length }}
+          </p>
+        </div>
+      </aside>
+
+      <!-- Main Wizard Pane -->
+      <main class="flex-1 flex flex-col relative overflow-y-auto bg-background/30">
+        <!-- Mobile Progress Bar (Visible only on medium/small screens) -->
+        <div class="lg:hidden w-full bg-surface border-b border-border p-4 shrink-0 flex items-center justify-between gap-4">
+          <div class="min-w-0">
+            <span class="text-[10px] font-inter-bold uppercase tracking-wider text-secondary block leading-none">
+              {{ currentStepTitle() }}
+            </span>
+            <span class="text-xs text-text/50 truncate block mt-0.5">
+              Pregunta {{ currentQuestionIndex() + 1 }} de {{ questions().length }}
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-24 sm:w-32 h-2 bg-border rounded-full overflow-hidden">
+              <div 
+                class="h-full bg-secondary transition-all duration-500 rounded-full" 
+                [style.width]="progressPercentage() + '%'"
+              ></div>
+            </div>
+            <span class="text-xs font-inter-bold text-secondary">{{ progressPercentage() }}%</span>
+          </div>
+        </div>
+
+        <!-- Question Card Container -->
+        <div class="flex-1 flex items-center justify-center p-4 sm:p-8 md:p-12">
+          <div class="w-full max-w-2xl bg-surface border border-border rounded-2xl shadow-xl p-6 sm:p-10 md:p-12 flex flex-col justify-between">
+            
+            <!-- Category Badge & Index -->
+            <div class="space-y-2 shrink-0">
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-inter-bold tracking-wider uppercase bg-secondary/10 text-secondary">
+                  {{ currentStepTitle() }}
+                </span>
+                <span class="text-text/30 text-xs">•</span>
+                <span class="text-text/50 text-xs">Paso {{ currentStepIndex() + 1 }} de 6</span>
+              </div>
+              <p class="text-xs text-text/40 italic leading-snug">{{ currentStepDescription() }}</p>
+            </div>
+
+            <!-- Question Content -->
+            <div class="my-8 flex-1 flex flex-col justify-center space-y-6">
+              <h1 class="text-lg sm:text-xl md:text-2xl font-inter-bold text-text leading-snug">
+                {{ currentQuestion().text }}
+              </h1>
+
+              <!-- Closed Question options -->
+              @if (currentQuestion().type === 'closed') {
+                <div class="grid gap-3">
+                  @for (option of (currentQuestion().options || []); track option) {
+                    <button
+                      type="button"
+                      (click)="selectOption(currentQuestion().id, option)"
+                      class="w-full flex items-center justify-between text-left p-4 rounded-xl border transition-all duration-200 cursor-pointer text-sm shadow-xs"
+                      [class.border-secondary]="responses()[currentQuestion().id] === option"
+                      [class.bg-secondary/[0.03]]="responses()[currentQuestion().id] === option"
+                      [class.border-border]="responses()[currentQuestion().id] !== option"
+                      [class.bg-surface]="responses()[currentQuestion().id] !== option"
+                      [class.hover:border-secondary/40]="responses()[currentQuestion().id] !== option"
+                      [class.hover:bg-secondary/[0.01]]="responses()[currentQuestion().id] !== option"
+                    >
+                      <span 
+                        class="font-inter-medium leading-normal pr-4"
+                        [class.text-secondary]="responses()[currentQuestion().id] === option"
+                        [class.text-text]="responses()[currentQuestion().id] !== option"
+                      >
+                        {{ option }}
+                      </span>
+                      
+                      <!-- Custom Check Dot -->
+                      <div 
+                        class="h-5 w-5 rounded-full border flex items-center justify-center shrink-0 transition-all duration-200"
+                        [class.border-secondary]="responses()[currentQuestion().id] === option"
+                        [class.bg-secondary]="responses()[currentQuestion().id] === option"
+                        [class.border-border]="responses()[currentQuestion().id] !== option"
+                      >
+                        @if (responses()[currentQuestion().id] === option) {
+                          <div class="h-2.5 w-2.5 rounded-full bg-background"></div>
+                        }
+                      </div>
+                    </button>
+                  }
+                </div>
+              }
+
+              <!-- Open Question input -->
+              @if (currentQuestion().type === 'open') {
+                <div class="space-y-2">
+                  <textarea
+                    name="open_answer"
+                    rows="4"
+                    [ngModel]="responses()[currentQuestion().id] || ''"
+                    (ngModelChange)="setOpenResponse(currentQuestion().id, $event)"
+                    class="block w-full px-4 py-3 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/25 focus:border-secondary outline-none bg-surface text-text placeholder:text-text/30 text-sm leading-relaxed"
+                    [placeholder]="currentQuestion().placeholder || ''"
+                  ></textarea>
+                  <div class="flex items-center justify-between text-[11px] text-text/40 px-1">
+                    <span>Tu respuesta es confidencial y solo la usará la IA para el diagnóstico.</span>
+                    <span>{{ (responses()[currentQuestion().id] || '').length }} caracteres</span>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Bottom Actions -->
+            <div class="flex items-center justify-between pt-6 border-t border-border shrink-0">
+              <!-- Back Button -->
+              <button
+                type="button"
+                (click)="prevQuestion()"
+                [disabled]="currentQuestionIndex() === 0"
+                class="flex items-center gap-2 py-2.5 px-4 rounded-lg text-xs font-inter-bold text-text/60 hover:text-text hover:bg-text/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer"
+              >
+                <i class="fas fa-chevron-left text-[10px]"></i>
+                <span>Anterior</span>
+              </button>
+
+              <!-- Next / Finish Button -->
+              <button
+                type="button"
+                (click)="nextQuestion()"
+                [disabled]="!isCurrentAnswered()"
+                class="flex items-center gap-2 py-2.5 px-6 rounded-lg text-xs font-inter-bold text-background bg-secondary hover:bg-secondary/95 disabled:opacity-40 disabled:cursor-not-allowed transition-all duration-200 cursor-pointer shadow-sm"
+              >
+                @if (currentQuestionIndex() === questions().length - 1) {
+                  <span>Generar Diagnóstico</span>
+                  <i class="fas fa-sparkles text-[10px]"></i>
+                } @else {
+                  <span>Siguiente</span>
+                  <i class="fas fa-chevron-right text-[10px]"></i>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Full Screen Loader Overlay -->
+    @if (generating()) {
+      <div class="fixed inset-0 bg-background/95 backdrop-blur-lg flex flex-col items-center justify-center space-y-6 text-center p-6 z-50">
+        <div class="relative h-24 w-24 flex items-center justify-center">
+          <div class="absolute inset-0 rounded-full bg-secondary/10 animate-ping"></div>
+          <div class="h-16 w-16 animate-spin rounded-full border-4 border-secondary/20 border-t-secondary"></div>
+        </div>
+
+        <div class="space-y-2 max-w-md">
+          <h3 class="text-lg font-inter-bold text-text">Analizando tus respuestas...</h3>
+          <p class="text-sm text-text/60 leading-relaxed">
+            Nuestra Inteligencia Artificial está procesando tu información y construyendo tu mapa de ruta estratégico personalizado.
+          </p>
+          <p class="text-xs text-secondary font-inter-medium animate-pulse mt-2">
+            Esto puede tardar unos segundos. Por favor, no cierres esta ventana.
+          </p>
+        </div>
+      </div>
+    }
+  </div>
+}

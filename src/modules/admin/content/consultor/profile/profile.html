@@ -14,12 +14,24 @@
     <section class="grid grid-cols-1 gap-6 xl:grid-cols-[22rem_1fr]">
       <aside class="rounded-xl border border-border bg-surface p-6">
         <h2 class="mb-5 block text-xs font-inter-semibold text-muted">Foto de perfil y video</h2>
-        <div class="mx-auto h-36 w-36 overflow-hidden rounded-full border border-border bg-text/5 shadow-inner">
-          @if (form().photoUrl && !photoError()) {
-            <img [src]="form().photoUrl" alt="Foto de perfil" (error)="onPhotoError()" class="h-full w-full object-cover" />
+        <div class="relative mx-auto h-36 w-36">
+          <div class="h-full w-full overflow-hidden rounded-full border border-border bg-text/5 shadow-inner">
+            @if (form().photoUrl && !photoError()) {
+              <img [src]="form().photoUrl" alt="Foto de perfil" (error)="onPhotoError()" class="h-full w-full object-cover pointer-events-none" />
+            } @else {
+              <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-secondary/60 font-plus-jakarta-sans text-4xl font-bold text-background uppercase select-none">
+                {{ getInitials() }}
+              </div>
+            }
+          </div>
+          <!-- Distintivo de Verificado -->
+          @if (consultant()?.validated === 'true') {
+            <div class="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full border-4 border-surface bg-primary text-fixed-background-50 shadow-md" title="Consultor Verificado">
+              <i class="fas fa-check text-xs"></i>
+            </div>
           } @else {
-            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-secondary/60 font-plus-jakarta-sans text-4xl font-bold text-background uppercase select-none">
-              {{ getInitials() }}
+            <div class="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full border-4 border-surface bg-muted text-fixed-background-50 shadow-md" title="Perfil no verificado (Sube foto y video de presentación)">
+              <i class="fas fa-question text-xs"></i>
             </div>
           }
         </div>

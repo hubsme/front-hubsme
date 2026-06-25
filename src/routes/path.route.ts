@@ -40,6 +40,7 @@ export function getPath(node: PathNode): string {
 export const PATH = {
   policyPrivacy: { _path: 'politicas-de-privacidad' },
   termsConditions: { _path: 'terminos-y-condiciones' },
+  diagnostic: { _path: 'diagnostico' },
   auth: {
     _path: 'auth',
     signIn: { _path: 'sign-in' },
@@ -81,6 +82,7 @@ export const ROUTE_CONFIG = {
   } as Record<Rol, string>,
 
   routeAccess: {
+    [buildPath(PATH.diagnostic)]: ['pyme'],
     [buildPath(PATH.admin.pyme.dashboard)]: ['pyme'],
     [buildPath(PATH.admin.pyme.profile)]: ['pyme'],
     [buildPath(PATH.admin.pyme.diagnostics)]: ['pyme'],

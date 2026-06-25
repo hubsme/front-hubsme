@@ -23,7 +23,6 @@ import { ConsultantGoogleCalendarService } from '@service/admin/consultant-googl
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
-import { TeamsCallService } from '@module/admin/services/teams-call.service';
 import { PATH, buildPath } from '@route/path.route';
 
 type AvailabilityMonth = ApiResponse<'consultantAvailability', 'consultant-availabilityFindMonth'>['data'][number];
@@ -84,7 +83,6 @@ export class Meetings implements OnInit, OnDestroy {
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
   private router = inject(Router);
-  public teamsCall = inject(TeamsCallService);
   private platformId = inject(PLATFORM_ID);
 
   readonly CalendarView = CalendarView;
@@ -403,7 +401,7 @@ export class Meetings implements OnInit, OnDestroy {
 
   joinMeeting(meeting: Meeting) {
     if (!this.canJoinMeeting(meeting)) return;
-    this.teamsCall.startCall(meeting.id, this.currentUserName());
+    window.open(meeting.meetingUrl ?? '', '_blank', 'noopener,noreferrer');
   }
 
   finishMeeting(meeting: Meeting) {

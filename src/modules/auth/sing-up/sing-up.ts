@@ -120,7 +120,12 @@ export class SingUp implements OnInit, OnDestroy {
       .then((res) => {
         this.session.setSession(res.data);
         this.toastService.success('Cuenta creada correctamente');
-        this.router.navigate([getDefaultRoute([res.data.user.role])]);
+        const diagnostic = this.route.snapshot.queryParamMap.get('diagnostic');
+        if (diagnostic === 'true' && res.data.user.role === 'pyme') {
+          this.router.navigate([buildPath(PATH.diagnostic)]);
+        } else {
+          this.router.navigate([getDefaultRoute([res.data.user.role])]);
+        }
       })
       .catch((error) => {
         this.toastService.error(this.getErrorMessage(error, 'No se pudo crear la cuenta'));
@@ -129,7 +134,10 @@ export class SingUp implements OnInit, OnDestroy {
   }
 
   goToSignIn() {
-    this.router.navigate([buildPath(PATH.auth.signIn)]);
+    const diagnostic = this.route.snapshot.queryParamMap.get('diagnostic');
+    this.router.navigate([buildPath(PATH.auth.signIn)], {
+      queryParams: diagnostic ? { diagnostic } : {},
+    });
   }
 
   startGoogleRegister() {
@@ -193,7 +201,12 @@ export class SingUp implements OnInit, OnDestroy {
     this.completeGoogleProfile(session)
       .then(() => {
         this.toastService.success('Cuenta conectada con Google');
-        this.router.navigate([getDefaultRoute([session.user.role])]);
+        const diagnostic = this.route.snapshot.queryParamMap.get('diagnostic');
+        if (diagnostic === 'true' && session.user.role === 'pyme') {
+          this.router.navigate([buildPath(PATH.diagnostic)]);
+        } else {
+          this.router.navigate([getDefaultRoute([session.user.role])]);
+        }
       })
       .catch((error) => {
         this.toastService.error(this.getErrorMessage(error, 'No se pudo completar el perfil'));

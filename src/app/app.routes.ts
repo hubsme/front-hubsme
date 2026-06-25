@@ -30,6 +30,11 @@ export const routes: Routes = [
     loadComponent: () => import('@module/terms-conditions/terms-conditions').then((m) => m.TermsConditions),
   },
   {
+    path: getPath(PATH.diagnostic),
+    canActivate: [authGuard],
+    loadComponent: () => import('@module/diagnostic/diagnostic').then((m) => m.Diagnostic),
+  },
+  {
     path: getPath(PATH.admin),
     canActivate: [authGuard],
     children: [

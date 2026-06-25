@@ -250,21 +250,11 @@
               Ver Acta
             </button>
           } @else if (current.meetingUrl) {
-            @if (canJoinFromWeb()) {
-              <button
-                type="button"
-                (click)="teamsCall.startCall(current.id, currentUserName())"
-                class="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-[0.78rem] text-fixed-background-50 font-inter-bold shadow-sm hover:bg-secondary/90 transition-all cursor-pointer"
-              >
-                <i class="fas fa-video text-[0.65rem]"></i>
-                Unirse
-              </button>
-            }
             <a
               [href]="current.meetingUrl"
               target="_blank"
               rel="noopener noreferrer"
-              class="mt-2 flex items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-[0.78rem] text-muted font-inter-bold transition-all hover:bg-background-50"
+              class="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-[0.78rem] text-fixed-background-50 font-inter-bold shadow-sm hover:bg-secondary/90 transition-all cursor-pointer"
             >
               <i class="fas fa-external-link-alt text-[0.65rem]"></i>
               Unirse

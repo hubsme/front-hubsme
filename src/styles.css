@@ -539,3 +539,92 @@ quill-editor.hide-toolbar {
 quill-editor.hide-toolbar .ql-container.ql-snow {
   border: none !important;
 }
+
+/* Print Media Styles for high-fidelity Diagnostic Reports */
+@media print {
+  /* Set page margins for A4 printing */
+  @page {
+    size: A4;
+    margin: 1.5cm;
+  }
+
+  /* Hide sidebar, navbar, header print buttons, and web-only action items */
+  app-sidebar,
+  app-navbar,
+  .no-print,
+  .print-hidden {
+    display: none !important;
+  }
+
+  /* Unroll screens to allow multi-page printing without clips */
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  div.flex.h-screen {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  div.flex-1.flex.flex-col {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  main.flex-1 {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Force the max-w-7xl content container to span full printable width and center */
+  .max-w-7xl {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Ensure CSS Grid and flex elements map cleanly on page boundaries */
+  .grid {
+    display: grid !important;
+    gap: 1rem !important;
+  }
+
+  /* Adjust grid column structures for proper centering and page width usage when printing */
+  .grid-cols-2.sm\:grid-cols-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+
+  .grid-cols-1.md\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .grid-cols-1.sm\:grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* Force background fills and gradient highlights to print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Prevent page-breaks in the middle of card content blocks */
+  .bg-surface,
+  .rounded-3xl,
+  .rounded-2xl,
+  .grid > div {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}

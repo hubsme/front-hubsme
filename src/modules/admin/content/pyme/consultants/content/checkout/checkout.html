@@ -111,14 +111,31 @@
 
   @if (paymentModalOpen() && paymentFrameUrl(); as paymentFrameUrl) {
     <app-modal-form title="Mercado Pago" maxWidth="6xl" [showFooter]="false" (onClose)="closePaymentModal()">
-      <div class="h-[78vh] bg-surface">
+      <div class="h-[78vh] bg-surface flex flex-col">
         <iframe
           [src]="paymentFrameUrl"
           title="Checkout de Mercado Pago"
-          class="h-full w-full border-0 bg-surface"
+          class="flex-1 w-full border-0 bg-surface"
           referrerpolicy="no-referrer"
           allow="payment *; clipboard-read; clipboard-write"
         ></iframe>
+        <!-- Footer de creación de reunión -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-text/10 px-6 py-4 bg-surface shrink-0">
+          <div class="flex items-center gap-3 text-sm text-text">
+            <span class="relative flex h-3.5 w-3.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-secondary"></span>
+            </span>
+            <span class="font-inter-medium text-[0.9rem] text-muted">Esperando confirmación de pago y creación de la reunión...</span>
+          </div>
+          <button
+            type="button"
+            (click)="closePaymentModal()"
+            class="w-full sm:w-auto px-4 py-2 text-sm bg-text/5 text-text rounded-lg font-inter-medium hover:bg-text/10 transition"
+          >
+            Cerrar
+          </button>
+        </div>
       </div>
     </app-modal-form>
   }

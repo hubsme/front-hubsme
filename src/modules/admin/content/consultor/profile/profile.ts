@@ -6,6 +6,7 @@ import { MercadoPagoService } from '@service/admin/mercado-pago.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { SessionService } from '@service/session.service';
+import { AlertService } from '@service/alert.service';
 
 type ConsultantProfileData = ApiResponse<'consultant', 'findByUser'>;
 type MercadoPagoStatus = ApiResponse<'mercadoPago', 'mercadopagoStatus'>;
@@ -21,6 +22,7 @@ type ConsultantForm = {
   pricePerHour: number;
   photoUrl: string;
   videoUrl: string;
+  ownerPhone: string;
 };
 
 type ChipField = 'specialties' | 'sectors';
@@ -36,6 +38,7 @@ export class Profile implements OnInit, OnDestroy {
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
   private sessionService = inject(SessionService);
+  private alertService = inject(AlertService);
   private platformId = inject(PLATFORM_ID);
   private mercadoPagoPopup: Window | null = null;
   private mercadoPagoPopupTimer: ReturnType<typeof setInterval> | null = null;
@@ -67,6 +70,7 @@ export class Profile implements OnInit, OnDestroy {
     pricePerHour: 0,
     photoUrl: '',
     videoUrl: '',
+    ownerPhone: '',
   });
 
   ngOnInit(): void {
@@ -101,6 +105,7 @@ export class Profile implements OnInit, OnDestroy {
           pricePerHour: Number(data.pricePerHour),
           photoUrl: data.photoUrl ?? '',
           videoUrl: data.videoUrl ?? '',
+          ownerPhone: data.ownerPhone ?? '',
         });
         this.loadMercadoPagoStatus(data.id);
       })
@@ -128,6 +133,7 @@ export class Profile implements OnInit, OnDestroy {
       videoUrl: form.videoUrl || undefined,
       active: 'true',
       validated: this.consultant()?.validated ?? 'false',
+      ownerPhone: form.ownerPhone || undefined,
     };
     const current = this.consultant();
     const request = current
@@ -203,6 +209,18 @@ export class Profile implements OnInit, OnDestroy {
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.mercadoPagoLoading.set(false));
+  }
+
+  confirmDisconnectMercadoPago(): void {
+    const account = this.mercadoPagoAccountLabel();
+    const accountStr = account && account !== 'Cuenta conectada' ? ` la cuenta ${account}` : ' tu cuenta';
+    this.alertService.confirm(
+      'Desconectar Mercado Pago',
+      `¿Estás seguro de que deseas desconectar${accountStr} de Mercado Pago? Esto impedirá que las PYMEs realicen reservas y pagos a tu cuenta.`,
+      () => {
+        this.disconnectMercadoPago();
+      }
+    );
   }
 
   mercadoPagoAccountLabel(): string {

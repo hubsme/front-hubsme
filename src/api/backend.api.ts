@@ -290,6 +290,7 @@ export interface ConsultantListItemDto {
   fullName: string;
   firstName: string | null;
   lastName: string | null;
+  ownerPhone: string | null;
   bio: string | null;
   specialties: string[];
   sectors: string[];
@@ -320,6 +321,7 @@ export interface ConsultantResultDto {
   fullName: string;
   firstName: string | null;
   lastName: string | null;
+  ownerPhone: string | null;
   bio: string | null;
   specialties: string[];
   sectors: string[];
@@ -341,6 +343,8 @@ export interface ConsultantCreateDto {
   lastName?: string;
   /** @example "Carlos Mendoza" */
   fullName?: string;
+  /** @example "51929073820" */
+  ownerPhone?: string;
   /** @example "Consultor en transformacion digital para PYMES." */
   bio?: string;
   /** @example ["Tecnologia","Operaciones"] */
@@ -368,6 +372,8 @@ export interface ConsultantUpdateDto {
   lastName?: string;
   /** @example "Carlos Mendoza" */
   fullName?: string;
+  /** @example "51929073820" */
+  ownerPhone?: string;
   /** @example "Consultor en transformacion digital para PYMES." */
   bio?: string;
   /** @example ["Tecnologia","Operaciones"] */
@@ -1013,6 +1019,60 @@ export interface MercadoPagoCheckoutDto {
   marketplaceFee: string;
   currency: string;
   meetingDetails?: CheckoutMeetingDetailsDto | null;
+}
+
+export interface EmailSendDto {
+  /**
+   * Correo del destinatario
+   * @example "cliente@hubsme.net"
+   */
+  to: string;
+  /**
+   * Asunto del correo
+   * @example "Bienvenido a Hubsme"
+   */
+  subject: string;
+  /**
+   * Mensaje en texto plano
+   * @example "Contenido del correo en texto plano"
+   */
+  text: string;
+  /**
+   * Mensaje en formato HTML
+   * @example "<p>Contenido del correo en HTML</p>"
+   */
+  html?: string;
+}
+
+export interface EmailSendResultDto {
+  /** @example "Correo enviado exitosamente" */
+  message: string;
+  /** @example "<abc123@mail.gmail.com>" */
+  messageId: string;
+}
+
+export interface WhatsappSendDto {
+  /**
+   * Numero de WhatsApp del destinatario. Puede enviarse con o sin @s.whatsapp.net
+   * @example "51929073820"
+   */
+  phone: string;
+  /**
+   * Mensaje que se enviara por WhatsApp
+   * @example "123456"
+   */
+  message: string;
+}
+
+export interface WhatsappSendResultDto {
+  /** @example "Mensaje enviado exitosamente" */
+  message: string;
+  /** @example "51929073820@s.whatsapp.net" */
+  phone: string;
+  /** @example 201 */
+  providerStatus: number;
+  /** @example {"success":true} */
+  providerResponse?: object | null;
 }
 
 export interface PublicConsultantListItemDto {
@@ -1786,6 +1846,14 @@ export interface MercadopagoWebhookParams {
 }
 
 export type MercadopagoWebhookData = any;
+
+export type EmailSendEmailData = EmailSendResultDto;
+
+export type EmailSendEmailError = HttpErrorDto;
+
+export type WhatsappSendMessageData = WhatsappSendResultDto;
+
+export type WhatsappSendMessageError = HttpErrorDto;
 
 export interface PublicconsultantFindAllParams {
   /**
@@ -3527,6 +3595,48 @@ export namespace MercadoPago {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = MercadopagoWebhookData;
+  }
+}
+
+export namespace Email {
+  /**
+   * No description
+   * @tags email
+   * @name EmailSendEmail
+   * @summary Enviar un correo electrónico
+   * @request POST:/admin/email/send
+   * @secure
+   * @response `201` `EmailSendEmailData`
+   * @response `400` `HttpErrorDto`
+   * @response `500` `HttpErrorDto`
+   */
+  export namespace EmailSendEmail {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = EmailSendDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = EmailSendEmailData;
+  }
+}
+
+export namespace Whatsapp {
+  /**
+   * No description
+   * @tags whatsapp
+   * @name WhatsappSendMessage
+   * @summary Enviar un mensaje por WhatsApp
+   * @request POST:/admin/whatsapp/send
+   * @secure
+   * @response `201` `WhatsappSendMessageData`
+   * @response `400` `HttpErrorDto`
+   * @response `500` `HttpErrorDto`
+   */
+  export namespace WhatsappSendMessage {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = WhatsappSendDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = WhatsappSendMessageData;
   }
 }
 
@@ -5671,6 +5781,54 @@ export class Api<SecurityDataType extends unknown> {
         path: `/admin/mercado-pago/webhook`,
         method: "POST",
         query: query,
+        ...params,
+      }),
+  };
+  email = {
+    /**
+     * No description
+     *
+     * @tags email
+     * @name EmailSendEmail
+     * @summary Enviar un correo electrónico
+     * @request POST:/admin/email/send
+     * @secure
+     * @response `201` `EmailSendEmailData`
+     * @response `400` `HttpErrorDto`
+     * @response `500` `HttpErrorDto`
+     */
+    sendEmail: (data: EmailSendDto, params: RequestParams = {}) =>
+      this.http.request<EmailSendEmailData, EmailSendEmailError>({
+        path: `/admin/email/send`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  whatsapp = {
+    /**
+     * No description
+     *
+     * @tags whatsapp
+     * @name WhatsappSendMessage
+     * @summary Enviar un mensaje por WhatsApp
+     * @request POST:/admin/whatsapp/send
+     * @secure
+     * @response `201` `WhatsappSendMessageData`
+     * @response `400` `HttpErrorDto`
+     * @response `500` `HttpErrorDto`
+     */
+    sendMessage: (data: WhatsappSendDto, params: RequestParams = {}) =>
+      this.http.request<WhatsappSendMessageData, WhatsappSendMessageError>({
+        path: `/admin/whatsapp/send`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
   };

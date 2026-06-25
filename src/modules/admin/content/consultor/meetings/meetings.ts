@@ -22,6 +22,7 @@ import { ConsultantAvailabilityService } from '@service/admin/consultant-availab
 import { ConsultantGoogleCalendarService } from '@service/admin/consultant-google-calendar.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
+import { AlertService } from '@service/alert.service';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { PATH, buildPath } from '@route/path.route';
 
@@ -82,6 +83,7 @@ export class Meetings implements OnInit, OnDestroy {
   private googleCalendarService = inject(ConsultantGoogleCalendarService);
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
+  private alertService = inject(AlertService);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
 
@@ -548,6 +550,18 @@ export class Meetings implements OnInit, OnDestroy {
       .finally(() => this.googleLoading.set(false));
   }
 
+  confirmDisconnectGoogleCalendar(): void {
+    const email = this.googleStatus().googleEmail || '';
+    const accountStr = email ? ` la cuenta ${email}` : ' tu cuenta';
+    this.alertService.confirm(
+      'Desconectar Google Calendar',
+      `¿Estás seguro de que deseas desconectar${accountStr} de Google Calendar? Esto detendrá la sincronización automática de tus eventos y horarios ocupados.`,
+      () => {
+        this.disconnectGoogleCalendar();
+      }
+    );
+  }
+
   formatDate(value: Date | string) {
     const date = typeof value === 'string' ? new Date(value) : value;
     return date.toLocaleDateString('es-PE', {
@@ -622,6 +636,9 @@ export class Meetings implements OnInit, OnDestroy {
   }
 
   private meetingColor(meeting: Meeting) {
+    if (meeting.status === 'finalizada') {
+      return { primary: '#047857', secondary: 'rgba(4,120,87,0.16)' };
+    }
     return { primary: '#2563eb', secondary: 'rgba(37,99,235,0.16)' };
   }
 

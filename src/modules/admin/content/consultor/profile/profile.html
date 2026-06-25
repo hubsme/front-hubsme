@@ -178,7 +178,7 @@
               </button>
             </div>
           </div>
-          <div class="grid grid-cols-1 gap-3 md:col-span-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+          <div class="grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-2">
             <label class="block text-xs text-muted font-inter-semibold">
               <span class="mb-2 block">Precio por hora</span>
               <input
@@ -189,35 +189,74 @@
                 class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
               />
             </label>
-            <div class="flex flex-col">
-              <span class="mb-2 flex items-center text-xs font-inter-semibold">
+            <label class="block text-xs text-muted font-inter-semibold">
+              <span class="mb-2 block">Teléfono</span>
+              <input
+                type="text"
+                [ngModel]="form().ownerPhone"
+                name="ownerPhone"
+                (ngModelChange)="updateForm('ownerPhone', $event)"
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
+              />
+            </label>
+          </div>
+
+          <div class="md:col-span-2 rounded-2xl border border-border bg-text/[0.02] p-5 mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-center gap-3">
+              <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-background border border-border/60 shadow-sm">
+                <img src="/avif/mercado_pago.avif" alt="Mercado Pago" class="h-7 w-7 object-contain" />
+              </div>
+              <div>
+                <p class="text-sm font-inter-bold text-text">Pasarela de cobros (Mercado Pago)</p>
                 @if (mercadoPagoStatus().connected) {
-                  <span class="inline-flex items-center gap-1.5 text-success font-inter-bold">
-                    <span class="h-1.5 w-1.5 rounded-full bg-success"></span>
-                    Conectado
-                  </span>
+                  <p class="text-xs text-muted mt-0.5">
+                    Conectado como: <span class="font-inter-semibold text-text/80">{{ mercadoPagoAccountLabel() }}</span>
+                  </p>
                 } @else {
-                  <span class="inline-flex items-center gap-1.5 text-danger font-inter-bold">
-                    <span class="h-1.5 w-1.5 rounded-full bg-danger"></span>
-                    Desconectado
-                  </span>
+                  <p class="text-xs text-muted mt-0.5">Vincula tu cuenta para poder recibir los pagos de las consultorías.</p>
                 }
-              </span>
-              <button
-                type="button"
-                [title]="mercadoPagoStatus().connected ? mercadoPagoAccountLabel() : 'Conectar Mercado Pago'"
-                [disabled]="mercadoPagoLoading() || !consultant()"
-                class="inline-flex h-10 min-w-56 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm font-inter-bold text-text shadow-sm transition-colors hover:bg-background-50 disabled:opacity-50"
-                (click)="mercadoPagoStatus().connected ? disconnectMercadoPago() : startMercadoPagoConnect()"
-              >
-                <img src="/avif/mercado_pago.avif" alt="Mercado Pago" class="h-5 w-5 object-contain" />
-                @if (mercadoPagoLoading()) {
-                  <i class="fas fa-spinner fa-spin"></i>
-                  Procesando...
-                } @else {
-                  Mercado Pago
-                }
-              </button>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 self-end sm:self-center">
+              @if (mercadoPagoStatus().connected) {
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-xs font-inter-bold text-success">
+                  <span class="h-1.5 w-1.5 rounded-full bg-success"></span>
+                  Conectado
+                </span>
+                <button
+                  type="button"
+                  [disabled]="mercadoPagoLoading() || !consultant()"
+                  class="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-danger/30 bg-surface px-4 text-xs font-inter-bold text-danger transition hover:bg-danger/5 disabled:opacity-50"
+                  (click)="confirmDisconnectMercadoPago()"
+                >
+                  @if (mercadoPagoLoading()) {
+                    <i class="fas fa-spinner fa-spin"></i>
+                  } @else {
+                    <i class="fas fa-link-slash"></i>
+                  }
+                  Desconectar
+                </button>
+              } @else {
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-danger/10 px-3 py-1 text-xs font-inter-bold text-danger">
+                  <span class="h-1.5 w-1.5 rounded-full bg-danger"></span>
+                  Desconectado
+                </span>
+                <button
+                  type="button"
+                  [disabled]="mercadoPagoLoading() || !consultant()"
+                  class="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-xs font-inter-bold text-text shadow-sm transition hover:bg-background-50 disabled:opacity-50"
+                  (click)="startMercadoPagoConnect()"
+                >
+                  @if (mercadoPagoLoading()) {
+                    <i class="fas fa-spinner fa-spin"></i>
+                    Vinculando...
+                  } @else {
+                    <i class="fas fa-link"></i>
+                    Conectar cuenta
+                  }
+                </button>
+              }
             </div>
           </div>
         </div>

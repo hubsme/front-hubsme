@@ -9,7 +9,7 @@
 
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
       @if (googleStatus().connected) {
-      <button type="button" (click)="disconnectGoogleCalendar()" [disabled]="googleLoading()"
+      <button type="button" (click)="confirmDisconnectGoogleCalendar()" [disabled]="googleLoading()"
         class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-5 text-sm text-text font-inter-bold transition-colors hover:bg-background-100 disabled:opacity-50">
         @if (googleLoading()) {
         <i class="fas fa-spinner fa-spin"></i>
@@ -212,6 +212,10 @@
           <span class="h-2.5 w-2.5 rounded-full" style="background-color: #2563eb"></span>
           Reunion Hubsme
         </span>
+        <span class="inline-flex items-center gap-2">
+          <span class="h-2.5 w-2.5 rounded-full" style="background-color: #047857"></span>
+          Reunion Finalizada
+        </span>
       </div>
       <span class="font-inter-semibold">
         {{ sortedSlots().length }} bloques configurados
@@ -303,7 +307,7 @@
     </div>
 
     <div class="flex flex-wrap gap-3">
-      <button type="button" [routerLink]="[buildPath(PATH.admin.consultor.meetings), meeting.id]"
+      <button type="button" [routerLink]="['/' + buildPath(PATH.admin.consultor.meetings), meeting.id]"
         (click)="closeMeetingDetail()"
         class="inline-flex h-9 items-center justify-center rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold transition-colors hover:border-secondary hover:text-secondary">
         Detalles
@@ -315,7 +319,7 @@
       </button>
       }
       @if (meeting.status === 'finalizada' || meeting.description) {
-      <button type="button" [routerLink]="[buildPath(PATH.admin.consultor.documents), meeting.id]"
+      <button type="button" [routerLink]="['/' + buildPath(PATH.admin.consultor.documents), meeting.id]"
         (click)="closeMeetingDetail()"
         class="inline-flex h-9 items-center justify-center rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold transition-colors hover:border-secondary hover:text-secondary">
         Ver Acta

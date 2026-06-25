@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiResponse } from 'api/backend.api';
@@ -21,7 +21,7 @@ type ConsultantData = ApiResponse<'consultant', 'findByUser'>;
   imports: [CommonModule, ModalForm],
   templateUrl: './checkout.html',
 })
-export class Checkout implements OnInit {
+export class Checkout implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private mercadoPagoService = inject(MercadoPagoService);
@@ -30,6 +30,11 @@ export class Checkout implements OnInit {
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
   private sanitizer = inject(DomSanitizer);
+  private paymentPolling: ReturnType<typeof setInterval> | null = null;
+  private redirectingAfterPayment = false;
+  private readonly paymentPollingIntervalMs = 1500;
+  private readonly maxPollingDurationMs = 30000;
+  private pollingStartTime = 0;
 
   checkout = signal<CheckoutData | null>(null);
   meeting = signal<MeetingData | CheckoutMeetingData | null>(null);
@@ -55,6 +60,10 @@ export class Checkout implements OnInit {
     this.load();
   }
 
+  ngOnDestroy(): void {
+    this.stopPaymentPolling();
+  }
+
   load() {
     const checkoutId = this.checkoutId();
     if (!checkoutId) {
@@ -64,33 +73,94 @@ export class Checkout implements OnInit {
     }
 
     this.loading.set(true);
-    this.mercadoPagoService
-      .findCheckout(checkoutId)
-      .then((checkout) => {
-        this.checkout.set(checkout);
-        if (checkout.meetingId) {
-          return this.meetingService.findOne(checkout.meetingId).then((meeting) => {
-            this.meeting.set(meeting);
-            return this.consultantService.findByUser(meeting.consultantId);
-          });
-        } else if (checkout.meetingDetails) {
-          this.meeting.set({
-            startTime: checkout.meetingDetails.startTime,
-            durationMinutes: checkout.meetingDetails.durationMinutes,
-          });
-          return this.consultantService.findByUser(checkout.consultantId);
-        } else {
-          throw new Error('Informacion de reunion no encontrada en el checkout');
-        }
-      })
-      .then((consultant) => this.consultant.set(consultant))
+    this.hydrateCheckout(checkoutId)
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
   }
 
+  private hydrateCheckout(checkoutId: number) {
+    return this.mercadoPagoService
+      .findCheckout(checkoutId)
+      .then((checkout) => this.applyCheckout(checkout));
+  }
+
+  private applyCheckout(checkout: CheckoutData) {
+    this.checkout.set(checkout);
+
+    if (checkout.meetingId) {
+      return this.meetingService.findOne(checkout.meetingId).then((meeting) => {
+        this.meeting.set(meeting);
+        return this.consultantService.findByUser(meeting.consultantId);
+      }).then((consultant) => this.consultant.set(consultant));
+    }
+
+    if (checkout.meetingDetails) {
+      this.meeting.set({
+        startTime: checkout.meetingDetails.startTime,
+        durationMinutes: checkout.meetingDetails.durationMinutes,
+      });
+
+      return this.consultantService
+        .findByUser(checkout.consultantId)
+        .then((consultant) => this.consultant.set(consultant));
+    }
+
+    return Promise.reject(new Error('Informacion de reunion no encontrada en el checkout'));
+  }
+
+  private refreshPaymentStatus() {
+    if (!this.paymentModalOpen() || this.redirectingAfterPayment) return;
+
+    if (Date.now() - this.pollingStartTime > this.maxPollingDurationMs) {
+      this.stopPaymentPolling();
+      this.toastService.warning(
+        'Tiempo de espera excedido. Si ya realizaste el pago, cierra el modal y ábrelo nuevamente para verificar.'
+      );
+      return;
+    }
+
+    this.mercadoPagoService
+      .findCheckout(this.checkoutId())
+      .then((checkout) => {
+        this.checkout.set(checkout);
+        if (checkout.meetingId) {
+          this.completePaidFlow(checkout.meetingId);
+        }
+      })
+      .catch(() => undefined);
+  }
+
+  private startPaymentPolling() {
+    this.stopPaymentPolling();
+    this.pollingStartTime = Date.now();
+    this.refreshPaymentStatus();
+    this.paymentPolling = setInterval(() => this.refreshPaymentStatus(), this.paymentPollingIntervalMs);
+  }
+
+  private stopPaymentPolling() {
+    if (!this.paymentPolling) return;
+    clearInterval(this.paymentPolling);
+    this.paymentPolling = null;
+  }
+
+  private completePaidFlow(meetingId: number) {
+    if (this.redirectingAfterPayment) return;
+    this.redirectingAfterPayment = true;
+    this.stopPaymentPolling();
+    this.paymentModalOpen.set(false);
+    this.opening.set(false);
+    this.toastService.success('Pago confirmado. Abriendo detalle de la reunion');
+    this.router.navigate([buildPath(PATH.admin.pyme.meetings), meetingId], { replaceUrl: true });
+  }
+
   pay() {
     if (this.isPaid()) {
-      this.toastService.success('Este checkout ya fue pagado');
+      const meetingId = this.checkout()?.meetingId;
+      if (meetingId) {
+        this.completePaidFlow(meetingId);
+      } else {
+        this.toastService.success('Este checkout ya fue pagado');
+      }
       return;
     }
 
@@ -102,9 +172,11 @@ export class Checkout implements OnInit {
 
     this.opening.set(true);
     this.paymentModalOpen.set(true);
+    this.startPaymentPolling();
   }
 
   closePaymentModal() {
+    this.stopPaymentPolling();
     this.paymentModalOpen.set(false);
     this.opening.set(false);
     this.load();

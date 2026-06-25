@@ -10,6 +10,7 @@ import {
   computed,
   inject,
   signal,
+  effect,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { Api, ApiResponse } from 'api/backend.api';
@@ -32,6 +33,45 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
   private session = inject(SessionService);
   themeService = inject(ThemeService);
 
+  protected photoError = signal(false);
+
+  protected currentUser = computed(() => this.session.session());
+  protected isLoggedIn = computed(() => !!this.currentUser());
+  protected profilePicture = computed(() => this.session.profilePicture());
+
+  protected userInitials = computed(() => {
+    const user = this.currentUser()?.user;
+    if (!user) return '';
+    return user.name
+      .split(' ')
+      .map((part) => part.charAt(0))
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
+  });
+
+  protected formattedName = computed(() => {
+    const user = this.currentUser()?.user;
+    if (!user) return '';
+    if (user.firstName && user.lastName) {
+      const first = user.firstName.trim().split(/\s+/)[0];
+      const last = user.lastName.trim().split(/\s+/)[0];
+      return `${first} ${last}`;
+    }
+    const parts = user.name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0]} ${parts[1]}`;
+    }
+    return user.name;
+  });
+
+  constructor() {
+    effect(() => {
+      this.profilePicture();
+      this.photoError.set(false);
+    });
+  }
+
   @ViewChild('heroVideo') private heroVideo?: ElementRef<HTMLVideoElement>;
 
   protected consultants = signal<LandingConsultant[]>([]);
@@ -46,24 +86,10 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
   protected visibleCards = signal(4);
   protected isTransitioning = signal(true);
 
-  // Pagination states
-  private currentPage = 1;
-  private hasMore = true;
-  private loadingNextPage = false;
-
-  // Autoplay states
-  private autoScrollInterval?: any;
-
   // Drag states
   protected isDragging = false;
   private startX = 0;
   protected dragOffset = signal(0);
-
-  protected infiniteConsultants = computed(() => {
-    const list = this.consultants();
-    if (list.length === 0) return [];
-    return [...list, ...list, ...list];
-  });
 
   protected maxIndex = computed(() => {
     return Math.max(0, this.consultants().length - this.visibleCards());
@@ -187,14 +213,8 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
     this.updateVisibleCards();
     this.resizeListener = () => {
       this.updateVisibleCards();
-      const L = this.consultants().length;
-      if (L > 0 && (this.carouselIndex() < L || this.carouselIndex() >= 2 * L)) {
-        this.carouselIndex.set(L);
-      }
     };
     window.addEventListener('resize', this.resizeListener);
-
-    this.startAutoScroll();
 
     window.setTimeout(() => {
       this.syncHeroVideo();
@@ -211,11 +231,26 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
     if (this.searchTimeout) {
       window.clearTimeout(this.searchTimeout);
     }
-    this.stopAutoScroll();
   }
 
   protected goToLogin(): void {
     this.router.navigate([buildPath(PATH.auth.signIn)]);
+  }
+
+  protected goToDashboard(): void {
+    const user = this.currentUser()?.user;
+    if (!user) return;
+    if (user.role === 'pyme') {
+      this.router.navigate([buildPath(PATH.admin.pyme.dashboard)]);
+    } else if (user.role === 'consultor') {
+      this.router.navigate([buildPath(PATH.admin.consultor.dashboard)]);
+    } else if (user.role === 'admin') {
+      this.router.navigate(['/admin']);
+    }
+  }
+
+  protected onPhotoError() {
+    this.photoError.set(true);
   }
 
   protected goToSignUp(role: LandingRole): void {
@@ -355,48 +390,16 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
 
   protected loadConsultants(search?: string): void {
     this.consultantsLoading.set(true);
-    this.currentPage = 1;
-    this.hasMore = true;
-    const limit = search ? 20 : 10;
+    const normalizedSearch = search?.trim() || undefined;
 
     this.api.publicConsultant
-      .publicconsultantFindAll({ limit, page: 1, search })
+      .publicconsultantFindAll({ limit: 12, page: 1, search: normalizedSearch })
       .then((response) => {
         this.consultants.set(response.data.data);
-        const L = response.data.data.length;
-        this.carouselIndex.set(L > 0 ? L : 0);
-        if (!search && response.data.data.length < limit) {
-          this.hasMore = false;
-        }
+        this.carouselIndex.set(0);
       })
       .catch(() => this.consultants.set([]))
       .finally(() => this.consultantsLoading.set(false));
-  }
-
-  private loadNextPage(): void {
-    if (this.searchQuery() || !this.hasMore || this.loadingNextPage) return;
-
-    this.loadingNextPage = true;
-    const nextPage = this.currentPage + 1;
-
-    this.api.publicConsultant
-      .publicconsultantFindAll({ limit: 10, page: nextPage })
-      .then((response) => {
-        const nextData = response.data.data;
-        if (nextData.length > 0) {
-          this.consultants.update((items) => [...items, ...nextData]);
-          this.currentPage = nextPage;
-        }
-        if (nextData.length < 10) {
-          this.hasMore = false;
-        }
-      })
-      .catch(() => {
-        this.hasMore = false;
-      })
-      .finally(() => {
-        this.loadingNextPage = false;
-      });
   }
 
   protected onSearchChange(event: Event): void {
@@ -410,117 +413,31 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
 
     this.searchTimeout = window.setTimeout(() => {
       this.loadConsultants(value);
-      if (value) {
-        this.stopAutoScroll();
-      } else {
-        this.startAutoScroll();
-      }
     }, 500);
   }
 
   protected clearSearch(): void {
     this.searchQuery.set('');
     this.loadConsultants();
-    this.startAutoScroll();
-  }
-
-  private isResetting = false;
-
-  private handleResetIndex() {
-    const L = this.consultants().length;
-    if (L === 0 || this.isResetting) return;
-
-    const idx = this.carouselIndex();
-    if (idx >= 2 * L) {
-      this.isResetting = true;
-      this.isTransitioning.set(false);
-      this.carouselIndex.set(idx - L);
-      setTimeout(() => {
-        this.isTransitioning.set(true);
-        this.isResetting = false;
-      }, 50);
-    } else if (idx < L) {
-      this.isResetting = true;
-      this.isTransitioning.set(false);
-      this.carouselIndex.set(idx + L);
-      setTimeout(() => {
-        this.isTransitioning.set(true);
-        this.isResetting = false;
-      }, 50);
-    }
   }
 
   protected nextSlide(): void {
-    if (this.isResetting) return;
     const L = this.consultants().length;
     if (L === 0) return;
 
-    const nextIdx = this.carouselIndex() + 4;
-    this.carouselIndex.set(nextIdx);
-
-    const originalIndex = (nextIdx - this.visibleCards() + L) % L;
-    if (this.hasMore && originalIndex + this.visibleCards() >= L - 2) {
-      this.loadNextPage();
-    }
-
-    setTimeout(() => {
-      this.handleResetIndex();
-    }, 500);
+    this.carouselIndex.set(Math.min(this.maxIndex(), this.carouselIndex() + this.visibleCards()));
   }
 
   protected prevSlide(): void {
-    if (this.isResetting) return;
     const L = this.consultants().length;
     if (L === 0) return;
 
-    const prevIdx = this.carouselIndex() - 4;
-    this.carouselIndex.set(prevIdx);
-
-    setTimeout(() => {
-      this.handleResetIndex();
-    }, 500);
-  }
-
-  private startAutoScroll(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-    this.stopAutoScroll();
-
-    this.autoScrollInterval = window.setInterval(() => {
-      if (
-        this.searchQuery() ||
-        this.isDragging ||
-        this.consultantsLoading() ||
-        this.consultants().length === 0 ||
-        this.isResetting
-      )
-        return;
-
-      const L = this.consultants().length;
-      const nextIdx = this.carouselIndex() + 4;
-      this.carouselIndex.set(nextIdx);
-
-      const originalIndex = (nextIdx - this.visibleCards() + L) % L;
-      if (this.hasMore && originalIndex + this.visibleCards() >= L - 2) {
-        this.loadNextPage();
-      }
-
-      setTimeout(() => {
-        this.handleResetIndex();
-      }, 500);
-    }, 4000);
-  }
-
-  private stopAutoScroll(): void {
-    if (this.autoScrollInterval) {
-      window.clearInterval(this.autoScrollInterval);
-      this.autoScrollInterval = undefined;
-    }
+    this.carouselIndex.set(Math.max(0, this.carouselIndex() - this.visibleCards()));
   }
 
   protected onDragStart(event: MouseEvent | TouchEvent, container: HTMLElement): void {
     this.isDragging = true;
     this.startX = event instanceof MouseEvent ? event.clientX : event.touches[0].clientX;
-    this.stopAutoScroll();
   }
 
   protected onDragMove(event: MouseEvent | TouchEvent): void {
@@ -543,42 +460,12 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
 
     if (Math.abs(cardsMoved) > 0) {
       const targetIndex = this.carouselIndex() + cardsMoved;
-      this.carouselIndex.set(targetIndex);
-
-      const L = this.consultants().length;
-      const originalIndex = (targetIndex - this.visibleCards() + L) % L;
-      if (this.hasMore && originalIndex + this.visibleCards() >= L - 2) {
-        this.loadNextPage();
-      }
-
-      setTimeout(() => {
-        this.handleResetIndex();
-      }, 500);
-    }
-
-    if (!this.searchQuery()) {
-      this.startAutoScroll();
+      this.carouselIndex.set(Math.max(0, Math.min(this.maxIndex(), targetIndex)));
     }
   }
 
-  protected calculateParallax(idx: number, isMediaActive: boolean): string {
-    if (!isPlatformBrowser(this.platformId)) return isMediaActive ? 'scale(1.2)' : 'scale(1.15)';
-    const currentIdx = this.carouselIndex();
-    const L = this.consultants().length;
-    if (L === 0) return isMediaActive ? 'scale(1.2)' : 'scale(1.15)';
-
-    const container = document.querySelector('#carouselContainer');
-    const containerWidth = container?.clientWidth ?? 1200;
-    const cardWidth = containerWidth / this.visibleCards();
-    const dragCards = this.dragOffset() / cardWidth;
-
-    const relativePos = (currentIdx - dragCards) - idx;
-    
-    // Use a subtle parallax shift (max 5%) to ensure the scaled image (1.15) always covers the container
-    const maxShift = 5;
-    const shift = Math.max(-maxShift, Math.min(maxShift, relativePos * 1.8));
-    const baseScale = isMediaActive ? 1.25 : 1.15;
-    return `scale(${baseScale}) translateX(${shift}%)`;
+  protected consultantImageTransform(isMediaActive: boolean): string {
+    return isMediaActive ? 'scale(1.08)' : 'scale(1)';
   }
 
   private updateVisibleCards(): void {
@@ -593,6 +480,7 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
     } else {
       this.visibleCards.set(4);
     }
+    this.carouselIndex.set(Math.min(this.carouselIndex(), this.maxIndex()));
   }
 
   private getConsultantVideo(event: Event): HTMLVideoElement | null {

@@ -116,13 +116,13 @@
       </div>
 
       <div class="flex flex-wrap gap-3">
-        <button type="button" [routerLink]="[buildPath(PATH.admin.pyme.meetings), meeting.id]"
+        <button type="button" [routerLink]="['/' + buildPath(PATH.admin.pyme.meetings), meeting.id]"
           (click)="closeCalendarMeeting()"
           class="inline-flex h-9 items-center justify-center rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold transition-colors hover:border-secondary hover:text-secondary">
           Detalles
         </button>
         @if (meeting.status === 'finalizada' || meeting.description) {
-        <button type="button" [routerLink]="[buildPath(PATH.admin.pyme.documents), meeting.id]"
+        <button type="button" [routerLink]="['/' + buildPath(PATH.admin.pyme.documents), meeting.id]"
           (click)="closeCalendarMeeting()"
           class="inline-flex h-9 items-center justify-center rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold transition-colors hover:border-secondary hover:text-secondary">
           Ver Acta

@@ -24,6 +24,7 @@ export class ConsultantInputSearch implements ControlValueAccessor {
 
   initialData = input<ConsultantOption | null>(null);
   filters = input<ConsultantInputSearchFilters | null>(null);
+  options = input<ConsultantOption[] | null>(null);
   showClear = input(false);
   onSelected = output<ConsultantOption | null>();
 
@@ -115,6 +116,13 @@ export class ConsultantInputSearch implements ControlValueAccessor {
   private search(term: string) {
     this.loading.set(true);
     const cleanTerm = term.trim();
+    const options = this.options();
+
+    if (options) {
+      this.items.set(this.filterOptions(options, cleanTerm).slice(0, 10));
+      this.loading.set(false);
+      return;
+    }
 
     this.consultantService
       .findAll({ search: cleanTerm || undefined, limit: 10, active: 'true' })
@@ -125,6 +133,13 @@ export class ConsultantInputSearch implements ControlValueAccessor {
   }
 
   private loadInitial(id: number) {
+    const options = this.options();
+    if (options) {
+      const item = options.find((option) => option.id === id || option.userId === id) ?? null;
+      this.selectedItem.set(item);
+      return;
+    }
+
     this.consultantService
       .findOne(id)
       .then((item) => this.selectedItem.set(item))
@@ -134,5 +149,30 @@ export class ConsultantInputSearch implements ControlValueAccessor {
           .then((item) => this.selectedItem.set(item))
           .catch(() => this.selectedItem.set(null)),
       );
+  }
+
+  private filterOptions(options: ConsultantOption[], term: string) {
+    const normalizedTerm = this.normalize(term);
+    if (!normalizedTerm) return options;
+
+    return options.filter((option) =>
+      [
+        option.fullName,
+        option.firstName,
+        option.lastName,
+        option.bio,
+        option.specialties.join(' '),
+        option.sectors.join(' '),
+      ]
+        .map((value) => this.normalize(value))
+        .some((value) => value.includes(normalizedTerm)),
+    );
+  }
+
+  private normalize(value: string | null | undefined) {
+    return (value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
   }
 }

@@ -91,18 +91,18 @@
     <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
       <div class="flex items-center gap-2">
         <button type="button" mwlCalendarPreviousView [view]="view()" [viewDate]="viewDate()"
-          (viewDateChange)="previous()"
+          (viewDateChange)="previous($event)"
           class="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted transition-colors hover:bg-background-100 hover:text-text"
-          aria-label="Mes anterior">
+          aria-label="Anterior">
           <i class="fas fa-chevron-left text-xs"></i>
         </button>
         <button type="button" mwlCalendarToday [viewDate]="viewDate()" (viewDateChange)="today()"
           class="h-9 rounded-xl border border-border px-4 text-xs text-muted font-inter-bold transition-colors hover:bg-background-100 hover:text-text">
           Hoy
         </button>
-        <button type="button" mwlCalendarNextView [view]="view()" [viewDate]="viewDate()" (viewDateChange)="next()"
+        <button type="button" mwlCalendarNextView [view]="view()" [viewDate]="viewDate()" (viewDateChange)="next($event)"
           class="flex h-9 w-9 items-center justify-center rounded-xl border border-border text-muted transition-colors hover:bg-background-100 hover:text-text"
-          aria-label="Mes siguiente">
+          aria-label="Siguiente">
           <i class="fas fa-chevron-right text-xs"></i>
         </button>
       </div>

@@ -189,15 +189,37 @@ export class Meetings implements OnInit, OnDestroy {
     }
   }
 
-  previous() {
-    this.viewDate.update((current) => this.addMonths(current, -1));
+  previous(newDate?: Date) {
+    if (newDate) {
+      this.viewDate.set(newDate);
+    } else {
+      const currentView = this.view();
+      if (currentView === CalendarView.Month) {
+        this.viewDate.update((current) => this.addMonths(current, -1));
+      } else if (currentView === CalendarView.Week) {
+        this.viewDate.update((current) => this.addDays(current, -7));
+      } else {
+        this.viewDate.update((current) => this.addDays(current, -1));
+      }
+    }
     this.syncFormDate();
     this.loadMonth();
     this.loadGoogleBusyMonth();
   }
 
-  next() {
-    this.viewDate.update((current) => this.addMonths(current, 1));
+  next(newDate?: Date) {
+    if (newDate) {
+      this.viewDate.set(newDate);
+    } else {
+      const currentView = this.view();
+      if (currentView === CalendarView.Month) {
+        this.viewDate.update((current) => this.addMonths(current, 1));
+      } else if (currentView === CalendarView.Week) {
+        this.viewDate.update((current) => this.addDays(current, 7));
+      } else {
+        this.viewDate.update((current) => this.addDays(current, 1));
+      }
+    }
     this.syncFormDate();
     this.loadMonth();
     this.loadGoogleBusyMonth();

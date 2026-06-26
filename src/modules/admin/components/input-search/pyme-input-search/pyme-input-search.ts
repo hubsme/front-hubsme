@@ -29,6 +29,7 @@ export class PymeInputSearch implements ControlValueAccessor {
 
   initialData = input<PymeOption | null>(null);
   filters = input<PymeInputSearchFilters | null>(null);
+  options = input<PymeOption[] | null>(null);
   showClear = input(false);
   onSelected = output<PymeOption | null>();
 
@@ -120,6 +121,13 @@ export class PymeInputSearch implements ControlValueAccessor {
   private search(term: string) {
     this.loading.set(true);
     const cleanTerm = term.trim();
+    const options = this.options();
+
+    if (options) {
+      this.items.set(this.filterOptions(options, cleanTerm).slice(0, 10));
+      this.loading.set(false);
+      return;
+    }
 
     this.pymeService
       .findAll({ search: cleanTerm || undefined, limit: 10 })
@@ -130,6 +138,13 @@ export class PymeInputSearch implements ControlValueAccessor {
   }
 
   private loadInitial(id: number) {
+    const options = this.options();
+    if (options) {
+      const item = options.find((option) => option.id === id || option.userId === id) ?? null;
+      this.selectedItem.set(item);
+      return;
+    }
+
     this.pymeService
       .findByUser(id)
       .then((item) => this.selectedItem.set(item))
@@ -139,5 +154,30 @@ export class PymeInputSearch implements ControlValueAccessor {
           .then((item) => this.selectedItem.set(item))
           .catch(() => this.selectedItem.set(null)),
       );
+  }
+
+  private filterOptions(options: PymeOption[], term: string) {
+    const normalizedTerm = this.normalize(term);
+    if (!normalizedTerm) return options;
+
+    return options.filter((option) =>
+      [
+        option.name,
+        option.ruc,
+        option.ownerFirstName,
+        option.ownerLastName,
+        option.ownerEmail,
+        option.sector,
+      ]
+        .map((value) => this.normalize(value))
+        .some((value) => value.includes(normalizedTerm)),
+    );
+  }
+
+  private normalize(value: string | null | undefined) {
+    return (value ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase();
   }
 }

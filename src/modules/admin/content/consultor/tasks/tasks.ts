@@ -6,7 +6,7 @@ import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
-import { PymeService } from '@service/admin/pyme.service';
+import { ConsultantService } from '@service/admin/consultant.service';
 import {
   PymeInputSearch,
   PymeInputSearchFilters,
@@ -26,7 +26,7 @@ type TaskForm = {
   dueDate: string;
 };
 
-type PymeOption = ApiResponse<'pyme', 'findAll'>['data'][number];
+type PymeOption = ApiResponse<'consultant', 'meetingPymes'>['data'][number];
 type Task = ApiResponse<'task', 'findAll'>['data'][number];
 
 @Component({
@@ -37,7 +37,7 @@ type Task = ApiResponse<'task', 'findAll'>['data'][number];
 export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
-  private pymeService = inject(PymeService);
+  private consultantService = inject(ConsultantService);
   private sortables: Sortable[] = [];
 
   @ViewChildren('taskList') taskLists!: QueryList<ElementRef<HTMLElement>>;
@@ -91,8 +91,8 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadLookups() {
-    this.pymeService
-      .findAll({ page: 1, limit: 100 })
+    this.consultantService
+      .meetingPymes({ page: 1, limit: 100 })
       .then((pymesRes) => {
         const pymes = pymesRes.data;
         this.pymes.set(pymes);

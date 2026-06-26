@@ -6,7 +6,7 @@ import Sortable from 'sortablejs';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
-import { ConsultantService } from '@service/admin/consultant.service';
+import { PymeService } from '@service/admin/pyme.service';
 import {
   ConsultantInputSearch,
   ConsultantInputSearchFilters,
@@ -26,7 +26,7 @@ type TaskForm = {
   dueDate: string;
 };
 
-type ConsultantOption = ApiResponse<'consultant', 'findAll'>['data'][number];
+type ConsultantOption = ApiResponse<'pyme', 'meetingConsultants'>['data'][number];
 type Task = ApiResponse<'task', 'findAll'>['data'][number];
 
 @Component({
@@ -37,7 +37,7 @@ type Task = ApiResponse<'task', 'findAll'>['data'][number];
 export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
-  private consultantService = inject(ConsultantService);
+  private pymeService = inject(PymeService);
   private sortables: Sortable[] = [];
 
   @ViewChildren('taskList') taskLists!: QueryList<ElementRef<HTMLElement>>;
@@ -82,8 +82,8 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadLookups() {
-    this.consultantService
-      .findAll({ page: 1, limit: 100, active: 'true' })
+    this.pymeService
+      .meetingConsultants({ page: 1, limit: 100, active: 'true' })
       .then((consultantsRes) => {
         const consultants = consultantsRes.data;
         this.consultants.set(consultants);

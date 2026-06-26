@@ -19,6 +19,12 @@ export class PymeService {
     return this.api.pyme.findByUser({ userId }).then((response) => response.data);
   }
 
+  meetingConsultants(
+    query: ApiQuery<'pyme', 'meetingConsultants'> = {},
+  ): Promise<ApiResponse<'pyme', 'meetingConsultants'>> {
+    return this.api.pyme.meetingConsultants(query).then((response) => response.data);
+  }
+
   create(data: ApiBody<'pyme', 'create'>): Promise<ApiResponse<'pyme', 'create'>> {
     return this.api.pyme.create(data).then((response) => response.data);
   }

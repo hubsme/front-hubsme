@@ -203,6 +203,31 @@ export interface PymeListDto {
   meta: PaginationMetaDto;
 }
 
+export interface ConsultantListItemDto {
+  id: number;
+  userId: number;
+  fullName: string;
+  firstName: string | null;
+  lastName: string | null;
+  ownerPhone: string | null;
+  bio: string | null;
+  specialties: string[];
+  sectors: string[];
+  photoUrl: string | null;
+  videoUrl: string | null;
+  pricePerHour: string;
+  rating: string;
+  totalReviews: number;
+  active: "true" | "false";
+  /** @format date-time */
+  createdAt: string;
+}
+
+export interface ConsultantListDto {
+  data: ConsultantListItemDto[];
+  meta: PaginationMetaDto;
+}
+
 export interface PymeResultDto {
   id: number;
   /** @format date-time */
@@ -284,29 +309,58 @@ export interface PymeUpdateDto {
   logoUrl?: string;
 }
 
-export interface ConsultantListItemDto {
-  id: number;
-  userId: number;
-  fullName: string;
-  firstName: string | null;
-  lastName: string | null;
-  ownerPhone: string | null;
-  bio: string | null;
-  specialties: string[];
-  sectors: string[];
-  photoUrl: string | null;
-  videoUrl: string | null;
-  pricePerHour: string;
-  rating: string;
-  totalReviews: number;
-  active: "true" | "false";
-  /** @format date-time */
-  createdAt: string;
+export interface WhatsappSendDto {
+  /**
+   * Numero de WhatsApp del destinatario. Puede enviarse con o sin @s.whatsapp.net
+   * @example "51929073820"
+   */
+  phone: string;
+  /**
+   * Mensaje que se enviara por WhatsApp
+   * @example "123456"
+   */
+  message: string;
 }
 
-export interface ConsultantListDto {
-  data: ConsultantListItemDto[];
-  meta: PaginationMetaDto;
+export interface WhatsappSendResultDto {
+  /** @example "Mensaje enviado exitosamente" */
+  message: string;
+  /** @example "51929073820@s.whatsapp.net" */
+  phone: string;
+  /** @example 201 */
+  providerStatus: number;
+  /** @example {"success":true} */
+  providerResponse?: object | null;
+}
+
+export interface EmailSendDto {
+  /**
+   * Correo del destinatario
+   * @example "cliente@hubsme.net"
+   */
+  to: string;
+  /**
+   * Asunto del correo
+   * @example "Bienvenido a Hubsme"
+   */
+  subject: string;
+  /**
+   * Mensaje en texto plano
+   * @example "Contenido del correo en texto plano"
+   */
+  text: string;
+  /**
+   * Mensaje en formato HTML
+   * @example "<p>Contenido del correo en HTML</p>"
+   */
+  html?: string;
+}
+
+export interface EmailSendResultDto {
+  /** @example "Correo enviado exitosamente" */
+  message: string;
+  /** @example "<abc123@mail.gmail.com>" */
+  messageId: string;
 }
 
 export interface ConsultantResultDto {
@@ -1021,60 +1075,6 @@ export interface MercadoPagoCheckoutDto {
   meetingDetails?: CheckoutMeetingDetailsDto | null;
 }
 
-export interface EmailSendDto {
-  /**
-   * Correo del destinatario
-   * @example "cliente@hubsme.net"
-   */
-  to: string;
-  /**
-   * Asunto del correo
-   * @example "Bienvenido a Hubsme"
-   */
-  subject: string;
-  /**
-   * Mensaje en texto plano
-   * @example "Contenido del correo en texto plano"
-   */
-  text: string;
-  /**
-   * Mensaje en formato HTML
-   * @example "<p>Contenido del correo en HTML</p>"
-   */
-  html?: string;
-}
-
-export interface EmailSendResultDto {
-  /** @example "Correo enviado exitosamente" */
-  message: string;
-  /** @example "<abc123@mail.gmail.com>" */
-  messageId: string;
-}
-
-export interface WhatsappSendDto {
-  /**
-   * Numero de WhatsApp del destinatario. Puede enviarse con o sin @s.whatsapp.net
-   * @example "51929073820"
-   */
-  phone: string;
-  /**
-   * Mensaje que se enviara por WhatsApp
-   * @example "123456"
-   */
-  message: string;
-}
-
-export interface WhatsappSendResultDto {
-  /** @example "Mensaje enviado exitosamente" */
-  message: string;
-  /** @example "51929073820@s.whatsapp.net" */
-  phone: string;
-  /** @example 201 */
-  providerStatus: number;
-  /** @example {"success":true} */
-  providerResponse?: object | null;
-}
-
 export interface PublicConsultantListItemDto {
   id: number;
   userId: number;
@@ -1203,6 +1203,29 @@ export type PymeFindAllData = PymeListDto;
 
 export type PymeFindAllError = HttpErrorDto;
 
+export interface PymeMeetingConsultantsParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by name, bio or specialty */
+  search?: string;
+  active?: "true" | "false";
+  validated?: "true" | "false";
+  /** Filter by sector */
+  sector?: string;
+}
+
+export type PymeMeetingConsultantsData = ConsultantListDto;
+
+export type PymeMeetingConsultantsError = HttpErrorDto;
+
 export interface PymeFindOneParams {
   id: number;
 }
@@ -1238,6 +1261,14 @@ export interface PymeRemoveParams {
 export type PymeRemoveData = PymeResultDto;
 
 export type PymeRemoveError = HttpErrorDto;
+
+export type WhatsappSendMessageData = WhatsappSendResultDto;
+
+export type WhatsappSendMessageError = HttpErrorDto;
+
+export type EmailSendEmailData = EmailSendResultDto;
+
+export type EmailSendEmailError = HttpErrorDto;
 
 export interface ConsultantFindAllParams {
   /**
@@ -1847,14 +1878,6 @@ export interface MercadopagoWebhookParams {
 
 export type MercadopagoWebhookData = any;
 
-export type EmailSendEmailData = EmailSendResultDto;
-
-export type EmailSendEmailError = HttpErrorDto;
-
-export type WhatsappSendMessageData = WhatsappSendResultDto;
-
-export type WhatsappSendMessageError = HttpErrorDto;
-
 export interface PublicconsultantFindAllParams {
   /**
    * Page number
@@ -2139,6 +2162,41 @@ export namespace Pyme {
   /**
    * No description
    * @tags pyme
+   * @name PymeMeetingConsultants
+   * @summary Get consultants with at least one meeting with current PYME
+   * @request GET:/admin/pyme/meeting-consultants
+   * @secure
+   * @response `200` `PymeMeetingConsultantsData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeMeetingConsultants {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by name, bio or specialty */
+      search?: string;
+      active?: "true" | "false";
+      validated?: "true" | "false";
+      /** Filter by sector */
+      sector?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeMeetingConsultantsData;
+  }
+
+  /**
+   * No description
+   * @tags pyme
    * @name PymeFindOne
    * @summary Get a PYME profile by ID
    * @request GET:/admin/pyme/find-one/{id}
@@ -2232,6 +2290,48 @@ export namespace Pyme {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = PymeRemoveData;
+  }
+}
+
+export namespace Whatsapp {
+  /**
+   * No description
+   * @tags whatsapp
+   * @name WhatsappSendMessage
+   * @summary Enviar un mensaje por WhatsApp
+   * @request POST:/admin/whatsapp/send
+   * @secure
+   * @response `201` `WhatsappSendMessageData`
+   * @response `400` `HttpErrorDto`
+   * @response `500` `HttpErrorDto`
+   */
+  export namespace WhatsappSendMessage {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = WhatsappSendDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = WhatsappSendMessageData;
+  }
+}
+
+export namespace Email {
+  /**
+   * No description
+   * @tags email
+   * @name EmailSendEmail
+   * @summary Enviar un correo electrónico
+   * @request POST:/admin/email/send
+   * @secure
+   * @response `201` `EmailSendEmailData`
+   * @response `400` `HttpErrorDto`
+   * @response `500` `HttpErrorDto`
+   */
+  export namespace EmailSendEmail {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = EmailSendDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = EmailSendEmailData;
   }
 }
 
@@ -3598,48 +3698,6 @@ export namespace MercadoPago {
   }
 }
 
-export namespace Email {
-  /**
-   * No description
-   * @tags email
-   * @name EmailSendEmail
-   * @summary Enviar un correo electrónico
-   * @request POST:/admin/email/send
-   * @secure
-   * @response `201` `EmailSendEmailData`
-   * @response `400` `HttpErrorDto`
-   * @response `500` `HttpErrorDto`
-   */
-  export namespace EmailSendEmail {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = EmailSendDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = EmailSendEmailData;
-  }
-}
-
-export namespace Whatsapp {
-  /**
-   * No description
-   * @tags whatsapp
-   * @name WhatsappSendMessage
-   * @summary Enviar un mensaje por WhatsApp
-   * @request POST:/admin/whatsapp/send
-   * @secure
-   * @response `201` `WhatsappSendMessageData`
-   * @response `400` `HttpErrorDto`
-   * @response `500` `HttpErrorDto`
-   */
-  export namespace WhatsappSendMessage {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = WhatsappSendDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = WhatsappSendMessageData;
-  }
-}
-
 export namespace PublicConsultant {
   /**
    * No description
@@ -4198,6 +4256,33 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags pyme
+     * @name PymeMeetingConsultants
+     * @summary Get consultants with at least one meeting with current PYME
+     * @request GET:/admin/pyme/meeting-consultants
+     * @secure
+     * @response `200` `PymeMeetingConsultantsData`
+     * @response `400` `HttpErrorDto`
+     */
+    meetingConsultants: (
+      query: PymeMeetingConsultantsParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PymeMeetingConsultantsData,
+        PymeMeetingConsultantsError
+      >({
+        path: `/admin/pyme/meeting-consultants`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pyme
      * @name PymeFindOne
      * @summary Get a PYME profile by ID
      * @request GET:/admin/pyme/find-one/{id}
@@ -4301,6 +4386,54 @@ export class Api<SecurityDataType extends unknown> {
         path: `/admin/pyme/delete/${id}`,
         method: "DELETE",
         secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
+  whatsapp = {
+    /**
+     * No description
+     *
+     * @tags whatsapp
+     * @name WhatsappSendMessage
+     * @summary Enviar un mensaje por WhatsApp
+     * @request POST:/admin/whatsapp/send
+     * @secure
+     * @response `201` `WhatsappSendMessageData`
+     * @response `400` `HttpErrorDto`
+     * @response `500` `HttpErrorDto`
+     */
+    sendMessage: (data: WhatsappSendDto, params: RequestParams = {}) =>
+      this.http.request<WhatsappSendMessageData, WhatsappSendMessageError>({
+        path: `/admin/whatsapp/send`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  email = {
+    /**
+     * No description
+     *
+     * @tags email
+     * @name EmailSendEmail
+     * @summary Enviar un correo electrónico
+     * @request POST:/admin/email/send
+     * @secure
+     * @response `201` `EmailSendEmailData`
+     * @response `400` `HttpErrorDto`
+     * @response `500` `HttpErrorDto`
+     */
+    sendEmail: (data: EmailSendDto, params: RequestParams = {}) =>
+      this.http.request<EmailSendEmailData, EmailSendEmailError>({
+        path: `/admin/email/send`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
@@ -5781,54 +5914,6 @@ export class Api<SecurityDataType extends unknown> {
         path: `/admin/mercado-pago/webhook`,
         method: "POST",
         query: query,
-        ...params,
-      }),
-  };
-  email = {
-    /**
-     * No description
-     *
-     * @tags email
-     * @name EmailSendEmail
-     * @summary Enviar un correo electrónico
-     * @request POST:/admin/email/send
-     * @secure
-     * @response `201` `EmailSendEmailData`
-     * @response `400` `HttpErrorDto`
-     * @response `500` `HttpErrorDto`
-     */
-    sendEmail: (data: EmailSendDto, params: RequestParams = {}) =>
-      this.http.request<EmailSendEmailData, EmailSendEmailError>({
-        path: `/admin/email/send`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-  };
-  whatsapp = {
-    /**
-     * No description
-     *
-     * @tags whatsapp
-     * @name WhatsappSendMessage
-     * @summary Enviar un mensaje por WhatsApp
-     * @request POST:/admin/whatsapp/send
-     * @secure
-     * @response `201` `WhatsappSendMessageData`
-     * @response `400` `HttpErrorDto`
-     * @response `500` `HttpErrorDto`
-     */
-    sendMessage: (data: WhatsappSendDto, params: RequestParams = {}) =>
-      this.http.request<WhatsappSendMessageData, WhatsappSendMessageError>({
-        path: `/admin/whatsapp/send`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
         ...params,
       }),
   };

@@ -10,6 +10,7 @@
         <app-consultant-input-search
           [ngModel]="selectedConsultantId() === 'all' ? null : selectedConsultantId()"
           [filters]="consultantFilters"
+          [options]="consultants()"
           (onSelected)="selectedConsultantId.set($event?.userId ?? 'all')"
         />
       </div>
@@ -41,6 +42,7 @@
             <app-consultant-input-search
               [ngModel]="form().consultantId"
               [filters]="consultantFilters"
+              [options]="consultants()"
               [showClear]="true"
               (onSelected)="updateForm('consultantId', $event?.userId ?? 0)"
             />

@@ -26,7 +26,6 @@ export class Consultants implements OnInit {
 
   consultants = signal<Consultant[]>([]);
   videoConsultant = signal<Consultant | null>(null);
-  profileConsultant = signal<Consultant | null>(null);
   search = signal('');
   loading = signal(false);
   searching = signal(false);
@@ -54,7 +53,11 @@ export class Consultants implements OnInit {
   }
 
   schedule(consultant: Consultant) {
-    this.router.navigate([buildPath(PATH.admin.pyme.consultant), consultant.userId]);
+    this.router.navigate([buildPath(PATH.admin.pyme.consultants.agendar), consultant.userId]);
+  }
+
+  viewProfile(consultant: Consultant) {
+    this.router.navigate([buildPath(PATH.admin.pyme.consultants.profile), consultant.userId]);
   }
 
   consultantPhoto(consultant: Consultant): string {

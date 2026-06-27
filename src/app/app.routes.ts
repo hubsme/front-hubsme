@@ -61,15 +61,24 @@ export const routes: Routes = [
           },
           {
             path: getPath(PATH.admin.pyme.consultants),
-            loadComponent: () => import('@module/admin/content/pyme/consultants/consultants').then((m) => m.Consultants),
-          },
-          {
-            path: `${getPath(PATH.admin.pyme.consultant)}/:id`,
-            loadComponent: () => import('@module/admin/content/pyme/consultants/content/consultant-detail/consultant-detail').then((m) => m.ConsultantDetail),
-          },
-          {
-            path: `${getPath(PATH.admin.pyme.checkout)}/:id`,
-            loadComponent: () => import('@module/admin/content/pyme/consultants/content/checkout/checkout').then((m) => m.Checkout),
+            children: [
+              {
+                path: '',
+                loadComponent: () => import('@module/admin/content/pyme/consultants/consultants').then((m) => m.Consultants),
+              },
+              {
+                path: `${getPath(PATH.admin.pyme.consultants.agendar)}/:id`,
+                loadComponent: () => import('@module/admin/content/pyme/consultants/content/consultant-detail/consultant-detail').then((m) => m.ConsultantDetail),
+              },
+              {
+                path: `${getPath(PATH.admin.pyme.consultants.profile)}/:id`,
+                loadComponent: () => import('@module/admin/content/pyme/consultants/content/consultant-profile/consultant-profile').then((m) => m.ConsultantProfile),
+              },
+              {
+                path: `${getPath(PATH.admin.pyme.consultants.checkout)}/:id`,
+                loadComponent: () => import('@module/admin/content/pyme/consultants/content/checkout/checkout').then((m) => m.Checkout),
+              },
+            ]
           },
           {
             path: getPath(PATH.admin.pyme.meetings),
@@ -158,6 +167,14 @@ export const routes: Routes = [
       {
         path: getPath(PATH.auth.signUp),
         loadComponent: () => import('@module/auth/sing-up/sing-up').then((m) => m.SingUp),
+      },
+      {
+        path: getPath(PATH.auth.forgotPassword),
+        loadComponent: () => import('@module/auth/forgot-password/forgot-password').then((m) => m.ForgotPassword),
+      },
+      {
+        path: getPath(PATH.auth.resetPassword),
+        loadComponent: () => import('@module/auth/reset-password/reset-password').then((m) => m.ResetPassword),
       },
       { path: '**', redirectTo: getPath(PATH.auth.signIn), pathMatch: 'full' },
     ],

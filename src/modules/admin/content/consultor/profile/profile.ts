@@ -12,20 +12,54 @@ type ConsultantProfileData = ApiResponse<'consultant', 'findByUser'>;
 type MercadoPagoStatus = ApiResponse<'mercadoPago', 'mercadopagoStatus'>;
 type MercadoPagoMessage = { type: 'hubsme:mercado-pago'; connected?: boolean; nickname?: string; email?: string; error?: string };
 
+type ConsultantEducationItem = {
+  degree: string;
+  institution?: string;
+  year?: string;
+};
+
+type ConsultantCaseStudy = {
+  title: string;
+  problem?: string;
+  action?: string;
+  result?: string;
+  sector?: string;
+};
+
 type ConsultantForm = {
   firstName: string;
   lastName: string;
   fullName: string;
+  headline: string;
+  location: string;
+  workModality: string;
+  linkedinUrl: string;
   bio: string;
   specialties: string[];
   sectors: string[];
+  industries: string[];
+  companyTypes: string[];
+  services: string[];
+  certifications: string[];
+  workedSectors: string[];
+  yearsExperience: number;
+  education: ConsultantEducationItem[];
+  caseStudies: ConsultantCaseStudy[];
+  cvText: string;
   pricePerHour: number;
   photoUrl: string;
   videoUrl: string;
   ownerPhone: string;
 };
 
-type ChipField = 'specialties' | 'sectors';
+type ChipField =
+  | 'specialties'
+  | 'sectors'
+  | 'industries'
+  | 'companyTypes'
+  | 'services'
+  | 'certifications'
+  | 'workedSectors';
 
 @Component({
   selector: 'app-profile',
@@ -49,6 +83,15 @@ export class Profile implements OnInit, OnDestroy {
   uploadingPhoto = signal(false);
   uploadingVideo = signal(false);
   consultant = signal<ConsultantProfileData | null>(null);
+  readonly chipFields: { field: ChipField; label: string; placeholder: string }[] = [
+    { field: 'specialties', label: 'Especialidades', placeholder: 'Agregar especialidad...' },
+    { field: 'industries', label: 'Industrias', placeholder: 'Agregar industria...' },
+    { field: 'companyTypes', label: 'Tipo de empresa', placeholder: 'Agregar tipo...' },
+    { field: 'services', label: 'Servicios', placeholder: 'Agregar servicio...' },
+    { field: 'sectors', label: 'Sectores', placeholder: 'Agregar sector...' },
+    { field: 'certifications', label: 'Certificaciones', placeholder: 'Agregar certificacion...' },
+    { field: 'workedSectors', label: 'Sectores trabajados', placeholder: 'Agregar sector trabajado...' },
+  ];
   mercadoPagoStatus = signal<MercadoPagoStatus>({
     connected: false,
     mercadoPagoUserId: null,
@@ -57,16 +100,36 @@ export class Profile implements OnInit, OnDestroy {
     connectedAt: null,
   });
   photoError = signal(false);
-  specialtyInput = signal('');
-  sectorInput = signal('');
+  chipInputs = signal<Record<ChipField, string>>({
+    specialties: '',
+    sectors: '',
+    industries: '',
+    companyTypes: '',
+    services: '',
+    certifications: '',
+    workedSectors: '',
+  });
 
   form = signal<ConsultantForm>({
     firstName: '',
     lastName: '',
     fullName: '',
+    headline: '',
+    location: '',
+    workModality: '',
+    linkedinUrl: '',
     bio: '',
     specialties: [],
     sectors: [],
+    industries: [],
+    companyTypes: [],
+    services: [],
+    certifications: [],
+    workedSectors: [],
+    yearsExperience: 0,
+    education: [],
+    caseStudies: [],
+    cvText: '',
     pricePerHour: 0,
     photoUrl: '',
     videoUrl: '',
@@ -99,9 +162,22 @@ export class Profile implements OnInit, OnDestroy {
           firstName: data.firstName ?? '',
           lastName: data.lastName ?? '',
           fullName: data.fullName,
+          headline: data.headline ?? '',
+          location: data.location ?? '',
+          workModality: data.workModality ?? '',
+          linkedinUrl: data.linkedinUrl ?? '',
           bio: data.bio ?? '',
           specialties: data.specialties ?? [],
           sectors: data.sectors ?? [],
+          industries: data.industries ?? [],
+          companyTypes: data.companyTypes ?? [],
+          services: data.services ?? [],
+          certifications: data.certifications ?? [],
+          workedSectors: data.workedSectors ?? [],
+          yearsExperience: data.yearsExperience ?? 0,
+          education: data.education ?? [],
+          caseStudies: data.caseStudies ?? [],
+          cvText: data.cvText ?? '',
           pricePerHour: Number(data.pricePerHour),
           photoUrl: data.photoUrl ?? '',
           videoUrl: data.videoUrl ?? '',
@@ -114,8 +190,7 @@ export class Profile implements OnInit, OnDestroy {
   }
 
   save() {
-    this.commitChipInput('specialties');
-    this.commitChipInput('sectors');
+    this.chipFields.forEach((chip) => this.commitChipInput(chip.field));
 
     const user = this.hubsme.currentUser();
     const form = this.form();
@@ -125,9 +200,22 @@ export class Profile implements OnInit, OnDestroy {
       firstName: form.firstName || undefined,
       lastName: form.lastName || undefined,
       fullName,
+      headline: form.headline || undefined,
+      location: form.location || undefined,
+      workModality: form.workModality || undefined,
+      linkedinUrl: form.linkedinUrl || undefined,
       bio: form.bio || undefined,
       specialties: form.specialties,
       sectors: form.sectors,
+      industries: form.industries,
+      companyTypes: form.companyTypes,
+      services: form.services,
+      certifications: form.certifications,
+      workedSectors: form.workedSectors,
+      yearsExperience: Number(form.yearsExperience) || 0,
+      education: form.education.filter((item) => item.degree.trim()),
+      caseStudies: form.caseStudies.filter((item) => item.title.trim()),
+      cvText: form.cvText || undefined,
       pricePerHour: Number(form.pricePerHour) || 0,
       photoUrl: form.photoUrl || undefined,
       videoUrl: form.videoUrl || undefined,
@@ -272,7 +360,11 @@ export class Profile implements OnInit, OnDestroy {
   }
 
   updateChipInput(field: ChipField, value: string) {
-    this.inputSignal(field).set(value);
+    this.chipInputs.update((current) => ({ ...current, [field]: value }));
+  }
+
+  chipInput(field: ChipField): string {
+    return this.chipInputs()[field];
   }
 
   addChip(field: ChipField) {
@@ -293,9 +385,50 @@ export class Profile implements OnInit, OnDestroy {
     this.commitChipInput(field);
   }
 
+  addEducation(): void {
+    this.form.update((current) => ({
+      ...current,
+      education: [...current.education, { degree: '', institution: '', year: '' }],
+    }));
+  }
+
+  removeEducation(index: number): void {
+    this.form.update((current) => ({
+      ...current,
+      education: current.education.filter((_, itemIndex) => itemIndex !== index),
+    }));
+  }
+
+  updateEducation<K extends keyof ConsultantEducationItem>(index: number, key: K, value: ConsultantEducationItem[K]): void {
+    this.form.update((current) => ({
+      ...current,
+      education: current.education.map((item, itemIndex) => (itemIndex === index ? { ...item, [key]: value } : item)),
+    }));
+  }
+
+  addCaseStudy(): void {
+    this.form.update((current) => ({
+      ...current,
+      caseStudies: [...current.caseStudies, { title: '', problem: '', action: '', result: '', sector: '' }],
+    }));
+  }
+
+  removeCaseStudy(index: number): void {
+    this.form.update((current) => ({
+      ...current,
+      caseStudies: current.caseStudies.filter((_, itemIndex) => itemIndex !== index),
+    }));
+  }
+
+  updateCaseStudy<K extends keyof ConsultantCaseStudy>(index: number, key: K, value: ConsultantCaseStudy[K]): void {
+    this.form.update((current) => ({
+      ...current,
+      caseStudies: current.caseStudies.map((item, itemIndex) => (itemIndex === index ? { ...item, [key]: value } : item)),
+    }));
+  }
+
   private commitChipInput(field: ChipField) {
-    const input = this.inputSignal(field);
-    const value = this.normalizeChip(input());
+    const value = this.normalizeChip(this.chipInputs()[field]);
     if (!value) return;
 
     this.form.update((current) => {
@@ -307,11 +440,7 @@ export class Profile implements OnInit, OnDestroy {
         [field]: [...current[field], value],
       };
     });
-    input.set('');
-  }
-
-  private inputSignal(field: ChipField) {
-    return field === 'specialties' ? this.specialtyInput : this.sectorInput;
+    this.chipInputs.update((current) => ({ ...current, [field]: '' }));
   }
 
   private normalizeChip(value: string): string {

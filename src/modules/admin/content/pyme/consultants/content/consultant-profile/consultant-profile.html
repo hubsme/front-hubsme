@@ -1,0 +1,299 @@
+<div class="font-inter-regular text-text pb-12">
+  @if (loading()) {
+    <div class="py-24 text-center text-muted">
+      <i class="fas fa-spinner fa-spin text-4xl text-secondary"></i>
+      <p class="mt-4 text-sm font-inter-medium">Cargando perfil del consultor...</p>
+    </div>
+  } @else {
+    @if (consultant(); as c) {
+      <!-- Profile Header Hero Card (Clean Layout, no banner) -->
+      <div class="rounded-3xl border border-border bg-surface p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+        <!-- Avatar and Info -->
+        <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+          <div class="h-24 w-24 overflow-hidden rounded-2xl border border-border bg-background-100 shrink-0 shadow-sm">
+            <img [src]="consultantPhoto(c)" [alt]="c.fullName" class="h-full w-full object-cover object-top" />
+          </div>
+
+          <!-- Title and details -->
+          <div class="space-y-2 text-center sm:text-left">
+            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
+              <h1 class="text-2xl font-plus-jakarta-sans font-bold leading-tight text-text">
+                {{ c.fullName }}
+              </h1>
+              @if (c.validated === 'true') {
+                <span class="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 text-[0.7rem] text-success font-inter-semibold">
+                  <i class="fas fa-circle-check"></i>
+                  Verificado
+                </span>
+              }
+            </div>
+            @if (c.headline) {
+              <p class="text-sm font-inter-medium text-secondary">{{ c.headline }}</p>
+            }
+            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-4 text-xs text-muted">
+              @if (c.location) {
+                <span class="inline-flex items-center gap-1.5">
+                  <i class="fas fa-location-dot"></i>
+                  {{ c.location }}
+                </span>
+              }
+              @if (c.workModality) {
+                <span class="inline-flex items-center gap-1.5">
+                  <i class="fas fa-briefcase"></i>
+                  {{ c.workModality }}
+                </span>
+              }
+              <span class="inline-flex items-center gap-1.5">
+                <i class="fas fa-star text-warning"></i>
+                {{ rating(c) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Price block on the right -->
+        <div class="flex flex-col items-center sm:items-end gap-1.5 shrink-0">
+          <span class="text-[0.68rem] uppercase font-inter-bold text-muted tracking-wide">Tarifa por hora</span>
+          <span class="text-2xl font-inter-bold text-secondary">S/ {{ c.pricePerHour }}</span>
+        </div>
+      </div>
+
+      <!-- Grid Layout for Details -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <!-- Main/Left Column (2/3 width) -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Bio section -->
+          <div class="rounded-3xl border border-border bg-surface p-6 lg:p-8 shadow-sm">
+            <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider mb-3">Sobre mí</h3>
+            <p class="text-[0.92rem] leading-7 text-muted font-inter-regular whitespace-pre-line">
+              {{ c.bio || 'Consultor especializado listo para ayudarte a llevar tu negocio al siguiente nivel.' }}
+            </p>
+          </div>
+
+          <!-- Video section -->
+          @if (c.videoUrl) {
+            <div class="rounded-3xl border border-border bg-surface p-6 lg:p-8 shadow-sm space-y-3">
+              <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider">Video de presentación</h3>
+              <div class="relative aspect-video w-full overflow-hidden rounded-2xl bg-text-950 shadow-inner">
+                <video class="h-full w-full object-cover" [src]="c.videoUrl" controls></video>
+              </div>
+            </div>
+          }
+
+          <!-- Cases section -->
+          @if (c.caseStudies && c.caseStudies.length) {
+            <div class="space-y-4">
+              <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider pl-1">Casos de éxito</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @for (study of c.caseStudies; track study.title; let idx = $index) {
+                  <div class="rounded-3xl border border-border bg-surface p-6 shadow-sm flex flex-col justify-between hover:border-secondary/20 transition-all duration-300">
+                    <div class="space-y-3">
+                      <div class="flex items-center gap-3">
+                        <div class="flex h-9 w-9 items-center justify-center rounded-xl text-xs font-inter-bold"
+                          [class.bg-success/10]="idx % 3 === 0" [class.text-success]="idx % 3 === 0"
+                          [class.bg-secondary/10]="idx % 3 === 1" [class.text-secondary]="idx % 3 === 1"
+                          [class.bg-accent/10]="idx % 3 === 2" [class.text-accent]="idx % 3 === 2"
+                        >
+                          @if (idx % 3 === 0) {
+                            <i class="fas fa-chart-line"></i>
+                          } @else if (idx % 3 === 1) {
+                            <i class="fas fa-calculator"></i>
+                          } @else {
+                            <i class="fas fa-gears"></i>
+                          }
+                        </div>
+                        <h4 class="text-xs leading-snug font-inter-bold text-text">
+                          {{ study.title }}
+                        </h4>
+                      </div>
+
+                      <div class="space-y-2 text-[0.76rem] leading-relaxed">
+                        @if (study.problem) {
+                          <p class="text-muted">
+                            <strong class="text-text font-inter-semibold">Problema:</strong> {{ study.problem }}
+                          </p>
+                        }
+                        @if (study.action) {
+                          <p class="text-muted">
+                            <strong class="text-text font-inter-semibold">Acción realizada:</strong> {{ study.action }}
+                          </p>
+                        }
+                        @if (study.result) {
+                          <p class="text-success/90 font-inter-medium bg-success/5 px-2.5 py-1.5 rounded-lg border border-success/10 mt-1">
+                            <strong class="text-success font-inter-bold">Resultado:</strong> {{ study.result }}
+                          </p>
+                        }
+                      </div>
+                    </div>
+
+                    @if (study.sector) {
+                      <div class="mt-4 pt-3 border-t border-border flex items-center gap-1.5 text-[0.7rem] text-muted font-inter-semibold">
+                        <i class="fas fa-tag text-[0.65rem]"></i>
+                        Rubro: <span class="text-secondary">{{ study.sector }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Sidebar/Right Column (1/3 width) -->
+        <div class="space-y-6">
+          <!-- Solicitud Widget -->
+          <div class="rounded-3xl border border-border bg-surface p-6 shadow-sm space-y-4">
+            <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider">Agendar Sesión</h3>
+            <p class="text-xs text-muted leading-relaxed">
+              Reserva una videollamada personalizada por Microsoft Teams para resolver las dudas de tu negocio.
+            </p>
+            <button
+              type="button"
+              (click)="schedule()"
+              class="w-full inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary text-fixed-background-50 font-inter-bold text-sm shadow-md transition hover:bg-primary-600 cursor-pointer"
+            >
+              <i class="fas fa-calendar-check"></i>
+              Agendar reunión
+            </button>
+            @if (c.linkedinUrl) {
+              <a
+                [href]="c.linkedinUrl"
+                target="_blank"
+                class="w-full inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-background text-xs text-muted font-inter-semibold transition hover:border-secondary hover:text-secondary shadow-sm"
+              >
+                <i class="fab fa-linkedin text-base text-[#0a66c2]"></i>
+                Perfil de LinkedIn
+              </a>
+            }
+          </div>
+
+          <!-- Clasificación Tags -->
+          <div class="rounded-3xl border border-border bg-surface p-6 shadow-sm space-y-5">
+            <!-- Especialidades -->
+            <div>
+              <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider mb-2">Especialidades</h3>
+              <div class="flex flex-wrap gap-1.5">
+                @for (tag of c.specialties; track tag) {
+                  <span class="rounded-full bg-secondary/10 px-2.5 py-1 text-[0.72rem] text-secondary font-inter-bold">
+                    {{ tag }}
+                  </span>
+                } @empty {
+                  <span class="text-xs text-muted italic font-inter-medium">Sin especialidades especificadas</span>
+                }
+              </div>
+            </div>
+
+            <!-- Industrias -->
+            <div class="border-t border-border pt-4">
+              <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider mb-2">Industrias</h3>
+              <div class="flex flex-wrap gap-1.5">
+                @for (tag of c.industries; track tag) {
+                  <span class="rounded-full bg-text/5 px-2.5 py-1 text-[0.72rem] text-muted font-inter-semibold">
+                    {{ tag }}
+                  </span>
+                } @empty {
+                  <span class="text-xs text-muted italic font-inter-medium">Sin industrias especificadas</span>
+                }
+              </div>
+            </div>
+
+            <!-- Tipo de empresa -->
+            <div class="border-t border-border pt-4">
+              <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider mb-2">Empresas que atiende</h3>
+              <div class="flex flex-wrap gap-1.5">
+                @for (tag of c.companyTypes; track tag) {
+                  <span class="rounded-full bg-success/10 px-2.5 py-1 text-[0.72rem] text-success font-inter-semibold">
+                    {{ tag }}
+                  </span>
+                } @empty {
+                  <span class="text-xs text-muted italic font-inter-medium">Sin tipos especificados</span>
+                }
+              </div>
+            </div>
+
+            <!-- Servicios -->
+            <div class="border-t border-border pt-4">
+              <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider mb-2">Servicios</h3>
+              <div class="flex flex-wrap gap-1.5">
+                @for (tag of c.services; track tag) {
+                  <span class="rounded-full bg-accent/10 px-2.5 py-1 text-[0.72rem] text-accent font-inter-semibold">
+                    {{ tag }}
+                  </span>
+                } @empty {
+                  <span class="text-xs text-muted italic font-inter-medium">Sin servicios especificados</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Trayectoria / Detalles Técnicos -->
+          <div class="rounded-3xl border border-border bg-surface p-6 shadow-sm space-y-5">
+            <div class="flex items-center gap-3.5">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary text-sm">
+                <i class="fas fa-briefcase"></i>
+              </div>
+              <div>
+                <p class="text-[10px] uppercase text-muted font-inter-bold">Experiencia</p>
+                <p class="text-sm font-plus-jakarta-sans font-bold text-text">
+                  {{ c.yearsExperience }} años de trayectoria
+                </p>
+              </div>
+            </div>
+
+            <!-- Formación académica -->
+            @if (c.education && c.education.length) {
+              <div class="border-t border-border pt-4">
+                <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider mb-2">Formación</h3>
+                <ul class="space-y-2.5 pl-0.5">
+                  @for (edu of c.education; track edu.degree) {
+                    <li class="flex items-start gap-2.5">
+                      <div class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-secondary"></div>
+                      <div class="text-[0.76rem] leading-relaxed">
+                        <strong class="font-inter-bold text-text">{{ edu.degree }}</strong>
+                        @if (edu.institution) {
+                          <span class="text-muted font-inter-medium"> — {{ edu.institution }}</span>
+                        }
+                        @if (edu.year) {
+                          <span class="text-muted font-inter-regular"> ({{ edu.year }})</span>
+                        }
+                      </div>
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+
+            <!-- Certificaciones -->
+            @if (c.certifications && c.certifications.length) {
+              <div class="border-t border-border pt-4">
+                <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider mb-2">Certificaciones</h3>
+                <div class="space-y-1.5">
+                  @for (cert of c.certifications; track cert) {
+                    <div class="flex items-start gap-2">
+                      <i class="fas fa-circle-check text-success mt-0.5 text-[10px]"></i>
+                      <span class="text-[0.76rem] text-muted font-inter-medium leading-relaxed">{{ cert }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Sectores -->
+            @if (c.workedSectors && c.workedSectors.length) {
+              <div class="border-t border-border pt-4">
+                <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider mb-1.5">Sectores de trayectoria</h3>
+                <p class="text-[0.76rem] text-muted leading-relaxed font-inter-medium">
+                  {{ c.workedSectors.join(', ') }}
+                </p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="rounded-xl border border-dashed border-border bg-surface py-20 text-center text-muted">
+        No se pudo cargar la información del consultor.
+      </div>
+    }
+  }
+</div>

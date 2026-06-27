@@ -78,7 +78,6 @@
 
             <div class="mt-5 grid grid-cols-2 gap-4 border-y border-border py-4 text-[0.82rem]">
               <div class="flex items-center gap-3">
-                <i class="fas fa-dollar-sign text-text"></i>
                 <span>
                   <strong>S/ {{ consultant.pricePerHour }}</strong>
                   <span class="text-muted">/ hr</span>
@@ -93,7 +92,7 @@
             <div class="mt-auto grid grid-cols-2 gap-2 pt-5">
               <button
                 type="button"
-                (click)="profileConsultant.set(consultant)"
+                (click)="viewProfile(consultant)"
                 class="h-9 rounded-full border border-border bg-background px-4 text-[0.82rem] text-text transition hover:border-secondary hover:text-secondary font-inter-bold"
               >
                 Ver perfil
@@ -113,137 +112,6 @@
           No hay consultores disponibles.
         </div>
       }
-    </div>
-  }
-
-  @if (profileConsultant()) {
-    <div class="fixed inset-0 z-[80] flex items-center justify-center bg-fixed-text-950/70 px-4 backdrop-blur-sm">
-      <div class="w-full max-w-5xl overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl">
-        <div class="relative">
-          <button
-            type="button"
-            (click)="profileConsultant.set(null)"
-            class="absolute right-5 top-5 z-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-surface/90 text-muted shadow-sm transition hover:bg-background hover:text-text"
-            aria-label="Cerrar perfil"
-          >
-            <i class="fas fa-xmark"></i>
-          </button>
-
-          <div class="grid grid-cols-1 lg:grid-cols-[24rem_1fr]">
-            <div class="relative min-h-[28rem] bg-background-100">
-              <img
-                [src]="consultantPhoto(profileConsultant()!)"
-                [alt]="profileConsultant()?.fullName || 'Consultor'"
-                class="h-full min-h-[28rem] w-full object-cover object-top"
-              />
-              <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-fixed-text-950/75 via-fixed-text-950/20 to-transparent p-6 text-fixed-text-50">
-                <p class="text-xs uppercase tracking-wide text-fixed-text-50/75 font-inter-bold">Consultor Hubsme</p>
-                <h2 class="mt-2 text-3xl leading-tight font-anton lowercase">{{ profileConsultant()?.fullName }}</h2>
-                <div class="mt-4 flex flex-wrap gap-2">
-                  <span class="inline-flex items-center gap-1.5 rounded-full bg-fixed-background-50/95 px-3 py-1 text-[0.76rem] text-warning font-inter-bold">
-                    <i class="fas fa-star text-[0.68rem]"></i>
-                    {{ rating(profileConsultant()!) }}
-                    <span class="text-muted">({{ profileConsultant()?.totalReviews || 0 }})</span>
-                  </span>
-                  <span class="inline-flex items-center gap-1.5 rounded-full bg-fixed-background-50/95 px-3 py-1 text-[0.76rem] text-text font-inter-bold">
-                    <i class="fas fa-location-dot text-muted"></i>
-                    Remoto
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div class="flex flex-col p-6 lg:p-8">
-              <div class="flex flex-col gap-5 border-b border-border pb-6 xl:flex-row xl:items-start xl:justify-between">
-                <div>
-                  <p class="text-xs uppercase text-muted font-inter-bold">Perfil del consultor</p>
-                  <h3 class="mt-2 text-2xl leading-tight text-text font-plus-jakarta-sans font-bold">
-                    {{ profileConsultant()?.fullName }}
-                  </h3>
-                  <p class="mt-3 max-w-2xl text-[0.94rem] leading-7 text-muted">
-                    {{ profileConsultant()?.bio || 'Especialista en consultoria para PYMES en crecimiento.' }}
-                  </p>
-                </div>
-
-                <div class="shrink-0 rounded-2xl border border-secondary/20 bg-secondary/5 px-5 py-4 text-left xl:text-right">
-                  <p class="text-[0.7rem] uppercase text-muted font-inter-bold">Tarifa por hora</p>
-                  <p class="mt-1 text-2xl text-secondary font-inter-bold">S/ {{ profileConsultant()?.pricePerHour }}</p>
-                  <p class="mt-1 text-xs text-muted">Sesiones por Microsoft Teams</p>
-                </div>
-              </div>
-
-              <div class="grid gap-4 py-6 sm:grid-cols-3">
-                <div class="rounded-2xl border border-border bg-background px-4 py-4">
-                  <i class="fas fa-video text-secondary"></i>
-                  <p class="mt-3 text-sm text-text font-inter-bold">Videoconferencia</p>
-                  <p class="mt-1 text-xs leading-5 text-muted">Reunion remota con enlace Teams al confirmar.</p>
-                </div>
-                <div class="rounded-2xl border border-border bg-background px-4 py-4">
-                  <i class="fas fa-calendar-check text-success"></i>
-                  <p class="mt-3 text-sm text-text font-inter-bold">Agenda visible</p>
-                  <p class="mt-1 text-xs leading-5 text-muted">Elige horarios disponibles del consultor.</p>
-                </div>
-                <div class="rounded-2xl border border-border bg-background px-4 py-4">
-                  <i class="fas fa-shield-halved text-warning"></i>
-                  <p class="mt-3 text-sm text-text font-inter-bold">Pago seguro</p>
-                  <p class="mt-1 text-xs leading-5 text-muted">Confirmacion previa antes de activar Teams.</p>
-                </div>
-              </div>
-
-              <div class="space-y-5 border-t border-border pt-6">
-                <div>
-                  <p class="text-xs uppercase text-muted font-inter-bold">Especialidades</p>
-                  <div class="mt-3 flex flex-wrap gap-2">
-                    @for (specialty of profileConsultant()?.specialties || []; track specialty) {
-                      <span class="rounded-full bg-secondary/10 px-3 py-1 text-[0.76rem] text-secondary font-inter-bold">
-                        {{ specialty }}
-                      </span>
-                    } @empty {
-                      <span class="rounded-full bg-secondary/10 px-3 py-1 text-[0.76rem] text-secondary font-inter-bold">
-                        Estrategia
-                      </span>
-                    }
-                  </div>
-                </div>
-
-                @if ((profileConsultant()?.sectors || []).length) {
-                  <div>
-                    <p class="text-xs uppercase text-muted font-inter-bold">Sectores</p>
-                    <div class="mt-3 flex flex-wrap gap-2">
-                      @for (sector of profileConsultant()?.sectors || []; track sector) {
-                        <span class="rounded-full bg-text/5 px-3 py-1 text-[0.76rem] text-muted font-inter-semibold">
-                          {{ sector }}
-                        </span>
-                      }
-                    </div>
-                  </div>
-                }
-              </div>
-
-              <div class="mt-auto flex flex-col gap-3 pt-7 sm:flex-row">
-                @if (profileConsultant()?.videoUrl) {
-                  <button
-                    type="button"
-                    (click)="videoConsultant.set(profileConsultant()); profileConsultant.set(null)"
-                    class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-background px-5 text-sm text-text transition hover:border-secondary hover:text-secondary font-inter-bold"
-                  >
-                    <i class="fas fa-play text-xs"></i>
-                    Ver intro
-                  </button>
-                }
-                <button
-                  type="button"
-                  (click)="profileConsultant() && schedule(profileConsultant()!)"
-                  class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm text-fixed-text-50 transition hover:bg-secondary/90 font-inter-bold"
-                >
-                  <i class="fas fa-calendar-check"></i>
-                  Ver horarios y agendar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   }
 

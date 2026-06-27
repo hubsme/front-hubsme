@@ -7,6 +7,38 @@ import { PATH, buildPath, getDefaultRoute } from '@route/path.route';
 import { SessionService } from '@service/session.service';
 import { ToastService } from '@service/toast.service';
 
+type ConsultantCvProfile = ApiResponse<'powerautomate', 'runConsultantCv'>;
+type ConsultantCvPayload = Pick<
+  ApiBody<'auth', 'register'>,
+  | 'headline'
+  | 'location'
+  | 'workModality'
+  | 'bio'
+  | 'ownerPhone'
+  | 'linkedinUrl'
+  | 'specialties'
+  | 'sectors'
+  | 'industries'
+  | 'companyTypes'
+  | 'services'
+  | 'yearsExperience'
+  | 'education'
+  | 'certifications'
+  | 'workedSectors'
+  | 'caseStudies'
+  | 'cvText'
+>;
+
+type PdfTextItem = { str: string };
+type PdfTextContent = { items: unknown[] };
+type PdfPage = { getTextContent(): Promise<PdfTextContent> };
+type PdfDocument = { numPages: number; getPage(pageNumber: number): Promise<PdfPage> };
+type PdfLoadTask = { promise: Promise<PdfDocument> };
+type PdfJsModule = {
+  getDocument(source: { data: Uint8Array }): PdfLoadTask;
+  GlobalWorkerOptions: { workerSrc: string };
+};
+
 @Component({
   selector: 'app-sing-up',
   imports: [CommonModule, FormsModule],
@@ -34,9 +66,14 @@ export class SingUp implements OnInit, OnDestroy {
   step = signal<1 | 2>(1);
   loading = signal(false);
   googleLoading = signal(false);
+  cvFileName = signal('');
+  cvProcessing = signal(false);
+  cvError = signal('');
+  cvText = signal('');
+  consultantProfile = signal<ConsultantCvProfile | null>(null);
   profileComplete = computed(() => {
     const hasPerson = !!this.firstName().trim() && !!this.lastName().trim();
-    if (this.role() === 'consultor') return hasPerson;
+    if (this.role() === 'consultor') return hasPerson && !!this.consultantProfile();
     return hasPerson && !!this.companyName().trim() && !!this.ruc().trim();
   });
   private googlePopup: Window | null = null;
@@ -75,7 +112,7 @@ export class SingUp implements OnInit, OnDestroy {
       this.toastService.error(
         this.role() === 'pyme'
           ? 'Completa empresa, RUC, nombres y apellidos del dueno'
-          : 'Completa nombres y apellidos',
+          : 'Sube tu CV en PDF y revisa el perfil extraido',
       );
       return;
     }
@@ -112,6 +149,7 @@ export class SingUp implements OnInit, OnDestroy {
       ruc: this.role() === 'pyme' ? this.ruc() : undefined,
       ownerPhone: this.role() === 'pyme' ? this.ownerPhone() || undefined : undefined,
       ownerPosition: this.role() === 'pyme' ? this.ownerPosition() || undefined : undefined,
+      ...(this.role() === 'consultor' ? this.consultantProfilePayload() : {}),
     };
 
     this.loading.set(true);
@@ -176,6 +214,40 @@ export class SingUp implements OnInit, OnDestroy {
         this.toastService.error(this.getErrorMessage(error, 'No se pudo iniciar Google'));
         this.googleLoading.set(false);
       });
+  }
+
+  onConsultantCvSelected(event: Event) {
+    const file = this.getFile(event);
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      this.cvError.set('Sube un archivo PDF valido');
+      this.consultantProfile.set(null);
+      return;
+    }
+
+    this.cvFileName.set(file.name);
+    this.cvError.set('');
+    this.cvProcessing.set(true);
+    this.consultantProfile.set(null);
+
+    this.extractPdfText(file)
+      .then((text) => {
+        if (text.length < 40) {
+          throw new Error('No se pudo leer suficiente texto del PDF');
+        }
+        this.cvText.set(text);
+        return this.api.powerautomate.runConsultantCv({ text });
+      })
+      .then((profile) => {
+        this.consultantProfile.set(profile.data);
+        this.prefillConsultantFromProfile(profile.data);
+        this.toastService.success('CV procesado correctamente');
+      })
+      .catch((error) => {
+        this.cvError.set(this.getErrorMessage(error, 'No se pudo procesar el CV'));
+      })
+      .finally(() => this.cvProcessing.set(false));
   }
 
   private handleGoogleMessage(event: MessageEvent<unknown>): void {
@@ -266,7 +338,7 @@ export class SingUp implements OnInit, OnDestroy {
       const response = await this.api.consultant.findByUser({ userId: user.id });
       const firstName = this.firstName().trim();
       const lastName = this.lastName().trim();
-      const payload: ApiBody<'consultant', 'update'> = {};
+      const payload: ApiBody<'consultant', 'update'> = this.consultantProfilePayload();
 
       if (firstName) payload.firstName = firstName;
       if (lastName) payload.lastName = lastName;
@@ -278,6 +350,70 @@ export class SingUp implements OnInit, OnDestroy {
         await this.api.consultant.update({ id: response.data.id }, payload);
       }
     }
+  }
+
+  private consultantProfilePayload(): ConsultantCvPayload {
+    const profile = this.consultantProfile();
+    return {
+      headline: profile?.headline || undefined,
+      location: profile?.location || undefined,
+      workModality: profile?.workModality || undefined,
+      bio: profile?.bio || undefined,
+      ownerPhone: profile?.ownerPhone || undefined,
+      linkedinUrl: profile?.linkedinUrl || undefined,
+      specialties: profile?.specialties ?? [],
+      sectors: profile?.sectors ?? [],
+      industries: profile?.industries ?? [],
+      companyTypes: profile?.companyTypes ?? [],
+      services: profile?.services ?? [],
+      yearsExperience: profile?.yearsExperience ?? 0,
+      education: profile?.education ?? [],
+      certifications: profile?.certifications ?? [],
+      workedSectors: profile?.workedSectors ?? [],
+      caseStudies: profile?.caseStudies ?? [],
+      cvText: this.cvText() || undefined,
+    };
+  }
+
+  private prefillConsultantFromProfile(profile: ConsultantCvProfile): void {
+    if (!this.firstName().trim() && profile.firstName) this.firstName.set(profile.firstName);
+    if (!this.lastName().trim() && profile.lastName) this.lastName.set(profile.lastName);
+    if (!this.ownerPhone().trim() && profile.ownerPhone) this.ownerPhone.set(profile.ownerPhone);
+  }
+
+  private async extractPdfText(file: File): Promise<string> {
+    const pdfjs = (await import('pdfjs-dist')) as unknown as PdfJsModule;
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+      'pdfjs-dist/build/pdf.worker.mjs',
+      import.meta.url,
+    ).toString();
+
+    const data = new Uint8Array(await file.arrayBuffer());
+    const pdf = await pdfjs.getDocument({ data }).promise;
+    const pages: string[] = [];
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+      const page = await pdf.getPage(pageNumber);
+      const content = await page.getTextContent();
+      const pageText = content.items
+        .map((item) => (this.isPdfTextItem(item) ? item.str : ''))
+        .filter(Boolean)
+        .join(' ');
+      pages.push(pageText);
+    }
+
+    return pages.join('\n').trim();
+  }
+
+  private isPdfTextItem(value: unknown): value is PdfTextItem {
+    if (!value || typeof value !== 'object') return false;
+    return typeof (value as { str?: unknown }).str === 'string';
+  }
+
+  private getFile(event: Event): File | null {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement)) return null;
+    return target.files?.[0] ?? null;
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

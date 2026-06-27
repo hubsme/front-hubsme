@@ -249,6 +249,10 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  protected viewConsultantProfile(consultant: LandingConsultant): void {
+    this.router.navigate([buildPath(PATH.admin.pyme.consultants.profile), consultant.userId]);
+  }
+
   protected onPhotoError() {
     this.photoError.set(true);
   }

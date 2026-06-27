@@ -146,7 +146,7 @@ export class ConsultantDetail implements OnInit {
       })
       .then((checkout) => {
         this.toastService.success('Checkout creado. Continúa con el pago.');
-        this.router.navigate([buildPath(PATH.admin.pyme.checkout), checkout.id]);
+        this.router.navigate([buildPath(PATH.admin.pyme.consultants.checkout), checkout.id]);
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.scheduling.set(false));

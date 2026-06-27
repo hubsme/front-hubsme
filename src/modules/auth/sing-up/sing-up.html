@@ -1,277 +1,659 @@
-<div class="min-h-screen flex items-center justify-center bg-background p-4 font-inter-regular text-text">
-  <div class="w-full max-w-lg bg-surface rounded-2xl shadow-lg border border-text/10 overflow-hidden">
-    <div class="pt-12 pb-4 text-center">
-      <img src="/avif/logo_completo.avif" alt="HUBSME" class="mx-auto h-12 w-auto" />
+<div class="min-h-screen flex items-center justify-center bg-background p-4 sm:p-6 md:p-8 font-inter-regular text-text">
+  <div
+    class="w-full bg-surface rounded-3xl shadow-xl border border-text/10 overflow-hidden transition-all duration-300 relative z-10"
+    [class.max-w-lg]="role() !== 'consultor' || step() !== 1"
+    [class.max-w-5xl]="role() === 'consultor' && step() === 1"
+  >
+    <!-- Logo Header -->
+    <div class="pt-10 pb-2 text-center">
+      <img src="/avif/logo_completo.avif" alt="HUBSME" class="mx-auto h-11 w-auto hover:scale-102 transition-transform duration-300" />
     </div>
 
-    <div class="p-10">
-      <form (ngSubmit)="onRegister()" class="space-y-5" autocomplete="off">
-        @if (step() === 1) {
-          @if (!roleLocked()) {
-          <div class="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              (click)="setRole('pyme')"
-              class="flex min-h-28 items-center gap-3 rounded-xl border p-4 text-left transition-all duration-200 cursor-pointer shadow-xs hover:border-secondary/40 hover:bg-secondary/[0.02]"
-              [class.border-secondary]="role() === 'pyme'"
-              [class.bg-secondary/[0.05]]="role() === 'pyme'"
-              [class.border-border]="role() !== 'pyme'"
-              [class.bg-surface]="role() !== 'pyme'"
-            >
-              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-all duration-200"
-                   [class.bg-secondary]="role() === 'pyme'"
-                   [class.text-background]="role() === 'pyme'"
-                   [class.bg-secondary/10]="role() !== 'pyme'"
-                   [class.text-secondary]="role() !== 'pyme'">
-                <i class="fas fa-building text-base"></i>
-              </div>
-              <div class="space-y-1">
-                <p class="font-inter-bold text-sm text-text leading-tight">Soy PYME</p>
-                <p class="text-xs text-text/50 leading-normal">Busco diagnóstico y consultoría.</p>
-              </div>
-            </button>
-            <button
-              type="button"
-              (click)="setRole('consultor')"
-              class="flex min-h-28 items-center gap-3 rounded-xl border p-4 text-left transition-all duration-200 cursor-pointer shadow-xs hover:border-secondary/40 hover:bg-secondary/[0.02]"
-              [class.border-secondary]="role() === 'consultor'"
-              [class.bg-secondary/[0.05]]="role() === 'consultor'"
-              [class.border-border]="role() !== 'consultor'"
-              [class.bg-surface]="role() !== 'consultor'"
-            >
-              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-all duration-200"
-                   [class.bg-secondary]="role() === 'consultor'"
-                   [class.text-background]="role() === 'consultor'"
-                   [class.bg-secondary/10]="role() !== 'consultor'"
-                   [class.text-secondary]="role() !== 'consultor'">
-                <i class="fas fa-user-tie text-base"></i>
-              </div>
-              <div class="space-y-1">
-                <p class="font-inter-bold text-sm text-text leading-tight">Soy Consultor</p>
-                <p class="text-xs text-text/50 leading-normal">Gestiono clientes y sesiones.</p>
-              </div>
-            </button>
+    <!-- Progress Stepper -->
+    <div class="flex items-center justify-center px-10 pt-4 pb-2">
+      <div class="flex items-center w-full max-w-xs sm:max-w-md">
+        <!-- Step 1: Info -->
+        <div class="flex flex-col items-center flex-1">
+          <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 shadow-sm"
+            [class.border-secondary]="step() === 1"
+            [class.bg-secondary]="step() === 1"
+            [class.text-background]="step() === 1"
+            [class.border-success]="step() === 2"
+            [class.bg-success]="step() === 2"
+            [class.text-background]="step() === 2"
+          >
+            @if (step() === 2) {
+              <i class="fas fa-check text-xs"></i>
+            } @else {
+              <span class="text-xs font-inter-bold">1</span>
+            }
           </div>
+          <span class="mt-1.5 text-[11px] font-inter-semibold" 
+            [class.text-secondary]="step() === 1"
+            [class.text-success]="step() === 2"
+            [class.text-text/40]="step() !== 1 && step() !== 2">
+            Perfil
+          </span>
+        </div>
+        
+        <!-- Divider Line -->
+        <div class="h-[2px] flex-1 bg-border transition-all duration-300 mx-2"
+          [class.bg-success]="step() === 2">
+        </div>
+        
+        <!-- Step 2: Credentials -->
+        <div class="flex flex-col items-center flex-1">
+          <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 shadow-sm"
+            [class.border-secondary]="step() === 2"
+            [class.bg-secondary]="step() === 2"
+            [class.text-background]="step() === 2"
+            [class.border-border]="step() !== 2"
+            [class.text-text/40]="step() !== 2"
+          >
+            <span class="text-xs font-inter-bold">2</span>
+          </div>
+          <span class="mt-1.5 text-[11px] font-inter-semibold" 
+            [class.text-secondary]="step() === 2"
+            [class.text-text/40]="step() !== 2">
+            Credenciales
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6 sm:p-10 pt-4">
+      <form (ngSubmit)="onRegister()" class="space-y-6" autocomplete="off">
+        @if (step() === 1) {
+          
+          <!-- Role Selection Step -->
+          @if (!roleLocked()) {
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Soy PYME Button -->
+              <button
+                type="button"
+                (click)="setRole('pyme')"
+                class="relative flex flex-col sm:flex-row items-center sm:items-start gap-4 rounded-2xl border p-4 text-center sm:text-left transition-all duration-300 cursor-pointer hover:-translate-y-0.5 hover:shadow-md hover:border-secondary/40 hover:bg-secondary/[0.01]"
+                [class.border-secondary]="role() === 'pyme'"
+                [class.bg-secondary/[0.04]]="role() === 'pyme'"
+                [class.shadow-sm]="role() === 'pyme'"
+                [class.border-border]="role() !== 'pyme'"
+                [class.bg-surface]="role() !== 'pyme'"
+              >
+                <!-- Radio indicator -->
+                <div class="absolute top-3 right-3 flex h-4 w-4 items-center justify-center rounded-full border transition-all duration-300"
+                  [class.border-secondary]="role() === 'pyme'"
+                  [class.bg-secondary]="role() === 'pyme'"
+                  [class.border-border]="role() !== 'pyme'"
+                >
+                  <div class="h-1.5 w-1.5 rounded-full bg-background transition-all duration-300"
+                    [class.scale-100]="role() === 'pyme'"
+                    [class.scale-0]="role() !== 'pyme'"
+                  ></div>
+                </div>
+                
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-all duration-300 bg-gradient-to-br"
+                  [class.from-secondary]="role() === 'pyme'"
+                  [class.to-secondary/80]="role() === 'pyme'"
+                  [class.text-background]="role() === 'pyme'"
+                  [class.from-secondary/10]="role() !== 'pyme'"
+                  [class.to-secondary/5]="role() !== 'pyme'"
+                  [class.text-secondary]="role() !== 'pyme'"
+                >
+                  <i class="fas fa-building text-base"></i>
+                </div>
+                
+                <div class="space-y-0.5 mt-0.5">
+                  <p class="font-inter-bold text-sm text-text">Soy PYME</p>
+                  <p class="text-[11px] text-text/50 leading-normal max-w-[140px] sm:max-w-none">Busco diagnóstico y consultoría.</p>
+                </div>
+              </button>
+
+              <!-- Soy Consultor Button -->
+              <button
+                type="button"
+                (click)="setRole('consultor')"
+                class="relative flex flex-col sm:flex-row items-center sm:items-start gap-4 rounded-2xl border p-4 text-center sm:text-left transition-all duration-300 cursor-pointer hover:-translate-y-0.5 hover:shadow-md hover:border-secondary/40 hover:bg-secondary/[0.01]"
+                [class.border-secondary]="role() === 'consultor'"
+                [class.bg-secondary/[0.04]]="role() === 'consultor'"
+                [class.shadow-sm]="role() === 'consultor'"
+                [class.border-border]="role() !== 'consultor'"
+                [class.bg-surface]="role() !== 'consultor'"
+              >
+                <!-- Radio indicator -->
+                <div class="absolute top-3 right-3 flex h-4 w-4 items-center justify-center rounded-full border transition-all duration-300"
+                  [class.border-secondary]="role() === 'consultor'"
+                  [class.bg-secondary]="role() === 'consultor'"
+                  [class.border-border]="role() !== 'consultor'"
+                >
+                  <div class="h-1.5 w-1.5 rounded-full bg-background transition-all duration-300"
+                    [class.scale-100]="role() === 'consultor'"
+                    [class.scale-0]="role() !== 'consultor'"
+                  ></div>
+                </div>
+                
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl transition-all duration-300 bg-gradient-to-br"
+                  [class.from-secondary]="role() === 'consultor'"
+                  [class.to-secondary/80]="role() === 'consultor'"
+                  [class.text-background]="role() === 'consultor'"
+                  [class.from-secondary/10]="role() !== 'consultor'"
+                  [class.to-secondary/5]="role() !== 'consultor'"
+                  [class.text-secondary]="role() !== 'consultor'"
+                >
+                  <i class="fas fa-user-tie text-base"></i>
+                </div>
+                
+                <div class="space-y-0.5 mt-0.5">
+                  <p class="font-inter-bold text-sm text-text">Soy Consultor</p>
+                  <p class="text-[11px] text-text/50 leading-normal max-w-[140px] sm:max-w-none">Gestiono clientes y sesiones.</p>
+                </div>
+              </button>
+            </div>
           } @else {
-            <div class="rounded-xl border border-secondary/20 bg-secondary/5 p-4">
-              <div class="flex items-center gap-3">
-                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary text-background">
-                  <i class="fas" [class.fa-user-tie]="role() === 'consultor'" [class.fa-building]="role() === 'pyme'"></i>
-                </div>
-                <div>
-                  <p class="text-sm font-inter-bold text-secondary">
-                    {{ role() === 'consultor' ? 'Registro para consultor' : 'Registro para PYME' }}
-                  </p>
-                  <p class="text-xs text-text/50">
-                    Este perfil ya viene seleccionado desde la landing.
-                  </p>
-                </div>
+            <!-- Locked Role Banner -->
+            <div class="rounded-2xl border border-secondary/10 bg-secondary/[0.02] p-4 flex items-center gap-4 transition-all">
+              <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-secondary to-secondary/80 text-background shadow-sm shadow-secondary/10">
+                <i class="fas" [class.fa-user-tie]="role() === 'consultor'" [class.fa-building]="role() === 'pyme'"></i>
+              </div>
+              <div class="space-y-0.5">
+                <p class="text-sm font-inter-bold text-secondary">
+                  {{ role() === 'consultor' ? 'Registro para Consultor' : 'Registro para PYME' }}
+                </p>
+                <p class="text-xs text-text/55">
+                  Este perfil ya viene seleccionado desde el portal principal.
+                </p>
               </div>
             </div>
           }
 
+          <!-- PYME Forms -->
           @if (role() === 'pyme') {
             <!-- Sección Empresa -->
-            <div class="space-y-3 pt-6">
-              <h3 class="text-xs font-inter-bold uppercase tracking-wider text-secondary border-b border-text/10 pb-1.5 mt-2">Información de la Empresa</h3>
-              <div class="grid gap-4 sm:grid-cols-2">
-                <div class="space-y-2">
-                  <label class="mb-2 block text-sm font-inter-semibold text-text/60">Nombre</label>
-                  <input
-                    name="companyName"
-                    autocomplete="organization"
-                    [ngModel]="companyName()"
-                    (ngModelChange)="companyName.set($event)"
-                    class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
-                    placeholder="Textiles del Sur SAC"
-                  />
+            <div class="space-y-4 pt-2">
+              <div class="flex items-center gap-2 border-b border-text/10 pb-2">
+                <div class="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary/10 text-secondary text-xs">
+                  <i class="fas fa-building text-[10px]"></i>
                 </div>
-                <div class="space-y-2">
-                  <label class="mb-2 block text-sm font-inter-semibold text-text/60">RUC</label>
-                  <input
-                    name="ruc"
-                    autocomplete="off"
-                    [ngModel]="ruc()"
-                    (ngModelChange)="ruc.set($event)"
-                    class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
-                    placeholder="20600000001"
-                  />
+                <h3 class="text-xs font-inter-bold uppercase tracking-wider text-secondary">Información de la Empresa</h3>
+              </div>
+              
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div class="space-y-1.5">
+                  <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Nombre Comercial</label>
+                  <div class="relative">
+                    <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text/40">
+                      <i class="fas fa-building text-xs"></i>
+                    </div>
+                    <input
+                      name="companyName"
+                      autocomplete="organization"
+                      [ngModel]="companyName()"
+                      (ngModelChange)="companyName.set($event)"
+                      class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
+                      placeholder="Textiles del Sur SAC"
+                    />
+                  </div>
+                </div>
+                <div class="space-y-1.5">
+                  <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">RUC (Registro Único)</label>
+                  <div class="relative">
+                    <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text/40">
+                      <i class="fas fa-id-card text-xs"></i>
+                    </div>
+                    <input
+                      name="ruc"
+                      autocomplete="off"
+                      [ngModel]="ruc()"
+                      (ngModelChange)="ruc.set($event)"
+                      class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
+                      placeholder="20600000001"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
             <!-- Sección Dueño -->
-            <div class="space-y-3 pt-6">
-              <h3 class="text-xs font-inter-bold uppercase tracking-wider text-secondary border-b border-text/10 pb-1.5 mt-2">Información del Dueño</h3>
-              <div class="grid gap-4 sm:grid-cols-2">
-                <div class="space-y-2">
-                  <label class="mb-2 block text-sm font-inter-semibold text-text/60">Nombres</label>
-                  <input
-                    name="firstName"
-                    autocomplete="given-name"
-                    [ngModel]="firstName()"
-                    (ngModelChange)="firstName.set($event)"
-                    class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
-                    placeholder="Maria"
-                  />
+            <div class="space-y-4 pt-4">
+              <div class="flex items-center gap-2 border-b border-text/10 pb-2">
+                <div class="flex h-6 w-6 items-center justify-center rounded-lg bg-secondary/10 text-secondary text-xs">
+                  <i class="fas fa-user-shield text-[10px]"></i>
                 </div>
-                <div class="space-y-2">
-                  <label class="mb-2 block text-sm font-inter-semibold text-text/60">Apellidos</label>
-                  <input
-                    name="lastName"
-                    autocomplete="family-name"
-                    [ngModel]="lastName()"
-                    (ngModelChange)="lastName.set($event)"
-                    class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
-                    placeholder="Torres"
-                  />
+                <h3 class="text-xs font-inter-bold uppercase tracking-wider text-secondary">Información del Dueño / Representante</h3>
+              </div>
+              
+              <div class="grid gap-4 sm:grid-cols-2">
+                <div class="space-y-1.5">
+                  <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Nombres</label>
+                  <div class="relative">
+                    <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text/40">
+                      <i class="fas fa-user text-xs"></i>
+                    </div>
+                    <input
+                      name="firstName"
+                      autocomplete="given-name"
+                      [ngModel]="firstName()"
+                      (ngModelChange)="firstName.set($event)"
+                      class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
+                      placeholder="María"
+                    />
+                  </div>
+                </div>
+                <div class="space-y-1.5">
+                  <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Apellidos</label>
+                  <div class="relative">
+                    <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text/40">
+                      <i class="fas fa-user text-xs"></i>
+                    </div>
+                    <input
+                      name="lastName"
+                      autocomplete="family-name"
+                      [ngModel]="lastName()"
+                      (ngModelChange)="lastName.set($event)"
+                      class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
+                      placeholder="Torres"
+                    />
+                  </div>
                 </div>
               </div>
 
               <div class="grid gap-4 sm:grid-cols-2">
-                <div class="space-y-2">
-                  <label class="mb-2 block text-sm font-inter-semibold text-text/60">Celular</label>
-                  <input
-                    name="ownerPhone"
-                    autocomplete="tel"
-                    [ngModel]="ownerPhone()"
-                    (ngModelChange)="ownerPhone.set($event)"
-                    class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
-                    placeholder="+51999888777"
-                  />
+                <div class="space-y-1.5">
+                  <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Celular de Contacto</label>
+                  <div class="relative">
+                    <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text/40">
+                      <i class="fas fa-phone text-xs"></i>
+                    </div>
+                    <input
+                      name="ownerPhone"
+                      autocomplete="tel"
+                      [ngModel]="ownerPhone()"
+                      (ngModelChange)="ownerPhone.set($event)"
+                      class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
+                      placeholder="+51 999 888 777"
+                    />
+                  </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="mb-2 block text-sm font-inter-semibold text-text/60">Cargo</label>
-                  <input
-                    name="ownerPosition"
-                    autocomplete="off"
-                    [ngModel]="ownerPosition()"
-                    (ngModelChange)="ownerPosition.set($event)"
-                    class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
-                    placeholder="Gerente general"
-                  />
+                <div class="space-y-1.5">
+                  <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Cargo en la Empresa</label>
+                  <div class="relative">
+                    <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text/40">
+                      <i class="fas fa-briefcase text-xs"></i>
+                    </div>
+                    <input
+                      name="ownerPosition"
+                      autocomplete="off"
+                      [ngModel]="ownerPosition()"
+                      (ngModelChange)="ownerPosition.set($event)"
+                      class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
+                      placeholder="Gerente General"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          } @else if (role() === 'consultor') {
-            <div class="grid gap-4 sm:grid-cols-2 pt-6">
-              <div class="space-y-2">
-                <label class="mb-2 block text-sm font-inter-semibold text-text/60">Nombres</label>
-                <input
-                  name="firstName"
-                  autocomplete="given-name"
-                  [ngModel]="firstName()"
-                  (ngModelChange)="firstName.set($event)"
-                  class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
-                  placeholder="Maria"
-                />
+          } 
+          
+          <!-- Consultor Forms -->
+          @else if (role() === 'consultor') {
+            <div class="grid gap-6 pt-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
+              <!-- Left Column: Nombres + CV Upload -->
+              <div class="space-y-5">
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div class="space-y-1.5">
+                    <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Nombres</label>
+                    <div class="relative">
+                      <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text/40">
+                        <i class="fas fa-user text-xs"></i>
+                      </div>
+                      <input
+                        name="consultantFirstName"
+                        autocomplete="given-name"
+                        [ngModel]="firstName()"
+                        (ngModelChange)="firstName.set($event)"
+                        class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
+                        placeholder="María"
+                      />
+                    </div>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Apellidos</label>
+                    <div class="relative">
+                      <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text/40">
+                        <i class="fas fa-user text-xs"></i>
+                      </div>
+                      <input
+                        name="consultantLastName"
+                        autocomplete="family-name"
+                        [ngModel]="lastName()"
+                        (ngModelChange)="lastName.set($event)"
+                        class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
+                        placeholder="Torres"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- CV Upload Container -->
+                <div class="space-y-2">
+                  <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Currículum Vitae (PDF)</label>
+                  
+                  @if (cvProcessing()) {
+                    <div class="flex min-h-[170px] flex-col items-center justify-center rounded-2xl border border-dashed border-secondary/40 bg-secondary/[0.02] p-6 text-center transition-all duration-300">
+                      <div class="relative flex items-center justify-center h-12 w-12 rounded-full bg-secondary/10 mb-3">
+                        <i class="fas fa-circle-notch fa-spin text-xl text-secondary"></i>
+                      </div>
+                      <span class="text-sm font-inter-bold text-text">Procesando CV...</span>
+                      <span class="mt-1 text-xs text-text/50">Analizando el PDF con Power Automate</span>
+                    </div>
+                  } @else if (cvFileName()) {
+                    <div class="flex min-h-[170px] flex-col items-center justify-center rounded-2xl border border-secondary/20 bg-secondary/[0.02] p-6 text-center transition-all duration-300 relative">
+                      <div class="flex items-center justify-center h-12 w-12 rounded-full bg-success/10 mb-3 text-success">
+                        <i class="fas fa-file-pdf text-xl"></i>
+                      </div>
+                      <span class="text-sm font-inter-bold text-text truncate max-w-[220px]">{{ cvFileName() }}</span>
+                      <span class="mt-1 text-xs text-success font-inter-semibold">¡Leído con éxito!</span>
+                      
+                      <label class="mt-4 flex items-center gap-2 cursor-pointer rounded-lg bg-surface border border-border px-3 py-1.5 text-xs font-inter-semibold text-text hover:bg-secondary/5 hover:border-secondary transition-all">
+                        <i class="fas fa-redo text-[10px]"></i> Cambiar archivo
+                        <input type="file" accept="application/pdf" class="hidden" (change)="onConsultantCvSelected($event)" />
+                      </label>
+                    </div>
+                  } @else {
+                    <label
+                      class="flex min-h-[170px] cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-secondary/30 bg-secondary/[0.02] p-6 text-center transition-all duration-300 hover:border-secondary/60 hover:bg-secondary/[0.04] hover:-translate-y-0.5 group"
+                    >
+                      <div class="flex items-center justify-center h-12 w-12 rounded-full bg-secondary/10 mb-3 text-secondary transition-transform duration-300 group-hover:scale-105">
+                        <i class="fas fa-cloud-upload-alt text-xl"></i>
+                      </div>
+                      <span class="text-sm font-inter-bold text-text">Subir CV en PDF</span>
+                      <span class="mt-1 text-xs text-text/50 max-w-[200px] leading-relaxed">Arrastra tu archivo aquí o haz clic para buscar</span>
+                      <span class="mt-2 text-[10px] text-text/30">Solo archivos PDF legibles</span>
+                      <input type="file" accept="application/pdf" class="hidden" (change)="onConsultantCvSelected($event)" />
+                    </label>
+                  }
+                </div>
+
+                @if (cvError()) {
+                  <div class="rounded-xl border border-danger/10 bg-danger/[0.03] px-3.5 py-2.5 text-xs font-inter-semibold text-danger flex items-center gap-2">
+                    <i class="fas fa-exclamation-circle text-sm shrink-0"></i>
+                    <span>{{ cvError() }}</span>
+                  </div>
+                }
               </div>
-              <div class="space-y-2">
-                <label class="mb-2 block text-sm font-inter-semibold text-text/60">Apellidos</label>
-                <input
-                  name="lastName"
-                  autocomplete="family-name"
-                  [ngModel]="lastName()"
-                  (ngModelChange)="lastName.set($event)"
-                  class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
-                  placeholder="Torres"
-                />
+
+              <!-- Right Column: Live Profile Preview Card -->
+              <div class="rounded-2xl border border-border bg-background p-6 shadow-sm flex flex-col justify-between">
+                @if (consultantProfile(); as profile) {
+                  <div class="space-y-4">
+                    <!-- Preview Card Header -->
+                    <div class="flex items-center gap-3.5 border-b border-text/10 pb-4">
+                      <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-secondary to-primary font-inter-bold text-base text-background shadow-md">
+                        {{ firstName() ? firstName().charAt(0).toUpperCase() : 'C' }}{{ lastName() ? lastName().charAt(0).toUpperCase() : '' }}
+                      </div>
+                      <div class="space-y-0.5 min-w-0">
+                        <h3 class="font-plus-jakarta-sans text-lg font-bold text-text leading-tight truncate">
+                          {{ firstName() || 'Nombre' }} {{ lastName() || 'Consultor' }}
+                        </h3>
+                        <p class="text-xs font-inter-medium text-secondary truncate">
+                          {{ profile.headline || 'Especialista en Consultoría' }}
+                        </p>
+                        <div class="flex items-center gap-1 mt-0.5 text-[10px] text-text/50">
+                          <i class="fas fa-map-marker-alt"></i>
+                          <span class="truncate">{{ profile.location || 'Ubicación no especificada' }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Bio -->
+                    @if (profile.bio) {
+                      <p class="text-xs leading-relaxed text-text/70 italic bg-text/[0.02] p-3 rounded-xl border border-text/5">
+                        "{{ profile.bio }}"
+                      </p>
+                    }
+
+                    <!-- Profile Key Metrics -->
+                    <div class="grid gap-2 grid-cols-3">
+                      <div class="rounded-xl border border-border bg-surface p-2.5 text-center transition-all hover:border-secondary/20">
+                        <div class="text-secondary text-[11px] mb-0.5">
+                          <i class="fas fa-briefcase"></i>
+                        </div>
+                        <p class="text-[9px] font-inter-bold uppercase tracking-wider text-text/40">Experiencia</p>
+                        <p class="mt-0.5 text-xs font-inter-bold text-text">{{ profile.yearsExperience || 0 }} años</p>
+                      </div>
+                      <div class="rounded-xl border border-border bg-surface p-2.5 text-center transition-all hover:border-secondary/20">
+                        <div class="text-secondary text-[11px] mb-0.5">
+                          <i class="fas fa-laptop-house"></i>
+                        </div>
+                        <p class="text-[9px] font-inter-bold uppercase tracking-wider text-text/40">Modalidad</p>
+                        <p class="mt-0.5 text-[11px] font-inter-bold text-text truncate">{{ profile.workModality || 'Pendiente' }}</p>
+                      </div>
+                      <div class="rounded-xl border border-border bg-surface p-2.5 text-center transition-all hover:border-secondary/20">
+                        <div class="text-secondary text-[11px] mb-0.5">
+                          <i class="fas fa-globe-americas"></i>
+                        </div>
+                        <p class="text-[9px] font-inter-bold uppercase tracking-wider text-text/40">Ubicación</p>
+                        <p class="mt-0.5 text-[11px] font-inter-bold text-text truncate">{{ profile.location || 'No detectada' }}</p>
+                      </div>
+                    </div>
+
+                    <!-- Tags list -->
+                    <div class="space-y-3.5 border-t border-text/10 pt-3.5">
+                      @if (profile.specialties && profile.specialties.length) {
+                        <div>
+                          <p class="mb-1 text-[9px] font-inter-bold uppercase tracking-wider text-text/40">Especialidades</p>
+                          <div class="flex flex-wrap gap-1.5">
+                            @for (item of profile.specialties; track item) {
+                              <span class="rounded-md bg-secondary/[0.05] border border-secondary/10 px-2 py-0.5 text-[10px] font-inter-semibold text-secondary">
+                                {{ item }}
+                              </span>
+                            }
+                          </div>
+                        </div>
+                      }
+                      
+                      @if (profile.services && profile.services.length) {
+                        <div>
+                          <p class="mb-1 text-[9px] font-inter-bold uppercase tracking-wider text-text/40">Servicios</p>
+                          <div class="flex flex-wrap gap-1.5">
+                            @for (item of profile.services; track item) {
+                              <span class="rounded-md bg-primary/[0.05] border border-primary/10 px-2 py-0.5 text-[10px] font-inter-semibold text-primary">
+                                {{ item }}
+                              </span>
+                            }
+                          </div>
+                        </div>
+                      }
+
+                      @if (profile.industries && profile.industries.length) {
+                        <div>
+                          <p class="mb-1 text-[9px] font-inter-bold uppercase tracking-wider text-text/40">Industrias</p>
+                          <div class="flex flex-wrap gap-1.5">
+                            @for (item of profile.industries; track item) {
+                              <span class="rounded-md bg-text/[0.03] border border-text/10 px-2 py-0.5 text-[10px] font-inter-semibold text-text/60">
+                                {{ item }}
+                              </span>
+                            }
+                          </div>
+                        </div>
+                      }
+
+                      @if (profile.companyTypes && profile.companyTypes.length) {
+                        <div>
+                          <p class="mb-1 text-[9px] font-inter-bold uppercase tracking-wider text-text/40">Tipo de Empresa</p>
+                          <div class="flex flex-wrap gap-1.5">
+                            @for (item of profile.companyTypes; track item) {
+                              <span class="rounded-md bg-success/[0.05] border border-success/10 px-2 py-0.5 text-[10px] font-inter-semibold text-success">
+                                {{ item }}
+                              </span>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Casos Detectados -->
+                    @if (profile.caseStudies && profile.caseStudies.length) {
+                      <div class="border-t border-text/10 pt-3.5">
+                        <p class="mb-2 text-[9px] font-inter-bold uppercase tracking-wider text-text/40">Casos de Éxito</p>
+                        <div class="grid gap-2 sm:grid-cols-2">
+                          @for (caseStudy of profile.caseStudies.slice(0, 2); track caseStudy.title) {
+                            <div class="rounded-xl border border-border bg-surface p-2.5 transition-all hover:border-secondary/20 hover:shadow-xs">
+                              <p class="font-inter-bold text-[11px] text-text line-clamp-1 leading-tight">{{ caseStudy.title }}</p>
+                              <p class="mt-0.5 text-[10px] text-text/50 leading-normal line-clamp-2">
+                                {{ caseStudy.result || caseStudy.action || caseStudy.problem }}
+                              </p>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <!-- Empty Preview Placeholder -->
+                  <div class="flex min-h-[280px] flex-col items-center justify-center text-center p-6 bg-surface/30 border border-dashed border-border rounded-2xl">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/5 text-secondary animate-pulse mb-3">
+                      <i class="fas fa-id-card text-lg"></i>
+                    </div>
+                    <p class="text-xs font-inter-bold text-text">Vista previa del perfil</p>
+                    <p class="mt-1.5 max-w-[220px] text-[11px] leading-relaxed text-text/40">
+                      Sube tu CV en PDF. Extraeremos automáticamente tu experiencia para previsualizar tu perfil en la plataforma.
+                    </p>
+                  </div>
+                }
               </div>
             </div>
           }
 
-          <div class="pt-8">
+          <!-- Next step actions -->
+          <div class="pt-6 border-t border-text/5">
             <button
               type="button"
               (click)="goToCredentialsStep()"
               [disabled]="!profileComplete()"
-              class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-inter-bold text-background bg-secondary hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+              class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-inter-bold text-background bg-secondary hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] shadow-md shadow-secondary/10"
             >
               <span>Siguiente</span>
               <i class="fas fa-arrow-right text-xs"></i>
             </button>
           </div>
+
         } @else {
-          <div class="rounded-xl border border-text/10 bg-surface p-4">
-            <div class="flex items-center justify-between gap-4">
-              <div>
-                <p class="text-xs font-inter-semibold uppercase text-text/40">Perfil</p>
-                <p class="mt-1 text-sm font-inter-bold text-text">
-                  {{ role() === 'consultor' ? firstName() + ' ' + lastName() : companyName() }}
-                </p>
-                <p class="text-xs text-text/50">
-                  {{ role() === 'consultor' ? 'Consultor' : 'PYME - ' + ruc() }}
-                </p>
+          
+          <!-- Credentials Step (Step 2) -->
+          <div class="space-y-5">
+            <!-- Selected Profile Summary Banner -->
+            <div class="rounded-2xl border border-secondary/10 bg-secondary/[0.02] p-4 flex items-center justify-between transition-all">
+              <div class="flex items-center gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                  <i class="fas" [class.fa-user-tie]="role() === 'consultor'" [class.fa-building]="role() === 'pyme'"></i>
+                </div>
+                <div class="space-y-0.5">
+                  <p class="text-[10px] font-inter-bold uppercase tracking-wider text-text/40 leading-none">Perfil Seleccionado</p>
+                  <p class="text-sm font-inter-bold text-text leading-tight truncate max-w-[200px]">
+                    {{ role() === 'consultor' ? firstName() + ' ' + lastName() : companyName() }}
+                  </p>
+                  <p class="text-[11px] text-text/50">
+                    {{ role() === 'consultor' ? 'Consultor' : 'RUC: ' + ruc() }}
+                  </p>
+                </div>
               </div>
-              <button type="button" (click)="goToProfileStep()" class="text-sm font-inter-bold text-secondary hover:underline">
-                Editar
+              <button 
+                type="button" 
+                (click)="goToProfileStep()" 
+                class="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-text/60 hover:bg-secondary/5 hover:text-secondary hover:border-secondary/30 transition-all cursor-pointer"
+                title="Editar perfil"
+              >
+                <i class="fas fa-pencil-alt text-xs"></i>
+              </button>
+            </div>
+
+            <!-- Email Input -->
+            <div class="space-y-1.5">
+              <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Email institucional o personal</label>
+              <div class="relative">
+                <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text/40">
+                  <i class="fas fa-envelope text-xs"></i>
+                </div>
+                <input
+                  type="email"
+                  name="email"
+                  [ngModel]="email()"
+                  (ngModelChange)="email.set($event)"
+                  class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
+                  placeholder="hola@empresa.com"
+                />
+              </div>
+            </div>
+
+            <!-- Password Input -->
+            <div class="space-y-1.5">
+              <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Contraseña de acceso</label>
+              <div class="relative">
+                <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text/40">
+                  <i class="fas fa-lock text-xs"></i>
+                </div>
+                <input
+                  type="password"
+                  name="password"
+                  [ngModel]="password()"
+                  (ngModelChange)="password.set($event)"
+                  class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
+                  placeholder="Mínimo 6 caracteres"
+                />
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="pt-2 space-y-4">
+              <button
+                type="submit"
+                [disabled]="loading()"
+                class="w-full flex justify-center items-center py-3.5 px-4 rounded-xl text-sm font-inter-bold text-background bg-secondary hover:bg-secondary/90 disabled:opacity-50 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] shadow-md shadow-secondary/10 cursor-pointer"
+              >
+                @if (loading()) {
+                  <i class="fas fa-circle-notch fa-spin mr-2"></i> Creando cuenta...
+                } @else {
+                  Crear cuenta
+                }
+              </button>
+
+              <div class="flex items-center gap-3">
+                <span class="h-px flex-1 bg-text/10"></span>
+                <span class="text-[10px] font-inter-semibold uppercase text-text/40">o regístrate con</span>
+                <span class="h-px flex-1 bg-text/10"></span>
+              </div>
+
+              <button
+                type="button"
+                (click)="startGoogleRegister()"
+                [disabled]="googleLoading()"
+                class="flex w-full items-center justify-center gap-3 rounded-xl border border-text/15 bg-surface px-4 py-3.5 text-sm font-inter-bold text-text hover:border-secondary/40 hover:bg-secondary/[0.01] hover:text-secondary disabled:opacity-50 transition-all duration-200 active:scale-[0.98] cursor-pointer"
+              >
+                @if (googleLoading()) {
+                  <i class="fas fa-circle-notch fa-spin text-secondary"></i>
+                  Esperando a Google...
+                } @else {
+                  <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24">
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                  </svg>
+                  Crear cuenta con Google
+                }
               </button>
             </div>
           </div>
-
-          <div class="space-y-2">
-            <label class="mb-2 block text-sm font-inter-semibold text-text/60">Email</label>
-            <input
-              type="email"
-              name="email"
-              [ngModel]="email()"
-              (ngModelChange)="email.set($event)"
-              class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
-              placeholder="hola@empresa.com"
-            />
-          </div>
-
-          <div class="space-y-2">
-            <label class="mb-2 block text-sm font-inter-semibold text-text/60">Password</label>
-            <input
-              type="password"
-              name="password"
-              [ngModel]="password()"
-              (ngModelChange)="password.set($event)"
-              class="block w-full px-3 py-2.5 border border-text/20 rounded-lg focus:ring-2 focus:ring-secondary/30 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400"
-              placeholder="Minimo 6 caracteres"
-            />
-          </div>
-
-          <button
-            type="submit"
-            [disabled]="loading()"
-            class="w-full flex justify-center py-3 px-4 rounded-lg text-sm font-inter-bold text-background bg-secondary hover:bg-secondary/90 disabled:opacity-50"
-          >
-            @if (loading()) {
-            <i class="fas fa-circle-notch fa-spin mr-2"></i> Creando... } @else { Crear cuenta }
-          </button>
-
-          <div class="my-6 flex items-center gap-3">
-            <span class="h-px flex-1 bg-text/10"></span>
-            <span class="text-xs font-inter-semibold uppercase text-text/40">o</span>
-            <span class="h-px flex-1 bg-text/10"></span>
-          </div>
-
-          <button
-            type="button"
-            (click)="startGoogleRegister()"
-            [disabled]="googleLoading()"
-            class="flex w-full items-center justify-center gap-3 rounded-lg border border-text/15 bg-surface px-4 py-3 text-sm font-inter-bold text-text hover:border-secondary/50 hover:text-secondary disabled:opacity-50"
-          >
-            @if (googleLoading()) {
-              <i class="fas fa-circle-notch fa-spin text-secondary"></i>
-              Esperando a Google...
-            } @else {
-              <i class="fab fa-google text-secondary"></i>
-              Crear cuenta con Google
-            }
-          </button>
         }
       </form>
 
-      <div class="mt-6 text-center text-sm text-text/60">
-        Ya tienes cuenta?
-        <button type="button" (click)="goToSignIn()" class="font-inter-bold text-secondary hover:underline">
+      <!-- Bottom link (Ingresar) -->
+      <div class="mt-8 text-center text-xs text-text/50">
+        ¿Ya tienes una cuenta?
+        <button type="button" (click)="goToSignIn()" class="font-inter-bold text-secondary hover:underline ml-1 cursor-pointer">
           Ingresar
         </button>
       </div>
     </div>
   </div>
-
 </div>

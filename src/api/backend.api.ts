@@ -71,6 +71,28 @@ export interface HttpErrorDto {
   statusCode: number;
 }
 
+export interface ConsultantEducationDto {
+  /** @example "Contabilidad y Finanzas" */
+  degree: string;
+  /** @example "Universidad de Lima" */
+  institution?: string;
+  /** @example "2014" */
+  year?: string;
+}
+
+export interface ConsultantCaseStudyDto {
+  /** @example "Orden financiero para cadena gastronómica" */
+  title: string;
+  /** @example "No contaban con flujo de caja proyectado." */
+  problem?: string;
+  /** @example "Implementó tablero financiero y control semanal." */
+  action?: string;
+  /** @example "Reducción de quiebres de caja en 35%." */
+  result?: string;
+  /** @example "Gastronomía" */
+  sector?: string;
+}
+
 export interface RegisterDto {
   /**
    * User email address
@@ -112,6 +134,36 @@ export interface RegisterDto {
    * @example "Gerente general"
    */
   ownerPosition?: string;
+  /** @example "Consultor financiero y tributario para PYMES" */
+  headline?: string;
+  /** @example "Lima, Perú" */
+  location?: string;
+  /** @example "Presencial en Lima y remoto a nivel nacional" */
+  workModality?: string;
+  /** @example "https://www.linkedin.com/in/carlos-mendoza" */
+  linkedinUrl?: string;
+  /** @example "Consultor en finanzas para PYMES." */
+  bio?: string;
+  /** @example ["Finanzas","Tributario"] */
+  specialties?: string[];
+  /** @example ["Retail","Manufactura"] */
+  sectors?: string[];
+  /** @example ["Comercio","Gastronomia"] */
+  industries?: string[];
+  /** @example ["Microempresa","Pequeña empresa"] */
+  companyTypes?: string[];
+  /** @example ["Diagnóstico","Implementación"] */
+  services?: string[];
+  /** @example 12 */
+  yearsExperience?: number;
+  education?: ConsultantEducationDto[];
+  /** @example ["NIIF para PYMES"] */
+  certifications?: string[];
+  /** @example ["Retail","Logistica"] */
+  workedSectors?: string[];
+  caseStudies?: ConsultantCaseStudyDto[];
+  /** @example "Texto extraido del CV del consultor..." */
+  cvText?: string;
   /** @default "pyme" */
   role: "pyme" | "consultor";
 }
@@ -119,6 +171,62 @@ export interface RegisterDto {
 export interface GoogleAuthUrlResponseDto {
   /** @example "https://accounts.google.com/o/oauth2/v2/auth?..." */
   url: string;
+}
+
+export interface ForgotPasswordDto {
+  /**
+   * Correo electrónico del usuario
+   * @example "usuario@hubsme.com"
+   */
+  email: string;
+}
+
+export interface MessageResponseDto {
+  /**
+   * Mensaje de respuesta
+   * @example "Operación realizada con éxito"
+   */
+  message: string;
+}
+
+export interface ResetPasswordDto {
+  /** Token de restablecimiento enviado por correo electrónico */
+  token: string;
+  /**
+   * Nueva contraseña elegida por el usuario
+   * @example "NuevaContrasena123"
+   */
+  password: string;
+}
+
+export interface EmailSendDto {
+  /**
+   * Correo del destinatario
+   * @example "cliente@hubsme.net"
+   */
+  to: string;
+  /**
+   * Asunto del correo
+   * @example "Bienvenido a Hubsme"
+   */
+  subject: string;
+  /**
+   * Mensaje en texto plano
+   * @example "Contenido del correo en texto plano"
+   */
+  text: string;
+  /**
+   * Mensaje en formato HTML
+   * @example "<p>Contenido del correo en HTML</p>"
+   */
+  html?: string;
+}
+
+export interface EmailSendResultDto {
+  /** @example "Correo enviado exitosamente" */
+  message: string;
+  /** @example "<abc123@mail.gmail.com>" */
+  messageId: string;
 }
 
 export interface UserListItemDto {
@@ -210,9 +318,22 @@ export interface ConsultantListItemDto {
   firstName: string | null;
   lastName: string | null;
   ownerPhone: string | null;
+  headline: string | null;
+  location: string | null;
+  workModality: string | null;
+  linkedinUrl: string | null;
   bio: string | null;
   specialties: string[];
   sectors: string[];
+  industries: string[];
+  companyTypes: string[];
+  services: string[];
+  yearsExperience: number;
+  education: ConsultantEducationDto[];
+  certifications: string[];
+  workedSectors: string[];
+  caseStudies: ConsultantCaseStudyDto[];
+  cvText: string | null;
   photoUrl: string | null;
   videoUrl: string | null;
   pricePerHour: string;
@@ -333,36 +454,6 @@ export interface WhatsappSendResultDto {
   providerResponse?: object | null;
 }
 
-export interface EmailSendDto {
-  /**
-   * Correo del destinatario
-   * @example "cliente@hubsme.net"
-   */
-  to: string;
-  /**
-   * Asunto del correo
-   * @example "Bienvenido a Hubsme"
-   */
-  subject: string;
-  /**
-   * Mensaje en texto plano
-   * @example "Contenido del correo en texto plano"
-   */
-  text: string;
-  /**
-   * Mensaje en formato HTML
-   * @example "<p>Contenido del correo en HTML</p>"
-   */
-  html?: string;
-}
-
-export interface EmailSendResultDto {
-  /** @example "Correo enviado exitosamente" */
-  message: string;
-  /** @example "<abc123@mail.gmail.com>" */
-  messageId: string;
-}
-
 export interface ConsultantResultDto {
   id: number;
   /** @format date-time */
@@ -376,9 +467,22 @@ export interface ConsultantResultDto {
   firstName: string | null;
   lastName: string | null;
   ownerPhone: string | null;
+  headline: string | null;
+  location: string | null;
+  workModality: string | null;
+  linkedinUrl: string | null;
   bio: string | null;
   specialties: string[];
   sectors: string[];
+  industries: string[];
+  companyTypes: string[];
+  services: string[];
+  yearsExperience: number;
+  education: ConsultantEducationDto[];
+  certifications: string[];
+  workedSectors: string[];
+  caseStudies: ConsultantCaseStudyDto[];
+  cvText: string | null;
   photoUrl: string | null;
   videoUrl: string | null;
   pricePerHour: string;
@@ -399,12 +503,36 @@ export interface ConsultantCreateDto {
   fullName?: string;
   /** @example "51929073820" */
   ownerPhone?: string;
+  /** @example "Consultor financiero y tributario para PYMES" */
+  headline?: string;
+  /** @example "Lima, Perú" */
+  location?: string;
+  /** @example "Presencial en Lima y remoto a nivel nacional" */
+  workModality?: string;
+  /** @example "https://www.linkedin.com/in/carlos-mendoza" */
+  linkedinUrl?: string;
   /** @example "Consultor en transformacion digital para PYMES." */
   bio?: string;
   /** @example ["Tecnologia","Operaciones"] */
   specialties?: string[];
   /** @example ["Retail","Manufactura"] */
   sectors?: string[];
+  /** @example ["Comercio","Gastronomia"] */
+  industries?: string[];
+  /** @example ["Microempresa","Pequeña empresa"] */
+  companyTypes?: string[];
+  /** @example ["Diagnóstico","Implementación"] */
+  services?: string[];
+  /** @example 12 */
+  yearsExperience?: number;
+  education?: ConsultantEducationDto[];
+  /** @example ["NIIF para PYMES"] */
+  certifications?: string[];
+  /** @example ["Retail","Logistica"] */
+  workedSectors?: string[];
+  caseStudies?: ConsultantCaseStudyDto[];
+  /** @example "Texto extraido del CV del consultor..." */
+  cvText?: string;
   /** @example "https://storage.example.com/consultants/photo.jpg" */
   photoUrl?: string;
   /** @example "https://storage.example.com/consultants/video.mp4" */
@@ -428,12 +556,36 @@ export interface ConsultantUpdateDto {
   fullName?: string;
   /** @example "51929073820" */
   ownerPhone?: string;
+  /** @example "Consultor financiero y tributario para PYMES" */
+  headline?: string;
+  /** @example "Lima, Perú" */
+  location?: string;
+  /** @example "Presencial en Lima y remoto a nivel nacional" */
+  workModality?: string;
+  /** @example "https://www.linkedin.com/in/carlos-mendoza" */
+  linkedinUrl?: string;
   /** @example "Consultor en transformacion digital para PYMES." */
   bio?: string;
   /** @example ["Tecnologia","Operaciones"] */
   specialties?: string[];
   /** @example ["Retail","Manufactura"] */
   sectors?: string[];
+  /** @example ["Comercio","Gastronomia"] */
+  industries?: string[];
+  /** @example ["Microempresa","Pequeña empresa"] */
+  companyTypes?: string[];
+  /** @example ["Diagnóstico","Implementación"] */
+  services?: string[];
+  /** @example 12 */
+  yearsExperience?: number;
+  education?: ConsultantEducationDto[];
+  /** @example ["NIIF para PYMES"] */
+  certifications?: string[];
+  /** @example ["Retail","Logistica"] */
+  workedSectors?: string[];
+  caseStudies?: ConsultantCaseStudyDto[];
+  /** @example "Texto extraido del CV del consultor..." */
+  cvText?: string;
   /** @example "https://storage.example.com/consultants/photo.jpg" */
   photoUrl?: string;
   /** @example "https://storage.example.com/consultants/video.mp4" */
@@ -664,6 +816,56 @@ export interface HubsmeAiResultDto {
   summary: string;
   /** Listado de compromisos sugeridos para la PYME */
   tasks: TaskSuggestionDto[];
+}
+
+export interface ConsultantCvRunDto {
+  /**
+   * Texto extraido del PDF del CV en el frontend
+   * @example "Carlos Mendoza Rivas
+   * Consultor financiero y tributario para PYMES..."
+   */
+  text: string;
+  /** Prompt opcional para ajustar la extraccion del CV */
+  prompt?: string;
+}
+
+export interface ConsultantCvProfileResultDto {
+  /** @example "Carlos" */
+  firstName?: string;
+  /** @example "Mendoza Rivas" */
+  lastName?: string;
+  /** @example "Carlos Mendoza Rivas" */
+  fullName?: string;
+  /** @example "Consultor financiero y tributario para PYMES" */
+  headline?: string;
+  /** @example "Lima, Perú" */
+  location?: string;
+  /** @example "Presencial en Lima y remoto a nivel nacional" */
+  workModality?: string;
+  /** @example "Consultor financiero con foco en orden tributario." */
+  bio?: string;
+  /** @example "51929073820" */
+  ownerPhone?: string;
+  /** @example "https://www.linkedin.com/in/carlos-mendoza" */
+  linkedinUrl?: string;
+  /** @example ["Finanzas","Tributario"] */
+  specialties: string[];
+  /** @example ["Retail","Manufactura"] */
+  sectors: string[];
+  /** @example ["Comercio","Gastronomia"] */
+  industries: string[];
+  /** @example ["Microempresa","Pequeña empresa"] */
+  companyTypes: string[];
+  /** @example ["Diagnóstico","Implementación"] */
+  services: string[];
+  /** @example 12 */
+  yearsExperience: number;
+  education: ConsultantEducationDto[];
+  /** @example ["NIIF para PYMES"] */
+  certifications: string[];
+  /** @example ["Retail","Logistica"] */
+  workedSectors: string[];
+  caseStudies: ConsultantCaseStudyDto[];
 }
 
 export interface ConsultantAvailabilityResultDto {
@@ -1133,6 +1335,18 @@ export type AuthGetProfileData = any;
 
 export type AuthGetProfileError = HttpErrorDto;
 
+export type AuthForgotPasswordData = MessageResponseDto;
+
+export type AuthForgotPasswordError = HttpErrorDto;
+
+export type AuthResetPasswordData = MessageResponseDto;
+
+export type AuthResetPasswordError = HttpErrorDto;
+
+export type EmailSendEmailData = EmailSendResultDto;
+
+export type EmailSendEmailError = HttpErrorDto;
+
 export interface UserFindAllParams {
   /**
    * Page number
@@ -1265,10 +1479,6 @@ export type PymeRemoveError = HttpErrorDto;
 export type WhatsappSendMessageData = WhatsappSendResultDto;
 
 export type WhatsappSendMessageError = HttpErrorDto;
-
-export type EmailSendEmailData = EmailSendResultDto;
-
-export type EmailSendEmailError = HttpErrorDto;
 
 export interface ConsultantFindAllParams {
   /**
@@ -1450,6 +1660,10 @@ export type MeetingRemoveError = HttpErrorDto;
 export type PowerautomateRunHubsmeAiData = HubsmeAiResultDto;
 
 export type PowerautomateRunHubsmeAiError = HttpErrorDto;
+
+export type PowerautomateRunConsultantCvData = ConsultantCvProfileResultDto;
+
+export type PowerautomateRunConsultantCvError = HttpErrorDto;
 
 export interface ConsultantAvailabilityFindAllParams {
   /**
@@ -2010,6 +2224,61 @@ export namespace Auth {
     export type RequestHeaders = {};
     export type ResponseBody = AuthGetProfileData;
   }
+
+  /**
+   * No description
+   * @tags auth
+   * @name AuthForgotPassword
+   * @summary Request password reset link via email
+   * @request POST:/auth/forgot-password
+   * @response `200` `AuthForgotPasswordData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace AuthForgotPassword {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ForgotPasswordDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthForgotPasswordData;
+  }
+
+  /**
+   * No description
+   * @tags auth
+   * @name AuthResetPassword
+   * @summary Reset user password using token
+   * @request POST:/auth/reset-password
+   * @response `200` `AuthResetPasswordData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace AuthResetPassword {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ResetPasswordDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthResetPasswordData;
+  }
+}
+
+export namespace Email {
+  /**
+   * No description
+   * @tags email
+   * @name EmailSendEmail
+   * @summary Enviar un correo electrónico
+   * @request POST:/admin/email/send
+   * @secure
+   * @response `201` `EmailSendEmailData`
+   * @response `400` `HttpErrorDto`
+   * @response `500` `HttpErrorDto`
+   */
+  export namespace EmailSendEmail {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = EmailSendDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = EmailSendEmailData;
+  }
 }
 
 export namespace User {
@@ -2311,27 +2580,6 @@ export namespace Whatsapp {
     export type RequestBody = WhatsappSendDto;
     export type RequestHeaders = {};
     export type ResponseBody = WhatsappSendMessageData;
-  }
-}
-
-export namespace Email {
-  /**
-   * No description
-   * @tags email
-   * @name EmailSendEmail
-   * @summary Enviar un correo electrónico
-   * @request POST:/admin/email/send
-   * @secure
-   * @response `201` `EmailSendEmailData`
-   * @response `400` `HttpErrorDto`
-   * @response `500` `HttpErrorDto`
-   */
-  export namespace EmailSendEmail {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = EmailSendDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = EmailSendEmailData;
   }
 }
 
@@ -2731,7 +2979,6 @@ export namespace Powerautomate {
    * @name PowerautomateRunHubsmeAi
    * @summary Ejecutar flujo de Power Automate para obtener resumen y tareas sugeridas
    * @request POST:/admin/powerautomate/hubsme-ai
-   * @secure
    * @response `201` `PowerautomateRunHubsmeAiData`
    * @response `400` `HttpErrorDto`
    */
@@ -2741,6 +2988,23 @@ export namespace Powerautomate {
     export type RequestBody = HubsmeAiRunDto;
     export type RequestHeaders = {};
     export type ResponseBody = PowerautomateRunHubsmeAiData;
+  }
+
+  /**
+   * No description
+   * @tags powerautomate
+   * @name PowerautomateRunConsultantCv
+   * @summary Extraer perfil estructurado de consultor desde texto de CV
+   * @request POST:/admin/powerautomate/consultant-cv
+   * @response `201` `PowerautomateRunConsultantCvData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PowerautomateRunConsultantCv {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantCvRunDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PowerautomateRunConsultantCvData;
   }
 }
 
@@ -4119,6 +4383,70 @@ export class Api<SecurityDataType extends unknown> {
         secure: true,
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthForgotPassword
+     * @summary Request password reset link via email
+     * @request POST:/auth/forgot-password
+     * @response `200` `AuthForgotPasswordData`
+     * @response `400` `HttpErrorDto`
+     */
+    forgotPassword: (data: ForgotPasswordDto, params: RequestParams = {}) =>
+      this.http.request<AuthForgotPasswordData, AuthForgotPasswordError>({
+        path: `/auth/forgot-password`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthResetPassword
+     * @summary Reset user password using token
+     * @request POST:/auth/reset-password
+     * @response `200` `AuthResetPasswordData`
+     * @response `400` `HttpErrorDto`
+     */
+    resetPassword: (data: ResetPasswordDto, params: RequestParams = {}) =>
+      this.http.request<AuthResetPasswordData, AuthResetPasswordError>({
+        path: `/auth/reset-password`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  email = {
+    /**
+     * No description
+     *
+     * @tags email
+     * @name EmailSendEmail
+     * @summary Enviar un correo electrónico
+     * @request POST:/admin/email/send
+     * @secure
+     * @response `201` `EmailSendEmailData`
+     * @response `400` `HttpErrorDto`
+     * @response `500` `HttpErrorDto`
+     */
+    sendEmail: (data: EmailSendDto, params: RequestParams = {}) =>
+      this.http.request<EmailSendEmailData, EmailSendEmailError>({
+        path: `/admin/email/send`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
   };
   user = {
     /**
@@ -4406,30 +4734,6 @@ export class Api<SecurityDataType extends unknown> {
     sendMessage: (data: WhatsappSendDto, params: RequestParams = {}) =>
       this.http.request<WhatsappSendMessageData, WhatsappSendMessageError>({
         path: `/admin/whatsapp/send`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-  };
-  email = {
-    /**
-     * No description
-     *
-     * @tags email
-     * @name EmailSendEmail
-     * @summary Enviar un correo electrónico
-     * @request POST:/admin/email/send
-     * @secure
-     * @response `201` `EmailSendEmailData`
-     * @response `400` `HttpErrorDto`
-     * @response `500` `HttpErrorDto`
-     */
-    sendEmail: (data: EmailSendDto, params: RequestParams = {}) =>
-      this.http.request<EmailSendEmailData, EmailSendEmailError>({
-        path: `/admin/email/send`,
         method: "POST",
         body: data,
         secure: true,
@@ -4858,7 +5162,6 @@ export class Api<SecurityDataType extends unknown> {
      * @name PowerautomateRunHubsmeAi
      * @summary Ejecutar flujo de Power Automate para obtener resumen y tareas sugeridas
      * @request POST:/admin/powerautomate/hubsme-ai
-     * @secure
      * @response `201` `PowerautomateRunHubsmeAiData`
      * @response `400` `HttpErrorDto`
      */
@@ -4873,7 +5176,32 @@ export class Api<SecurityDataType extends unknown> {
         path: `/admin/powerautomate/hubsme-ai`,
         method: "POST",
         body: data,
-        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags powerautomate
+     * @name PowerautomateRunConsultantCv
+     * @summary Extraer perfil estructurado de consultor desde texto de CV
+     * @request POST:/admin/powerautomate/consultant-cv
+     * @response `201` `PowerautomateRunConsultantCvData`
+     * @response `400` `HttpErrorDto`
+     */
+    runConsultantCv: (
+      data: ConsultantCvRunDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PowerautomateRunConsultantCvData,
+        PowerautomateRunConsultantCvError
+      >({
+        path: `/admin/powerautomate/consultant-cv`,
+        method: "POST",
+        body: data,
         type: ContentType.Json,
         format: "json",
         ...params,

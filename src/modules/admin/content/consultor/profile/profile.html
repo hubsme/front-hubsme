@@ -92,6 +92,36 @@
             />
           </label>
           <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+            <span class="mb-2 block">Titular profesional</span>
+            <input
+              [ngModel]="form().headline"
+              name="headline"
+              (ngModelChange)="updateForm('headline', $event)"
+              placeholder="Consultor financiero y tributario para PYMEs"
+              class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary placeholder:text-text-400"
+            />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Ubicación</span>
+            <input
+              [ngModel]="form().location"
+              name="location"
+              (ngModelChange)="updateForm('location', $event)"
+              placeholder="Lima, Perú"
+              class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary placeholder:text-text-400"
+            />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Modalidad</span>
+            <input
+              [ngModel]="form().workModality"
+              name="workModality"
+              (ngModelChange)="updateForm('workModality', $event)"
+              placeholder="Remoto a nivel nacional"
+              class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary placeholder:text-text-400"
+            />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
             <span class="mb-2 block">Bio</span>
             <textarea
               [ngModel]="form().bio"
@@ -100,84 +130,47 @@
               class="min-h-28 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-text outline-none focus:border-secondary"
             ></textarea>
           </label>
-          <div class="block text-xs text-muted font-inter-semibold">
-            <span class="mb-2 block">Especialidades</span>
-            <div
-              class="flex min-h-10 w-full flex-wrap items-center gap-2 rounded-xl border border-border bg-background px-2 py-2 focus-within:border-secondary"
-            >
-              @for (specialty of form().specialties; track $index) {
-                <span
-                  class="inline-flex h-7 items-center gap-2 rounded-full bg-text/5 px-3 text-xs text-muted font-inter-bold"
-                >
-                  {{ specialty }}
-                  <button
-                    type="button"
-                    class="cursor-pointer text-muted/70 transition-colors hover:text-text"
-                    aria-label="Quitar especialidad"
-                    (click)="removeChip('specialties', $index)"
-                  >
-                    <i class="fas fa-xmark"></i>
-                  </button>
-                </span>
-              }
-              <input
-                [ngModel]="specialtyInput()"
-                name="specialtyInput"
-                (ngModelChange)="updateChipInput('specialties', $event)"
-                (keydown)="handleChipKeydown($event, 'specialties')"
-                (blur)="addChip('specialties')"
-                placeholder="Agregar especialidad..."
-                class="min-w-40 flex-1 bg-transparent px-1 text-sm text-text outline-none placeholder:text-text-400"
-              />
-              <button
-                type="button"
-                class="h-7 w-7 shrink-0 cursor-pointer rounded-full bg-text text-background transition-colors hover:bg-text/90"
-                aria-label="Agregar especialidad"
-                (click)="addChip('specialties')"
+          @for (chip of chipFields; track chip.field) {
+            <div class="block text-xs text-muted font-inter-semibold">
+              <span class="mb-2 block">{{ chip.label }}</span>
+              <div
+                class="flex min-h-10 w-full flex-wrap items-center gap-2 rounded-xl border border-border bg-background px-2 py-2 focus-within:border-secondary"
               >
-                <i class="fas fa-plus text-[0.7rem]"></i>
-              </button>
-            </div>
-          </div>
-          <div class="block text-xs text-muted font-inter-semibold">
-            <span class="mb-2 block">Sectores</span>
-            <div
-              class="flex min-h-10 w-full flex-wrap items-center gap-2 rounded-xl border border-border bg-background px-2 py-2 focus-within:border-secondary"
-            >
-              @for (sector of form().sectors; track $index) {
-                <span
-                  class="inline-flex h-7 items-center gap-2 rounded-full bg-text/5 px-3 text-xs text-muted font-inter-bold"
-                >
-                  {{ sector }}
-                  <button
-                    type="button"
-                    class="cursor-pointer text-muted/70 transition-colors hover:text-text"
-                    aria-label="Quitar sector"
-                    (click)="removeChip('sectors', $index)"
+                @for (item of form()[chip.field]; track item) {
+                  <span
+                    class="inline-flex h-7 items-center gap-2 rounded-full bg-text/5 px-3 text-xs text-muted font-inter-bold"
                   >
-                    <i class="fas fa-xmark"></i>
-                  </button>
-                </span>
-              }
-              <input
-                [ngModel]="sectorInput()"
-                name="sectorInput"
-                (ngModelChange)="updateChipInput('sectors', $event)"
-                (keydown)="handleChipKeydown($event, 'sectors')"
-                (blur)="addChip('sectors')"
-                placeholder="Agregar sector..."
-                class="min-w-40 flex-1 bg-transparent px-1 text-sm text-text outline-none placeholder:text-text-400"
-              />
-              <button
-                type="button"
-                class="h-7 w-7 shrink-0 cursor-pointer rounded-full bg-text text-background transition-colors hover:bg-text/90"
-                aria-label="Agregar sector"
-                (click)="addChip('sectors')"
-              >
-                <i class="fas fa-plus text-[0.7rem]"></i>
-              </button>
+                    {{ item }}
+                    <button
+                      type="button"
+                      class="cursor-pointer text-muted/70 transition-colors hover:text-text"
+                      [attr.aria-label]="'Quitar ' + item"
+                      (click)="removeChip(chip.field, $index)"
+                    >
+                      <i class="fas fa-xmark"></i>
+                    </button>
+                  </span>
+                }
+                <input
+                  [ngModel]="chipInput(chip.field)"
+                  [name]="'chipInput-' + chip.field"
+                  (ngModelChange)="updateChipInput(chip.field, $event)"
+                  (keydown)="handleChipKeydown($event, chip.field)"
+                  (blur)="addChip(chip.field)"
+                  [placeholder]="chip.placeholder"
+                  class="min-w-40 flex-1 bg-transparent px-1 text-sm text-text outline-none placeholder:text-text-400"
+                />
+                <button
+                  type="button"
+                  class="h-7 w-7 shrink-0 cursor-pointer rounded-full bg-text text-background transition-colors hover:bg-text/90"
+                  [attr.aria-label]="'Agregar ' + chip.label"
+                  (click)="addChip(chip.field)"
+                >
+                  <i class="fas fa-plus text-[0.7rem]"></i>
+                </button>
+              </div>
             </div>
-          </div>
+          }
           <div class="grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-2">
             <label class="block text-xs text-muted font-inter-semibold">
               <span class="mb-2 block">Precio por hora</span>
@@ -186,6 +179,16 @@
                 [ngModel]="form().pricePerHour"
                 name="pricePerHour"
                 (ngModelChange)="updateForm('pricePerHour', +$event)"
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
+              />
+            </label>
+            <label class="block text-xs text-muted font-inter-semibold">
+              <span class="mb-2 block">Años de experiencia</span>
+              <input
+                type="number"
+                [ngModel]="form().yearsExperience"
+                name="yearsExperience"
+                (ngModelChange)="updateForm('yearsExperience', +$event)"
                 class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
               />
             </label>
@@ -199,6 +202,86 @@
                 class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
               />
             </label>
+            <label class="block text-xs text-muted font-inter-semibold">
+              <span class="mb-2 block">LinkedIn</span>
+              <input
+                type="url"
+                [ngModel]="form().linkedinUrl"
+                name="linkedinUrl"
+                (ngModelChange)="updateForm('linkedinUrl', $event)"
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
+              />
+            </label>
+          </div>
+
+          <div class="md:col-span-2 rounded-2xl border border-border bg-background p-4">
+            <div class="mb-4 flex items-center justify-between gap-3">
+              <h3 class="font-anton text-lg lowercase text-text">formación académica</h3>
+              <button type="button" class="h-8 rounded-xl border border-border bg-surface px-3 text-xs font-inter-bold text-text" (click)="addEducation()">
+                Agregar
+              </button>
+            </div>
+            <div class="space-y-3">
+              @for (education of form().education; track $index) {
+                <div class="grid gap-3 rounded-xl border border-border bg-surface p-3 md:grid-cols-[1fr_1fr_7rem_auto]">
+                  <input
+                    [ngModel]="education.degree"
+                    [name]="'educationDegree-' + $index"
+                    (ngModelChange)="updateEducation($index, 'degree', $event)"
+                    placeholder="Título o carrera"
+                    class="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
+                  />
+                  <input
+                    [ngModel]="education.institution"
+                    [name]="'educationInstitution-' + $index"
+                    (ngModelChange)="updateEducation($index, 'institution', $event)"
+                    placeholder="Institución"
+                    class="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
+                  />
+                  <input
+                    [ngModel]="education.year"
+                    [name]="'educationYear-' + $index"
+                    (ngModelChange)="updateEducation($index, 'year', $event)"
+                    placeholder="Año"
+                    class="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
+                  />
+                  <button type="button" class="h-10 rounded-xl border border-danger/20 px-3 text-danger" (click)="removeEducation($index)">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              } @empty {
+                <p class="rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted">Sin formación registrada.</p>
+              }
+            </div>
+          </div>
+
+          <div class="md:col-span-2 rounded-2xl border border-border bg-background p-4">
+            <div class="mb-4 flex items-center justify-between gap-3">
+              <h3 class="font-anton text-lg lowercase text-text">casos reales</h3>
+              <button type="button" class="h-8 rounded-xl border border-border bg-surface px-3 text-xs font-inter-bold text-text" (click)="addCaseStudy()">
+                Agregar
+              </button>
+            </div>
+            <div class="space-y-3">
+              @for (caseStudy of form().caseStudies; track $index) {
+                <div class="rounded-xl border border-border bg-surface p-3">
+                  <div class="mb-3 flex justify-end">
+                    <button type="button" class="h-8 rounded-xl border border-danger/20 px-3 text-xs font-inter-bold text-danger" (click)="removeCaseStudy($index)">
+                      Quitar
+                    </button>
+                  </div>
+                  <div class="grid gap-3 md:grid-cols-2">
+                    <input [ngModel]="caseStudy.title" [name]="'caseTitle-' + $index" (ngModelChange)="updateCaseStudy($index, 'title', $event)" placeholder="Título" class="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary" />
+                    <input [ngModel]="caseStudy.sector" [name]="'caseSector-' + $index" (ngModelChange)="updateCaseStudy($index, 'sector', $event)" placeholder="Sector" class="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary" />
+                    <input [ngModel]="caseStudy.problem" [name]="'caseProblem-' + $index" (ngModelChange)="updateCaseStudy($index, 'problem', $event)" placeholder="Problema" class="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary" />
+                    <input [ngModel]="caseStudy.action" [name]="'caseAction-' + $index" (ngModelChange)="updateCaseStudy($index, 'action', $event)" placeholder="Qué hizo" class="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary" />
+                    <input [ngModel]="caseStudy.result" [name]="'caseResult-' + $index" (ngModelChange)="updateCaseStudy($index, 'result', $event)" placeholder="Resultado" class="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary md:col-span-2" />
+                  </div>
+                </div>
+              } @empty {
+                <p class="rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted">Sin casos registrados.</p>
+              }
+            </div>
           </div>
 
           <div class="md:col-span-2 rounded-2xl border border-border bg-text/[0.02] p-5 mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

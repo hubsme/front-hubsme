@@ -152,13 +152,13 @@
           </div>
         </div>
 
-        <!-- 3 Charts Row -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <!-- Area Performance Bar Chart -->
-          <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+        <!-- 3 Charts Row (2x3 Grid Layout) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-6">
+          <!-- Area Performance Bar Chart (2x2 span) -->
+          <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between md:col-span-2 md:row-span-2">
             <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text/50 mb-4">Desempeño por áreas</h3>
             @if (isBrowser) {
-              <div class="flex-1 min-h-[220px]">
+              <div class="flex-1 min-h-[480px]">
                 <apx-chart
                   [series]="barChartOptions().series"
                   [chart]="barChartOptions().chart"
@@ -174,8 +174,8 @@
             }
           </div>
 
-          <!-- Radar Chart (Capabilities) -->
-          <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+          <!-- Radar Chart (Capabilities) (1x1 span) -->
+          <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between md:col-span-1 md:row-span-1">
             <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text/50 mb-4">Capacidades del negocio</h3>
             @if (isBrowser) {
               <div class="flex-1 min-h-[220px]">
@@ -192,8 +192,8 @@
             }
           </div>
 
-          <!-- Evolution Projection (Line Chart) -->
-          <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+          <!-- Evolution Projection (Line Chart) (1x1 span) -->
+          <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between md:col-span-1 md:row-span-1">
             <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text/50 mb-4">Proyección de evolución</h3>
             @if (isBrowser) {
               <div class="flex-1 min-h-[220px]">
@@ -215,7 +215,7 @@
 
         <!-- 4 Area Detail Cards Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          @for (area of current.result.areasEvaluadas; track area.area) {
+          @for (area of getMainAreas(current.result.areasEvaluadas); track area.area) {
             <div class="bg-surface border border-border rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md transition-all duration-200">
               <div class="flex items-center gap-3">
                 <div 
@@ -335,13 +335,13 @@
                 <!-- Action Buttons -->
                 <div class="grid grid-cols-2 gap-2 pt-2.5 border-t border-border/50">
                   <a 
-                    [routerLink]="['/' + buildPath(PATH.admin.pyme.consultant), consultant.id]"
+                    [routerLink]="['/' + buildPath(PATH.admin.pyme.consultants.profile), consultant.userId]"
                     class="inline-flex h-8 items-center justify-center rounded-lg border border-border bg-surface text-[10px] font-inter-semibold text-text hover:border-secondary hover:text-secondary transition-all"
                   >
                     Ver perfil
                   </a>
                   <a 
-                    [routerLink]="['/' + buildPath(PATH.admin.pyme.consultant), consultant.id]"
+                    [routerLink]="['/' + buildPath(PATH.admin.pyme.consultants.agendar), consultant.userId]"
                     class="inline-flex h-8 items-center justify-center rounded-lg bg-secondary text-[10px] font-inter-semibold text-background hover:bg-secondary/95 transition-all border-none shadow-xs"
                   >
                     <i class="far fa-calendar-check text-[9px] mr-1"></i>
@@ -566,7 +566,7 @@
                         [class.text-secondary]="responses()[currentQuestion().id] === option"
                         [class.text-text]="responses()[currentQuestion().id] !== option"
                       >
-                        {{ option }}
+                        {{ cleanOption(option) }}
                       </span>
                       
                       <!-- Custom Check Dot -->

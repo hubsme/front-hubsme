@@ -100,6 +100,10 @@ export class SingIn implements OnInit, OnDestroy {
       });
   }
 
+  goToForgotPassword(): void {
+    this.router.navigate([buildPath(PATH.auth.forgotPassword)]);
+  }
+
   goToSignUp(): void {
     const diagnostic = this.route.snapshot.queryParamMap.get('diagnostic');
     this.router.navigate([buildPath(PATH.auth.signUp)], {

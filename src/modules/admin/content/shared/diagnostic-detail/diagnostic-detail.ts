@@ -16,36 +16,33 @@ type ResponseEntry = {
 };
 
 const RESPONSE_LABELS: Record<string, string> = {
-  q_gen_1: 'Antiguedad',
-  q_gen_2: 'Regimen tributario',
-  q_gen_3: 'Regimen laboral',
-  q_gen_4: 'Nivel de ventas',
-  q_gen_5: 'Modelo de negocio',
-  q_int_1: 'Objetivos',
-  q_int_2: 'Revision de resultados',
-  q_int_3: 'Control de ganancias',
-  q_int_4: 'Caja y cobranzas',
-  q_int_5: 'Dependencia comercial',
-  q_int_6: 'Proceso comercial',
-  q_int_7: 'Seguimiento comercial',
-  q_int_8: 'Marketing',
-  q_int_9: 'Satisfaccion del cliente',
-  q_int_10: 'Procesos',
-  q_int_11: 'Inventarios o produccion',
-  q_int_12: 'Errores o retrasos',
-  q_int_13: 'Funciones',
-  q_int_14: 'Dependencia del dueno',
-  q_int_15: 'Capacitacion',
-  q_int_16: 'Herramientas digitales',
-  q_int_17: 'Documentacion',
-  q_int_18: 'Cumplimiento laboral',
-  q_int_19: 'Cumplimiento tributario',
-  q_int_20: 'Preparacion para crecer',
-  q_int_21: 'Objetivo financiero',
-  q_int_22: 'Problema comercial',
-  q_int_23: 'Proceso critico',
-  q_int_24: 'Rol dependiente',
-  q_int_25: 'Riesgo prioritario',
+  q_gen_1: 'Años en funcionamiento',
+  q_gen_2: 'Industria o rubro',
+  q_gen_3: 'Régimen tributario',
+  q_gen_4: 'Régimen laboral',
+  q_gen_5: 'Nivel de ventas mensual',
+  q_int_1: 'Objetivos (Estratégica)',
+  q_int_2: 'Revisión de resultados (Estratégica)',
+  q_int_3: 'Preparación para crecer (Estratégica)',
+  q_int_4: 'Control de ganancias (Financiera)',
+  q_int_5: 'Flujo de caja y cobranzas (Financiera)',
+  q_int_6: 'Financiamiento del crecimiento (Financiera)',
+  q_int_7: 'Dependencia de clientes (Comercial)',
+  q_int_8: 'Proceso comercial (Comercial)',
+  q_int_9: 'Seguimiento de oportunidades (Comercial)',
+  q_int_10: 'Marketing y presencia digital (Marketing)',
+  q_int_11: 'Satisfacción del cliente (Servicio al cliente)',
+  q_int_12: 'Procesos documentados (Operaciones)',
+  q_int_13: 'Control de inventarios y tiempos (Operaciones)',
+  q_int_14: 'Errores y reprocesos (Operaciones)',
+  q_int_15: 'Funciones y roles definidos (Organizacional)',
+  q_int_16: 'Operación sin el dueño (Organizacional)',
+  q_int_17: 'Capacitación y desarrollo (Organizacional)',
+  q_int_18: 'Herramientas digitales (Tecnología)',
+  q_int_19: 'Documentos y contratos (Legal)',
+  q_int_20: 'Obligaciones laborales (Laboral)',
+  q_int_21: 'Obligaciones tributarias (Tributario / Contable)',
+  q_int_22: 'Problemas preocupantes (Cierre)',
 };
 
 @Component({
@@ -116,7 +113,7 @@ export class DiagnosticDetail implements OnInit {
       ],
       chart: {
         type: 'bar' as const,
-        height: 220,
+        height: 480,
         toolbar: { show: false },
         animations: { enabled: false }
       },
@@ -173,14 +170,21 @@ export class DiagnosticDetail implements OnInit {
   radarChartOptions = computed(() => {
     const current = this.diagnostic();
     const areas = current?.result?.areasEvaluadas || [];
-    const getScore = (name: string) => areas.find(a => a.area.toLowerCase() === name.toLowerCase())?.puntaje ?? 50;
+    const getScore = (name: string) => {
+      const area = areas.find(a => {
+        const normalized = a.area.toLowerCase();
+        const search = name.toLowerCase();
+        return normalized === search || normalized.includes(search);
+      });
+      return area ? area.puntaje : 50;
+    };
     
-    const finanzas = getScore('finanzas');
+    const finanzas = getScore('financiera');
     const operaciones = getScore('operaciones');
-    const equipo = getScore('equipo');
-    const mercado = getScore('mercado');
-    const estrategia = Math.round((finanzas + mercado) / 2);
-    const clientes = Math.round((mercado + operaciones) / 2);
+    const equipo = getScore('organizacional');
+    const mercado = getScore('comercial');
+    const estrategia = getScore('estratégica');
+    const clientes = getScore('servicio');
 
     return {
       series: [{
@@ -430,20 +434,79 @@ export class DiagnosticDetail implements OnInit {
     }
   }
 
-  downloadWord() {
+  async downloadWord() {
     const diagnostic = this.diagnostic();
     if (!diagnostic) return;
+
+    this.loading.set(true);
+
     try {
-      downloadWord(diagnostic);
+      const chartImages = { barChart: '', radarChart: '', lineChart: '' };
+
+      if (this.isBrowser) {
+        const html2canvasModule = await import('html2canvas');
+        const capture = (html2canvasModule.default ?? html2canvasModule) as
+          (el: HTMLElement, opts: Record<string, unknown>) => Promise<HTMLCanvasElement>;
+
+        // Find chart cards via apx-chart → parent card containers
+        const apxCharts = document.querySelectorAll('apx-chart');
+        const getCard = (el: Element) => el.parentElement?.parentElement as HTMLElement | null;
+
+        if (apxCharts.length >= 3) {
+          const [bar, radar, line] = [getCard(apxCharts[0]), getCard(apxCharts[1]), getCard(apxCharts[2])];
+          if (bar) chartImages.barChart = await this.captureElement(capture, bar);
+          if (radar) chartImages.radarChart = await this.captureElement(capture, radar);
+          if (line) chartImages.lineChart = await this.captureElement(capture, line);
+        }
+      }
+
+      downloadWord(diagnostic, chartImages);
     } catch (err) {
       console.error('Error generating Word', err);
       this.toastService.error('Ocurrió un error al generar el archivo Word.');
+    } finally {
+      this.loading.set(false);
     }
+  }
+
+  private async captureElement(
+    capture: (el: HTMLElement, opts: Record<string, unknown>) => Promise<HTMLCanvasElement>,
+    element: HTMLElement,
+  ): Promise<string> {
+    try {
+      const canvas = await capture(element, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      return canvas.toDataURL('image/png');
+    } catch (e) {
+      console.error('Error capturing element:', e);
+      return '';
+    }
+  }
+
+  cleanOption(value: string): string {
+    if (typeof value !== 'string') return String(value ?? '');
+    return value
+      .replace(/\s*\(\d\)$/, '')
+      .replace(/\s*\(N\/A\s*-\s*se\s+excluye\s+del\s+calculo\)$/i, ' (N/A)');
+  }
+
+  getMainAreas(areas: any[]): any[] {
+    const mainNames = ['financiera', 'operaciones', 'organizacional / rrhh', 'comercial / ventas'];
+    return mainNames
+      .map(name => areas.find(a => a.area.toLowerCase() === name))
+      .filter((a): a is any => !!a);
   }
 
   private responseValue(value: unknown) {
     if (value === null || value === undefined) return 'No respondido';
-    if (typeof value === 'string') return value.trim() || 'No respondido';
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return trimmed ? this.cleanOption(trimmed) : 'No respondido';
+    }
     if (typeof value === 'number' || typeof value === 'boolean') return String(value);
     return JSON.stringify(value);
   }

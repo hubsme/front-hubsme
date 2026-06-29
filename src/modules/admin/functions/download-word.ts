@@ -7,7 +7,7 @@ function formatDate(value: string | Date | null | undefined): string {
   return new Date(value).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function buildReportHtml(diagnostic: any, chartImages?: ChartImages): string {
+function buildReportHtml(diagnostic: any, chartImages?: ChartImages, format: 'pdf' | 'word' = 'pdf'): string {
   if (!diagnostic) return '';
 
   const score = diagnostic.score ?? 50;
@@ -22,11 +22,20 @@ function buildReportHtml(diagnostic: any, chartImages?: ChartImages): string {
 
   const areaColors: Record<string, { color: string; desc: string }> = {
     default: { color: '#0870f7', desc: 'Mejora tu rentabilidad y flujo de caja.' },
+    finan: { color: '#0870f7', desc: 'Mejora tu rentabilidad y flujo de caja.' },
+    tribut: { color: '#0870f7', desc: 'Optimiza tus obligaciones tributarias y contabilidad.' },
+    contab: { color: '#0870f7', desc: 'Optimiza tus obligaciones tributarias y contabilidad.' },
     operac: { color: '#0e9f6e', desc: 'Optimiza procesos y eleva la eficiencia.' },
+    tecnol: { color: '#0e9f6e', desc: 'Impulsa tu digitalización y adopción de herramientas.' },
     equip: { color: '#c27803', desc: 'Fortalece capacidades y alineación del equipo.' },
     organi: { color: '#c27803', desc: 'Fortalece capacidades y alineación del equipo.' },
+    labor: { color: '#c27803', desc: 'Gestiona el cumplimiento de obligaciones con tu equipo.' },
+    legal: { color: '#c27803', desc: 'Asegura tu cumplimiento normativo y contratos.' },
     merca: { color: '#7e3af2', desc: 'Aprovecha oportunidades y crece con foco.' },
     comerc: { color: '#7e3af2', desc: 'Aprovecha oportunidades y crece con foco.' },
+    client: { color: '#7e3af2', desc: 'Mejora la satisfacción y retención de tus clientes.' },
+    servi: { color: '#7e3af2', desc: 'Mejora la satisfacción y retención de tus clientes.' },
+    estrat: { color: '#0ea5e9', desc: 'Define objetivos claros y dirección de tu negocio.' },
   };
 
   function getAreaStyle(name: string) {
@@ -70,17 +79,18 @@ function buildReportHtml(diagnostic: any, chartImages?: ChartImages): string {
     </table>
   ` : '';
 
-  // Area cards row (Only main 4 areas to match web design)
-  const mainNames = ['financiera', 'operaciones', 'organizacional / rrhh', 'comercial / ventas'];
-  const mainAreas = mainNames
-    .map(name => (diagnostic.result.areasEvaluadas || []).find((a: any) => a.area.toLowerCase() === name))
-    .filter(a => !!a);
+  // Area cards row (Lowest 4 areas to highlight critical domains)
+  const mainAreas = [...(diagnostic.result.areasEvaluadas || [])]
+    .sort((a: any, b: any) => a.puntaje - b.puntaje)
+    .slice(0, 4);
 
+  const cardColors = ['#0870f7', '#0e9f6e', '#c27803', '#7e3af2'];
   const areaCards = `
-    <table style="width:100%;border-collapse:separate;border-spacing:12px 0;margin-top:35px;margin-bottom:20px;">
+    <table style="width:100%;border-collapse:separate;border-spacing:12px 0;margin-top:10px;margin-bottom:20px;">
       <tr>
-        ${mainAreas.map((area: { area: string; puntaje: number }) => {
-          const { color, desc } = getAreaStyle(area.area);
+        ${mainAreas.map((area: { area: string; puntaje: number }, index: number) => {
+          const color = cardColors[index % 4];
+          const { desc } = getAreaStyle(area.area);
           return `
             <td style="width:25%;padding:12px;vertical-align:top;border:1px solid #e2e8f0;border-radius:12px;background:#fff;">
               <table style="width:100%;border-collapse:collapse;">
@@ -121,6 +131,8 @@ function buildReportHtml(diagnostic: any, chartImages?: ChartImages): string {
       </td>
     </tr>
   `).join('');
+
+  const showTables = format !== 'word';
 
   const content = `
     <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
@@ -173,9 +185,11 @@ function buildReportHtml(diagnostic: any, chartImages?: ChartImages): string {
         </tr></table>
 
         ${chartsRow}
-        <div style="font-size:1px;line-height:1px;height:35px;">&nbsp;</div>
+        <div style="font-size:1px;line-height:1px;height:25px;">&nbsp;</div>
+        <h2 style="color:#0870f7;font-size:15px;margin:25px 0 12px;padding-bottom:3px;border-bottom:1.5px solid #e2e8f0;">Áreas críticas para su atención</h2>
         ${areaCards}
 
+        ${showTables ? `
         <br clear="all" style="mso-special-character:line-break;page-break-before:always;" />
         <h2>Desempeño por Áreas</h2>
         <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;margin-bottom:25px;">
@@ -204,6 +218,7 @@ function buildReportHtml(diagnostic: any, chartImages?: ChartImages): string {
             <td style="padding:15px 10px;text-align:center;font-weight:bold;color:#0870f7;font-size:14px;">${p4}/100</td>
           </tr>
         </table>
+        ` : ''}
 
         <h2>Análisis Estratégico General</h2>
         <div style="border:1px solid #e2e8f0;border-radius:12px;padding:20px;color:#475569;font-size:12px;margin-bottom:25px;line-height:1.6;">
@@ -228,7 +243,7 @@ function buildReportHtml(diagnostic: any, chartImages?: ChartImages): string {
 export function downloadWord(diagnostic: any, chartImages?: ChartImages) {
   if (!diagnostic) return;
 
-  const content = buildReportHtml(diagnostic, chartImages);
+  const content = buildReportHtml(diagnostic, chartImages, 'word');
 
   const barChartRef = chartImages?.barChart ? 'file:///img_barChart.png' : '';
   const radarChartRef = chartImages?.radarChart ? 'file:///img_radarChart.png' : '';
@@ -289,7 +304,7 @@ export function downloadPdf(diagnostic: any, chartImages?: ChartImages) {
   if (!diagnostic) return;
 
   // Re-use the same HTML generation logic by calling a shared builder
-  const htmlContent = buildReportHtml(diagnostic, chartImages);
+  const htmlContent = buildReportHtml(diagnostic, chartImages, 'pdf');
 
   // For PDF, replace MHTML image refs with inline base64 data URIs
   let pdfHtml = htmlContent;

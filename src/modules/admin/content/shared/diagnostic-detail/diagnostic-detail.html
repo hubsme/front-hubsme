@@ -276,55 +276,64 @@
     }
 
     <!-- 4 Area Detail Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-      @for (area of getMainAreas(current.result.areasEvaluadas); track area.area) {
-        <div class="bg-surface border border-border rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md transition-all duration-200">
-          <div class="flex items-center gap-3">
-            <div 
-              class="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 text-white"
-              [class.bg-secondary]="area.area.toLowerCase().includes('finan')"
-              [class.bg-success]="area.area.toLowerCase().includes('operac')"
-              [class.bg-warning]="area.area.toLowerCase().includes('equip') || area.area.toLowerCase().includes('organi')"
-              [class.bg-violet-600]="area.area.toLowerCase().includes('merca') || area.area.toLowerCase().includes('comerc')"
-            >
-              <i 
-                class="text-sm fas"
-                [class.fa-dollar-sign]="area.area.toLowerCase().includes('finan')"
-                [class.fa-cog]="area.area.toLowerCase().includes('operac')"
-                [class.fa-users]="area.area.toLowerCase().includes('equip') || area.area.toLowerCase().includes('organi')"
-                [class.fa-chart-pie]="area.area.toLowerCase().includes('merca') || area.area.toLowerCase().includes('comerc')"
-              ></i>
-            </div>
-            <div class="min-w-0 flex-1 flex items-center justify-between">
-              <span class="font-inter-bold text-sm text-text truncate">{{ area.area }}</span>
-              <span class="text-xs font-inter-bold"
-                [class.text-secondary]="area.area.toLowerCase().includes('finan')"
-                [class.text-success]="area.area.toLowerCase().includes('operac')"
-                [class.text-warning]="area.area.toLowerCase().includes('equip') || area.area.toLowerCase().includes('organi')"
-                [class.text-violet-600]="area.area.toLowerCase().includes('merca') || area.area.toLowerCase().includes('comerc')"
+    <div class="space-y-4 pt-4">
+      <h2 class="text-lg font-inter-bold text-text">Áreas críticas para su atención</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        @for (area of getMainAreas(current.result.areasEvaluadas); track area.area) {
+          <div class="bg-surface border border-border rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md transition-all duration-200">
+            <div class="flex items-center gap-3">
+              <div 
+                class="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 text-white"
+                [class.bg-secondary]="$index === 0"
+                [class.bg-success]="$index === 1"
+                [class.bg-warning]="$index === 2"
+                [class.bg-violet-600]="$index === 3"
               >
-                {{ area.puntaje }}<span class="text-[10px] text-text/30">/100</span>
-              </span>
+                <i 
+                  class="text-sm fas"
+                  [class.fa-dollar-sign]="area.area.toLowerCase().includes('finan') || area.area.toLowerCase().includes('tribut') || area.area.toLowerCase().includes('contab')"
+                  [class.fa-cog]="area.area.toLowerCase().includes('operac')"
+                  [class.fa-laptop]="area.area.toLowerCase().includes('tecnol')"
+                  [class.fa-users]="area.area.toLowerCase().includes('equip') || area.area.toLowerCase().includes('organi')"
+                  [class.fa-briefcase]="area.area.toLowerCase().includes('labor')"
+                  [class.fa-balance-scale]="area.area.toLowerCase().includes('legal')"
+                  [class.fa-bullhorn]="area.area.toLowerCase().includes('merca') || area.area.toLowerCase().includes('marke')"
+                  [class.fa-chart-pie]="area.area.toLowerCase().includes('comerc') || area.area.toLowerCase().includes('ventas')"
+                  [class.fa-comments]="area.area.toLowerCase().includes('client') || area.area.toLowerCase().includes('servi')"
+                  [class.fa-chess-knight]="area.area.toLowerCase().includes('estrat')"
+                ></i>
+              </div>
+              <div class="min-w-0 flex-1 flex items-center justify-between">
+                <span class="font-inter-bold text-sm text-text truncate">{{ area.area }}</span>
+                <span class="text-xs font-inter-bold"
+                  [class.text-secondary]="$index === 0"
+                  [class.text-success]="$index === 1"
+                  [class.text-warning]="$index === 2"
+                  [class.text-violet-600]="$index === 3"
+                >
+                  {{ area.puntaje }}<span class="text-[10px] text-text/30">/100</span>
+                </span>
+              </div>
             </div>
-          </div>
 
-          <!-- Mini progress bar -->
-          <div class="w-full h-1.5 bg-background rounded-full overflow-hidden">
-            <div 
-              class="h-full rounded-full transition-all duration-500"
-              [class.bg-secondary]="area.area.toLowerCase().includes('finan')"
-              [class.bg-success]="area.area.toLowerCase().includes('operac')"
-              [class.bg-warning]="area.area.toLowerCase().includes('equip') || area.area.toLowerCase().includes('organi')"
-              [class.bg-violet-600]="area.area.toLowerCase().includes('merca') || area.area.toLowerCase().includes('comerc')"
-              [style.width]="area.puntaje + '%'"
-            ></div>
-          </div>
+            <!-- Mini progress bar -->
+            <div class="w-full h-1.5 bg-background rounded-full overflow-hidden">
+              <div 
+                class="h-full rounded-full transition-all duration-500"
+                [class.bg-secondary]="$index === 0"
+                [class.bg-success]="$index === 1"
+                [class.bg-warning]="$index === 2"
+                [class.bg-violet-600]="$index === 3"
+                [style.width]="area.puntaje + '%'"
+              ></div>
+            </div>
 
-          <p class="text-xs text-text/60 leading-relaxed font-inter-medium">
-            {{ areaDescription(area.area) }}
-          </p>
-        </div>
-      }
+            <p class="text-xs text-text/60 leading-relaxed font-inter-medium">
+              {{ areaDescription(area.area) }}
+            </p>
+          </div>
+        }
+      </div>
     </div>
 
     <!-- Suggested Consultants Section -->
@@ -332,7 +341,7 @@
       <div class="space-y-4 pt-4">
         <div class="flex items-end justify-between">
           <div class="space-y-0.5">
-            <h2 class="text-lg font-inter-bold text-text">Especialistas recomendados para tu negocio</h2>
+            <h2 class="text-lg font-inter-bold text-text">Especialistas recomendados por área crítica</h2>
             <p class="text-xs text-text/40">Conecta con expertos que impulsarán tus resultados.</p>
           </div>
           <a 

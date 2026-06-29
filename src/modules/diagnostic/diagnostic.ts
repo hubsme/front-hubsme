@@ -318,6 +318,12 @@ export class Diagnostic implements OnInit {
     if (name.includes('operac')) return 'Optimiza procesos y eleva la eficiencia.';
     if (name.includes('equip') || name.includes('rrhh') || name.includes('organiza')) return 'Fortalece capacidades y alineación del equipo.';
     if (name.includes('merca') || name.includes('comerc')) return 'Aprovecha oportunidades y crece con foco.';
+    if (name.includes('tecnol')) return 'Impulsa tu digitalización y adopción de herramientas.';
+    if (name.includes('legal')) return 'Asegura tu cumplimiento normativo y contratos.';
+    if (name.includes('labor')) return 'Gestiona el cumplimiento de obligaciones con tu equipo.';
+    if (name.includes('tribut') || name.includes('contab')) return 'Optimiza tus obligaciones tributarias y contabilidad.';
+    if (name.includes('estrat')) return 'Define objetivos claros y dirección de tu negocio.';
+    if (name.includes('servi') || name.includes('client')) return 'Mejora la satisfacción y retención de tus clientes.';
     return 'Optimiza el rendimiento estratégico de esta área.';
   }
 
@@ -671,10 +677,10 @@ export class Diagnostic implements OnInit {
   }
 
   getMainAreas(areas: any[]): any[] {
-    const mainNames = ['financiera', 'operaciones', 'organizacional / rrhh', 'comercial / ventas'];
-    return mainNames
-      .map(name => areas.find(a => a.area.toLowerCase() === name))
-      .filter((a): a is any => !!a);
+    if (!areas) return [];
+    return [...areas]
+      .sort((a, b) => a.puntaje - b.puntaje)
+      .slice(0, 4);
   }
 
   private responseValue(value: unknown) {

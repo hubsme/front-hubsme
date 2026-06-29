@@ -1,12 +1,14 @@
+interface ChartImages { barChart?: string; radarChart?: string; lineChart?: string }
+
+export type { ChartImages };
+
 function formatDate(value: string | Date | null | undefined): string {
   if (!value) return 'Sin fecha';
   return new Date(value).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-interface ChartImages { barChart?: string; radarChart?: string; lineChart?: string }
-
-export function downloadWord(diagnostic: any, chartImages?: ChartImages) {
-  if (!diagnostic) return;
+function buildReportHtml(diagnostic: any, chartImages?: ChartImages): string {
+  if (!diagnostic) return '';
 
   const score = diagnostic.score ?? 50;
   const priority = score < 60 ? 'Alta' : score < 75 ? 'Media' : 'Baja';
@@ -42,39 +44,58 @@ export function downloadWord(diagnostic: any, chartImages?: ChartImages) {
   const chartLabels = ['Desempeño por áreas', 'Capacidades del negocio', 'Proyección de evolución'];
   const hasCharts = chartKeys.some(k => chartImages?.[k]);
 
+  // Define image references for MHTML boundaries
+  const barChartRef = chartImages?.barChart ? 'file:///img_barChart.png' : '';
+  const radarChartRef = chartImages?.radarChart ? 'file:///img_radarChart.png' : '';
+  const lineChartRef = chartImages?.lineChart ? 'file:///img_lineChart.png' : '';
+
   const chartsRow = hasCharts ? `
-    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;border:1px solid #e2e8f0;">
       <tr>
-        ${chartKeys.map((key, i) => `
-          <td style="width:33.3%;padding:5px;vertical-align:top;">
-            <div style="border:1px solid #e2e8f0;border-radius:12px;padding:8px;background:#fff;">
-              <div style="font-size:10px;font-weight:bold;color:#94a3b8;text-transform:uppercase;margin-bottom:6px;">${chartLabels[i]}</div>
-              ${chartImages?.[key] ? `<img src="${chartImages[key]}" style="width:100%;border-radius:8px;" />` : '<div style="height:160px;background:#f8fafc;border-radius:8px;"></div>'}
-            </div>
-          </td>
-        `).join('')}
+        <td style="width:60%;padding:8px;vertical-align:middle;text-align:center;border:1px solid #e2e8f0;" rowspan="2">
+          <div style="font-size:10px;font-weight:bold;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">${chartLabels[0]}</div>
+          ${barChartRef ? `<img src="${barChartRef}" width="300" height="190" />` : ''}
+        </td>
+        <td style="width:40%;padding:8px;vertical-align:middle;text-align:center;border:1px solid #e2e8f0;">
+          <div style="font-size:10px;font-weight:bold;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">${chartLabels[1]}</div>
+          ${radarChartRef ? `<img src="${radarChartRef}" width="190" height="90" />` : ''}
+        </td>
+      </tr>
+      <tr>
+        <td style="width:40%;padding:8px;vertical-align:middle;text-align:center;border:1px solid #e2e8f0;">
+          <div style="font-size:10px;font-weight:bold;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">${chartLabels[2]}</div>
+          ${lineChartRef ? `<img src="${lineChartRef}" width="190" height="90" />` : ''}
+        </td>
       </tr>
     </table>
   ` : '';
 
-  // Area cards row
+  // Area cards row (Only main 4 areas to match web design)
+  const mainNames = ['financiera', 'operaciones', 'organizacional / rrhh', 'comercial / ventas'];
+  const mainAreas = mainNames
+    .map(name => (diagnostic.result.areasEvaluadas || []).find((a: any) => a.area.toLowerCase() === name))
+    .filter(a => !!a);
+
   const areaCards = `
-    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+    <table style="width:100%;border-collapse:separate;border-spacing:12px 0;margin-top:35px;margin-bottom:20px;">
       <tr>
-        ${(diagnostic.result.areasEvaluadas || []).map((area: { area: string; puntaje: number }) => {
+        ${mainAreas.map((area: { area: string; puntaje: number }) => {
           const { color, desc } = getAreaStyle(area.area);
           return `
-            <td style="width:25%;padding:5px;vertical-align:top;">
-              <div style="border:1px solid #e2e8f0;border-radius:12px;padding:12px;background:#fff;">
-                <table style="width:100%;border-collapse:collapse;"><tr>
-                  <td style="font-weight:bold;font-size:12px;color:#1e293b;">${area.area}</td>
-                  <td style="text-align:right;font-weight:bold;font-size:12px;color:${color};">${area.puntaje}<span style="font-size:9px;color:#94a3b8;">/100</span></td>
-                </tr></table>
-                <div style="background:#f1f5f9;height:5px;border-radius:3px;margin:8px 0;overflow:hidden;">
-                  <div style="background:${color};height:5px;width:${area.puntaje}%;"></div>
-                </div>
-                <p style="margin:4px 0 0;font-size:9px;color:#64748b;">${desc}</p>
-              </div>
+            <td style="width:25%;padding:12px;vertical-align:top;border:1px solid #e2e8f0;border-radius:12px;background:#fff;">
+              <table style="width:100%;border-collapse:collapse;">
+                <tr>
+                  <td style="font-weight:bold;font-size:11px;color:#1e293b;padding:0;">${area.area}</td>
+                  <td style="text-align:right;font-weight:bold;font-size:14px;color:${color};padding:0;">${area.puntaje}<span style="font-size:9px;color:#94a3b8;font-weight:normal;">/100</span></td>
+                </tr>
+              </table>
+              <table style="width:100%;border-collapse:collapse;margin-top:6px;">
+                <tr>
+                  <td style="background:${color};height:4px;width:${area.puntaje}%;padding:0;font-size:1px;">&nbsp;</td>
+                  <td style="background:#f1f5f9;height:4px;width:${100 - area.puntaje}%;padding:0;font-size:1px;">&nbsp;</td>
+                </tr>
+              </table>
+              <p style="margin:6px 0 0;font-size:9px;color:#64748b;line-height:1.3;">${desc}</p>
             </td>`;
         }).join('')}
       </tr>
@@ -152,8 +173,10 @@ export function downloadWord(diagnostic: any, chartImages?: ChartImages) {
         </tr></table>
 
         ${chartsRow}
+        <div style="font-size:1px;line-height:1px;height:35px;">&nbsp;</div>
         ${areaCards}
 
+        <br clear="all" style="mso-special-character:line-break;page-break-before:always;" />
         <h2>Desempeño por Áreas</h2>
         <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;margin-bottom:25px;">
           <thead><tr style="background:#f8fafc;border-bottom:1.5px solid #e2e8f0;">
@@ -166,7 +189,7 @@ export function downloadWord(diagnostic: any, chartImages?: ChartImages) {
         </table>
 
         <h2>Proyección de Evolución</h2>
-        <p style="margin-bottom:10px;">Puntaje estimado al implementar las recomendaciones estratégicas en los plazos definidos.</p>
+        <p style="margin-bottom:10px;">Puntaje estimado al implementar las recomendaciones estratégicas en los plazos defininedos.</p>
         <table style="width:100%;border-collapse:collapse;margin-top:10px;border:1px solid #e2e8f0;">
           <tr style="background:#f8fafc;border-bottom:1.5px solid #e2e8f0;">
             <th style="padding:10px;text-align:center;font-size:11px;color:#64748b;">Actual</th>
@@ -199,9 +222,54 @@ export function downloadWord(diagnostic: any, chartImages?: ChartImages) {
     </body>
     </html>
   `;
+  return content;
+}
 
-  // Use base64 data URIs directly in the HTML — no MHTML needed
-  const blob = new Blob(['\ufeff' + content], { type: 'application/msword' });
+export function downloadWord(diagnostic: any, chartImages?: ChartImages) {
+  if (!diagnostic) return;
+
+  const content = buildReportHtml(diagnostic, chartImages);
+
+  const barChartRef = chartImages?.barChart ? 'file:///img_barChart.png' : '';
+  const radarChartRef = chartImages?.radarChart ? 'file:///img_radarChart.png' : '';
+  const lineChartRef = chartImages?.lineChart ? 'file:///img_lineChart.png' : '';
+
+  // Package the content as MHTML to support inline base64 images inside Microsoft Word
+  const boundary = '----=_NextPart_HUBSME_DIAGNOSTICO_MIME';
+  
+  let mhtml = `MIME-Version: 1.0\r\n`;
+  mhtml += `Content-Type: multipart/related; boundary="${boundary}"; type="text/html"\r\n\r\n`;
+  
+  mhtml += `--${boundary}\r\n`;
+  mhtml += `Content-Type: text/html; charset="utf-8"\r\n`;
+  mhtml += `Content-Location: file:///main.html\r\n\r\n`;
+  mhtml += content + `\r\n\r\n`;
+
+  const addImagePart = (ref: string, dataUri: string | undefined) => {
+    if (!dataUri) return;
+    const match = dataUri.match(/^data:(image\/\w+);base64,(.+)$/);
+    if (!match) return;
+    const contentType = match[1];
+    const base64Data = match[2];
+
+    mhtml += `--${boundary}\r\n`;
+    mhtml += `Content-Type: ${contentType}\r\n`;
+    mhtml += `Content-Transfer-Encoding: base64\r\n`;
+    mhtml += `Content-Location: ${ref}\r\n\r\n`;
+    // Split base64 into lines of 76 characters for MIME compliance
+    const wrappedBase64 = base64Data.replace(/(.{76})/g, '$1\r\n');
+    mhtml += wrappedBase64 + `\r\n\r\n`;
+  };
+
+  if (barChartRef) addImagePart(barChartRef, chartImages?.barChart);
+  if (radarChartRef) addImagePart(radarChartRef, chartImages?.radarChart);
+  if (lineChartRef) addImagePart(lineChartRef, chartImages?.lineChart);
+
+  mhtml += `--${boundary}--\r\n`;
+
+  console.log('downloadWord: MHTML compiled successfully. Total length:', mhtml.length);
+
+  const blob = new Blob([mhtml], { type: 'application/msword' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -210,4 +278,58 @@ export function downloadWord(diagnostic: any, chartImages?: ChartImages) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+/**
+ * Downloads the diagnostic report as PDF.
+ * Reuses the same HTML template as downloadWord but renders it
+ * in a hidden iframe and triggers the browser print dialog (Save as PDF).
+ */
+export function downloadPdf(diagnostic: any, chartImages?: ChartImages) {
+  if (!diagnostic) return;
+
+  // Re-use the same HTML generation logic by calling a shared builder
+  const htmlContent = buildReportHtml(diagnostic, chartImages);
+
+  // For PDF, replace MHTML image refs with inline base64 data URIs
+  let pdfHtml = htmlContent;
+  if (chartImages?.barChart) {
+    pdfHtml = pdfHtml.replace(/file:\/\/\/img_barChart\.png/g, chartImages.barChart);
+  }
+  if (chartImages?.radarChart) {
+    pdfHtml = pdfHtml.replace(/file:\/\/\/img_radarChart\.png/g, chartImages.radarChart);
+  }
+  if (chartImages?.lineChart) {
+    pdfHtml = pdfHtml.replace(/file:\/\/\/img_lineChart\.png/g, chartImages.lineChart);
+  }
+
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.left = '-9999px';
+  iframe.style.top = '-9999px';
+  iframe.style.width = '794px';   // A4 width at 96dpi
+  iframe.style.height = '1123px'; // A4 height at 96dpi
+  document.body.appendChild(iframe);
+
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+  if (!iframeDoc) {
+    console.error('downloadPdf: could not access iframe document');
+    document.body.removeChild(iframe);
+    return;
+  }
+
+  iframeDoc.open();
+  iframeDoc.write(pdfHtml);
+  iframeDoc.close();
+
+  // Wait for images to load before printing
+  setTimeout(() => {
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+
+    // Clean up after print dialog closes
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 1000);
+  }, 500);
 }

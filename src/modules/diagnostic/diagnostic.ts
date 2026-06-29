@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal, computed, effect, PLATFORM_ID } from
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
-import { jsPDF } from 'jspdf';
+import { downloadPdf, ChartImages } from '../admin/functions/download-word';
 import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
@@ -72,6 +72,7 @@ export class Diagnostic implements OnInit {
 
   pymeId = signal(0);
   generating = signal(false);
+  downloadingPdf = signal(false);
   isAdminMode = signal(false);
 
   // Results State
@@ -553,48 +554,113 @@ export class Diagnostic implements OnInit {
     return 'text-danger bg-danger/10 border-danger/20';
   }
 
-  downloadPdf() {
+  async downloadPdf() {
+    if (this.downloadingPdf()) return;
+
     const current = this.diagnosticResult();
     if (!current) return;
 
-    const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
-    const margin = 42;
-    const width = pdf.internal.pageSize.getWidth() - margin * 2;
-    let y = margin;
+    if (!this.isBrowser) return;
 
-    const addText = (text: string, size = 10, weight: 'normal' | 'bold' = 'normal') => {
-      pdf.setFont('helvetica', weight);
-      pdf.setFontSize(size);
-      const lines = pdf.splitTextToSize(text, width) as string[];
-      if (y + lines.length * (size + 5) > 780) {
-        pdf.addPage();
-        y = margin;
+    console.log('downloadPdf initiated from wizard. Diagnostic ID:', current.id);
+    this.downloadingPdf.set(true);
+
+    try {
+      const chartImages = await this.captureCharts();
+      downloadPdf(current, chartImages);
+    } catch (err) {
+      console.error('Error generating PDF', err);
+      this.toastService.error('Ocurrió un error al generar el PDF.');
+    } finally {
+      this.downloadingPdf.set(false);
+    }
+  }
+
+  private async captureCharts(): Promise<ChartImages> {
+    const chartImages: ChartImages = { barChart: '', radarChart: '', lineChart: '' };
+
+    if (!this.isBrowser) return chartImages;
+
+    try {
+      const html2canvasModule = await import('html2canvas');
+      const capture = (html2canvasModule.default ?? html2canvasModule) as
+        (el: HTMLElement, opts: Record<string, unknown>) => Promise<HTMLCanvasElement>;
+
+      const getChartContainer = (index: number, titleText: string): HTMLElement | null => {
+        const headings = Array.from(document.querySelectorAll('h3'));
+        const heading = headings.find(h => h.textContent?.trim().toLowerCase() === titleText.toLowerCase());
+        if (heading && heading.parentElement) {
+          const card = heading.parentElement;
+          const container = card.querySelector('.flex-1') as HTMLElement | null;
+          if (container) {
+            console.log(`getChartContainer [${titleText}]: found via heading -> .flex-1`);
+            return container;
+          }
+          console.log(`getChartContainer [${titleText}]: found via heading -> card fallback`);
+          return card;
+        }
+
+        const canvases = document.querySelectorAll('.apexcharts-canvas');
+        if (canvases.length > index) {
+          console.log(`getChartContainer [${titleText}]: found via .apexcharts-canvas at index ${index}`);
+          return canvases[index] as HTMLElement;
+        }
+
+        const apxCharts = document.querySelectorAll('apx-chart');
+        if (apxCharts.length > index) {
+          console.log(`getChartContainer [${titleText}]: found via apx-chart at index ${index}`);
+          return apxCharts[index] as HTMLElement;
+        }
+
+        console.warn(`getChartContainer [${titleText}]: not found using any selector`);
+        return null;
+      };
+
+      const bar = getChartContainer(0, 'Desempeño por áreas');
+      const radar = getChartContainer(1, 'Capacidades del negocio');
+      const line = getChartContainer(2, 'Proyección de evolución');
+
+      console.log('captureCharts: identified elements to capture - bar:', !!bar, 'radar:', !!radar, 'line:', !!line);
+
+      if (bar) {
+        console.log('captureCharts: capturing bar chart...');
+        chartImages.barChart = await this.captureElement(capture, bar, 'barChart');
       }
-      pdf.text(lines, margin, y);
-      y += lines.length * (size + 5) + 8;
-    };
-
-    addText('Resultado del diagnostico', 18, 'bold');
-    addText(`${this.date(current.createdAt)} | Puntaje ${current.score}/100`, 10);
-
-    addText('Areas evaluadas', 13, 'bold');
-    for (const area of current.result.areasEvaluadas) {
-      addText(`${area.area}: ${area.puntaje}/100. ${area.hallazgo}`, 10);
+      if (radar) {
+        console.log('captureCharts: capturing radar chart...');
+        chartImages.radarChart = await this.captureElement(capture, radar, 'radarChart');
+      }
+      if (line) {
+        console.log('captureCharts: capturing line chart...');
+        chartImages.lineChart = await this.captureElement(capture, line, 'lineChart');
+      }
+    } catch (captureErr) {
+      console.error('captureCharts: Error during chart capture phase:', captureErr);
     }
 
-    addText('Diagnostico general', 13, 'bold');
-    addText(current.result.feedbackIa, 10);
+    return chartImages;
+  }
 
-    addText('Recomendaciones prioritarias', 13, 'bold');
-    for (const rec of current.result.recomendaciones) {
-      addText(`- ${rec.accion} (${rec.prioridad}, plazo: ${rec.plazo}): ${rec.beneficioEsperado}`, 10);
+  private async captureElement(
+    capture: (el: HTMLElement, opts: Record<string, unknown>) => Promise<HTMLCanvasElement>,
+    element: HTMLElement,
+    name: string
+  ): Promise<string> {
+    try {
+      console.log(`captureElement [${name}]: start capture on element:`, element.tagName, 'classes:', element.className);
+      const canvas = await capture(element, {
+        backgroundColor: '#ffffff',
+        scale: 1,
+        useCORS: true,
+        logging: false,
+      });
+      const dataUrl = canvas.toDataURL('image/png');
+      console.log(`captureElement [${name}]: successfully captured. Data URL length:`, dataUrl.length);
+      return dataUrl;
+    } catch (e) {
+      console.error(`captureElement [${name}]: Error capturing element:`, e);
+      return '';
     }
-    addText('Respuestas registradas', 13, 'bold');
-    for (const entry of this.responseEntries()) {
-      addText(`${entry.label}: ${entry.value}`, 9);
-    }
-
-    pdf.save(`diagnostico-${current.id}.pdf`);
   }
 
   cleanOption(value: string): string {

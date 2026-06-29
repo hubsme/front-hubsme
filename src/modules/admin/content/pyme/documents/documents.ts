@@ -29,6 +29,12 @@ export class Documents implements OnInit {
   loading = signal(false);
   search = signal('');
   activeTab = signal<'meetings' | 'diagnostics'>('meetings');
+  downloadingPdfId = signal<number | null>(null);
+  downloadingWordId = signal<number | null>(null);
+
+  isAnyDownloading() {
+    return this.downloadingPdfId() !== null || this.downloadingWordId() !== null;
+  }
 
   filteredMeetingDocuments = computed(() => {
     const term = this.search().toLowerCase().trim();
@@ -90,22 +96,28 @@ export class Documents implements OnInit {
   }
 
   downloadPdf(diagnostic: any) {
-    if (!diagnostic) return;
+    if (!diagnostic || this.isAnyDownloading()) return;
+    this.downloadingPdfId.set(diagnostic.id);
     try {
       downloadPdf(diagnostic);
     } catch (err) {
       console.error('Error generating PDF', err);
       this.toastService.error('Ocurrió un error al generar el PDF.');
+    } finally {
+      this.downloadingPdfId.set(null);
     }
   }
 
   downloadWord(diagnostic: any) {
-    if (!diagnostic) return;
+    if (!diagnostic || this.isAnyDownloading()) return;
+    this.downloadingWordId.set(diagnostic.id);
     try {
       downloadWord(diagnostic);
     } catch (err) {
       console.error('Error generating Word', err);
       this.toastService.error('Ocurrió un error al generar el archivo Word.');
+    } finally {
+      this.downloadingWordId.set(null);
     }
   }
 

@@ -235,6 +235,46 @@
       </div>
     </div>
 
+    <!-- General Strategic Analysis Card -->
+    <div class="bg-surface border border-border rounded-3xl p-6 sm:p-8 shadow-xs space-y-4">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
+          <i class="fas fa-brain text-sm"></i>
+        </div>
+        <div>
+          <h2 class="text-base font-inter-bold text-text">Análisis Estratégico General</h2>
+          <p class="text-xs text-text/40">Diagnóstico detallado y ruta de mejora estructurada por Inteligencia Artificial.</p>
+        </div>
+      </div>
+      <div class="text-xs sm:text-sm text-text/70 leading-relaxed whitespace-pre-line space-y-2 border-t border-border/50 pt-4">
+        {{ current.result.feedbackIa }}
+      </div>
+    </div>
+
+    <!-- Recommendations List Section -->
+    @if (current.result.recomendaciones && current.result.recomendaciones.length > 0) {
+      <div class="space-y-4 pt-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-inter-bold text-text">Recomendaciones estratégicas</h2>
+        </div>
+        <div class="bg-surface border border-border rounded-2xl p-4 sm:p-5 shadow-xs">
+          <div class="grid gap-4 sm:grid-cols-2">
+            @for (rec of current.result.recomendaciones; track rec.accion; let idx = $index) {
+              <div class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-background/40 transition-colors duration-150">
+                <div class="h-6 w-6 rounded-full bg-success/10 text-success flex items-center justify-center shrink-0 mt-0.5 text-xs font-inter-bold">
+                  {{ idx + 1 }}
+                </div>
+                <div class="space-y-1">
+                  <p class="text-xs sm:text-sm text-text font-inter-bold leading-normal">{{ rec.accion }}</p>
+                  <p class="text-xs text-text/50 leading-relaxed"><strong class="font-inter-semibold text-text/60">Beneficio:</strong> {{ rec.beneficioEsperado }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
     <!-- 4 Area Detail Cards Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
       @for (area of getMainAreas(current.result.areasEvaluadas); track area.area) {
@@ -285,22 +325,6 @@
           </p>
         </div>
       }
-    </div>
-
-    <!-- General Strategic Analysis Card -->
-    <div class="bg-surface border border-border rounded-3xl p-6 sm:p-8 shadow-xs space-y-4">
-      <div class="flex items-center gap-3">
-        <div class="h-10 w-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
-          <i class="fas fa-brain text-sm"></i>
-        </div>
-        <div>
-          <h2 class="text-base font-inter-bold text-text">Análisis Estratégico General</h2>
-          <p class="text-xs text-text/40">Diagnóstico detallado y ruta de mejora estructurada por Inteligencia Artificial.</p>
-        </div>
-      </div>
-      <div class="text-xs sm:text-sm text-text/70 leading-relaxed whitespace-pre-line space-y-2 border-t border-border/50 pt-4">
-        {{ current.result.feedbackIa }}
-      </div>
     </div>
 
     <!-- Suggested Consultants Section -->
@@ -373,32 +397,6 @@
               </div>
             </div>
           }
-        </div>
-      </div>
-    }
-
-
-
-    <!-- Recommendations List Section -->
-    @if (current.result.recomendaciones && current.result.recomendaciones.length > 0) {
-      <div class="space-y-4 pt-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-lg font-inter-bold text-text">Recomendaciones estratégicas</h2>
-        </div>
-        <div class="bg-surface border border-border rounded-2xl p-4 sm:p-5 shadow-xs">
-          <div class="grid gap-4 sm:grid-cols-2">
-            @for (rec of current.result.recomendaciones; track rec.accion; let idx = $index) {
-              <div class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-background/40 transition-colors duration-150">
-                <div class="h-6 w-6 rounded-full bg-success/10 text-success flex items-center justify-center shrink-0 mt-0.5 text-xs font-inter-bold">
-                  {{ idx + 1 }}
-                </div>
-                <div class="space-y-1">
-                  <p class="text-xs sm:text-sm text-text font-inter-bold leading-normal">{{ rec.accion }}</p>
-                  <p class="text-xs text-text/50 leading-relaxed"><strong class="font-inter-semibold text-text/60">Beneficio:</strong> {{ rec.beneficioEsperado }}</p>
-                </div>
-              </div>
-            }
-          </div>
         </div>
       </div>
     }

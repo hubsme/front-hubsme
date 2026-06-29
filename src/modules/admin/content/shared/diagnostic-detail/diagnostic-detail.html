@@ -17,17 +17,27 @@
         <button
           type="button"
           (click)="downloadPdf()"
-          class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-xs font-inter-bold transition-all hover:border-secondary hover:text-secondary cursor-pointer shadow-xs"
+          [disabled]="isDownloading()"
+          class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-xs font-inter-bold transition-all hover:border-secondary hover:text-secondary cursor-pointer shadow-xs disabled:opacity-55 disabled:cursor-not-allowed"
         >
-          <i class="far fa-file-pdf text-xs text-danger"></i>
+          @if (downloadingPdf()) {
+            <i class="fas fa-spinner fa-spin text-xs text-secondary"></i>
+          } @else {
+            <i class="far fa-file-pdf text-xs text-danger"></i>
+          }
           <span>Descargar PDF</span>
         </button>
         <button
           type="button"
           (click)="downloadWord()"
-          class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-xs font-inter-bold transition-all hover:border-secondary hover:text-secondary cursor-pointer shadow-xs"
+          [disabled]="isDownloading()"
+          class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-xs font-inter-bold transition-all hover:border-secondary hover:text-secondary cursor-pointer shadow-xs disabled:opacity-55 disabled:cursor-not-allowed"
         >
-          <i class="far fa-file-word text-xs text-secondary"></i>
+          @if (downloadingWord()) {
+            <i class="fas fa-spinner fa-spin text-xs text-secondary"></i>
+          } @else {
+            <i class="far fa-file-word text-xs text-secondary"></i>
+          }
           <span>Descargar Word</span>
         </button>
       </div>

@@ -7,7 +7,7 @@ import { ToastService } from '@service/toast.service';
 import { PATH, buildPath } from '@route/path.route';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { downloadPdf } from '../../../functions/download-pdf';
-import { downloadWord } from '../../../functions/download-word';
+import { downloadWord, ChartImages } from '../../../functions/download-word';
 
 type Diagnostic = ApiResponse<'diagnostic', 'findOne'>;
 type ResponseEntry = {
@@ -58,6 +58,10 @@ export class DiagnosticDetail implements OnInit {
 
   diagnostic = signal<Diagnostic | null>(null);
   loading = signal(false);
+  downloadingPdf = signal(false);
+  downloadingWord = signal(false);
+  isDownloading = computed(() => this.downloadingPdf() || this.downloadingWord());
+
   consultants = signal<any[]>([]);
 
   readonly PATH = PATH;
@@ -414,75 +418,137 @@ export class DiagnosticDetail implements OnInit {
     return 'text-danger bg-danger/10 border-danger/20';
   }
 
-
-
   async downloadPdf() {
-    if (!this.isBrowser) return;
+    if (!this.isBrowser || this.downloadingPdf()) return;
 
     const current = this.diagnostic();
     if (!current) return;
 
-    this.loading.set(true);
+    console.log('downloadPdf initiated. Diagnostic ID:', current.id);
+    this.downloadingPdf.set(true);
 
     try {
-      downloadPdf(current);
+      const chartImages = await this.captureCharts();
+      downloadPdf(current, chartImages);
     } catch (err) {
       console.error('Error generating PDF', err);
       this.toastService.error('Ocurrió un error al generar el PDF.');
     } finally {
-      this.loading.set(false);
+      this.downloadingPdf.set(false);
     }
   }
 
   async downloadWord() {
-    const diagnostic = this.diagnostic();
-    if (!diagnostic) return;
+    if (this.downloadingWord()) return;
 
-    this.loading.set(true);
+    const diagnostic = this.diagnostic();
+    if (!diagnostic) {
+      console.warn('downloadWord: No diagnostic found');
+      return;
+    }
+
+    console.log('downloadWord initiated. Diagnostic ID:', diagnostic.id);
+    this.downloadingWord.set(true);
 
     try {
-      const chartImages = { barChart: '', radarChart: '', lineChart: '' };
-
-      if (this.isBrowser) {
-        const html2canvasModule = await import('html2canvas');
-        const capture = (html2canvasModule.default ?? html2canvasModule) as
-          (el: HTMLElement, opts: Record<string, unknown>) => Promise<HTMLCanvasElement>;
-
-        // Find chart cards via apx-chart → parent card containers
-        const apxCharts = document.querySelectorAll('apx-chart');
-        const getCard = (el: Element) => el.parentElement?.parentElement as HTMLElement | null;
-
-        if (apxCharts.length >= 3) {
-          const [bar, radar, line] = [getCard(apxCharts[0]), getCard(apxCharts[1]), getCard(apxCharts[2])];
-          if (bar) chartImages.barChart = await this.captureElement(capture, bar);
-          if (radar) chartImages.radarChart = await this.captureElement(capture, radar);
-          if (line) chartImages.lineChart = await this.captureElement(capture, line);
-        }
-      }
-
+      const chartImages = await this.captureCharts();
+      console.log('downloadWord: calling downloadWord helper function. Chart images length:', {
+        barChart: chartImages.barChart?.length || 0,
+        radarChart: chartImages.radarChart?.length || 0,
+        lineChart: chartImages.lineChart?.length || 0
+      });
       downloadWord(diagnostic, chartImages);
     } catch (err) {
       console.error('Error generating Word', err);
       this.toastService.error('Ocurrió un error al generar el archivo Word.');
     } finally {
-      this.loading.set(false);
+      this.downloadingWord.set(false);
     }
+  }
+
+  private async captureCharts(): Promise<ChartImages> {
+    const chartImages: ChartImages = { barChart: '', radarChart: '', lineChart: '' };
+
+    if (!this.isBrowser) return chartImages;
+
+    try {
+      const html2canvasModule = await import('html2canvas');
+      const capture = (html2canvasModule.default ?? html2canvasModule) as
+        (el: HTMLElement, opts: Record<string, unknown>) => Promise<HTMLCanvasElement>;
+
+      const getChartContainer = (index: number, titleText: string): HTMLElement | null => {
+        const headings = Array.from(document.querySelectorAll('h3'));
+        const heading = headings.find(h => h.textContent?.trim().toLowerCase() === titleText.toLowerCase());
+        if (heading && heading.parentElement) {
+          const card = heading.parentElement;
+          const container = card.querySelector('.flex-1') as HTMLElement | null;
+          if (container) {
+            console.log(`getChartContainer [${titleText}]: found via heading -> .flex-1`);
+            return container;
+          }
+          console.log(`getChartContainer [${titleText}]: found via heading -> card fallback`);
+          return card;
+        }
+
+        const canvases = document.querySelectorAll('.apexcharts-canvas');
+        if (canvases.length > index) {
+          console.log(`getChartContainer [${titleText}]: found via .apexcharts-canvas at index ${index}`);
+          return canvases[index] as HTMLElement;
+        }
+
+        const apxCharts = document.querySelectorAll('apx-chart');
+        if (apxCharts.length > index) {
+          console.log(`getChartContainer [${titleText}]: found via apx-chart at index ${index}`);
+          return apxCharts[index] as HTMLElement;
+        }
+
+        console.warn(`getChartContainer [${titleText}]: not found using any selector`);
+        return null;
+      };
+
+      const bar = getChartContainer(0, 'Desempeño por áreas');
+      const radar = getChartContainer(1, 'Capacidades del negocio');
+      const line = getChartContainer(2, 'Proyección de evolución');
+
+      console.log('captureCharts: identified elements to capture - bar:', !!bar, 'radar:', !!radar, 'line:', !!line);
+
+      if (bar) {
+        console.log('captureCharts: capturing bar chart...');
+        chartImages.barChart = await this.captureElement(capture, bar, 'barChart');
+      }
+      if (radar) {
+        console.log('captureCharts: capturing radar chart...');
+        chartImages.radarChart = await this.captureElement(capture, radar, 'radarChart');
+      }
+      if (line) {
+        console.log('captureCharts: capturing line chart...');
+        chartImages.lineChart = await this.captureElement(capture, line, 'lineChart');
+      }
+    } catch (captureErr) {
+      console.error('captureCharts: Error during chart capture phase:', captureErr);
+    }
+
+    return chartImages;
   }
 
   private async captureElement(
     capture: (el: HTMLElement, opts: Record<string, unknown>) => Promise<HTMLCanvasElement>,
     element: HTMLElement,
+    name: string
   ): Promise<string> {
     try {
+      console.log(`captureElement [${name}]: start capture on element:`, element.tagName, 'classes:', element.className);
       const canvas = await capture(element, {
         backgroundColor: '#ffffff',
-        scale: 2,
+        scale: 1,
         useCORS: true,
         logging: false,
       });
-      return canvas.toDataURL('image/png');
+      const dataUrl = canvas.toDataURL('image/png');
+      console.log(`captureElement [${name}]: successfully captured. Data URL length:`, dataUrl.length);
+      return dataUrl;
     } catch (e) {
-      console.error('Error capturing element:', e);
+      console.error(`captureElement [${name}]: Error capturing element:`, e);
       return '';
     }
   }

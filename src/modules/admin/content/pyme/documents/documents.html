@@ -128,14 +128,22 @@
           <i class="far fa-file-lines text-xs"></i>
           Ver Diagnóstico
         </button>
-        <button (click)="downloadPdf(diagnostic)"
-          class="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold hover:bg-background-50 transition-colors">
-          <i class="far fa-file-pdf text-xs text-danger"></i>
+        <button (click)="downloadPdf(diagnostic)" [disabled]="isAnyDownloading()"
+          class="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold hover:bg-background-50 transition-colors disabled:opacity-55 disabled:cursor-not-allowed">
+          @if (downloadingPdfId() === diagnostic.id) {
+            <i class="fas fa-spinner fa-spin text-xs text-secondary"></i>
+          } @else {
+            <i class="far fa-file-pdf text-xs text-danger"></i>
+          }
           Descargar PDF
         </button>
-        <button (click)="downloadWord(diagnostic)"
-          class="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold hover:bg-background-50 transition-colors">
-          <i class="far fa-file-word text-xs text-secondary"></i>
+        <button (click)="downloadWord(diagnostic)" [disabled]="isAnyDownloading()"
+          class="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold hover:bg-background-50 transition-colors disabled:opacity-55 disabled:cursor-not-allowed">
+          @if (downloadingWordId() === diagnostic.id) {
+            <i class="fas fa-spinner fa-spin text-xs text-secondary"></i>
+          } @else {
+            <i class="far fa-file-word text-xs text-secondary"></i>
+          }
           Descargar Word
         </button>
       </div>

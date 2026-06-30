@@ -1,5 +1,6 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { CalendarTutorial } from './layout/tutorial/tutorial';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import {
@@ -69,6 +70,7 @@ type GoogleCalendarMessage = { type: 'hubsme:google-calendar'; connected?: boole
     CalendarDatePipe,
     ModalForm,
     RouterLink,
+    CalendarTutorial,
   ],
   providers: [
     provideCalendar({
@@ -99,6 +101,7 @@ export class Meetings implements OnInit, OnDestroy {
   googleBusyLoading = signal(false);
   isSaveMenuOpen = signal(false);
   isCreateModalOpen = signal(false);
+  showTutorial = signal(false);
   selectedSlotLocalId = signal<string | null>(null);
   selectedMeeting = signal<Meeting | null>(null);
   activeBrush = signal<DraftSlotStatus>('disponible');
@@ -162,6 +165,7 @@ export class Meetings implements OnInit, OnDestroy {
     this.loadMonth();
     this.loadMeetings();
     this.loadGoogleCalendarStatus();
+    this.checkIfFirstTime();
   }
 
   ngOnDestroy(): void {
@@ -353,7 +357,7 @@ export class Meetings implements OnInit, OnDestroy {
 
   brushPreviewColor() {
     if (this.activeBrush() === 'bloqueado') return 'rgba(255,255,255,0.74)';
-    return 'rgba(14,159,110,0.06)';
+    return 'rgba(14,159,110,0.16)';
   }
 
   brushLabel() {
@@ -375,7 +379,7 @@ export class Meetings implements OnInit, OnDestroy {
     if (this.activeBrush() === 'bloqueado' && this.isInsideDragSelection(date)) return this.brushPreviewColor();
 
     const slot = this.slotAt(date);
-    if (slot?.status === 'disponible') return 'rgba(14,159,110,0.06)';
+    if (slot?.status === 'disponible') return 'rgba(14,159,110,0.16)';
     if (this.isInsideDragSelection(date)) return this.brushPreviewColor();
     return null;
   }
@@ -457,7 +461,10 @@ export class Meetings implements OnInit, OnDestroy {
       notes: form.notes.trim(),
     };
 
-    if (!this.isCurrentMonth(startTime) || !this.isCurrentMonth(endTime)) {
+    const visibleMonths = this.getVisibleMonthsForView();
+    const isStartVisible = visibleMonths.some((m) => m.year === startTime.getFullYear() && m.month === startTime.getMonth() + 1);
+    const isEndVisible = visibleMonths.some((m) => m.year === endTime.getFullYear() && m.month === endTime.getMonth() + 1);
+    if (!isStartVisible || !isEndVisible) {
       this.toastService.warning('El bloque debe pertenecer al mes visible');
       return;
     }
@@ -489,25 +496,32 @@ export class Meetings implements OnInit, OnDestroy {
     event?.stopPropagation();
     this.isSaveMenuOpen.set(false);
 
-    const availableSchedule =
-      mode === 'month' ? this.buildEveryDayMonthScheduleFromVisibleWeek() : this.buildScheduleFromSlots(this.sortedSlots());
-
-    if (mode === 'month' && Object.keys(availableSchedule).length === 0) {
-      this.toastService.warning('Pinta al menos un horario disponible en esta semana');
-      return;
+    if (mode === 'month') {
+      if (this.visibleWeekSlots().filter(s => s.status === 'disponible').length === 0) {
+        this.toastService.warning('Pinta al menos un horario disponible en esta semana');
+        return;
+      }
     }
 
-    const currentDate = this.viewDate();
-    const payload: ApiBody<'consultantAvailability', 'consultant-availabilityReplaceMonth'> = {
-      consultantId: this.consultantId(),
-      year: currentDate.getFullYear(),
-      month: currentDate.getMonth() + 1,
-      availableSchedule,
-    };
+    const visibleMonths = this.getVisibleMonthsForView();
+    const promises = visibleMonths.map((m) => {
+      const availableSchedule =
+        mode === 'month'
+          ? this.buildEveryDayMonthScheduleFromVisibleWeekForMonth(m.year, m.month)
+          : this.buildScheduleForMonth(this.sortedSlots(), m.year, m.month);
+
+      const payload: ApiBody<'consultantAvailability', 'consultant-availabilityReplaceMonth'> = {
+        consultantId: this.consultantId(),
+        year: m.year,
+        month: m.month,
+        availableSchedule,
+      };
+
+      return this.availabilityService.replaceMonth(payload);
+    });
 
     this.saving.set(true);
-    this.availabilityService
-      .replaceMonth(payload)
+    Promise.all(promises)
       .then(() => {
         this.toastService.success(mode === 'month' ? 'Disponibilidad aplicada al mes' : 'Disponibilidad de la semana guardada');
         this.loadMonth();
@@ -517,15 +531,22 @@ export class Meetings implements OnInit, OnDestroy {
   }
 
   loadMonth() {
-    const currentDate = this.viewDate();
+    const visibleMonths = this.getVisibleMonthsForView();
     this.loading.set(true);
-    this.availabilityService
-      .findMonth({
+
+    const requests = visibleMonths.map((m) =>
+      this.availabilityService.findMonth({
         consultantId: this.consultantId(),
-        year: currentDate.getFullYear(),
-        month: currentDate.getMonth() + 1,
+        year: m.year,
+        month: m.month,
       })
-      .then((response) => this.slots.set(this.expandAvailabilityMonths(response.data)))
+    );
+
+    Promise.all(requests)
+      .then((responses) => {
+        const allMonths = responses.flatMap((response) => response.data);
+        this.slots.set(this.expandAvailabilityMonths(allMonths));
+      })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
   }
@@ -679,15 +700,22 @@ export class Meetings implements OnInit, OnDestroy {
       return;
     }
 
-    const currentDate = this.viewDate();
+    const visibleMonths = this.getVisibleMonthsForView();
     this.googleBusyLoading.set(true);
-    this.googleCalendarService
-      .busyMonth({
+
+    const requests = visibleMonths.map((m) =>
+      this.googleCalendarService.busyMonth({
         consultantId: this.consultantId(),
-        year: currentDate.getFullYear(),
-        month: currentDate.getMonth() + 1,
+        year: m.year,
+        month: m.month,
       })
-      .then((response) => this.googleBusySlots.set(response.data))
+    );
+
+    Promise.all(requests)
+      .then((responses) => {
+        const allBusySlots = responses.flatMap((response) => response.data);
+        this.googleBusySlots.set(allBusySlots);
+      })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.googleBusyLoading.set(false));
   }
@@ -734,7 +762,7 @@ export class Meetings implements OnInit, OnDestroy {
     this.form.update((current) => ({ ...current, date: this.toDateInput(this.viewDate()) }));
   }
 
-  private buildScheduleFromSlots(slots: DraftSlot[]): AvailabilitySchedule {
+  private buildScheduleForMonth(slots: DraftSlot[], year: number, month: number): AvailabilitySchedule {
     const schedule = new Map<string, Set<string>>();
 
     for (const slot of slots) {
@@ -745,7 +773,7 @@ export class Meetings implements OnInit, OnDestroy {
         cursor.getTime() < slot.endTime.getTime();
         cursor = this.addMinutes(cursor, this.halfHourMinutes())
       ) {
-        if (!this.isCurrentMonth(cursor)) continue;
+        if (cursor.getFullYear() !== year || (cursor.getMonth() + 1) !== month) continue;
         const day = String(cursor.getDate());
         const daySchedule = schedule.get(day) ?? new Set<string>();
         daySchedule.add(this.toTimeInput(cursor));
@@ -760,7 +788,7 @@ export class Meetings implements OnInit, OnDestroy {
     );
   }
 
-  private buildEveryDayMonthScheduleFromVisibleWeek(): AvailabilitySchedule {
+  private buildEveryDayMonthScheduleFromVisibleWeekForMonth(year: number, month: number): AvailabilitySchedule {
     const weekdaySchedule = new Map<number, Set<string>>();
 
     for (const slot of this.visibleWeekSlots()) {
@@ -781,14 +809,11 @@ export class Meetings implements OnInit, OnDestroy {
 
     if (weekdaySchedule.size === 0) return {};
 
-    const currentDate = this.viewDate();
-    const year = currentDate.getFullYear();
-    const monthIndex = currentDate.getMonth();
-    const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
+    const lastDay = new Date(year, month, 0).getDate();
     const entries: [string, string[]][] = [];
 
     for (let day = 1; day <= lastDay; day += 1) {
-      const date = new Date(year, monthIndex, day);
+      const date = new Date(year, month - 1, day);
       const times = weekdaySchedule.get(date.getDay());
       if (!times?.size) continue;
       entries.push([String(day), [...times].sort()]);
@@ -816,9 +841,9 @@ export class Meetings implements OnInit, OnDestroy {
   }
 
   private expandAvailabilityMonth(availability: AvailabilityMonth): DraftSlot[] {
-    const currentDate = this.viewDate();
-    const year = currentDate.getFullYear();
-    const monthIndex = currentDate.getMonth();
+    const parts = availability.month.split('-').map(Number);
+    const year = parts[0];
+    const monthIndex = parts[1] - 1;
     const slots: DraftSlot[] = [];
 
     for (const [day, times] of Object.entries(availability.availableSchedule ?? {})) {
@@ -850,6 +875,38 @@ export class Meetings implements OnInit, OnDestroy {
     }
 
     return slots;
+  }
+
+  private getVisibleMonths(start: Date, end: Date): { year: number; month: number }[] {
+    const months: { year: number; month: number }[] = [];
+    const cursor = new Date(start);
+    while (cursor <= end) {
+      const year = cursor.getFullYear();
+      const month = cursor.getMonth() + 1;
+      if (!months.some((m) => m.year === year && m.month === month)) {
+        months.push({ year, month });
+      }
+      cursor.setMonth(cursor.getMonth() + 1);
+      cursor.setDate(1);
+    }
+    return months;
+  }
+
+  private getVisibleMonthsForView(): { year: number; month: number }[] {
+    const currentDate = this.viewDate();
+    const currentView = this.view();
+
+    if (currentView === CalendarView.Week) {
+      const { start, end } = this.visibleWeekRange();
+      const lastVisibleDay = new Date(end.getTime() - 1);
+      return this.getVisibleMonths(start, lastVisibleDay);
+    } else {
+      const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const start = this.addDays(monthStart, -6);
+      const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      const end = this.addDays(monthEnd, 6);
+      return this.getVisibleMonths(start, end);
+    }
   }
 
   private createPersistedDraftSlot(
@@ -959,6 +1016,16 @@ export class Meetings implements OnInit, OnDestroy {
   private fromMonthDayTime(year: number, monthIndex: number, day: number, time: string) {
     const [hours, minutes] = time.split(':').map(Number);
     return new Date(year, monthIndex, day, hours, minutes);
+  }
+
+  private checkIfFirstTime() {
+    this.availabilityService.findAll({ consultantId: this.consultantId(), limit: 1 })
+      .then((response) => {
+        if (response.meta.total === 0) {
+          this.showTutorial.set(true);
+        }
+      })
+      .catch((error) => console.error('Error checking availability history:', error));
   }
 
   private createLocalId() {

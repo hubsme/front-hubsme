@@ -409,12 +409,19 @@
 
 /* Custom Animations */
 @keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(calc(-50% - 12px)); }
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(calc(-50% - 12px));
+  }
 }
+
 .animate-marquee {
   animation: marquee 35s linear infinite;
 }
+
 .animate-marquee:hover {
   animation-play-state: paused;
 }
@@ -506,44 +513,126 @@
 }
 
 @keyframes progress-bar {
-  0% { transform: scaleX(0); }
-  100% { transform: scaleX(1); }
+  0% {
+    transform: scaleX(0);
+  }
+
+  100% {
+    transform: scaleX(1);
+  }
 }
 
 @keyframes drag-pointer {
-  0% { transform: translateY(0); opacity: 0; }
-  10% { opacity: 1; }
-  15% { transform: translateY(0); }
-  32% { transform: translateY(24px); }
-  50% { transform: translateY(48px); }
-  68% { transform: translateY(72px); }
-  75% { transform: translateY(72px); opacity: 1; }
-  85% { opacity: 0; }
-  100% { transform: translateY(0); opacity: 0; }
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  15% {
+    transform: translateY(0);
+  }
+
+  32% {
+    transform: translateY(24px);
+  }
+
+  50% {
+    transform: translateY(48px);
+  }
+
+  68% {
+    transform: translateY(72px);
+  }
+
+  75% {
+    transform: translateY(72px);
+    opacity: 1;
+  }
+
+  85% {
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
 }
 
 @keyframes fill-row-1 {
-  0%, 14% { opacity: 0; }
-  15%, 85% { opacity: 1; }
-  86%, 100% { opacity: 0; }
+
+  0%,
+  14% {
+    opacity: 0;
+  }
+
+  15%,
+  85% {
+    opacity: 1;
+  }
+
+  86%,
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes fill-row-2 {
-  0%, 31% { opacity: 0; }
-  32%, 85% { opacity: 1; }
-  86%, 100% { opacity: 0; }
+
+  0%,
+  31% {
+    opacity: 0;
+  }
+
+  32%,
+  85% {
+    opacity: 1;
+  }
+
+  86%,
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes fill-row-3 {
-  0%, 49% { opacity: 0; }
-  50%, 85% { opacity: 1; }
-  86%, 100% { opacity: 0; }
+
+  0%,
+  49% {
+    opacity: 0;
+  }
+
+  50%,
+  85% {
+    opacity: 1;
+  }
+
+  86%,
+  100% {
+    opacity: 0;
+  }
 }
 
 @keyframes fill-row-4 {
-  0%, 67% { opacity: 0; }
-  68%, 85% { opacity: 1; }
-  86%, 100% { opacity: 0; }
+
+  0%,
+  67% {
+    opacity: 0;
+  }
+
+  68%,
+  85% {
+    opacity: 1;
+  }
+
+  86%,
+  100% {
+    opacity: 0;
+  }
 }
 
 .animate-drag-pointer {
@@ -615,6 +704,7 @@ quill-editor.hide-toolbar .ql-container.ql-snow {
 
 /* Print Media Styles for high-fidelity Diagnostic Reports */
 @media print {
+
   /* Set page margins for A4 printing */
   @page {
     size: A4;
@@ -696,7 +786,7 @@ quill-editor.hide-toolbar .ql-container.ql-snow {
   .bg-surface,
   .rounded-3xl,
   .rounded-2xl,
-  .grid > div {
+  .grid>div {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }

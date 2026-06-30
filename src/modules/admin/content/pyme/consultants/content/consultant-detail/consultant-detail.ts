@@ -183,14 +183,24 @@ export class ConsultantDetail implements OnInit {
 
   private loadMonth(): Promise<void> {
     const currentDate = this.viewDate();
-    return this.availabilityService
-      .visibleMonth({
+    const months = [
+      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1),
+      new Date(currentDate.getFullYear(), currentDate.getMonth(), 1),
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1),
+    ];
+
+    const requests = months.map((m) =>
+      this.availabilityService.visibleMonth({
         consultantId: this.consultantUserId(),
-        year: currentDate.getFullYear(),
-        month: currentDate.getMonth() + 1,
+        year: m.getFullYear(),
+        month: m.getMonth() + 1,
       })
-      .then((response) => {
-        let slots = this.expandAvailabilityMonths(response.data);
+    );
+
+    return Promise.all(requests)
+      .then((responses) => {
+        const allMonths = responses.flatMap((response) => response.data);
+        let slots = this.expandAvailabilityMonths(allMonths);
         
         // Filter out past and today's slots (only tomorrow and later are allowed)
         const tomorrow = new Date();
@@ -285,9 +295,9 @@ export class ConsultantDetail implements OnInit {
   }
 
   private expandAvailabilityMonth(availability: AvailabilityMonth): AvailabilitySlot[] {
-    const currentDate = this.viewDate();
-    const year = currentDate.getFullYear();
-    const monthIndex = currentDate.getMonth();
+    const parts = availability.month.split('-').map(Number);
+    const year = parts[0];
+    const monthIndex = parts[1] - 1;
     const slots: AvailabilitySlot[] = [];
 
     for (const [day, times] of Object.entries(availability.availableSchedule ?? {})) {

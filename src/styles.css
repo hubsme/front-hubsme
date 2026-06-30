@@ -490,7 +490,80 @@
 }
 
 .cal-month-view .cal-day-cell.calendar-day-available {
-  background-color: rgba(14, 159, 110, 0.06) !important;
+  background-color: rgba(14, 159, 110, 0.16) !important;
+}
+
+.cal-week-view .cal-day-headers {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 10 !important;
+  background-color: var(--color-surface) !important;
+  border-bottom: 1px solid var(--color-border) !important;
+}
+
+.animate-progress {
+  animation: progress-bar 10s linear forwards;
+}
+
+@keyframes progress-bar {
+  0% { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+@keyframes drag-pointer {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 1; }
+  15% { transform: translateY(0); }
+  32% { transform: translateY(24px); }
+  50% { transform: translateY(48px); }
+  68% { transform: translateY(72px); }
+  75% { transform: translateY(72px); opacity: 1; }
+  85% { opacity: 0; }
+  100% { transform: translateY(0); opacity: 0; }
+}
+
+@keyframes fill-row-1 {
+  0%, 14% { opacity: 0; }
+  15%, 85% { opacity: 1; }
+  86%, 100% { opacity: 0; }
+}
+
+@keyframes fill-row-2 {
+  0%, 31% { opacity: 0; }
+  32%, 85% { opacity: 1; }
+  86%, 100% { opacity: 0; }
+}
+
+@keyframes fill-row-3 {
+  0%, 49% { opacity: 0; }
+  50%, 85% { opacity: 1; }
+  86%, 100% { opacity: 0; }
+}
+
+@keyframes fill-row-4 {
+  0%, 67% { opacity: 0; }
+  68%, 85% { opacity: 1; }
+  86%, 100% { opacity: 0; }
+}
+
+.animate-drag-pointer {
+  animation: drag-pointer 4s ease-in-out infinite;
+}
+
+.animate-fill-row-1 {
+  animation: fill-row-1 4s ease-in-out infinite;
+}
+
+.animate-fill-row-2 {
+  animation: fill-row-2 4s ease-in-out infinite;
+}
+
+.animate-fill-row-3 {
+  animation: fill-row-3 4s ease-in-out infinite;
+}
+
+.animate-fill-row-4 {
+  animation: fill-row-4 4s ease-in-out infinite;
 }
 
 /* Quill Editor Custom Styles */

@@ -60,9 +60,7 @@ export class HubsmeService {
     return this.api.meeting.finalize({ id }, data);
   }
 
-  createTeamsJoinToken(id: number, data: ApiBody<'meeting', 'createTeamsJoinToken'>) {
-    return this.api.meeting.createTeamsJoinToken({ id }, data);
-  }
+
 
   getMeetingRecordings(id: number) {
     return this.api.meeting.getRecordings({ id });

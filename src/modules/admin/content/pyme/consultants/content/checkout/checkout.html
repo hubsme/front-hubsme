@@ -9,8 +9,8 @@
   </button>
 
   <div>
-    <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold">Checkout con Mercado Pago</h1>
-    <p class="mt-1 text-[0.92rem] text-muted">Revisa el resumen de tu sesion antes de continuar con el pago.</p>
+    <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold">Checkout de pago</h1>
+    <p class="mt-1 text-[0.92rem] text-muted">Revisa el resumen de tu sesión antes de continuar con el pago.</p>
   </div>
 
   @if (loading()) {
@@ -27,7 +27,7 @@
             </span>
             <div>
               <p class="text-xs uppercase text-muted font-inter-bold">Pasarela segura</p>
-              <p class="font-inter-bold text-text">Mercado Pago</p>
+              <p class="font-inter-bold text-text">Tarjeta de débito/crédito y banca móvil</p>
             </div>
           </div>
           <span class="rounded-full bg-success/10 px-3 py-1 text-xs text-success font-inter-bold">Pago protegido</span>
@@ -36,7 +36,7 @@
         <div class="mt-6 rounded-xl border border-border bg-background p-5">
           <p class="text-xs uppercase text-muted font-inter-bold">Estado del pago</p>
           <p class="mt-2 text-lg capitalize font-inter-bold">{{ checkout.status }}</p>
-          <p class="mt-1 text-sm text-muted">Al pagar, Mercado Pago notificara al backend y se habilitara automaticamente la reunion de Teams.</p>
+          <p class="mt-1 text-sm text-muted">Al pagar, la pasarela notificará al sistema y se habilitará automáticamente la reunión de Teams.</p>
         </div>
 
         <button
@@ -50,10 +50,10 @@
             Pago confirmado
           } @else if (opening()) {
             <i class="fas fa-spinner fa-spin"></i>
-            Abriendo Mercado Pago
+            Abriendo pasarela de pago...
           } @else {
             <i class="fas fa-wallet"></i>
-            Pagar con Mercado Pago
+            Pagar
           }
         </button>
       </section>
@@ -110,11 +110,11 @@
   }
 
   @if (paymentModalOpen() && paymentFrameUrl(); as paymentFrameUrl) {
-    <app-modal-form title="Mercado Pago" maxWidth="6xl" [showFooter]="false" (onClose)="closePaymentModal()">
+    <app-modal-form title="Pasarela de pago" maxWidth="6xl" [showFooter]="false" (onClose)="closePaymentModal()">
       <div class="h-[78vh] bg-surface flex flex-col">
         <iframe
           [src]="paymentFrameUrl"
-          title="Checkout de Mercado Pago"
+          title="Pasarela de pago"
           class="flex-1 w-full border-0 bg-surface"
           referrerpolicy="no-referrer"
           allow="payment *; clipboard-read; clipboard-write"

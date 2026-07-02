@@ -672,29 +672,6 @@ export interface MeetingCreateDto {
   requestedBy?: "pyme" | "consultor";
 }
 
-export interface MeetingTeamsJoinDto {
-  /** @example "Maria Torres" */
-  displayName?: string;
-}
-
-export interface MeetingTeamsJoinResponseDto {
-  /** @example 12 */
-  meetingId: number;
-  /** @example "https://teams.microsoft.com/l/meetup-join/..." */
-  meetingUrl: string;
-  /** @example "8:acs:00000000-0000-0000-0000-000000000000_00000000-0000-0000-0000-000000000000" */
-  acsUserId: string;
-  /** @example "eyJhbGciOiJSUzI1NiIsImtpZCI6Ij..." */
-  token: string;
-  /**
-   * @format date-time
-   * @example "2026-05-19T18:30:00.000Z"
-   */
-  expiresOn: string;
-  /** @example "Maria Torres" */
-  displayName?: string;
-}
-
 export interface MeetingRecordingOrganizerUserDto {
   id: string;
   displayName: string | null;
@@ -1608,14 +1585,6 @@ export interface MeetingConfirmParams {
 export type MeetingConfirmData = MeetingResultDto;
 
 export type MeetingConfirmError = HttpErrorDto;
-
-export interface MeetingCreateTeamsJoinTokenParams {
-  id: number;
-}
-
-export type MeetingCreateTeamsJoinTokenData = MeetingTeamsJoinResponseDto;
-
-export type MeetingCreateTeamsJoinTokenError = HttpErrorDto;
 
 export interface MeetingGetRecordingsParams {
   id: number;
@@ -2849,26 +2818,6 @@ export namespace Meeting {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = MeetingConfirmData;
-  }
-
-  /**
-   * No description
-   * @tags meeting
-   * @name MeetingCreateTeamsJoinToken
-   * @summary Create an anonymous ACS token to join a Teams meeting inside the app
-   * @request POST:/admin/meeting/teams-join/{id}
-   * @secure
-   * @response `200` `MeetingCreateTeamsJoinTokenData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace MeetingCreateTeamsJoinToken {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = MeetingTeamsJoinDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = MeetingCreateTeamsJoinTokenData;
   }
 
   /**
@@ -5000,35 +4949,6 @@ export class Api<SecurityDataType extends unknown> {
         path: `/admin/meeting/confirm/${id}`,
         method: "POST",
         secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags meeting
-     * @name MeetingCreateTeamsJoinToken
-     * @summary Create an anonymous ACS token to join a Teams meeting inside the app
-     * @request POST:/admin/meeting/teams-join/{id}
-     * @secure
-     * @response `200` `MeetingCreateTeamsJoinTokenData`
-     * @response `400` `HttpErrorDto`
-     */
-    createTeamsJoinToken: (
-      { id }: MeetingCreateTeamsJoinTokenParams,
-      data: MeetingTeamsJoinDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        MeetingCreateTeamsJoinTokenData,
-        MeetingCreateTeamsJoinTokenError
-      >({
-        path: `/admin/meeting/teams-join/${id}`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
         format: "json",
         ...params,
       }),

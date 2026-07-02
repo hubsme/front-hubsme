@@ -33,7 +33,7 @@ export class Checkout implements OnInit, OnDestroy {
   private paymentPolling: ReturnType<typeof setInterval> | null = null;
   private redirectingAfterPayment = false;
   private readonly paymentPollingIntervalMs = 1500;
-  private readonly maxPollingDurationMs = 30000;
+  private readonly maxPollingDurationMs = 600000; // 10 minutos
   private pollingStartTime = 0;
 
   checkout = signal<CheckoutData | null>(null);
@@ -166,7 +166,7 @@ export class Checkout implements OnInit, OnDestroy {
 
     const url = this.paymentUrl();
     if (!url) {
-      this.toastService.error('Mercado Pago no devolvio un enlace de pago');
+      this.toastService.error('La pasarela de pago no devolvió un enlace válido');
       return;
     }
 

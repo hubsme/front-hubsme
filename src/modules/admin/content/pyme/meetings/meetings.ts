@@ -427,7 +427,18 @@ export class Meetings implements OnInit {
   }
 
   canJoin(meeting: Meeting) {
-    return meeting.status === 'confirmada' && Boolean(meeting.meetingUrl) && !meeting.description;
+    if (meeting.status !== 'confirmada' || !meeting.meetingUrl || meeting.description) return false;
+
+    const now = new Date();
+    const start = new Date(meeting.startTime);
+    const end = new Date(start.getTime() + meeting.durationMinutes * 60 * 1000);
+
+    // 10 minutes before
+    const allowedStart = new Date(start.getTime() - 10 * 60 * 1000);
+    // 30 minutes after the end of the meeting
+    const allowedEnd = new Date(end.getTime() + 30 * 60 * 1000);
+
+    return now >= allowedStart && now <= allowedEnd;
   }
 
   meetingEnd(meeting: Meeting) {

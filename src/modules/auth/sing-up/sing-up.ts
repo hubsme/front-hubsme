@@ -7,7 +7,7 @@ import { PATH, buildPath, getDefaultRoute } from '@route/path.route';
 import { SessionService } from '@service/session.service';
 import { ToastService } from '@service/toast.service';
 
-type ConsultantCvProfile = ApiResponse<'powerautomate', 'runConsultantCv'>;
+type ConsultantCvProfile = ApiResponse<'ia', 'runConsultantCv'>;
 type ConsultantCvPayload = Pick<
   ApiBody<'auth', 'register'>,
   | 'headline'
@@ -27,6 +27,7 @@ type ConsultantCvPayload = Pick<
   | 'workedSectors'
   | 'caseStudies'
   | 'cvText'
+  | 'cvUrl'
 >;
 
 type PdfTextItem = { str: string };
@@ -70,12 +71,28 @@ export class SingUp implements OnInit, OnDestroy {
   cvProcessing = signal(false);
   cvError = signal('');
   cvText = signal('');
+  cvUrl = signal('');
   consultantProfile = signal<ConsultantCvProfile | null>(null);
   profileComplete = computed(() => {
     const hasPerson = !!this.firstName().trim() && !!this.lastName().trim();
     if (this.role() === 'consultor') return hasPerson && !!this.consultantProfile();
     return hasPerson && !!this.companyName().trim() && !!this.ruc().trim();
   });
+
+  showOnboarding = signal(false);
+  currentOnboardingSlide = signal(0);
+
+  nextSlide() {
+    if (this.currentOnboardingSlide() < 2) {
+      this.currentOnboardingSlide.update((s) => s + 1);
+    } else {
+      this.router.navigate([getDefaultRoute(['consultor'])]);
+    }
+  }
+
+  prevSlide() {
+    this.currentOnboardingSlide.update((s) => Math.max(0, s - 1));
+  }
   private googlePopup: Window | null = null;
   private googlePopupTimer: ReturnType<typeof setInterval> | null = null;
   private readonly googleMessageHandler = (event: MessageEvent<unknown>) => this.handleGoogleMessage(event);
@@ -161,6 +178,8 @@ export class SingUp implements OnInit, OnDestroy {
         const diagnostic = this.route.snapshot.queryParamMap.get('diagnostic');
         if (diagnostic === 'true' && res.data.user.role === 'pyme') {
           this.router.navigate([buildPath(PATH.diagnostic)]);
+        } else if (res.data.user.role === 'consultor') {
+          this.showOnboarding.set(true);
         } else {
           this.router.navigate([getDefaultRoute([res.data.user.role])]);
         }
@@ -231,18 +250,23 @@ export class SingUp implements OnInit, OnDestroy {
     this.cvProcessing.set(true);
     this.consultantProfile.set(null);
 
-    this.extractPdfText(file)
+    this.api.storage
+      .upload({ folder: 'consultants/cvs' }, { file })
+      .then((uploadRes) => {
+        this.cvUrl.set(uploadRes.data.secureUrl);
+        return this.extractPdfText(file);
+      })
       .then((text) => {
         if (text.length < 40) {
           throw new Error('No se pudo leer suficiente texto del PDF');
         }
         this.cvText.set(text);
-        return this.api.powerautomate.runConsultantCv({ text });
+        return this.api.ia.runConsultantCv({ text });
       })
       .then((profile) => {
         this.consultantProfile.set(profile.data);
         this.prefillConsultantFromProfile(profile.data);
-        this.toastService.success('CV procesado correctamente');
+        this.toastService.success('CV subido y procesado correctamente');
       })
       .catch((error) => {
         this.cvError.set(this.getErrorMessage(error, 'No se pudo procesar el CV'));
@@ -276,6 +300,8 @@ export class SingUp implements OnInit, OnDestroy {
         const diagnostic = this.route.snapshot.queryParamMap.get('diagnostic');
         if (diagnostic === 'true' && session.user.role === 'pyme') {
           this.router.navigate([buildPath(PATH.diagnostic)]);
+        } else if (session.user.role === 'consultor') {
+          this.showOnboarding.set(true);
         } else {
           this.router.navigate([getDefaultRoute([session.user.role])]);
         }
@@ -372,6 +398,7 @@ export class SingUp implements OnInit, OnDestroy {
       workedSectors: profile?.workedSectors ?? [],
       caseStudies: profile?.caseStudies ?? [],
       cvText: this.cvText() || undefined,
+      cvUrl: this.cvUrl() || undefined,
     };
   }
 

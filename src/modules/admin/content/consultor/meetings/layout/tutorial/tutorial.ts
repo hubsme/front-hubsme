@@ -13,12 +13,12 @@ export class CalendarTutorial implements OnInit, OnDestroy {
   slides = [
     {
       title: 'Paso 1: Selecciona tu Pincel',
-      description: 'Elige "Disponible" (en verde) para pintar tus horas libres en el calendario, o "No disponible" para borrarlas.',
+      description: 'Selecciona "Disponible" (en verde) para pintar tus horas libres a la semana, o "No disponible" para borrarlas.',
       icon: 'fas fa-paint-brush',
     },
     {
       title: 'Paso 2: Haz Click o Arrastra',
-      description: 'Haz clic simple en cualquier celda para agregar 30 min, o mantén presionado y arrastra verticalmente para pintar un bloque de tiempo continuo.',
+      description: 'Haz clic o arrastra en las horas que tienes disponible a la semana.',
       icon: 'fas fa-mouse-pointer',
     },
     {

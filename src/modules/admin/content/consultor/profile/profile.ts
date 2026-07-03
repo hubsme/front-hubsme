@@ -46,6 +46,7 @@ type ConsultantForm = {
   education: ConsultantEducationItem[];
   caseStudies: ConsultantCaseStudy[];
   cvText: string;
+  cvUrl: string;
   pricePerHour: number;
   photoUrl: string;
   videoUrl: string;
@@ -82,6 +83,9 @@ export class Profile implements OnInit, OnDestroy {
   mercadoPagoLoading = signal(false);
   uploadingPhoto = signal(false);
   uploadingVideo = signal(false);
+  uploadingCv = signal(false);
+  cvFileName = signal('');
+  cvError = signal('');
   consultant = signal<ConsultantProfileData | null>(null);
   readonly chipFields: { field: ChipField; label: string; placeholder: string }[] = [
     { field: 'specialties', label: 'Especialidades', placeholder: 'Agregar especialidad...' },
@@ -130,6 +134,7 @@ export class Profile implements OnInit, OnDestroy {
     education: [],
     caseStudies: [],
     cvText: '',
+    cvUrl: '',
     pricePerHour: 0,
     photoUrl: '',
     videoUrl: '',
@@ -178,6 +183,7 @@ export class Profile implements OnInit, OnDestroy {
           education: data.education ?? [],
           caseStudies: data.caseStudies ?? [],
           cvText: data.cvText ?? '',
+          cvUrl: data.cvUrl ?? '',
           pricePerHour: Number(data.pricePerHour),
           photoUrl: data.photoUrl ?? '',
           videoUrl: data.videoUrl ?? '',
@@ -216,6 +222,7 @@ export class Profile implements OnInit, OnDestroy {
       education: form.education.filter((item) => item.degree.trim()),
       caseStudies: form.caseStudies.filter((item) => item.title.trim()),
       cvText: form.cvText || undefined,
+      cvUrl: form.cvUrl || undefined,
       pricePerHour: Number(form.pricePerHour) || 0,
       photoUrl: form.photoUrl || undefined,
       videoUrl: form.videoUrl || undefined,
@@ -479,5 +486,93 @@ export class Profile implements OnInit, OnDestroy {
     if (!value || typeof value !== 'object') return false;
     const message = value as { type?: unknown };
     return message.type === 'hubsme:mercado-pago';
+  }
+
+  uploadCv(event: Event) {
+    const file = this.getFile(event);
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      this.cvError.set('Sube un archivo PDF válido');
+      return;
+    }
+
+    this.cvFileName.set(file.name);
+    this.cvError.set('');
+    this.uploadingCv.set(true);
+
+    this.api.storage
+      .upload({ folder: 'consultants/cvs' }, { file })
+      .then((response) => {
+        this.updateForm('cvUrl', response.data.secureUrl);
+        return this.extractPdfText(file);
+      })
+      .then((text) => {
+        if (text.length < 40) {
+          throw new Error('No se pudo leer suficiente texto del PDF');
+        }
+        this.updateForm('cvText', text);
+        return this.api.ia.runConsultantCv({ text });
+      })
+      .then((profile) => {
+        this.prefillFormFromCv(profile.data);
+        this.toastService.success('CV subido y perfil autocompletado correctamente. Revisa los datos antes de Guardar.');
+      })
+      .catch((error) => {
+        const errorMsg = this.hubsme.getErrorMessage(error);
+        this.cvError.set(errorMsg);
+        this.toastService.error(errorMsg);
+      })
+      .finally(() => this.uploadingCv.set(false));
+  }
+
+  private async extractPdfText(file: File): Promise<string> {
+    const pdfjs = (await import('pdfjs-dist')) as unknown as any;
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+      'pdfjs-dist/build/pdf.worker.mjs',
+      import.meta.url,
+    ).toString();
+
+    const data = new Uint8Array(await file.arrayBuffer());
+    const pdf = await pdfjs.getDocument({ data }).promise;
+    const pages: string[] = [];
+
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+      const page = await pdf.getPage(pageNumber);
+      const content = await page.getTextContent();
+      const pageText = content.items
+        .map((item: any) => item.str || '')
+        .filter(Boolean)
+        .join(' ');
+      pages.push(pageText);
+    }
+
+    return pages.join('\n').trim();
+  }
+
+  private prefillFormFromCv(profile: any): void {
+    const form = this.form();
+    this.form.set({
+      ...form,
+      firstName: form.firstName.trim() ? form.firstName : (profile.firstName ?? ''),
+      lastName: form.lastName.trim() ? form.lastName : (profile.lastName ?? ''),
+      fullName: form.fullName.trim() ? form.fullName : (profile.fullName ?? ''),
+      headline: form.headline.trim() ? form.headline : (profile.headline ?? ''),
+      location: form.location.trim() ? form.location : (profile.location ?? ''),
+      workModality: form.workModality.trim() ? form.workModality : (profile.workModality ?? ''),
+      bio: form.bio.trim() ? form.bio : (profile.bio ?? ''),
+      ownerPhone: form.ownerPhone.trim() ? form.ownerPhone : (profile.ownerPhone ?? ''),
+      linkedinUrl: form.linkedinUrl.trim() ? form.linkedinUrl : (profile.linkedinUrl ?? ''),
+      yearsExperience: form.yearsExperience > 0 ? form.yearsExperience : (profile.yearsExperience ?? 0),
+      specialties: form.specialties.length > 0 ? form.specialties : (profile.specialties ?? []),
+      sectors: form.sectors.length > 0 ? form.sectors : (profile.sectors ?? []),
+      industries: form.industries.length > 0 ? form.industries : (profile.industries ?? []),
+      companyTypes: form.companyTypes.length > 0 ? form.companyTypes : (profile.companyTypes ?? []),
+      services: form.services.length > 0 ? form.services : (profile.services ?? []),
+      certifications: form.certifications.length > 0 ? form.certifications : (profile.certifications ?? []),
+      workedSectors: form.workedSectors.length > 0 ? form.workedSectors : (profile.workedSectors ?? []),
+      education: form.education.length > 0 ? form.education : (profile.education ?? []),
+      caseStudies: form.caseStudies.length > 0 ? form.caseStudies : (profile.caseStudies ?? []),
+    });
   }
 }

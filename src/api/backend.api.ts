@@ -164,6 +164,8 @@ export interface RegisterDto {
   caseStudies?: ConsultantCaseStudyDto[];
   /** @example "Texto extraido del CV del consultor..." */
   cvText?: string;
+  /** @example "https://storage.example.com/consultants/cv.pdf" */
+  cvUrl?: string;
   /** @default "pyme" */
   role: "pyme" | "consultor";
 }
@@ -483,6 +485,7 @@ export interface ConsultantResultDto {
   workedSectors: string[];
   caseStudies: ConsultantCaseStudyDto[];
   cvText: string | null;
+  cvUrl: string | null;
   photoUrl: string | null;
   videoUrl: string | null;
   pricePerHour: string;
@@ -533,6 +536,8 @@ export interface ConsultantCreateDto {
   caseStudies?: ConsultantCaseStudyDto[];
   /** @example "Texto extraido del CV del consultor..." */
   cvText?: string;
+  /** @example "https://storage.example.com/consultants/cv.pdf" */
+  cvUrl?: string;
   /** @example "https://storage.example.com/consultants/photo.jpg" */
   photoUrl?: string;
   /** @example "https://storage.example.com/consultants/video.mp4" */
@@ -586,6 +591,8 @@ export interface ConsultantUpdateDto {
   caseStudies?: ConsultantCaseStudyDto[];
   /** @example "Texto extraido del CV del consultor..." */
   cvText?: string;
+  /** @example "https://storage.example.com/consultants/cv.pdf" */
+  cvUrl?: string;
   /** @example "https://storage.example.com/consultants/photo.jpg" */
   photoUrl?: string;
   /** @example "https://storage.example.com/consultants/video.mp4" */
@@ -1136,6 +1143,21 @@ export interface SubscriptionUpsertDto {
   expiresAt?: string;
 }
 
+export interface SubscriptionCheckoutDto {
+  /**
+   * ID del plan de suscripción
+   * @example "basic"
+   */
+  planId: string;
+}
+
+export interface SubscriptionCheckoutResultDto {
+  /** URL de pago en producción */
+  initPoint: string;
+  /** URL de pago en sandbox */
+  sandboxInitPoint: string;
+}
+
 export interface DashboardStatsDto {
   clients: number;
   meetings: number;
@@ -1626,13 +1648,13 @@ export type MeetingRemoveData = MeetingResultDto;
 
 export type MeetingRemoveError = HttpErrorDto;
 
-export type PowerautomateRunHubsmeAiData = HubsmeAiResultDto;
+export type IaRunHubsmeAiData = HubsmeAiResultDto;
 
-export type PowerautomateRunHubsmeAiError = HttpErrorDto;
+export type IaRunHubsmeAiError = HttpErrorDto;
 
-export type PowerautomateRunConsultantCvData = ConsultantCvProfileResultDto;
+export type IaRunConsultantCvData = ConsultantCvProfileResultDto;
 
-export type PowerautomateRunConsultantCvError = HttpErrorDto;
+export type IaRunConsultantCvError = HttpErrorDto;
 
 export interface ConsultantAvailabilityFindAllParams {
   /**
@@ -1959,6 +1981,10 @@ export type SubscriptionFindByUserError = HttpErrorDto;
 export type SubscriptionUpsertData = SubscriptionResultDto;
 
 export type SubscriptionUpsertError = HttpErrorDto;
+
+export type SubscriptionCreateCheckoutData = SubscriptionCheckoutResultDto;
+
+export type SubscriptionCreateCheckoutError = HttpErrorDto;
 
 export interface DashboardSummaryParams {
   /** @example 3 */
@@ -2921,39 +2947,41 @@ export namespace Meeting {
   }
 }
 
-export namespace Powerautomate {
+export namespace Ia {
   /**
    * No description
-   * @tags powerautomate
-   * @name PowerautomateRunHubsmeAi
-   * @summary Ejecutar flujo de Power Automate para obtener resumen y tareas sugeridas
-   * @request POST:/admin/powerautomate/hubsme-ai
-   * @response `201` `PowerautomateRunHubsmeAiData`
+   * @tags ia
+   * @name IaRunHubsmeAi
+   * @summary Ejecutar flujo de IA con Groq para obtener resumen y tareas sugeridas
+   * @request POST:/admin/ia/hubsme-ai
+   * @secure
+   * @response `201` `IaRunHubsmeAiData`
    * @response `400` `HttpErrorDto`
    */
-  export namespace PowerautomateRunHubsmeAi {
+  export namespace IaRunHubsmeAi {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = HubsmeAiRunDto;
     export type RequestHeaders = {};
-    export type ResponseBody = PowerautomateRunHubsmeAiData;
+    export type ResponseBody = IaRunHubsmeAiData;
   }
 
   /**
    * No description
-   * @tags powerautomate
-   * @name PowerautomateRunConsultantCv
-   * @summary Extraer perfil estructurado de consultor desde texto de CV
-   * @request POST:/admin/powerautomate/consultant-cv
-   * @response `201` `PowerautomateRunConsultantCvData`
+   * @tags ia
+   * @name IaRunConsultantCv
+   * @summary Extraer perfil estructurado de consultor desde texto de CV usando Groq
+   * @request POST:/admin/ia/consultant-cv
+   * @secure
+   * @response `201` `IaRunConsultantCvData`
    * @response `400` `HttpErrorDto`
    */
-  export namespace PowerautomateRunConsultantCv {
+  export namespace IaRunConsultantCv {
     export type RequestParams = {};
     export type RequestQuery = {};
     export type RequestBody = ConsultantCvRunDto;
     export type RequestHeaders = {};
-    export type ResponseBody = PowerautomateRunConsultantCvData;
+    export type ResponseBody = IaRunConsultantCvData;
   }
 }
 
@@ -3671,6 +3699,24 @@ export namespace Subscription {
     export type RequestHeaders = {};
     export type ResponseBody = SubscriptionUpsertData;
   }
+
+  /**
+   * No description
+   * @tags subscription
+   * @name SubscriptionCreateCheckout
+   * @summary Create Mercado Pago preference for subscription plan
+   * @request POST:/admin/subscription/checkout
+   * @secure
+   * @response `200` `SubscriptionCreateCheckoutData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace SubscriptionCreateCheckout {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = SubscriptionCheckoutDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = SubscriptionCreateCheckoutData;
+  }
 }
 
 export namespace Dashboard {
@@ -3704,7 +3750,6 @@ export namespace Storage {
    * @name StorageUpload
    * @summary Subir un archivo a Azure Storage
    * @request POST:/storage
-   * @secure
    * @response `200` `StorageUploadData`
    */
   export namespace StorageUpload {
@@ -5074,28 +5119,24 @@ export class Api<SecurityDataType extends unknown> {
         ...params,
       }),
   };
-  powerautomate = {
+  ia = {
     /**
      * No description
      *
-     * @tags powerautomate
-     * @name PowerautomateRunHubsmeAi
-     * @summary Ejecutar flujo de Power Automate para obtener resumen y tareas sugeridas
-     * @request POST:/admin/powerautomate/hubsme-ai
-     * @response `201` `PowerautomateRunHubsmeAiData`
+     * @tags ia
+     * @name IaRunHubsmeAi
+     * @summary Ejecutar flujo de IA con Groq para obtener resumen y tareas sugeridas
+     * @request POST:/admin/ia/hubsme-ai
+     * @secure
+     * @response `201` `IaRunHubsmeAiData`
      * @response `400` `HttpErrorDto`
      */
-    runHubsmeAi: (
-      data: HubsmeAiRunDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PowerautomateRunHubsmeAiData,
-        PowerautomateRunHubsmeAiError
-      >({
-        path: `/admin/powerautomate/hubsme-ai`,
+    runHubsmeAi: (data: HubsmeAiRunDto, params: RequestParams = {}) =>
+      this.http.request<IaRunHubsmeAiData, IaRunHubsmeAiError>({
+        path: `/admin/ia/hubsme-ai`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -5104,24 +5145,20 @@ export class Api<SecurityDataType extends unknown> {
     /**
      * No description
      *
-     * @tags powerautomate
-     * @name PowerautomateRunConsultantCv
-     * @summary Extraer perfil estructurado de consultor desde texto de CV
-     * @request POST:/admin/powerautomate/consultant-cv
-     * @response `201` `PowerautomateRunConsultantCvData`
+     * @tags ia
+     * @name IaRunConsultantCv
+     * @summary Extraer perfil estructurado de consultor desde texto de CV usando Groq
+     * @request POST:/admin/ia/consultant-cv
+     * @secure
+     * @response `201` `IaRunConsultantCvData`
      * @response `400` `HttpErrorDto`
      */
-    runConsultantCv: (
-      data: ConsultantCvRunDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PowerautomateRunConsultantCvData,
-        PowerautomateRunConsultantCvError
-      >({
-        path: `/admin/powerautomate/consultant-cv`,
+    runConsultantCv: (data: ConsultantCvRunDto, params: RequestParams = {}) =>
+      this.http.request<IaRunConsultantCvData, IaRunConsultantCvError>({
+        path: `/admin/ia/consultant-cv`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -5904,6 +5941,34 @@ export class Api<SecurityDataType extends unknown> {
         format: "json",
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags subscription
+     * @name SubscriptionCreateCheckout
+     * @summary Create Mercado Pago preference for subscription plan
+     * @request POST:/admin/subscription/checkout
+     * @secure
+     * @response `200` `SubscriptionCreateCheckoutData`
+     * @response `400` `HttpErrorDto`
+     */
+    createCheckout: (
+      data: SubscriptionCheckoutDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        SubscriptionCreateCheckoutData,
+        SubscriptionCreateCheckoutError
+      >({
+        path: `/admin/subscription/checkout`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
   };
   dashboard = {
     /**
@@ -5938,7 +6003,6 @@ export class Api<SecurityDataType extends unknown> {
      * @name StorageUpload
      * @summary Subir un archivo a Azure Storage
      * @request POST:/storage
-     * @secure
      * @response `200` `StorageUploadData`
      */
     upload: (
@@ -5951,7 +6015,6 @@ export class Api<SecurityDataType extends unknown> {
         method: "POST",
         query: query,
         body: data,
-        secure: true,
         type: ContentType.FormData,
         format: "json",
         ...params,

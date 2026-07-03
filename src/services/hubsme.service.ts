@@ -132,6 +132,10 @@ export class HubsmeService {
     return this.api.subscription.upsert(data);
   }
 
+  getSubscriptionByUserId(userId: number) {
+    return this.api.subscription.findByUser({ userId });
+  }
+
   getErrorMessage(error: unknown): string {
     const apiError = error as { error?: { message?: string | string[] }; message?: string };
     const message = apiError.error?.message || apiError.message || 'Ocurrio un error inesperado';

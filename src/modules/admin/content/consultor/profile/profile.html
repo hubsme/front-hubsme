@@ -166,6 +166,42 @@
               class="min-h-28 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-text outline-none focus:border-secondary"
             ></textarea>
           </label>
+          <div class="md:col-span-2 block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Áreas especializadas</span>
+            <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              @for (area of diagnosticAreaOptions; track area) {
+                <label
+                  class="flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-3 text-xs font-inter-semibold transition-colors"
+                  [class.border-secondary]="form().diagnosticAreas.includes(area)"
+                  [class.bg-secondary/5]="form().diagnosticAreas.includes(area)"
+                  [class.text-secondary]="form().diagnosticAreas.includes(area)"
+                  [class.border-border]="!form().diagnosticAreas.includes(area)"
+                  [class.bg-surface]="!form().diagnosticAreas.includes(area)"
+                  [class.text-text]="!form().diagnosticAreas.includes(area)"
+                >
+                  <input
+                    type="checkbox"
+                    class="sr-only"
+                    [checked]="form().diagnosticAreas.includes(area)"
+                    (change)="toggleDiagnosticArea(area)"
+                  />
+                  <span
+                    class="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border"
+                    [class.border-secondary]="form().diagnosticAreas.includes(area)"
+                    [class.bg-secondary]="form().diagnosticAreas.includes(area)"
+                    [class.text-background]="form().diagnosticAreas.includes(area)"
+                    [class.border-border]="!form().diagnosticAreas.includes(area)"
+                    [class.bg-background]="!form().diagnosticAreas.includes(area)"
+                  >
+                    @if (form().diagnosticAreas.includes(area)) {
+                      <i class="fas fa-check text-[0.6rem]"></i>
+                    }
+                  </span>
+                  <span>{{ area }}</span>
+                </label>
+              }
+            </div>
+          </div>
           @for (chip of chipFields; track chip.field) {
             <div class="block text-xs text-muted font-inter-semibold">
               <span class="mb-2 block">{{ chip.label }}</span>

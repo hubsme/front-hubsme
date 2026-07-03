@@ -1,0 +1,70 @@
+<main class="min-h-screen bg-background-50 flex items-center justify-center p-5">
+  <section class="w-full max-w-md bg-surface border border-border rounded-lg shadow-xl overflow-hidden">
+    <div class="h-1.5 bg-secondary"></div>
+    <div class="p-8">
+      <a href="/" class="inline-flex items-center gap-2 mb-10" aria-label="Ir al inicio de Hubsme">
+        <img src="/avif/logo_completo.avif" alt="Hubsme" class="h-9 w-auto" />
+      </a>
+
+      <p class="text-xs font-inter-semibold uppercase text-secondary mb-2">Acceso interno</p>
+      <h1 class="font-anton lowercase text-3xl text-text mb-2">Panel administrativo</h1>
+      <p class="text-sm text-muted mb-7">Gestiona códigos para consultorías gratuitas.</p>
+
+      <form (ngSubmit)="login()" class="space-y-5">
+        <label class="block">
+          <span class="block text-sm font-inter-semibold text-text mb-2">Usuario</span>
+          <div class="relative">
+            <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm"></i>
+            <input
+              name="username"
+              autocomplete="username"
+              [ngModel]="username()"
+              (ngModelChange)="username.set($event)"
+              class="w-full h-11 pl-11 pr-4 rounded-lg border border-border bg-background-50 text-text outline-none focus:border-secondary"
+            />
+          </div>
+        </label>
+
+        <label class="block">
+          <span class="block text-sm font-inter-semibold text-text mb-2">Contraseña</span>
+          <div class="relative">
+            <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm"></i>
+            <input
+              name="password"
+              autocomplete="current-password"
+              [type]="showPassword() ? 'text' : 'password'"
+              [ngModel]="password()"
+              (ngModelChange)="password.set($event)"
+              class="w-full h-11 pl-11 pr-11 rounded-lg border border-border bg-background-50 text-text outline-none focus:border-secondary"
+            />
+            <button
+              type="button"
+              (click)="togglePasswordVisibility()"
+              class="absolute right-3 top-1/2 -translate-y-1/2 size-8 text-muted hover:text-text"
+              [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            >
+              <i [class]="showPassword() ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+            </button>
+          </div>
+        </label>
+
+        @if (errorMessage()) {
+          <p class="text-sm text-danger bg-danger/10 border border-danger/20 rounded-lg p-3">
+            {{ errorMessage() }}
+          </p>
+        }
+
+        <button
+          type="submit"
+          [disabled]="loading()"
+          class="w-full h-11 rounded-lg bg-secondary text-fixed-text-50 font-inter-semibold hover:bg-secondary/90 disabled:opacity-50"
+        >
+          @if (loading()) {
+            <i class="fas fa-circle-notch fa-spin mr-2"></i>
+          }
+          Ingresar
+        </button>
+      </form>
+    </div>
+  </section>
+</main>

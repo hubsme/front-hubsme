@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from '@guard/auth.guard';
 import { PATH, getPath } from '@route/path.route';
 import { SessionService } from '@service/session.service';
+import { adminAuthGuard } from '@guard/admin-auth.guard';
 
 const matchPyme = () => {
   const sessionService = inject(SessionService);
@@ -33,6 +34,42 @@ export const routes: Routes = [
     path: getPath(PATH.diagnostic),
     canActivate: [authGuard],
     loadComponent: () => import('@module/diagnostic/diagnostic').then((m) => m.Diagnostic),
+  },
+  {
+    path: getPath(PATH.backoffice),
+    children: [
+      {
+        path: getPath(PATH.backoffice.login),
+        loadComponent: () =>
+          import('@module/backoffice/login/admin-login').then(
+            (m) => m.AdminLogin,
+          ),
+      },
+      {
+        path: '',
+        canActivate: [adminAuthGuard],
+        loadComponent: () =>
+          import('@module/backoffice/admin-panel').then((m) => m.AdminPanel),
+        children: [
+          {
+            path: getPath(PATH.backoffice.promotionCodes),
+            loadComponent: () =>
+              import(
+                '@module/backoffice/promotion-codes/promotion-codes'
+              ).then((m) => m.PromotionCodes),
+          },
+          {
+            path: '',
+            redirectTo: getPath(PATH.backoffice.promotionCodes),
+            pathMatch: 'full',
+          },
+          {
+            path: '**',
+            redirectTo: getPath(PATH.backoffice.promotionCodes),
+          },
+        ],
+      },
+    ],
   },
   {
     path: getPath(PATH.admin),

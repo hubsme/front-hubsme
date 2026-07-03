@@ -144,6 +144,20 @@ export interface RegisterDto {
   linkedinUrl?: string;
   /** @example "Consultor en finanzas para PYMES." */
   bio?: string;
+  /** @example ["Financiera","Tributario / Contable"] */
+  diagnosticAreas?: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
   /** @example ["Finanzas","Tributario"] */
   specialties?: string[];
   /** @example ["Retail","Manufactura"] */
@@ -325,6 +339,19 @@ export interface ConsultantListItemDto {
   workModality: string | null;
   linkedinUrl: string | null;
   bio: string | null;
+  diagnosticAreas: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
   specialties: string[];
   sectors: string[];
   industries: string[];
@@ -474,6 +501,19 @@ export interface ConsultantResultDto {
   workModality: string | null;
   linkedinUrl: string | null;
   bio: string | null;
+  diagnosticAreas: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
   specialties: string[];
   sectors: string[];
   industries: string[];
@@ -516,6 +556,20 @@ export interface ConsultantCreateDto {
   linkedinUrl?: string;
   /** @example "Consultor en transformacion digital para PYMES." */
   bio?: string;
+  /** @example ["Estratégica","Operaciones"] */
+  diagnosticAreas?: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
   /** @example ["Tecnologia","Operaciones"] */
   specialties?: string[];
   /** @example ["Retail","Manufactura"] */
@@ -571,6 +625,20 @@ export interface ConsultantUpdateDto {
   linkedinUrl?: string;
   /** @example "Consultor en transformacion digital para PYMES." */
   bio?: string;
+  /** @example ["Estratégica","Operaciones"] */
+  diagnosticAreas?: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
   /** @example ["Tecnologia","Operaciones"] */
   specialties?: string[];
   /** @example ["Retail","Manufactura"] */
@@ -1042,6 +1110,13 @@ export interface DiagnosticRecommendationDto {
   prioridad: "alta" | "media" | "baja";
 }
 
+export interface DiagnosticFodaDto {
+  fortalezas: string[];
+  oportunidades: string[];
+  debilidades: string[];
+  amenazas: string[];
+}
+
 export interface DiagnosticPayloadDto {
   resumenEjecutivo: string;
   puntajeGeneral: number;
@@ -1049,6 +1124,7 @@ export interface DiagnosticPayloadDto {
   areasEvaluadas: DiagnosticAreaDto[];
   problemasCriticos: DiagnosticProblemDto[];
   recomendaciones: DiagnosticRecommendationDto[];
+  foda?: DiagnosticFodaDto;
 }
 
 export interface DiagnosticResultDto {
@@ -1283,6 +1359,19 @@ export interface PublicConsultantListItemDto {
   firstName: string | null;
   lastName: string | null;
   bio: string | null;
+  diagnosticAreas: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
   specialties: string[];
   sectors: string[];
   photoUrl: string | null;
@@ -1299,6 +1388,100 @@ export interface PublicConsultantListItemDto {
 export interface PublicConsultantListDto {
   data: PublicConsultantListItemDto[];
   meta: PaginationMetaDto;
+}
+
+export interface AdminLoginDto {
+  /** @example "admin" */
+  username: string;
+  /** @example "********" */
+  password: string;
+}
+
+export interface AdminLoginUserDto {
+  /** @example "admin" */
+  username: string;
+  role: "admin";
+}
+
+export interface AdminLoginResponseDto {
+  accessToken: string;
+  user: AdminLoginUserDto;
+}
+
+export interface PromotionCodeResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  code: string;
+  description?: string | null;
+  maxRedemptions: number;
+  redemptionCount: number;
+  /** @format date-time */
+  startsAt?: string | null;
+  /** @format date-time */
+  expiresAt?: string | null;
+  isActive: boolean;
+}
+
+export interface PromotionCodeListDto {
+  data: PromotionCodeResultDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface PromotionCodeCreateDto {
+  /**
+   * If omitted, the backend generates a code
+   * @example "GRATIS-JULIO"
+   */
+  code?: string;
+  /** @example "Campaña para primeras consultorias" */
+  description?: string;
+  /**
+   * @min 1
+   * @example 10
+   */
+  maxRedemptions: number;
+  /** @format date-time */
+  startsAt?: string;
+  /** @format date-time */
+  expiresAt?: string;
+}
+
+export interface PromotionCodeUpdateDto {
+  /**
+   * If omitted, the backend generates a code
+   * @example "GRATIS-JULIO"
+   */
+  code?: string;
+  /** @example "Campaña para primeras consultorias" */
+  description?: string;
+  /**
+   * @min 1
+   * @example 10
+   */
+  maxRedemptions?: number;
+  /** @format date-time */
+  startsAt?: string;
+  /** @format date-time */
+  expiresAt?: string;
+  isActive?: boolean;
+}
+
+export interface PromotionCodeRedeemDto {
+  /** @example 12 */
+  checkoutId: number;
+  /** @example "GRATIS-JULIO" */
+  code: string;
+}
+
+export interface PromotionCodeRedeemResultDto {
+  meetingId: number;
+  checkoutId: number;
+  code: string;
+  /** @example "Consultoria gratuita confirmada" */
+  message: string;
 }
 
 export type AppGetHelloData = any;
@@ -2107,6 +2290,42 @@ export interface PublicconsultantFindAllParams {
 }
 
 export type PublicconsultantFindAllData = PublicConsultantListDto;
+
+export type AdminauthLoginData = AdminLoginResponseDto;
+
+export type AdminauthLoginError = HttpErrorDto;
+
+export interface PromotioncodeadminFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  search?: string;
+}
+
+export type PromotioncodeadminFindAllData = PromotionCodeListDto;
+
+export type PromotioncodeadminCreateData = PromotionCodeResultDto;
+
+export type PromotioncodeadminCreateError = HttpErrorDto;
+
+export interface PromotioncodeadminUpdateParams {
+  id: number;
+}
+
+export type PromotioncodeadminUpdateData = PromotionCodeResultDto;
+
+export type PromotioncodeadminUpdateError = HttpErrorDto;
+
+export type PromotioncodeRedeemData = PromotionCodeRedeemResultDto;
+
+export type PromotioncodeRedeemError = HttpErrorDto;
 
 export namespace App {
   /**
@@ -3988,6 +4207,114 @@ export namespace PublicConsultant {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = PublicconsultantFindAllData;
+  }
+}
+
+export namespace AdminAuth {
+  /**
+   * No description
+   * @tags adminAuth
+   * @name AdminauthLogin
+   * @summary Login for the internal Hubsme administrative panel
+   * @request POST:/admin/auth/login
+   * @response `200` `AdminauthLoginData`
+   * @response `401` `HttpErrorDto`
+   */
+  export namespace AdminauthLogin {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = AdminLoginDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = AdminauthLoginData;
+  }
+}
+
+export namespace PromotionCodeAdmin {
+  /**
+   * No description
+   * @tags promotionCodeAdmin
+   * @name PromotioncodeadminFindAll
+   * @summary List promotional codes for the admin panel
+   * @request GET:/admin/promotion-code/find-all
+   * @secure
+   * @response `200` `PromotioncodeadminFindAllData`
+   */
+  export namespace PromotioncodeadminFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      search?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PromotioncodeadminFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags promotionCodeAdmin
+   * @name PromotioncodeadminCreate
+   * @summary Create a promotional code
+   * @request POST:/admin/promotion-code/create
+   * @secure
+   * @response `201` `PromotioncodeadminCreateData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PromotioncodeadminCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PromotionCodeCreateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PromotioncodeadminCreateData;
+  }
+
+  /**
+   * No description
+   * @tags promotionCodeAdmin
+   * @name PromotioncodeadminUpdate
+   * @summary Update or deactivate a promotional code
+   * @request PATCH:/admin/promotion-code/update/{id}
+   * @secure
+   * @response `200` `PromotioncodeadminUpdateData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PromotioncodeadminUpdate {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = PromotionCodeUpdateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PromotioncodeadminUpdateData;
+  }
+}
+
+export namespace PromotionCode {
+  /**
+   * No description
+   * @tags promotionCode
+   * @name PromotioncodeRedeem
+   * @summary Redeem a code for a free consulting session
+   * @request POST:/admin/promotion-code/redeem
+   * @secure
+   * @response `201` `PromotioncodeRedeemData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PromotioncodeRedeem {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PromotionCodeRedeemDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PromotioncodeRedeemData;
   }
 }
 
@@ -6246,6 +6573,134 @@ export class Api<SecurityDataType extends unknown> {
         path: `/public/consultant/find-all`,
         method: "GET",
         query: query,
+        format: "json",
+        ...params,
+      }),
+  };
+  adminAuth = {
+    /**
+     * No description
+     *
+     * @tags adminAuth
+     * @name AdminauthLogin
+     * @summary Login for the internal Hubsme administrative panel
+     * @request POST:/admin/auth/login
+     * @response `200` `AdminauthLoginData`
+     * @response `401` `HttpErrorDto`
+     */
+    adminauthLogin: (data: AdminLoginDto, params: RequestParams = {}) =>
+      this.http.request<AdminauthLoginData, AdminauthLoginError>({
+        path: `/admin/auth/login`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  promotionCodeAdmin = {
+    /**
+     * No description
+     *
+     * @tags promotionCodeAdmin
+     * @name PromotioncodeadminFindAll
+     * @summary List promotional codes for the admin panel
+     * @request GET:/admin/promotion-code/find-all
+     * @secure
+     * @response `200` `PromotioncodeadminFindAllData`
+     */
+    promotioncodeadminFindAll: (
+      query: PromotioncodeadminFindAllParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PromotioncodeadminFindAllData, any>({
+        path: `/admin/promotion-code/find-all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags promotionCodeAdmin
+     * @name PromotioncodeadminCreate
+     * @summary Create a promotional code
+     * @request POST:/admin/promotion-code/create
+     * @secure
+     * @response `201` `PromotioncodeadminCreateData`
+     * @response `400` `HttpErrorDto`
+     */
+    promotioncodeadminCreate: (
+      data: PromotionCodeCreateDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PromotioncodeadminCreateData,
+        PromotioncodeadminCreateError
+      >({
+        path: `/admin/promotion-code/create`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags promotionCodeAdmin
+     * @name PromotioncodeadminUpdate
+     * @summary Update or deactivate a promotional code
+     * @request PATCH:/admin/promotion-code/update/{id}
+     * @secure
+     * @response `200` `PromotioncodeadminUpdateData`
+     * @response `400` `HttpErrorDto`
+     */
+    promotioncodeadminUpdate: (
+      { id }: PromotioncodeadminUpdateParams,
+      data: PromotionCodeUpdateDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PromotioncodeadminUpdateData,
+        PromotioncodeadminUpdateError
+      >({
+        path: `/admin/promotion-code/update/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  promotionCode = {
+    /**
+     * No description
+     *
+     * @tags promotionCode
+     * @name PromotioncodeRedeem
+     * @summary Redeem a code for a free consulting session
+     * @request POST:/admin/promotion-code/redeem
+     * @secure
+     * @response `201` `PromotioncodeRedeemData`
+     * @response `400` `HttpErrorDto`
+     */
+    promotioncodeRedeem: (
+      data: PromotionCodeRedeemDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PromotioncodeRedeemData, PromotioncodeRedeemError>({
+        path: `/admin/promotion-code/redeem`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

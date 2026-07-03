@@ -1,420 +1,438 @@
 <div class="space-y-6 font-inter-regular text-text">
   @if (loading()) {
-    <div class="py-16 text-center text-muted">
-      <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
-    </div>
+  <div class="py-16 text-center text-muted">
+    <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+  </div>
   } @else if (diagnostic(); as current) {
-    <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border pb-5">
-      <div>
-        <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold">Diagnóstico #{{ current.id }}</h1>
-        <p class="mt-1 text-[0.85rem] text-muted flex items-center gap-2">
-          <i class="fas fa-chart-line text-secondary"></i>
-          <span>Evaluación estratégica de tu negocio y recomendaciones accionables.</span>
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border pb-5">
+    <div>
+      <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold">Diagnóstico #{{ current.id }}</h1>
+      <p class="mt-1 text-[0.85rem] text-muted flex items-center gap-2">
+        <i class="fas fa-chart-line text-secondary"></i>
+        <span>Evaluación estratégica de tu negocio y recomendaciones accionables.</span>
+      </p>
+    </div>
+
+    <div class="flex items-center gap-3 shrink-0 no-print">
+      <button type="button" (click)="downloadPdf()" [disabled]="isDownloading()"
+        class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-xs font-inter-bold transition-all hover:border-secondary hover:text-secondary cursor-pointer shadow-xs disabled:opacity-55 disabled:cursor-not-allowed">
+        @if (downloadingPdf()) {
+        <i class="fas fa-spinner fa-spin text-xs text-secondary"></i>
+        } @else {
+        <i class="far fa-file-pdf text-xs text-danger"></i>
+        }
+        <span>Descargar PDF</span>
+      </button>
+      <button type="button" (click)="downloadWord()" [disabled]="isDownloading()"
+        class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-xs font-inter-bold transition-all hover:border-secondary hover:text-secondary cursor-pointer shadow-xs disabled:opacity-55 disabled:cursor-not-allowed">
+        @if (downloadingWord()) {
+        <i class="fas fa-spinner fa-spin text-xs text-secondary"></i>
+        } @else {
+        <i class="far fa-file-word text-xs text-secondary"></i>
+        }
+        <span>Descargar Word</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero Banner Card -->
+  <div
+    class="bg-surface border border-border rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md relative overflow-hidden">
+    <div class="absolute -right-24 -bottom-24 h-48 w-48 rounded-full bg-secondary/5 blur-3xl"></div>
+
+    <div class="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
+      <!-- Custom Vector SVG Document Illustration -->
+      <svg viewBox="0 0 120 120" class="h-24 w-24 text-secondary shrink-0">
+        <defs>
+          <linearGradient id="gradDocDetail" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#0870f7" stop-opacity="0.12" />
+            <stop offset="100%" stop-color="#0870f7" stop-opacity="0.02" />
+          </linearGradient>
+        </defs>
+        <rect x="25" y="15" width="70" height="90" rx="12" fill="url(#gradDocDetail)" stroke="#0870f7"
+          stroke-width="1.5" stroke-opacity="0.2" />
+        <rect x="40" y="35" width="40" height="6" rx="3" fill="#0870f7" fill-opacity="0.6" />
+        <rect x="40" y="47" width="25" height="4" rx="2" fill="#0870f7" fill-opacity="0.3" />
+        <rect x="40" y="80" width="6" height="12" rx="2" fill="#0870f7" fill-opacity="0.7" />
+        <rect x="52" y="70" width="6" height="22" rx="2" fill="#0e9f6e" fill-opacity="0.7" />
+        <rect x="64" y="65" width="6" height="27" rx="2" fill="#ff9f00" fill-opacity="0.7" />
+        <rect x="76" y="75" width="6" height="17" rx="2" fill="#7e3af2" fill-opacity="0.7" />
+        <circle cx="75" cy="40" r="10" stroke="#0870f7" stroke-width="3" stroke-opacity="0.8" fill="transparent"
+          stroke-dasharray="40 20" />
+      </svg>
+
+      <div class="space-y-2">
+        <div
+          class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-inter-bold uppercase tracking-wider bg-secondary/10 text-secondary">
+          <i class="fas fa-check-circle"></i>
+          <span>Diagnóstico Completado</span>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-inter-bold text-text leading-tight">Tu informe estratégico está listo</h1>
+        <p class="text-xs sm:text-sm text-text/50">
+          Resumen ejecutivo de la salud y oportunidades de tu negocio.
         </p>
       </div>
+    </div>
 
-      <div class="flex items-center gap-3 shrink-0 no-print">
-        <button
-          type="button"
-          (click)="downloadPdf()"
-          [disabled]="isDownloading()"
-          class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-xs font-inter-bold transition-all hover:border-secondary hover:text-secondary cursor-pointer shadow-xs disabled:opacity-55 disabled:cursor-not-allowed"
-        >
-          @if (downloadingPdf()) {
-            <i class="fas fa-spinner fa-spin text-xs text-secondary"></i>
-          } @else {
-            <i class="far fa-file-pdf text-xs text-danger"></i>
-          }
-          <span>Descargar PDF</span>
-        </button>
-        <button
-          type="button"
-          (click)="downloadWord()"
-          [disabled]="isDownloading()"
-          class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-xs font-inter-bold transition-all hover:border-secondary hover:text-secondary cursor-pointer shadow-xs disabled:opacity-55 disabled:cursor-not-allowed"
-        >
-          @if (downloadingWord()) {
-            <i class="fas fa-spinner fa-spin text-xs text-secondary"></i>
-          } @else {
-            <i class="far fa-file-word text-xs text-secondary"></i>
-          }
-          <span>Descargar Word</span>
-        </button>
-      </div>
-    </header>
-
-    <!-- Hero Banner Card -->
-    <div class="bg-surface border border-border rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md relative overflow-hidden">
-      <div class="absolute -right-24 -bottom-24 h-48 w-48 rounded-full bg-secondary/5 blur-3xl"></div>
-      
-      <div class="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
-        <!-- Custom Vector SVG Document Illustration -->
-        <svg viewBox="0 0 120 120" class="h-24 w-24 text-secondary shrink-0">
-          <defs>
-            <linearGradient id="gradDocDetail" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#0870f7" stop-opacity="0.12" />
-              <stop offset="100%" stop-color="#0870f7" stop-opacity="0.02" />
-            </linearGradient>
-          </defs>
-          <rect x="25" y="15" width="70" height="90" rx="12" fill="url(#gradDocDetail)" stroke="#0870f7" stroke-width="1.5" stroke-opacity="0.2" />
-          <rect x="40" y="35" width="40" height="6" rx="3" fill="#0870f7" fill-opacity="0.6" />
-          <rect x="40" y="47" width="25" height="4" rx="2" fill="#0870f7" fill-opacity="0.3" />
-          <rect x="40" y="80" width="6" height="12" rx="2" fill="#0870f7" fill-opacity="0.7" />
-          <rect x="52" y="70" width="6" height="22" rx="2" fill="#0e9f6e" fill-opacity="0.7" />
-          <rect x="64" y="65" width="6" height="27" rx="2" fill="#ff9f00" fill-opacity="0.7" />
-          <rect x="76" y="75" width="6" height="17" rx="2" fill="#7e3af2" fill-opacity="0.7" />
-          <circle cx="75" cy="40" r="10" stroke="#0870f7" stroke-width="3" stroke-opacity="0.8" fill="transparent" stroke-dasharray="40 20" />
+    <!-- Circular Score Gauge -->
+    <div class="flex items-center gap-6 shrink-0 bg-background/30 border border-border/50 rounded-2xl p-4 sm:p-5">
+      <div class="relative h-24 w-24 flex items-center justify-center shrink-0">
+        <svg class="h-24 w-24" viewBox="0 0 100 100">
+          <!-- Background Circle -->
+          <circle class="text-border stroke-current" stroke-width="8" fill="transparent" r="40" cx="50" cy="50" />
+          <!-- Progress Circle -->
+          <circle class="text-secondary stroke-current" stroke-width="8" stroke-linecap="round" fill="transparent"
+            r="40" cx="50" cy="50" [style.stroke-dasharray]="251.2"
+            [style.stroke-dashoffset]="251.2 - (251.2 * current.score) / 100" transform="rotate(-90 50 50)" />
         </svg>
-
-        <div class="space-y-2">
-          <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-inter-bold uppercase tracking-wider bg-secondary/10 text-secondary">
-            <i class="fas fa-check-circle"></i>
-            <span>Diagnóstico Completado</span>
-          </div>
-          <h1 class="text-2xl sm:text-3xl font-inter-bold text-text leading-tight">Tu informe estratégico está listo</h1>
-          <p class="text-xs sm:text-sm text-text/50">
-            Resumen ejecutivo de la salud y oportunidades de tu negocio.
-          </p>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <span class="text-2xl font-inter-bold text-text">{{ current.score }}</span>
+          <span class="text-[10px] text-text/40">/100</span>
         </div>
       </div>
+      <div class="space-y-1">
+        <span class="text-[10px] font-inter-bold text-text/40 uppercase tracking-widest block">Puntaje global</span>
+        <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-inter-bold uppercase border"
+          [class]="priorityBadgeClass()">
+          {{ priorityBadge() }}
+        </span>
+      </div>
+    </div>
+  </div>
 
-      <!-- Circular Score Gauge -->
-      <div class="flex items-center gap-6 shrink-0 bg-background/30 border border-border/50 rounded-2xl p-4 sm:p-5">
-        <div class="relative h-24 w-24 flex items-center justify-center shrink-0">
-          <svg class="h-24 w-24" viewBox="0 0 100 100">
-            <!-- Background Circle -->
-            <circle class="text-border stroke-current" stroke-width="8" fill="transparent" r="40" cx="50" cy="50"/>
-            <!-- Progress Circle -->
-            <circle class="text-secondary stroke-current" stroke-width="8" stroke-linecap="round" fill="transparent" r="40" cx="50" cy="50"
-              [style.stroke-dasharray]="251.2"
-              [style.stroke-dashoffset]="251.2 - (251.2 * current.score) / 100"
-              transform="rotate(-90 50 50)"
-            />
-          </svg>
-          <div class="absolute inset-0 flex flex-col items-center justify-center">
-            <span class="text-2xl font-inter-bold text-text">{{ current.score }}</span>
-            <span class="text-[10px] text-text/40">/100</span>
-          </div>
-        </div>
-        <div class="space-y-1">
-          <span class="text-[10px] font-inter-bold text-text/40 uppercase tracking-widest block">Puntaje global</span>
-          <span 
-            class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-inter-bold uppercase border"
-            [class]="priorityBadgeClass()"
-          >
-            {{ priorityBadge() }}
-          </span>
-        </div>
+  <!-- 5 KPI Cards Row -->
+  <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
+    <!-- KPI 1: Puntaje global -->
+    <div class="bg-surface border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xs">
+      <div class="h-10 w-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
+        <i class="fas fa-bullseye text-sm"></i>
+      </div>
+      <div class="min-w-0">
+        <span class="text-[10px] font-inter-semibold text-text/40 block truncate">Puntaje global</span>
+        <span class="text-sm font-inter-bold text-text">{{ current.score }}<span
+            class="text-xs text-text/30">/100</span></span>
       </div>
     </div>
 
-    <!-- 5 KPI Cards Row -->
-    <div class="grid grid-cols-2 sm:grid-cols-5 gap-4">
-      <!-- KPI 1: Puntaje global -->
-      <div class="bg-surface border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xs">
-        <div class="h-10 w-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
-          <i class="fas fa-bullseye text-sm"></i>
-        </div>
-        <div class="min-w-0">
-          <span class="text-[10px] font-inter-semibold text-text/40 block truncate">Puntaje global</span>
-          <span class="text-sm font-inter-bold text-text">{{ current.score }}<span class="text-xs text-text/30">/100</span></span>
-        </div>
+    <!-- KPI 2: Nivel de prioridad -->
+    <div class="bg-surface border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xs">
+      <div class="h-10 w-10 rounded-xl flex items-center justify-center shrink-0"
+        [class.bg-danger/10]="priorityLevel() === 'Alta'" [class.bg-warning/10]="priorityLevel() === 'Media'"
+        [class.bg-success/10]="priorityLevel() === 'Baja'">
+        <i class="fas fa-shield-alt text-sm" [class.text-danger]="priorityLevel() === 'Alta'"
+          [class.text-warning]="priorityLevel() === 'Media'" [class.text-success]="priorityLevel() === 'Baja'"></i>
       </div>
-      
-      <!-- KPI 2: Nivel de prioridad -->
-      <div class="bg-surface border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xs">
-        <div class="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" 
-          [class.bg-danger/10]="priorityLevel() === 'Alta'" 
-          [class.bg-warning/10]="priorityLevel() === 'Media'" 
-          [class.bg-success/10]="priorityLevel() === 'Baja'"
-        >
-          <i class="fas fa-shield-alt text-sm" 
-            [class.text-danger]="priorityLevel() === 'Alta'" 
-            [class.text-warning]="priorityLevel() === 'Media'" 
-            [class.text-success]="priorityLevel() === 'Baja'"
-          ></i>
-        </div>
-        <div class="min-w-0">
-          <span class="text-[10px] font-inter-semibold text-text/40 block truncate">Nivel de prioridad</span>
-          <span class="text-sm font-inter-bold" [class]="priorityClass()">{{ priorityLevel() }}</span>
-        </div>
-      </div>
-      
-      <!-- KPI 3: Áreas evaluadas -->
-      <div class="bg-surface border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xs">
-        <div class="h-10 w-10 rounded-xl bg-success/10 text-success flex items-center justify-center shrink-0">
-          <i class="fas fa-th-large text-sm"></i>
-        </div>
-        <div class="min-w-0">
-          <span class="text-[10px] font-inter-semibold text-text/40 block truncate">Áreas evaluadas</span>
-          <span class="text-sm font-inter-bold text-text">{{ current.result.areasEvaluadas.length }}</span>
-        </div>
-      </div>
-      
-      <!-- KPI 4: Recomendaciones -->
-      <div class="bg-surface border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xs">
-        <div class="h-10 w-10 rounded-xl bg-warning/10 text-warning flex items-center justify-center shrink-0">
-          <i class="fas fa-star text-sm"></i>
-        </div>
-        <div class="min-w-0">
-          <span class="text-[10px] font-inter-semibold text-text/40 block truncate">Recomendaciones</span>
-          <span class="text-sm font-inter-bold text-text">{{ current.result.recomendaciones.length }}</span>
-        </div>
-      </div>
-      
-      <!-- KPI 5: Potencial de mejora -->
-      <div class="bg-surface border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xs">
-        <div class="h-10 w-10 rounded-xl bg-info/10 text-info flex items-center justify-center shrink-0">
-          <i class="fas fa-chart-line text-sm"></i>
-        </div>
-        <div class="min-w-0">
-          <span class="text-[10px] font-inter-semibold text-text/40 block truncate">Potencial de mejora</span>
-          <span class="text-sm font-inter-bold text-info">{{ improvementPotential() }}</span>
-        </div>
+      <div class="min-w-0">
+        <span class="text-[10px] font-inter-semibold text-text/40 block truncate">Nivel de prioridad</span>
+        <span class="text-sm font-inter-bold" [class]="priorityClass()">{{ priorityLevel() }}</span>
       </div>
     </div>
 
-    <!-- 3 Charts Row (2x3 Grid Layout) -->
-    <div class="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-6">
-      <!-- Area Performance Bar Chart (2x2 span) -->
-      <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between md:col-span-2 md:row-span-2">
-        <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text/50 mb-4">Desempeño por áreas</h3>
-        @if (isBrowser) {
-          <div class="flex-1 min-h-[480px]">
-            <apx-chart
-              [series]="barChartOptions().series"
-              [chart]="barChartOptions().chart"
-              [colors]="barChartOptions().colors"
-              [plotOptions]="barChartOptions().plotOptions"
-              [dataLabels]="barChartOptions().dataLabels"
-              [xaxis]="barChartOptions().xaxis"
-              [yaxis]="barChartOptions().yaxis"
-              [grid]="barChartOptions().grid"
-              [legend]="barChartOptions().legend"
-            ></apx-chart>
-          </div>
-        }
+    <!-- KPI 3: Áreas evaluadas -->
+    <div class="bg-surface border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xs">
+      <div class="h-10 w-10 rounded-xl bg-success/10 text-success flex items-center justify-center shrink-0">
+        <i class="fas fa-th-large text-sm"></i>
       </div>
-
-      <!-- Radar Chart (Capabilities) (1x1 span) -->
-      <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between md:col-span-1 md:row-span-1">
-        <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text/50 mb-4">Capacidades del negocio</h3>
-        @if (isBrowser) {
-          <div class="flex-1 min-h-[220px]">
-            <apx-chart
-              [series]="radarChartOptions().series"
-              [chart]="radarChartOptions().chart"
-              [colors]="radarChartOptions().colors"
-              [xaxis]="radarChartOptions().xaxis"
-              [yaxis]="radarChartOptions().yaxis"
-              [plotOptions]="radarChartOptions().plotOptions"
-              [markers]="radarChartOptions().markers"
-            ></apx-chart>
-          </div>
-        }
-      </div>
-
-      <!-- Evolution Projection (Line Chart) (1x1 span) -->
-      <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between md:col-span-1 md:row-span-1">
-        <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text/50 mb-4">Proyección de evolución</h3>
-        @if (isBrowser) {
-          <div class="flex-1 min-h-[220px]">
-            <apx-chart
-              [series]="lineChartOptions().series"
-              [chart]="lineChartOptions().chart"
-              [colors]="lineChartOptions().colors"
-              [stroke]="lineChartOptions().stroke"
-              [markers]="lineChartOptions().markers"
-              [dataLabels]="lineChartOptions().dataLabels"
-              [xaxis]="lineChartOptions().xaxis"
-              [yaxis]="lineChartOptions().yaxis"
-              [grid]="lineChartOptions().grid"
-            ></apx-chart>
-          </div>
-        }
+      <div class="min-w-0">
+        <span class="text-[10px] font-inter-semibold text-text/40 block truncate">Áreas evaluadas</span>
+        <span class="text-sm font-inter-bold text-text">{{ current.result.areasEvaluadas.length }}</span>
       </div>
     </div>
 
-    <!-- General Strategic Analysis Card -->
-    <div class="bg-surface border border-border rounded-3xl p-6 sm:p-8 shadow-xs space-y-4">
-      <div class="flex items-center gap-3">
-        <div class="h-10 w-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
-          <i class="fas fa-brain text-sm"></i>
-        </div>
-        <div>
-          <h2 class="text-base font-inter-bold text-text">Análisis Estratégico General</h2>
-          <p class="text-xs text-text/40">Diagnóstico detallado y ruta de mejora estructurada por Inteligencia Artificial.</p>
-        </div>
+    <!-- KPI 4: Recomendaciones -->
+    <div class="bg-surface border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xs">
+      <div class="h-10 w-10 rounded-xl bg-warning/10 text-warning flex items-center justify-center shrink-0">
+        <i class="fas fa-star text-sm"></i>
       </div>
-      <div 
-        class="text-xs sm:text-sm text-text/70 leading-relaxed space-y-2 border-t border-border/50 pt-4"
-        [innerHTML]="renderMarkdown(current.result.feedbackIa)"
-      ></div>
-    </div>
-
-    <!-- Recommendations List Section -->
-    @if (current.result.recomendaciones && current.result.recomendaciones.length > 0) {
-      <div class="space-y-4 pt-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-lg font-inter-bold text-text">Recomendaciones estratégicas</h2>
-        </div>
-        <div class="bg-surface border border-border rounded-2xl p-4 sm:p-5 shadow-xs">
-          <div class="grid gap-4 sm:grid-cols-2">
-            @for (rec of current.result.recomendaciones; track rec.accion; let idx = $index) {
-              <div class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-background/40 transition-colors duration-150">
-                <div class="h-6 w-6 rounded-full bg-success/10 text-success flex items-center justify-center shrink-0 mt-0.5 text-xs font-inter-bold">
-                  {{ idx + 1 }}
-                </div>
-                <div class="space-y-1">
-                  <p class="text-xs sm:text-sm text-text font-inter-bold leading-normal">{{ rec.accion }}</p>
-                  <p class="text-xs text-text/50 leading-relaxed"><strong class="font-inter-semibold text-text/60">Beneficio:</strong> {{ rec.beneficioEsperado }}</p>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-      </div>
-    }
-
-    <!-- 4 Area Detail Cards Grid -->
-    <div class="space-y-4 pt-4">
-      <h2 class="text-lg font-inter-bold text-text">Áreas críticas para su atención</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        @for (area of getMainAreas(current.result.areasEvaluadas); track area.area) {
-          <div class="bg-surface border border-border rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md transition-all duration-200">
-            <div class="flex items-center gap-3">
-              <div 
-                class="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 text-white"
-                [class.bg-secondary]="$index === 0"
-                [class.bg-success]="$index === 1"
-                [class.bg-warning]="$index === 2"
-                [class.bg-violet-600]="$index === 3"
-              >
-                <i 
-                  class="text-sm fas"
-                  [class.fa-dollar-sign]="area.area.toLowerCase().includes('finan') || area.area.toLowerCase().includes('tribut') || area.area.toLowerCase().includes('contab')"
-                  [class.fa-cog]="area.area.toLowerCase().includes('operac')"
-                  [class.fa-laptop]="area.area.toLowerCase().includes('tecnol')"
-                  [class.fa-users]="area.area.toLowerCase().includes('equip') || area.area.toLowerCase().includes('organi')"
-                  [class.fa-briefcase]="area.area.toLowerCase().includes('labor')"
-                  [class.fa-balance-scale]="area.area.toLowerCase().includes('legal')"
-                  [class.fa-bullhorn]="area.area.toLowerCase().includes('merca') || area.area.toLowerCase().includes('marke')"
-                  [class.fa-chart-pie]="area.area.toLowerCase().includes('comerc') || area.area.toLowerCase().includes('ventas')"
-                  [class.fa-comments]="area.area.toLowerCase().includes('client') || area.area.toLowerCase().includes('servi')"
-                  [class.fa-chess-knight]="area.area.toLowerCase().includes('estrat')"
-                ></i>
-              </div>
-              <div class="min-w-0 flex-1 flex items-center justify-between">
-                <span class="font-inter-bold text-sm text-text truncate">{{ area.area }}</span>
-                <span class="text-xs font-inter-bold"
-                  [class.text-secondary]="$index === 0"
-                  [class.text-success]="$index === 1"
-                  [class.text-warning]="$index === 2"
-                  [class.text-violet-600]="$index === 3"
-                >
-                  {{ area.puntaje }}<span class="text-[10px] text-text/30">/100</span>
-                </span>
-              </div>
-            </div>
-
-            <!-- Mini progress bar -->
-            <div class="w-full h-1.5 bg-background rounded-full overflow-hidden">
-              <div 
-                class="h-full rounded-full transition-all duration-500"
-                [class.bg-secondary]="$index === 0"
-                [class.bg-success]="$index === 1"
-                [class.bg-warning]="$index === 2"
-                [class.bg-violet-600]="$index === 3"
-                [style.width]="area.puntaje + '%'"
-              ></div>
-            </div>
-
-            <p class="text-xs text-text/60 leading-relaxed font-inter-medium">
-              {{ areaDescription(area.area) }}
-            </p>
-          </div>
-        }
+      <div class="min-w-0">
+        <span class="text-[10px] font-inter-semibold text-text/40 block truncate">Recomendaciones</span>
+        <span class="text-sm font-inter-bold text-text">{{ current.result.recomendaciones.length }}</span>
       </div>
     </div>
 
-    <!-- Suggested Consultants Section -->
-    @if (consultants().length > 0) {
-      <div class="space-y-4 pt-4">
-        <div class="flex items-end justify-between">
-          <div class="space-y-0.5">
-            <h2 class="text-lg font-inter-bold text-text">Especialistas recomendados por área crítica</h2>
-            <p class="text-xs text-text/40">Conecta con expertos que impulsarán tus resultados.</p>
-          </div>
-          <a 
-            [routerLink]="['/' + buildPath(PATH.admin.pyme.consultants)]" 
-            class="text-xs font-inter-bold text-secondary hover:text-secondary/80 flex items-center gap-1 cursor-pointer transition-colors border-none shrink-0 no-print"
-          >
-            <span>Ver todos los especialistas</span>
-            <i class="fas fa-arrow-right text-[10px]"></i>
-          </a>
+    <!-- KPI 5: Potencial de mejora -->
+    <div class="bg-surface border border-border rounded-2xl p-4 flex items-center gap-3 shadow-xs">
+      <div class="h-10 w-10 rounded-xl bg-info/10 text-info flex items-center justify-center shrink-0">
+        <i class="fas fa-chart-line text-sm"></i>
+      </div>
+      <div class="min-w-0">
+        <span class="text-[10px] font-inter-semibold text-text/40 block truncate">Potencial de mejora</span>
+        <span class="text-sm font-inter-bold text-info">{{ improvementPotential() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 Charts Row (1x3 Grid Layout) -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Area Performance Bar Chart (2 span) -->
+    <div
+      class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between md:col-span-2">
+      <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text/50">Desempeño por áreas</h3>
+      @if (isBrowser) {
+      <div class="flex-1 flex items-center justify-center min-h-[340px] mt-4">
+        <apx-chart class="w-full" [series]="barChartOptions().series" [chart]="barChartOptions().chart"
+          [colors]="barChartOptions().colors" [plotOptions]="barChartOptions().plotOptions"
+          [dataLabels]="barChartOptions().dataLabels" [xaxis]="barChartOptions().xaxis"
+          [yaxis]="barChartOptions().yaxis" [grid]="barChartOptions().grid"
+          [legend]="barChartOptions().legend"></apx-chart>
+      </div>
+      }
+      <div class="mt-4">
+        <p class="text-[11px] text-text/40">Comparativa de tu negocio frente al promedio del sector por cada dimensión estratégica.</p>
+      </div>
+    </div>
+
+    <!-- Radar Chart (Capabilities) (1 span) -->
+    <div
+      class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between md:col-span-1">
+      <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text/50">Capacidades del negocio</h3>
+      @if (isBrowser) {
+      <div class="flex-1 flex items-center justify-center min-h-[220px] mt-4">
+        <apx-chart class="w-full" [series]="radarChartOptions().series" [chart]="radarChartOptions().chart"
+          [colors]="radarChartOptions().colors" [xaxis]="radarChartOptions().xaxis" [yaxis]="radarChartOptions().yaxis"
+          [plotOptions]="radarChartOptions().plotOptions" [markers]="radarChartOptions().markers"></apx-chart>
+      </div>
+      }
+      <div class="mt-4">
+        <p class="text-[11px] text-text/40">Visualiza el equilibrio y nivel de madurez de las áreas clave del negocio (Pentágono de capacidades).</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- General Strategic Analysis Card -->
+  <div class="bg-surface border border-border rounded-3xl p-6 sm:p-8 shadow-xs space-y-4">
+    <div class="flex items-center gap-3">
+      <div class="h-10 w-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
+        <i class="fas fa-brain text-sm"></i>
+      </div>
+      <div>
+        <h2 class="text-base font-inter-bold text-text">Análisis Estratégico General</h2>
+        <p class="text-xs text-text/40">Diagnóstico detallado y ruta de mejora estructurada por Inteligencia Artificial.
+        </p>
+      </div>
+    </div>
+    <div class="text-xs sm:text-sm text-text/70 leading-relaxed space-y-2 border-t border-border/50 pt-4"
+      [innerHTML]="renderMarkdown(current.result.feedbackIa)"></div>
+  </div>
+
+  <!-- FODA / SWOT Analysis Card -->
+  @if (current.result.foda) {
+  <div class="bg-surface border border-border rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+    <div class="flex items-center gap-3">
+      <div class="h-10 w-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
+        <i class="fas fa-clipboard-list text-sm"></i>
+      </div>
+      <div>
+        <h2 class="text-base font-inter-bold text-text">Análisis FODA</h2>
+        <p class="text-xs text-text/40">Fortalezas, Oportunidades, Debilidades y Amenazas identificadas por Inteligencia Artificial.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-border/50 pt-6">
+      <!-- Fortalezas -->
+      <div class="bg-success/5 border border-success/20 rounded-2xl p-5 space-y-3">
+        <div class="flex items-center gap-2 text-success">
+          <i class="fas fa-check-circle text-base"></i>
+          <h3 class="font-inter-bold text-sm uppercase tracking-wider">Fortalezas</h3>
         </div>
-
-        <div class="grid gap-4 grid-cols-1 md:grid-cols-3">
-          @for (consultant of consultants(); track consultant.id) {
-            <div class="bg-surface border border-border rounded-2xl flex gap-4 shadow-xs hover:shadow-sm transition-all duration-200 min-h-[145px] items-stretch overflow-hidden">
-              <!-- Left side (Photo) -->
-              <div class="relative w-24 sm:w-28 shrink-0 bg-text/5 shadow-inner">
-                <img 
-                  [src]="consultantPhoto(consultant)" 
-                  alt="{{ consultant.fullName }}" 
-                  class="h-full w-full object-cover"
-                />
-              </div>
-
-              <!-- Right side (Info & Actions) -->
-              <div class="flex-1 flex flex-col justify-between min-w-0 py-4 pr-4 pl-0">
-                <div class="space-y-1.5">
-                  <div>
-                    <h3 class="font-inter-bold text-sm sm:text-base text-text truncate leading-tight">
-                      {{ consultant.fullName }}
-                    </h3>
-                    <span class="text-[9px] font-inter-semibold text-secondary uppercase tracking-wider block mt-0.5">
-                      {{ consultant.specialties[0] || 'Consultor General' }}
-                    </span>
-                  </div>
-
-                  <!-- Specialties Pills -->
-                  <div class="flex flex-wrap gap-1">
-                    @for (spec of consultant.specialties.slice(0, 2); track spec) {
-                      <span class="inline-block px-1.5 py-0.5 rounded bg-secondary/5 text-secondary border border-secondary/10 text-[8px] font-inter-semibold truncate max-w-full">
-                        {{ spec }}
-                      </span>
-                    }
-                  </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="grid grid-cols-2 gap-2 pt-2.5 border-t border-border/50 no-print">
-                  <a 
-                    [routerLink]="['/' + buildPath(PATH.admin.pyme.consultants.profile), consultant.userId]"
-                    class="inline-flex h-8 items-center justify-center rounded-lg border border-border bg-surface text-[10px] font-inter-semibold text-text hover:border-secondary hover:text-secondary transition-all"
-                  >
-                    Ver perfil
-                  </a>
-                  <a 
-                    [routerLink]="['/' + buildPath(PATH.admin.pyme.consultants.agendar), consultant.userId]"
-                    class="inline-flex h-8 items-center justify-center rounded-lg bg-secondary text-[10px] font-inter-semibold text-background hover:bg-secondary/95 transition-all border-none shadow-xs"
-                  >
-                    <i class="far fa-calendar-check text-[9px] mr-1"></i>
-                    <span>Agendar</span>
-                  </a>
-                </div>
-              </div>
-            </div>
+        <ul class="space-y-2 text-xs text-text/80 list-disc pl-4 leading-relaxed">
+          @for (item of current.result.foda.fortalezas; track item) {
+            <li>{{ item }}</li>
           }
-        </div>
+        </ul>
       </div>
-    }
 
+      <!-- Oportunidades -->
+      <div class="bg-secondary/5 border border-secondary/20 rounded-2xl p-5 space-y-3">
+        <div class="flex items-center gap-2 text-secondary">
+          <i class="fas fa-rocket text-base"></i>
+          <h3 class="font-inter-bold text-sm uppercase tracking-wider">Oportunidades</h3>
+        </div>
+        <ul class="space-y-2 text-xs text-text/80 list-disc pl-4 leading-relaxed">
+          @for (item of current.result.foda.oportunidades; track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+      </div>
+
+      <!-- Debilidades -->
+      <div class="bg-warning/5 border border-warning/20 rounded-2xl p-5 space-y-3">
+        <div class="flex items-center gap-2 text-warning">
+          <i class="fas fa-exclamation-triangle text-base"></i>
+          <h3 class="font-inter-bold text-sm uppercase tracking-wider">Debilidades</h3>
+        </div>
+        <ul class="space-y-2 text-xs text-text/80 list-disc pl-4 leading-relaxed">
+          @for (item of current.result.foda.debilidades; track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+      </div>
+
+      <!-- Amenazas -->
+      <div class="bg-danger/5 border border-danger/20 rounded-2xl p-5 space-y-3">
+        <div class="flex items-center gap-2 text-danger">
+          <i class="fas fa-exclamation-circle text-base"></i>
+          <h3 class="font-inter-bold text-sm uppercase tracking-wider">Amenazas</h3>
+        </div>
+        <ul class="space-y-2 text-xs text-text/80 list-disc pl-4 leading-relaxed">
+          @for (item of current.result.foda.amenazas; track item) {
+            <li>{{ item }}</li>
+          }
+        </ul>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Recommendations List Section -->
+  @if (current.result.recomendaciones && current.result.recomendaciones.length > 0) {
+  <div class="space-y-4 pt-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-inter-bold text-text">Recomendaciones estratégicas</h2>
+    </div>
+    <div class="bg-surface border border-border rounded-2xl p-4 sm:p-5 shadow-xs">
+      <div class="grid gap-4 sm:grid-cols-2">
+        @for (rec of current.result.recomendaciones; track rec.accion; let idx = $index) {
+        <div class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-background/40 transition-colors duration-150">
+          <div
+            class="h-6 w-6 rounded-full bg-success/10 text-success flex items-center justify-center shrink-0 mt-0.5 text-xs font-inter-bold">
+            {{ idx + 1 }}
+          </div>
+          <div class="space-y-1">
+            <p class="text-xs sm:text-sm text-text font-inter-bold leading-normal">{{ rec.accion }}</p>
+            <p class="text-xs text-text/50 leading-relaxed"><strong
+                class="font-inter-semibold text-text/60">Beneficio:</strong> {{ rec.beneficioEsperado }}</p>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+  }
+
+  @if (getMainAreas(current.result.areasEvaluadas); as criticalAreas) {
+  <div class="space-y-6 pt-4">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <div class="space-y-0.5">
+        <h2 class="text-lg font-inter-bold text-text">Áreas críticas</h2>
+        <p class="text-xs text-text/40">Cada prioridad está vinculada con tres perfiles que pueden ayudarte a resolverla.</p>
+      </div>
+      <a [routerLink]="['/' + buildPath(PATH.admin.pyme.consultants)]"
+        class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-secondary px-4 text-xs font-inter-bold text-background transition-all hover:bg-secondary/90 cursor-pointer shadow-xs shrink-0 no-print">
+        <span>Escoge a tu especialista</span>
+        <i class="fas fa-arrow-right text-xs"></i>
+      </a>
+    </div>
+
+    <div class="space-y-6">
+      @for (area of criticalAreas; track area.area) {
+        @if (areaConsultantsMap()[area.area]; as areaConsultants) {
+        <article class="overflow-hidden rounded-3xl border border-border bg-surface shadow-sm p-6">
+          <div class="flex flex-col gap-6">
+            <!-- Cabecera del área crítica -->
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-5 border-b border-border/60">
+              <div class="flex items-center gap-4 shrink-0">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-background"
+                  [class.bg-secondary]="$index === 0"
+                  [class.bg-success]="$index === 1"
+                  [class.bg-warning]="$index === 2">
+                  <i class="fas text-lg"
+                    [class.fa-dollar-sign]="area.area.toLowerCase().includes('finan') || area.area.toLowerCase().includes('tribut') || area.area.toLowerCase().includes('contab')"
+                    [class.fa-cog]="area.area.toLowerCase().includes('operac')"
+                    [class.fa-laptop]="area.area.toLowerCase().includes('tecnol')"
+                    [class.fa-users]="area.area.toLowerCase().includes('equip') || area.area.toLowerCase().includes('organi')"
+                    [class.fa-briefcase]="area.area.toLowerCase().includes('labor')"
+                    [class.fa-balance-scale]="area.area.toLowerCase().includes('legal')"
+                    [class.fa-bullhorn]="area.area.toLowerCase().includes('mark') || area.area.toLowerCase().includes('comerc') || area.area.toLowerCase().includes('vent')"
+                    [class.fa-chess-knight]="area.area.toLowerCase().includes('estrat') || area.area.toLowerCase().includes('gesti')"></i>
+                </div>
+                <div class="min-w-0">
+                  <p class="text-[10px] font-inter-bold uppercase text-text/40 tracking-wider">Área crítica</p>
+                  <h3 class="text-base font-inter-bold text-text">{{ area.area }}</h3>
+                </div>
+              </div>
+
+              <!-- Nivel actual y barra de progreso -->
+              <div class="flex-1 max-w-md md:px-4 space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-inter-medium text-text/50">Nivel actual</span>
+                  <strong class="font-inter-bold text-text">{{ area.puntaje }}/100</strong>
+                </div>
+                <div class="h-2 overflow-hidden rounded bg-text/5">
+                  <div class="h-full rounded"
+                    [style.width.%]="area.puntaje"
+                    [class.bg-secondary]="$index === 0"
+                    [class.bg-success]="$index === 1"
+                    [class.bg-warning]="$index === 2"></div>
+                </div>
+              </div>
+
+              <!-- Descripción -->
+              <div class="md:max-w-xs text-xs text-text/60 font-inter-medium leading-relaxed">
+                {{ areaDescription(area.area) }}
+              </div>
+            </div>
+
+            <!-- Sección de Consultores recomendados -->
+            <div class="space-y-4">
+              <div class="flex items-center gap-2">
+                <i class="fas fa-user-tie text-xs text-secondary"></i>
+                <h4 class="text-xs font-inter-bold uppercase tracking-wider text-text/70">Consultores recomendados</h4>
+              </div>
+
+              @if (areaConsultants.length > 0) {
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                @for (consultant of areaConsultants; track $index) {
+                <div class="flex flex-col rounded-2xl border border-border bg-background/20 p-5 hover:border-secondary/40 transition-all duration-200">
+                  <!-- Foto e información básica -->
+                  <div class="flex items-center gap-3">
+                    <img [src]="consultantPhoto(consultant)" [alt]="consultant.fullName"
+                      class="h-12 w-12 shrink-0 rounded-xl object-cover border border-border" />
+                    <div class="min-w-0">
+                      <h5 class="truncate text-sm font-inter-bold text-text">{{ consultant.fullName }}</h5>
+                      <p class="mt-0.5 truncate text-[10px] font-inter-semibold uppercase text-secondary">
+                        {{ consultant.specialties[0] || 'Consultor general' }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- Headline / Bio -->
+                  <p class="mt-3 line-clamp-3 text-xs leading-relaxed text-text/50 flex-1">
+                    {{ consultant.headline || consultant.bio || 'Especialista disponible para acompañar a tu negocio.' }}
+                  </p>
+
+                  <!-- Botones de Acción -->
+                  <div class="mt-4 grid grid-cols-2 gap-2 no-print">
+                    <a [routerLink]="['/' + buildPath(PATH.admin.pyme.consultants.profile), consultant.userId]"
+                      class="inline-flex h-8 items-center justify-center rounded-lg border border-border bg-surface px-2 text-[10px] font-inter-semibold text-text transition-colors hover:border-secondary hover:text-secondary cursor-pointer">
+                      Ver perfil
+                    </a>
+                    <a [routerLink]="['/' + buildPath(PATH.admin.pyme.consultants.agendar), consultant.userId]"
+                      class="inline-flex h-8 items-center justify-center rounded-lg bg-secondary px-2 text-[10px] font-inter-semibold text-background transition-colors hover:bg-secondary/90 cursor-pointer">
+                      <i class="far fa-calendar-check mr-1 text-[9px]"></i>
+                      Agendar
+                    </a>
+                  </div>
+                </div>
+                }
+              </div>
+              } @else {
+              <div class="flex min-h-24 items-center justify-center rounded-2xl border border-dashed border-border bg-background/10 p-6 text-center text-xs text-text/40">
+                Aún no hay especialistas disponibles para recomendar.
+              </div>
+              }
+            </div>
+          </div>
+        </article>
+        }
+      }
+    </div>
+  </div>
+  }
 
   } @else {
-    <div class="rounded-2xl border border-dashed border-border bg-surface py-14 text-center text-muted">
-      Diagnostico no encontrado.
-    </div>
+  <div class="rounded-2xl border border-dashed border-border bg-surface py-14 text-center text-muted">
+    Diagnostico no encontrado.
+  </div>
   }
 </div>

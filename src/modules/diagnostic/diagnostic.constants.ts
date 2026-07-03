@@ -216,7 +216,7 @@ export const DIAGNOSTIC_STEPS: DiagnosticStep[] = [
         id: 'q_int_13',
         text: '¿La empresa controla sus inventarios, tiempos de entrega o producción?',
         options: [
-          'No aplica (N/A - se excluye del cálculo)',
+          'No aplica (la empresa no requiere área de producción ni inventarios)',
           'No hay control - hay pérdidas, demoras o sobrestock frecuentes (1)',
           'Hay control parcial con algunos problemas ocasionales (3)',
           'Existe control adecuado y constante con registros actualizados (5)'

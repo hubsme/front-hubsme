@@ -251,6 +251,7 @@
                   Este perfil ya viene seleccionado desde el portal principal.
                 </p>
               </div>
+
             </div>
           }
 
@@ -610,6 +611,48 @@
                   </div>
                 }
               </div>
+
+              <fieldset class="lg:col-span-2 rounded-2xl border border-border bg-background p-5">
+                <legend class="px-2 text-xs font-inter-bold uppercase tracking-wider text-text/60">
+                  Áreas de diagnóstico que asesoras
+                </legend>
+                <p class="mb-4 text-xs leading-relaxed text-text/50">
+                  Selecciona al menos un área. Usaremos esta información para conectarte con PYMES que necesiten tu experiencia.
+                </p>
+                <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  @for (area of diagnosticAreaOptions; track area) {
+                    <label
+                      class="flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-3 text-xs font-inter-semibold transition-colors"
+                      [class.border-secondary]="diagnosticAreas().includes(area)"
+                      [class.bg-secondary/5]="diagnosticAreas().includes(area)"
+                      [class.text-secondary]="diagnosticAreas().includes(area)"
+                      [class.border-border]="!diagnosticAreas().includes(area)"
+                      [class.bg-surface]="!diagnosticAreas().includes(area)"
+                      [class.text-text]="!diagnosticAreas().includes(area)"
+                    >
+                      <input
+                        type="checkbox"
+                        class="sr-only"
+                        [checked]="diagnosticAreas().includes(area)"
+                        (change)="toggleDiagnosticArea(area)"
+                      />
+                      <span
+                        class="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border"
+                        [class.border-secondary]="diagnosticAreas().includes(area)"
+                        [class.bg-secondary]="diagnosticAreas().includes(area)"
+                        [class.text-background]="diagnosticAreas().includes(area)"
+                        [class.border-border]="!diagnosticAreas().includes(area)"
+                        [class.bg-background]="!diagnosticAreas().includes(area)"
+                      >
+                        @if (diagnosticAreas().includes(area)) {
+                          <i class="fas fa-check text-[0.6rem]"></i>
+                        }
+                      </span>
+                      <span>{{ area }}</span>
+                    </label>
+                  }
+                </div>
+              </fieldset>
             </div>
           }
 

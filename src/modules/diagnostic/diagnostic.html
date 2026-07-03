@@ -24,7 +24,7 @@
         <!-- Hero Banner Card -->
         <div class="bg-surface border border-border rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-md relative overflow-hidden">
           <div class="absolute -right-24 -bottom-24 h-48 w-48 rounded-full bg-secondary/5 blur-3xl"></div>
-          
+
           <div class="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left">
             <!-- Custom Vector SVG Document Illustration -->
             <svg viewBox="0 0 120 120" class="h-24 w-24 text-secondary shrink-0">
@@ -152,14 +152,15 @@
           </div>
         </div>
 
-        <!-- 3 Charts Row (2x3 Grid Layout) -->
-        <div class="grid grid-cols-1 md:grid-cols-3 md:grid-rows-2 gap-6">
-          <!-- Area Performance Bar Chart (2x2 span) -->
-          <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between md:col-span-2 md:row-span-2">
-            <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text/50 mb-4">Desempeño por áreas</h3>
+        <!-- 2 Charts Row (1x3 Grid Layout) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Area Performance Bar Chart (2 span) -->
+          <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between md:col-span-2">
+            <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text/50">Desempeño por áreas</h3>
             @if (isBrowser) {
-              <div class="flex-1 min-h-[480px]">
+              <div class="flex-1 flex items-center justify-center min-h-[340px] mt-4">
                 <apx-chart
+                  class="w-full"
                   [series]="barChartOptions().series"
                   [chart]="barChartOptions().chart"
                   [colors]="barChartOptions().colors"
@@ -172,14 +173,18 @@
                 ></apx-chart>
               </div>
             }
+            <div class="mt-4">
+              <p class="text-[11px] text-text/40">Comparativa de tu negocio frente al promedio del sector por cada dimensión estratégica.</p>
+            </div>
           </div>
 
-          <!-- Radar Chart (Capabilities) (1x1 span) -->
-          <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between md:col-span-1 md:row-span-1">
-            <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text/50 mb-4">Capacidades del negocio</h3>
+          <!-- Radar Chart (Capabilities) (1 span) -->
+          <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between md:col-span-1">
+            <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text/50">Capacidades del negocio</h3>
             @if (isBrowser) {
-              <div class="flex-1 min-h-[220px]">
+              <div class="flex-1 flex items-center justify-center min-h-[220px] mt-4">
                 <apx-chart
+                  class="w-full"
                   [series]="radarChartOptions().series"
                   [chart]="radarChartOptions().chart"
                   [colors]="radarChartOptions().colors"
@@ -190,26 +195,9 @@
                 ></apx-chart>
               </div>
             }
-          </div>
-
-          <!-- Evolution Projection (Line Chart) (1x1 span) -->
-          <div class="bg-surface border border-border rounded-3xl p-6 shadow-sm flex flex-col justify-between md:col-span-1 md:row-span-1">
-            <h3 class="text-xs font-inter-bold uppercase tracking-wider text-text/50 mb-4">Proyección de evolución</h3>
-            @if (isBrowser) {
-              <div class="flex-1 min-h-[220px]">
-                <apx-chart
-                  [series]="lineChartOptions().series"
-                  [chart]="lineChartOptions().chart"
-                  [colors]="lineChartOptions().colors"
-                  [stroke]="lineChartOptions().stroke"
-                  [markers]="lineChartOptions().markers"
-                  [dataLabels]="lineChartOptions().dataLabels"
-                  [xaxis]="lineChartOptions().xaxis"
-                  [yaxis]="lineChartOptions().yaxis"
-                  [grid]="lineChartOptions().grid"
-                ></apx-chart>
-              </div>
-            }
+            <div class="mt-4">
+              <p class="text-[11px] text-text/40">Visualiza el equilibrio y nivel de madurez de las áreas clave del negocio (Pentágono de capacidades).</p>
+            </div>
           </div>
         </div>
 
@@ -229,6 +217,75 @@
             [innerHTML]="renderMarkdown(current.result.feedbackIa)"
           ></div>
         </div>
+
+        <!-- FODA / SWOT Analysis Card -->
+        @if (current.result.foda) {
+        <div class="bg-surface border border-border rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
+              <i class="fas fa-clipboard-list text-sm"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-inter-bold text-text">Análisis FODA</h2>
+              <p class="text-xs text-text/40">Fortalezas, Oportunidades, Debilidades y Amenazas identificadas por Inteligencia Artificial.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-border/50 pt-6">
+            <!-- Fortalezas -->
+            <div class="bg-success/5 border border-success/20 rounded-2xl p-5 space-y-3">
+              <div class="flex items-center gap-2 text-success">
+                <i class="fas fa-check-circle text-base"></i>
+                <h3 class="font-inter-bold text-sm uppercase tracking-wider">Fortalezas</h3>
+              </div>
+              <ul class="space-y-2 text-xs text-text/80 list-disc pl-4 leading-relaxed">
+                @for (item of current.result.foda.fortalezas; track item) {
+                  <li>{{ item }}</li>
+                }
+              </ul>
+            </div>
+
+            <!-- Oportunidades -->
+            <div class="bg-secondary/5 border border-secondary/20 rounded-2xl p-5 space-y-3">
+              <div class="flex items-center gap-2 text-secondary">
+                <i class="fas fa-rocket text-base"></i>
+                <h3 class="font-inter-bold text-sm uppercase tracking-wider">Oportunidades</h3>
+              </div>
+              <ul class="space-y-2 text-xs text-text/80 list-disc pl-4 leading-relaxed">
+                @for (item of current.result.foda.oportunidades; track item) {
+                  <li>{{ item }}</li>
+                }
+              </ul>
+            </div>
+
+            <!-- Debilidades -->
+            <div class="bg-warning/5 border border-warning/20 rounded-2xl p-5 space-y-3">
+              <div class="flex items-center gap-2 text-warning">
+                <i class="fas fa-exclamation-triangle text-base"></i>
+                <h3 class="font-inter-bold text-sm uppercase tracking-wider">Debilidades</h3>
+              </div>
+              <ul class="space-y-2 text-xs text-text/80 list-disc pl-4 leading-relaxed">
+                @for (item of current.result.foda.debilidades; track item) {
+                  <li>{{ item }}</li>
+                }
+              </ul>
+            </div>
+
+            <!-- Amenazas -->
+            <div class="bg-danger/5 border border-danger/20 rounded-2xl p-5 space-y-3">
+              <div class="flex items-center gap-2 text-danger">
+                <i class="fas fa-exclamation-circle text-base"></i>
+                <h3 class="font-inter-bold text-sm uppercase tracking-wider">Amenazas</h3>
+              </div>
+              <ul class="space-y-2 text-xs text-text/80 list-disc pl-4 leading-relaxed">
+                @for (item of current.result.foda.amenazas; track item) {
+                  <li>{{ item }}</li>
+                }
+              </ul>
+            </div>
+          </div>
+        </div>
+        }
 
         <!-- Recommendations List Section -->
         @if (current.result.recomendaciones && current.result.recomendaciones.length > 0) {
@@ -254,74 +311,13 @@
           </div>
         }
 
-        <!-- 4 Area Detail Cards Grid -->
-        <div class="space-y-4 pt-4">
-          <h2 class="text-lg font-inter-bold text-text">Áreas críticas para su atención</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-            @for (area of getMainAreas(current.result.areasEvaluadas); track area.area) {
-              <div class="bg-surface border border-border rounded-2xl p-5 space-y-4 shadow-sm hover:shadow-md transition-all duration-200">
-                <div class="flex items-center gap-3">
-                  <div 
-                    class="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 text-white"
-                    [class.bg-secondary]="$index === 0"
-                    [class.bg-success]="$index === 1"
-                    [class.bg-warning]="$index === 2"
-                    [class.bg-violet-600]="$index === 3"
-                  >
-                    <i 
-                      class="text-sm fas"
-                      [class.fa-dollar-sign]="area.area.toLowerCase().includes('finan') || area.area.toLowerCase().includes('tribut') || area.area.toLowerCase().includes('contab')"
-                      [class.fa-cog]="area.area.toLowerCase().includes('operac')"
-                      [class.fa-laptop]="area.area.toLowerCase().includes('tecnol')"
-                      [class.fa-users]="area.area.toLowerCase().includes('equip') || area.area.toLowerCase().includes('organi')"
-                      [class.fa-briefcase]="area.area.toLowerCase().includes('labor')"
-                      [class.fa-balance-scale]="area.area.toLowerCase().includes('legal')"
-                      [class.fa-bullhorn]="area.area.toLowerCase().includes('merca') || area.area.toLowerCase().includes('marke')"
-                      [class.fa-chart-pie]="area.area.toLowerCase().includes('comerc') || area.area.toLowerCase().includes('ventas')"
-                      [class.fa-comments]="area.area.toLowerCase().includes('client') || area.area.toLowerCase().includes('servi')"
-                      [class.fa-chess-knight]="area.area.toLowerCase().includes('estrat')"
-                    ></i>
-                  </div>
-                  <div class="min-w-0 flex-1 flex items-center justify-between">
-                    <span class="font-inter-bold text-sm text-text truncate">{{ area.area }}</span>
-                    <span class="text-xs font-inter-bold"
-                      [class.text-secondary]="$index === 0"
-                      [class.text-success]="$index === 1"
-                      [class.text-warning]="$index === 2"
-                      [class.text-violet-600]="$index === 3"
-                    >
-                      {{ area.puntaje }}<span class="text-[10px] text-text/30">/100</span>
-                    </span>
-                  </div>
-                </div>
-
-                <!-- Mini progress bar -->
-                <div class="w-full h-1.5 bg-background rounded-full overflow-hidden">
-                  <div 
-                    class="h-full rounded-full transition-all duration-500"
-                    [class.bg-secondary]="$index === 0"
-                    [class.bg-success]="$index === 1"
-                    [class.bg-warning]="$index === 2"
-                    [class.bg-violet-600]="$index === 3"
-                    [style.width]="area.puntaje + '%'"
-                  ></div>
-                </div>
-
-                <p class="text-xs text-text/60 leading-relaxed font-inter-medium">
-                  {{ areaDescription(area.area) }}
-                </p>
-              </div>
-            }
-          </div>
-        </div>
-
-        <!-- Suggested Consultants Section -->
-        @if (consultants().length > 0) {
-          <div class="space-y-4 pt-4">
-            <div class="flex items-end justify-between">
+        <!-- 3 Area Detail Cards Grid -->
+        @if (getMainAreas(current.result.areasEvaluadas); as criticalAreas) {
+          <div class="space-y-6 pt-4">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div class="space-y-0.5">
-                <h2 class="text-lg font-inter-bold text-text">Especialistas recomendados por área crítica</h2>
-                <p class="text-xs text-text/40">Conecta con expertos que impulsarán tus resultados.</p>
+                <h2 class="text-lg font-inter-bold text-text">Áreas críticas y especialistas recomendados</h2>
+                <p class="text-xs text-text/40">Cada prioridad está vinculada con tres perfiles que pueden ayudarte a resolverla.</p>
               </div>
               <a 
                 [routerLink]="['/' + buildPath(PATH.admin.pyme.consultants)]" 
@@ -332,58 +328,90 @@
               </a>
             </div>
 
-            <div class="grid gap-4 grid-cols-1 md:grid-cols-3">
-              @for (consultant of consultants(); track consultant.id) {
-            <div class="bg-surface border border-border rounded-2xl flex gap-4 shadow-xs hover:shadow-sm transition-all duration-200 min-h-[145px] items-stretch overflow-hidden">
-              <!-- Left side (Photo) -->
-              <div class="relative w-24 sm:w-28 shrink-0 bg-text/5 shadow-inner">
-                <img 
-                  [src]="consultantPhoto(consultant)" 
-                  alt="{{ consultant.fullName }}" 
-                  class="h-full w-full object-cover"
-                />
-              </div>
+            <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              @for (area of criticalAreas; track area.area) {
+                @if (areaConsultantsMap()[area.area]; as areaConsultants) {
+                  <article class="h-full overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+                    <div class="flex h-full flex-col">
+                      <div class="flex min-h-52 flex-col justify-between gap-5 border-b border-border p-5">
+                        <div class="flex items-center gap-3">
+                          <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-background"
+                            [class.bg-secondary]="$index === 0"
+                            [class.bg-success]="$index === 1"
+                            [class.bg-warning]="$index === 2">
+                            <i class="fas text-sm"
+                              [class.fa-dollar-sign]="area.area.toLowerCase().includes('finan') || area.area.toLowerCase().includes('tribut') || area.area.toLowerCase().includes('contab')"
+                              [class.fa-cog]="area.area.toLowerCase().includes('operac')"
+                              [class.fa-laptop]="area.area.toLowerCase().includes('tecnol')"
+                              [class.fa-users]="area.area.toLowerCase().includes('equip') || area.area.toLowerCase().includes('organi')"
+                              [class.fa-briefcase]="area.area.toLowerCase().includes('labor')"
+                              [class.fa-balance-scale]="area.area.toLowerCase().includes('legal')"
+                              [class.fa-bullhorn]="area.area.toLowerCase().includes('mark') || area.area.toLowerCase().includes('comerc') || area.area.toLowerCase().includes('vent')"
+                              [class.fa-chess-knight]="area.area.toLowerCase().includes('estrat') || area.area.toLowerCase().includes('gesti')"></i>
+                          </div>
+                          <div class="min-w-0">
+                            <p class="text-[10px] font-inter-bold uppercase text-text/40">Área crítica</p>
+                            <h3 class="truncate text-base font-inter-bold text-text">{{ area.area }}</h3>
+                          </div>
+                        </div>
 
-              <!-- Right side (Info & Actions) -->
-              <div class="flex-1 flex flex-col justify-between min-w-0 py-4 pr-4 pl-0">
-                <div class="space-y-1.5">
-                  <div>
-                    <h3 class="font-inter-bold text-sm sm:text-base text-text truncate leading-tight">
-                      {{ consultant.fullName }}
-                    </h3>
-                    <span class="text-[9px] font-inter-semibold text-secondary uppercase tracking-wider block mt-0.5">
-                      {{ consultant.specialties[0] || 'Consultor General' }}
-                    </span>
-                  </div>
+                        <div class="space-y-3">
+                          <div class="flex items-center justify-between text-xs">
+                            <span class="font-inter-medium text-text/50">Nivel actual</span>
+                            <strong class="font-inter-bold text-text">{{ area.puntaje }}/100</strong>
+                          </div>
+                          <div class="h-1.5 overflow-hidden rounded bg-text/5">
+                            <div class="h-full rounded"
+                              [style.width.%]="area.puntaje"
+                              [class.bg-secondary]="$index === 0"
+                              [class.bg-success]="$index === 1"
+                              [class.bg-warning]="$index === 2"></div>
+                          </div>
+                          <p class="text-xs leading-relaxed text-text/50">{{ areaDescription(area.area) }}</p>
+                        </div>
+                      </div>
 
-                  <!-- Specialties Pills -->
-                  <div class="flex flex-wrap gap-1">
-                    @for (spec of consultant.specialties.slice(0, 2); track spec) {
-                      <span class="inline-block px-1.5 py-0.5 rounded bg-secondary/5 text-secondary border border-secondary/10 text-[8px] font-inter-semibold truncate max-w-full">
-                        {{ spec }}
-                      </span>
-                    }
-                  </div>
-                </div>
+                      @if (areaConsultants.length > 0) {
+                      <div class="flex flex-1 flex-col divide-y divide-border">
+                        @for (consultant of areaConsultants; track $index) {
+                        <div class="flex min-w-0 flex-1 flex-col gap-4 p-5">
+                          <div class="flex min-w-0 items-center gap-3">
+                            <img [src]="consultantPhoto(consultant)" [alt]="consultant.fullName"
+                              class="h-14 w-14 shrink-0 rounded-xl object-cover" />
+                            <div class="min-w-0">
+                              <h4 class="truncate text-sm font-inter-bold text-text">{{ consultant.fullName }}</h4>
+                              <p class="mt-0.5 truncate text-[10px] font-inter-semibold uppercase text-secondary">
+                                {{ consultant.specialties[0] || 'Consultor general' }}
+                              </p>
+                            </div>
+                          </div>
 
-                <!-- Action Buttons -->
-                <div class="grid grid-cols-2 gap-2 pt-2.5 border-t border-border/50">
-                  <a 
-                    [routerLink]="['/' + buildPath(PATH.admin.pyme.consultants.profile), consultant.userId]"
-                    class="inline-flex h-8 items-center justify-center rounded-lg border border-border bg-surface text-[10px] font-inter-semibold text-text hover:border-secondary hover:text-secondary transition-all"
-                  >
-                    Ver perfil
-                  </a>
-                  <a 
-                    [routerLink]="['/' + buildPath(PATH.admin.pyme.consultants.agendar), consultant.userId]"
-                    class="inline-flex h-8 items-center justify-center rounded-lg bg-secondary text-[10px] font-inter-semibold text-background hover:bg-secondary/95 transition-all border-none shadow-xs"
-                  >
-                    <i class="far fa-calendar-check text-[9px] mr-1"></i>
-                    <span>Agendar</span>
-                  </a>
-                </div>
-              </div>
-            </div>
+                          <p class="line-clamp-2 min-h-8 text-[11px] leading-relaxed text-text/50">
+                            {{ consultant.headline || consultant.bio || 'Especialista disponible para acompañar a tu negocio.' }}
+                          </p>
+
+                          <div class="mt-auto grid grid-cols-2 gap-2">
+                            <a [routerLink]="['/' + buildPath(PATH.admin.pyme.consultants.profile), consultant.userId]"
+                              class="inline-flex h-8 items-center justify-center rounded-lg border border-border bg-surface px-2 text-[10px] font-inter-semibold text-text transition-colors hover:border-secondary hover:text-secondary">
+                              Ver perfil
+                            </a>
+                            <a [routerLink]="['/' + buildPath(PATH.admin.pyme.consultants.agendar), consultant.userId]"
+                              class="inline-flex h-8 items-center justify-center rounded-lg bg-secondary px-2 text-[10px] font-inter-semibold text-background transition-colors hover:bg-secondary/90">
+                              <i class="far fa-calendar-check mr-1 text-[9px]"></i>
+                              Agendar
+                            </a>
+                          </div>
+                        </div>
+                        }
+                      </div>
+                      } @else {
+                      <div class="flex min-h-40 items-center justify-center p-6 text-center text-xs text-text/40">
+                        Aún no hay especialistas disponibles para recomendar.
+                      </div>
+                      }
+                    </div>
+                  </article>
+                }
               }
             </div>
           </div>

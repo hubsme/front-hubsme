@@ -7,6 +7,10 @@ import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { SessionService } from '@service/session.service';
 import { AlertService } from '@service/alert.service';
+import {
+  CONSULTANT_DIAGNOSTIC_AREAS,
+  ConsultantDiagnosticArea,
+} from '@enum/consultant-diagnostic-area.enum';
 
 type ConsultantProfileData = ApiResponse<'consultant', 'findByUser'>;
 type MercadoPagoStatus = ApiResponse<'mercadoPago', 'mercadopagoStatus'>;
@@ -35,6 +39,7 @@ type ConsultantForm = {
   workModality: string;
   linkedinUrl: string;
   bio: string;
+  diagnosticAreas: ConsultantDiagnosticArea[];
   specialties: string[];
   sectors: string[];
   industries: string[];
@@ -87,6 +92,7 @@ export class Profile implements OnInit, OnDestroy {
   cvFileName = signal('');
   cvError = signal('');
   consultant = signal<ConsultantProfileData | null>(null);
+  readonly diagnosticAreaOptions = CONSULTANT_DIAGNOSTIC_AREAS;
   readonly chipFields: { field: ChipField; label: string; placeholder: string }[] = [
     { field: 'specialties', label: 'Especialidades', placeholder: 'Agregar especialidad...' },
     { field: 'industries', label: 'Industrias', placeholder: 'Agregar industria...' },
@@ -123,6 +129,7 @@ export class Profile implements OnInit, OnDestroy {
     workModality: '',
     linkedinUrl: '',
     bio: '',
+    diagnosticAreas: [],
     specialties: [],
     sectors: [],
     industries: [],
@@ -172,6 +179,7 @@ export class Profile implements OnInit, OnDestroy {
           workModality: data.workModality ?? '',
           linkedinUrl: data.linkedinUrl ?? '',
           bio: data.bio ?? '',
+          diagnosticAreas: data.diagnosticAreas ?? [],
           specialties: data.specialties ?? [],
           sectors: data.sectors ?? [],
           industries: data.industries ?? [],
@@ -200,6 +208,10 @@ export class Profile implements OnInit, OnDestroy {
 
     const user = this.hubsme.currentUser();
     const form = this.form();
+    if (form.diagnosticAreas.length === 0) {
+      this.toastService.warning('Selecciona al menos un área de diagnóstico.');
+      return;
+    }
     const fullName = `${form.firstName} ${form.lastName}`.trim() || form.fullName;
     const payload: ApiBody<'consultant', 'create'> = {
       userId: user.id,
@@ -211,6 +223,7 @@ export class Profile implements OnInit, OnDestroy {
       workModality: form.workModality || undefined,
       linkedinUrl: form.linkedinUrl || undefined,
       bio: form.bio || undefined,
+      diagnosticAreas: form.diagnosticAreas,
       specialties: form.specialties,
       sectors: form.sectors,
       industries: form.industries,
@@ -243,6 +256,16 @@ export class Profile implements OnInit, OnDestroy {
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.saving.set(false));
+  }
+
+  toggleDiagnosticArea(area: ConsultantDiagnosticArea): void {
+    const selected = this.form().diagnosticAreas;
+    this.updateForm(
+      'diagnosticAreas',
+      selected.includes(area)
+        ? selected.filter((item) => item !== area)
+        : [...selected, area],
+    );
   }
 
   uploadPhoto(event: Event) {

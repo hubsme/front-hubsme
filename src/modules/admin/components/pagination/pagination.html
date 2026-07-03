@@ -9,19 +9,21 @@
     </p>
 
     <!-- Selector de tamaño de página -->
-    <div class="relative">
-      <select
-        [value]="pageSize()"
-        (change)="onPageSizeChange($event)"
-        class="appearance-none rounded border border-text/10 bg-background py-1 pl-2 pr-7 text-xs text-text font-inter-medium outline-none focus:border-secondary"
-      >
-        <option [value]="10">10</option>
-        <option [value]="20">20</option>
-        <option [value]="30">30</option>
-        <option [value]="50">50</option>
-      </select>
-      <i class="fas fa-chevron-down pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[0.6rem] text-text/40"></i>
-    </div>
+    @if (showPageSizeSelector()) {
+      <div class="relative">
+        <select
+          [value]="pageSize()"
+          (change)="onPageSizeChange($event)"
+          class="appearance-none rounded border border-text/10 bg-background py-1 pl-2 pr-7 text-xs text-text font-inter-medium outline-none focus:border-secondary"
+        >
+          <option [value]="10">10</option>
+          <option [value]="20">20</option>
+          <option [value]="30">30</option>
+          <option [value]="50">50</option>
+        </select>
+        <i class="fas fa-chevron-down pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[0.6rem] text-text/40"></i>
+      </div>
+    }
   </div>
 
   <!-- Controles de paginación -->

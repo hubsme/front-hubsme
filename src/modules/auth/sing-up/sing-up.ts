@@ -6,6 +6,10 @@ import { Api, ApiBody, ApiResponse } from 'api/backend.api';
 import { PATH, buildPath, getDefaultRoute } from '@route/path.route';
 import { SessionService } from '@service/session.service';
 import { ToastService } from '@service/toast.service';
+import {
+  CONSULTANT_DIAGNOSTIC_AREAS,
+  ConsultantDiagnosticArea,
+} from '@enum/consultant-diagnostic-area.enum';
 
 type ConsultantCvProfile = ApiResponse<'ia', 'runConsultantCv'>;
 type ConsultantCvPayload = Pick<
@@ -16,6 +20,7 @@ type ConsultantCvPayload = Pick<
   | 'bio'
   | 'ownerPhone'
   | 'linkedinUrl'
+  | 'diagnosticAreas'
   | 'specialties'
   | 'sectors'
   | 'industries'
@@ -73,9 +78,13 @@ export class SingUp implements OnInit, OnDestroy {
   cvText = signal('');
   cvUrl = signal('');
   consultantProfile = signal<ConsultantCvProfile | null>(null);
+  readonly diagnosticAreaOptions = CONSULTANT_DIAGNOSTIC_AREAS;
+  diagnosticAreas = signal<ConsultantDiagnosticArea[]>([]);
   profileComplete = computed(() => {
     const hasPerson = !!this.firstName().trim() && !!this.lastName().trim();
-    if (this.role() === 'consultor') return hasPerson && !!this.consultantProfile();
+    if (this.role() === 'consultor') {
+      return hasPerson && !!this.consultantProfile() && this.diagnosticAreas().length > 0;
+    }
     return hasPerson && !!this.companyName().trim() && !!this.ruc().trim();
   });
 
@@ -129,7 +138,7 @@ export class SingUp implements OnInit, OnDestroy {
       this.toastService.error(
         this.role() === 'pyme'
           ? 'Completa empresa, RUC, nombres y apellidos del dueno'
-          : 'Sube tu CV en PDF y revisa el perfil extraido',
+          : 'Sube tu CV en PDF y selecciona al menos un área de diagnóstico',
       );
       return;
     }
@@ -274,6 +283,14 @@ export class SingUp implements OnInit, OnDestroy {
       .finally(() => this.cvProcessing.set(false));
   }
 
+  toggleDiagnosticArea(area: ConsultantDiagnosticArea): void {
+    this.diagnosticAreas.update((current) =>
+      current.includes(area)
+        ? current.filter((item) => item !== area)
+        : [...current, area],
+    );
+  }
+
   private handleGoogleMessage(event: MessageEvent<unknown>): void {
     if (!this.isGoogleAuthMessage(event.data)) return;
 
@@ -387,6 +404,7 @@ export class SingUp implements OnInit, OnDestroy {
       bio: profile?.bio || undefined,
       ownerPhone: profile?.ownerPhone || undefined,
       linkedinUrl: profile?.linkedinUrl || undefined,
+      diagnosticAreas: this.diagnosticAreas(),
       specialties: profile?.specialties ?? [],
       sectors: profile?.sectors ?? [],
       industries: profile?.industries ?? [],

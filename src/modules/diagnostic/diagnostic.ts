@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal, computed, effect, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { marked } from 'marked';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { downloadPdf, ChartImages } from '../admin/functions/download-word';
@@ -739,5 +740,13 @@ export class Diagnostic implements OnInit {
       consultant.photoUrl ||
       `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(consultant.fullName || consultant.firstName || 'User')}`
     );
+  }
+
+  renderMarkdown(text: string | null | undefined): string {
+    if (!text) return '';
+    const rawHtml = marked.parse(text, { async: false }) as string;
+    return rawHtml
+      .replace(/<strong>/g, '<strong class="font-inter-bold" style="font-weight: 700;">')
+      .replace(/<b>/g, '<b class="font-inter-bold" style="font-weight: 700;">');
   }
 }

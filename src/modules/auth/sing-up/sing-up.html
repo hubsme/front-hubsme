@@ -1,9 +1,98 @@
 <div class="min-h-screen flex items-center justify-center bg-background p-4 sm:p-6 md:p-8 font-inter-regular text-text">
-  <div
-    class="w-full bg-surface rounded-3xl shadow-xl border border-text/10 overflow-hidden transition-all duration-300 relative z-10"
-    [class.max-w-lg]="role() !== 'consultor' || step() !== 1"
-    [class.max-w-5xl]="role() === 'consultor' && step() === 1"
-  >
+  @if (showOnboarding()) {
+    <div class="w-full max-w-lg bg-surface rounded-3xl shadow-xl border border-text/10 overflow-hidden p-8 sm:p-10 space-y-6 text-center transition-all duration-300 relative z-10 animate-fade-in">
+      <!-- Icon Container -->
+      <div class="flex h-20 w-20 mx-auto items-center justify-center rounded-2xl bg-secondary/5 transition-all duration-300 overflow-hidden">
+        @if (currentOnboardingSlide() === 0) {
+          <img src="/avif/icono.avif" alt="Hubsme" class="h-12 w-auto animate-pulse" />
+        } @else if (currentOnboardingSlide() === 1) {
+          <img src="/avif/mercado_pago.avif" alt="Mercado Pago" class="h-10 w-auto object-contain" />
+        } @else {
+          <i class="far fa-calendar-check text-3xl text-secondary"></i>
+        }
+      </div>
+
+      <!-- Title & Subtitle -->
+      <div class="space-y-2">
+        <h2 class="text-2xl font-inter-bold text-text transition-all">
+          @if (currentOnboardingSlide() === 0) {
+            ¡Bienvenido a Hubsme!
+          } @else if (currentOnboardingSlide() === 1) {
+            1. Vincula Mercado Pago
+          } @else {
+            2. Configura tu disponibilidad
+          }
+        </h2>
+        <p class="text-xs font-inter-semibold text-secondary uppercase tracking-wider transition-all">
+          @if (currentOnboardingSlide() === 0) {
+            Tu perfil de consultor está listo
+          } @else if (currentOnboardingSlide() === 1) {
+            Indispensable para cobrar asesorías
+          } @else {
+            Indispensable para recibir citas
+          }
+        </p>
+      </div>
+
+      <!-- Body Text -->
+      <p class="text-sm leading-relaxed text-text/65 max-w-sm mx-auto min-h-[80px] flex items-center justify-center transition-all">
+        @if (currentOnboardingSlide() === 0) {
+          Hemos procesado tu Currículum Vitae con Inteligencia Artificial para preconfigurar tu perfil. Antes de comenzar a recibir clientes, por favor revisa los siguientes pasos clave de configuración.
+        } @else if (currentOnboardingSlide() === 1) {
+          Para poder recibir de forma automática y segura los honorarios de tus asesorías pagados por las PYMEs, debes vincular tu cuenta de Mercado Pago desde la sección de configuración de tu panel.
+        } @else {
+          Configura los días y las horas en los que estás disponible para las consultas de negocios en la sección "Disponibilidad" del menú. Las PYMEs agendarán reuniones basándose en este horario.
+        }
+      </p>
+
+      <!-- Stepper Progress Dots -->
+      <div class="flex items-center justify-center gap-2 pt-2">
+        @for (dot of [0, 1, 2]; track dot) {
+          <div 
+            class="h-2 rounded-full transition-all duration-300"
+            [class.w-6]="currentOnboardingSlide() === dot"
+            [class.bg-secondary]="currentOnboardingSlide() === dot"
+            [class.w-2]="currentOnboardingSlide() !== dot"
+            [class.bg-border]="currentOnboardingSlide() !== dot"
+          ></div>
+        }
+      </div>
+
+      <!-- Footer Actions -->
+      <div class="pt-4 border-t border-text/5 flex items-center justify-between gap-4">
+        @if (currentOnboardingSlide() > 0) {
+          <button
+            type="button"
+            (click)="prevSlide()"
+            class="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-xs font-inter-bold text-text/60 border border-border hover:bg-text/5 transition-all cursor-pointer"
+          >
+            <i class="fas fa-chevron-left text-[10px]"></i>
+            <span>Anterior</span>
+          </button>
+        }
+        
+        <button
+          type="button"
+          (click)="nextSlide()"
+          class="flex-grow flex items-center justify-center gap-2 py-3 px-6 rounded-xl text-xs font-inter-bold text-background bg-secondary hover:bg-secondary/95 transition-all cursor-pointer shadow-md shadow-secondary/10"
+        >
+          <span>
+            @if (currentOnboardingSlide() === 2) {
+              Entendido, ir al panel
+            } @else {
+              Siguiente
+            }
+          </span>
+          <i class="fas" [class.fa-chevron-right]="currentOnboardingSlide() < 2" [class.fa-rocket]="currentOnboardingSlide() === 2"></i>
+        </button>
+      </div>
+    </div>
+  } @else {
+    <div
+      class="w-full bg-surface rounded-3xl shadow-xl border border-text/10 overflow-hidden transition-all duration-300 relative z-10"
+      [class.max-w-lg]="role() !== 'consultor' || step() !== 1"
+      [class.max-w-5xl]="role() === 'consultor' && step() === 1"
+    >
     <!-- Logo Header -->
     <div class="pt-10 pb-2 text-center">
       <img src="/avif/logo_completo.avif" alt="HUBSME" class="mx-auto h-11 w-auto hover:scale-102 transition-transform duration-300" />
@@ -656,4 +745,5 @@
       </div>
     </div>
   </div>
+}
 </div>

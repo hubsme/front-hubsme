@@ -52,11 +52,12 @@
       <div class="border-t border-border bg-background-50/70 p-5">
         <button
           (click)="choose(plan)"
-          class="h-12 w-full rounded-xl text-sm font-inter-bold"
-          [class.bg-secondary]="isFeatured(plan) || selectedPlan() !== plan.id"
-          [class.text-fixed-background-50]="isFeatured(plan) || selectedPlan() !== plan.id"
-          [class.bg-success\/10]="selectedPlan() === plan.id && !isFeatured(plan)"
-          [class.text-success]="selectedPlan() === plan.id && !isFeatured(plan)"
+          [disabled]="processing()"
+          class="h-12 w-full rounded-xl text-sm font-inter-bold transition disabled:opacity-50"
+          [class.bg-secondary]="selectedPlan() !== plan.id"
+          [class.text-fixed-background-50]="selectedPlan() !== plan.id"
+          [class.bg-success\/10]="selectedPlan() === plan.id"
+          [class.text-success]="selectedPlan() === plan.id"
           [class.shadow-[0_12px_24px_rgba(15,23,42,0.18)]]="isFeatured(plan)"
         >
           {{ selectedPlan() === plan.id ? 'Seleccionado' : 'Elegir Plan' }}
@@ -66,17 +67,29 @@
     }
   </div>
 
-  <section class="mx-auto flex max-w-7xl flex-col gap-4 rounded-2xl border border-border bg-surface p-7 shadow-[0_14px_32px_rgba(15,23,42,0.06)] md:flex-row md:items-center md:justify-between">
-    <div class="flex items-center gap-5">
-      <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-background-100 text-primary">
-        <i class="far fa-shield text-2xl"></i>
+  }
+
+  @if (paymentModalOpen() && paymentFrameUrl(); as paymentFrameUrl) {
+    <app-modal-form title="Pasarela de pago" maxWidth="6xl" [showFooter]="false" (onClose)="closePaymentModal()">
+      <div class="h-[78vh] bg-surface flex flex-col">
+        <iframe
+          [src]="paymentFrameUrl"
+          title="Pasarela de pago"
+          class="flex-1 w-full border-0 bg-surface"
+          referrerpolicy="no-referrer"
+          allow="payment *; clipboard-read; clipboard-write"
+        ></iframe>
+        <div class="flex items-center justify-between gap-4 border-t border-text/10 px-6 py-4 bg-surface shrink-0">
+          <span class="text-sm text-muted font-inter-medium">Cierra este modal una vez completes el pago para actualizar tu plan.</span>
+          <button
+            type="button"
+            (click)="closePaymentModal()"
+            class="shrink-0 px-4 py-2 text-sm bg-text/5 text-text rounded-lg font-inter-medium hover:bg-text/10 transition"
+          >
+            Cerrar
+          </button>
+        </div>
       </div>
-      <div>
-        <h2 class="text-xl font-anton lowercase text-text">Garantia de Satisfaccion</h2>
-        <p class="mt-1 text-sm text-muted">Prueba cualquier plan por 14 dias. Si no estas convencido, te devolvemos tu dinero.</p>
-      </div>
-    </div>
-    <button class="text-sm font-inter-bold">Preguntas Frecuentes</button>
-  </section>
+    </app-modal-form>
   }
 </div>

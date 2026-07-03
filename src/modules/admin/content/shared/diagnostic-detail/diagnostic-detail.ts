@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { marked } from 'marked';
 import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
@@ -581,5 +582,13 @@ export class DiagnosticDetail implements OnInit {
     }
     if (typeof value === 'number' || typeof value === 'boolean') return String(value);
     return JSON.stringify(value);
+  }
+
+  renderMarkdown(text: string | null | undefined): string {
+    if (!text) return '';
+    const rawHtml = marked.parse(text, { async: false }) as string;
+    return rawHtml
+      .replace(/<strong>/g, '<strong class="font-inter-bold" style="font-weight: 700;">')
+      .replace(/<b>/g, '<b class="font-inter-bold" style="font-weight: 700;">');
   }
 }

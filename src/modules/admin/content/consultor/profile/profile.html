@@ -68,6 +68,42 @@
           Subir video
           <input type="file" accept="video/*" class="hidden" (change)="uploadVideo($event)" />
         </label>
+
+        <!-- Carga de CV -->
+        <hr class="my-5 border-border/60" />
+        <h3 class="mb-3 block text-xs font-inter-semibold text-muted">Hoja de Vida (CV)</h3>
+        
+        @if (form().cvUrl) {
+          <div class="mb-4 rounded-xl border border-border/80 bg-background px-3 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2 overflow-hidden">
+              <i class="far fa-file-pdf text-danger text-lg shrink-0"></i>
+              <a [href]="form().cvUrl" target="_blank" class="text-xs text-secondary hover:underline truncate font-inter-medium">
+                Ver CV cargado
+              </a>
+            </div>
+            <i class="fas fa-check-circle text-success text-sm shrink-0" title="CV cargado"></i>
+          </div>
+        } @else {
+          <p class="mb-4 text-center text-xs text-muted/80 rounded-xl border border-dashed border-border/80 py-4 px-2">
+            No hay CV cargado. Sube un archivo PDF para autocompletar tu perfil.
+          </p>
+        }
+
+        <label
+          class="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border text-sm font-inter-semibold bg-surface hover:bg-background-50/50 transition"
+        >
+          @if (uploadingCv()) {
+            <i class="fas fa-spinner fa-spin"></i>
+            Subiendo...
+          } @else {
+            <i class="fas fa-file-arrow-up"></i>
+            Subir nuevo CV (PDF)
+          }
+          <input type="file" accept="application/pdf" class="hidden" (change)="uploadCv($event)" />
+        </label>
+        @if (cvError()) {
+          <p class="mt-2 text-center text-[0.78rem] text-danger font-inter-medium">{{ cvError() }}</p>
+        }
       </aside>
 
       <form (ngSubmit)="save()" class="rounded-xl border border-border bg-surface p-6 lg:p-8">
@@ -172,16 +208,20 @@
             </div>
           }
           <div class="grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-2">
-            <label class="block text-xs text-muted font-inter-semibold">
-              <span class="mb-2 block">Precio por hora</span>
-              <input
-                type="number"
-                [ngModel]="form().pricePerHour"
-                name="pricePerHour"
-                (ngModelChange)="updateForm('pricePerHour', +$event)"
-                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
-              />
-            </label>
+            <div class="block text-xs text-muted font-inter-semibold">
+              <span class="mb-2 block">Precio por hora (Tarifa de consultoría)</span>
+              <div class="relative flex h-10 items-center overflow-hidden rounded-xl border border-border bg-background focus-within:border-secondary focus-within:ring-2 focus-within:ring-secondary/15 transition-all">
+                <span class="flex h-full items-center bg-background-200 border-r border-border/80 px-4 text-sm font-inter-bold text-text-500">S/</span>
+                <input
+                  type="number"
+                  [ngModel]="form().pricePerHour"
+                  name="pricePerHour"
+                  (ngModelChange)="updateForm('pricePerHour', +$event)"
+                  placeholder="0.00"
+                  class="h-full w-full bg-transparent px-3 text-sm font-inter-semibold text-text outline-none"
+                />
+              </div>
+            </div>
             <label class="block text-xs text-muted font-inter-semibold">
               <span class="mb-2 block">Años de experiencia</span>
               <input

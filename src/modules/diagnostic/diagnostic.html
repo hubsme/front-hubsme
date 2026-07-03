@@ -224,9 +224,10 @@
               <p class="text-xs text-text/40">Diagnóstico detallado y ruta de mejora estructurada por Inteligencia Artificial.</p>
             </div>
           </div>
-          <div class="text-xs sm:text-sm text-text/70 leading-relaxed whitespace-pre-line space-y-2 border-t border-border/50 pt-4">
-            {{ current.result.feedbackIa }}
-          </div>
+          <div 
+            class="text-xs sm:text-sm text-text/70 leading-relaxed space-y-2 border-t border-border/50 pt-4"
+            [innerHTML]="renderMarkdown(current.result.feedbackIa)"
+          ></div>
         </div>
 
         <!-- Recommendations List Section -->

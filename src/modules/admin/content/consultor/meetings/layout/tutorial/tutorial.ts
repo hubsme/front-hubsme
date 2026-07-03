@@ -25,6 +25,11 @@ export class CalendarTutorial implements OnInit, OnDestroy {
       title: 'Paso 3: Guarda tu Disponibilidad',
       description: 'Haz clic en "Guardar". Elige "Solo esta semana" para guardar estos días, o "Todos los días del mes" para replicar este patrón semanal en todo el mes.',
       icon: 'fas fa-floppy-disk',
+    },
+    {
+      title: 'Paso 4: Despinta un Horario',
+      description: 'Selecciona "No disponible" y haz clic o arrastra sobre un horario verde para despintarlo. Luego guarda nuevamente tus cambios.',
+      icon: 'fas fa-eraser',
     }
   ];
 

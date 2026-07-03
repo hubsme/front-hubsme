@@ -20,6 +20,7 @@ export class PaginationComponent {
   meta = input.required<PaginationMeta | null>();
   currentPage = input.required<number>();
   pageSize = input.required<number>();
+  showPageSizeSelector = input<boolean>(true);
 
   pageChange = output<number>();
   pageSizeChange = output<number>();

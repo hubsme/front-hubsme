@@ -1,4 +1,4 @@
-interface ChartImages { barChart?: string; radarChart?: string; lineChart?: string }
+interface ChartImages { barChart?: string; radarChart?: string }
 
 export type { ChartImages };
 
@@ -15,10 +15,6 @@ function buildReportHtml(diagnostic: any, chartImages?: ChartImages, format: 'pd
   const priorityColor = score < 60 ? '#f05252' : score < 75 ? '#c27803' : '#0e9f6e';
   const badgeText = score < 60 ? 'Atención prioritaria' : score < 75 ? 'Mejora continua' : 'Mantener nivel';
   const potential = score < 60 ? 'Alto' : score < 75 ? 'Medio' : 'Bajo';
-
-  const p2 = Math.min(100, Math.round(score + (100 - score) * 0.15));
-  const p3 = Math.min(100, Math.round(score + (100 - score) * 0.3));
-  const p4 = Math.min(100, Math.round(score + (100 - score) * 0.5));
 
   const areaColors: Record<string, { color: string; desc: string }> = {
     default: { color: '#0870f7', desc: 'Mejora tu rentabilidad y flujo de caja.' },
@@ -49,50 +45,45 @@ function buildReportHtml(diagnostic: any, chartImages?: ChartImages, format: 'pd
   }
 
   // Build chart images section - if html2canvas captured them, embed as base64 directly
-  const chartKeys: (keyof ChartImages)[] = ['barChart', 'radarChart', 'lineChart'];
-  const chartLabels = ['Desempeño por áreas', 'Capacidades del negocio', 'Proyección de evolución'];
+  const chartKeys: (keyof ChartImages)[] = ['barChart', 'radarChart'];
+  const chartLabels = ['Desempeño por áreas', 'Capacidades del negocio'];
   const hasCharts = chartKeys.some(k => chartImages?.[k]);
 
   // Define image references for MHTML boundaries
   const barChartRef = chartImages?.barChart ? 'file:///img_barChart.png' : '';
   const radarChartRef = chartImages?.radarChart ? 'file:///img_radarChart.png' : '';
-  const lineChartRef = chartImages?.lineChart ? 'file:///img_lineChart.png' : '';
 
   const chartsRow = hasCharts ? `
     <table style="width:100%;border-collapse:collapse;margin-bottom:20px;border:1px solid #e2e8f0;">
       <tr>
-        <td style="width:60%;padding:8px;vertical-align:middle;text-align:center;border:1px solid #e2e8f0;" rowspan="2">
-          <div style="font-size:10px;font-weight:bold;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">${chartLabels[0]}</div>
+        <td style="width:60%;padding:8px;vertical-align:middle;text-align:center;border:1px solid #e2e8f0;">
+          <div style="font-size:10px;font-weight:bold;color:#94a3b8;text-transform:uppercase;margin-bottom:8px;">${chartLabels[0]}</div>
           ${barChartRef ? `<img src="${barChartRef}" width="300" height="190" />` : ''}
+          <div style="font-size:8px;color:#94a3b8;margin-top:8px;">Comparativa frente al promedio del sector por dimensión.</div>
         </td>
         <td style="width:40%;padding:8px;vertical-align:middle;text-align:center;border:1px solid #e2e8f0;">
-          <div style="font-size:10px;font-weight:bold;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">${chartLabels[1]}</div>
-          ${radarChartRef ? `<img src="${radarChartRef}" width="190" height="90" />` : ''}
-        </td>
-      </tr>
-      <tr>
-        <td style="width:40%;padding:8px;vertical-align:middle;text-align:center;border:1px solid #e2e8f0;">
-          <div style="font-size:10px;font-weight:bold;color:#94a3b8;text-transform:uppercase;margin-bottom:4px;">${chartLabels[2]}</div>
-          ${lineChartRef ? `<img src="${lineChartRef}" width="190" height="90" />` : ''}
+          <div style="font-size:10px;font-weight:bold;color:#94a3b8;text-transform:uppercase;margin-bottom:8px;">${chartLabels[1]}</div>
+          ${radarChartRef ? `<img src="${radarChartRef}" width="190" height="150" />` : ''}
+          <div style="font-size:8px;color:#94a3b8;margin-top:8px;">Nivel de equilibrio y madurez de las áreas clave del negocio.</div>
         </td>
       </tr>
     </table>
   ` : '';
 
-  // Area cards row (Lowest 4 areas to highlight critical domains)
+  // Area cards row (Lowest 3 areas to highlight critical domains)
   const mainAreas = [...(diagnostic.result.areasEvaluadas || [])]
     .sort((a: any, b: any) => a.puntaje - b.puntaje)
-    .slice(0, 4);
+    .slice(0, 3);
 
   const cardColors = ['#0870f7', '#0e9f6e', '#c27803', '#7e3af2'];
   const areaCards = `
     <table style="width:100%;border-collapse:separate;border-spacing:12px 0;margin-top:10px;margin-bottom:20px;">
       <tr>
         ${mainAreas.map((area: { area: string; puntaje: number }, index: number) => {
-          const color = cardColors[index % 4];
-          const { desc } = getAreaStyle(area.area);
-          return `
-            <td style="width:25%;padding:12px;vertical-align:top;border:1px solid #e2e8f0;border-radius:12px;background:#fff;">
+    const color = cardColors[index % 4];
+    const { desc } = getAreaStyle(area.area);
+    return `
+            <td style="width:33.3%;padding:12px;vertical-align:top;border:1px solid #e2e8f0;border-radius:12px;background:#fff;">
               <table style="width:100%;border-collapse:collapse;">
                 <tr>
                   <td style="font-weight:bold;font-size:11px;color:#1e293b;padding:0;">${area.area}</td>
@@ -107,7 +98,7 @@ function buildReportHtml(diagnostic: any, chartImages?: ChartImages, format: 'pd
               </table>
               <p style="margin:6px 0 0;font-size:9px;color:#64748b;line-height:1.3;">${desc}</p>
             </td>`;
-        }).join('')}
+  }).join('')}
       </tr>
     </table>`;
 
@@ -169,12 +160,12 @@ function buildReportHtml(diagnostic: any, chartImages?: ChartImages, format: 'pd
         <!-- KPI Row -->
         <table style="width:100%;border-collapse:collapse;margin-bottom:25px;"><tr>
           ${[
-            { label: 'Puntaje Global', value: `${score}/100`, color: '#0f172a' },
-            { label: 'Prioridad', value: priority, color: priorityColor },
-            { label: 'Áreas', value: diagnostic.result.areasEvaluadas.length, color: '#0f172a' },
-            { label: 'Recomendac.', value: diagnostic.result.recomendaciones.length, color: '#0f172a' },
-            { label: 'Mejora', value: potential, color: '#0870f7' },
-          ].map(kpi => `
+      { label: 'Puntaje Global', value: `${score}/100`, color: '#0f172a' },
+      { label: 'Prioridad', value: priority, color: priorityColor },
+      { label: 'Áreas', value: diagnostic.result.areasEvaluadas.length, color: '#0f172a' },
+      { label: 'Recomendac.', value: diagnostic.result.recomendaciones.length, color: '#0f172a' },
+      { label: 'Mejora', value: potential, color: '#0870f7' },
+    ].map(kpi => `
             <td style="width:20%;padding:5px;">
               <div style="border:1px solid #e2e8f0;border-radius:12px;padding:10px;text-align:center;">
                 <div style="font-size:9px;color:#94a3b8;text-transform:uppercase;font-weight:bold;">${kpi.label}</div>
@@ -202,28 +193,47 @@ function buildReportHtml(diagnostic: any, chartImages?: ChartImages, format: 'pd
           <tbody>${areasRows}</tbody>
         </table>
 
-        <h2>Proyección de Evolución</h2>
-        <p style="margin-bottom:10px;">Puntaje estimado al implementar las recomendaciones estratégicas en los plazos defininedos.</p>
-        <table style="width:100%;border-collapse:collapse;margin-top:10px;border:1px solid #e2e8f0;">
-          <tr style="background:#f8fafc;border-bottom:1.5px solid #e2e8f0;">
-            <th style="padding:10px;text-align:center;font-size:11px;color:#64748b;">Actual</th>
-            <th style="padding:10px;text-align:center;font-size:11px;color:#64748b;">3 meses</th>
-            <th style="padding:10px;text-align:center;font-size:11px;color:#64748b;">6 meses</th>
-            <th style="padding:10px;text-align:center;font-size:11px;color:#64748b;">12 meses</th>
-          </tr>
-          <tr>
-            <td style="padding:15px 10px;text-align:center;font-weight:bold;color:#0f172a;font-size:14px;">${score}/100</td>
-            <td style="padding:15px 10px;text-align:center;font-weight:bold;color:#0870f7;font-size:14px;">${p2}/100</td>
-            <td style="padding:15px 10px;text-align:center;font-weight:bold;color:#0870f7;font-size:14px;">${p3}/100</td>
-            <td style="padding:15px 10px;text-align:center;font-weight:bold;color:#0870f7;font-size:14px;">${p4}/100</td>
-          </tr>
-        </table>
         ` : ''}
 
         <h2>Análisis Estratégico General</h2>
         <div style="border:1px solid #e2e8f0;border-radius:12px;padding:20px;color:#475569;font-size:12px;margin-bottom:25px;line-height:1.6;">
           ${(diagnostic.result.feedbackIa || '').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')}
         </div>
+
+        <!-- FODA/SWOT Section -->
+        ${diagnostic.result.foda ? `
+        <h2>Análisis FODA</h2>
+        <table style="width:100%;border-collapse:separate;border-spacing:12px;margin-bottom:25px;">
+          <tr>
+            <td style="width:50%;padding:15px;vertical-align:top;border:1px solid #def7ec;border-radius:12px;background:#f3faf7;">
+              <div style="font-weight:bold;color:#0e9f6e;font-size:13px;margin-bottom:8px;">Fortalezas</div>
+              <ul style="margin:0;padding-left:15px;font-size:11px;color:#4b5563;">
+                ${diagnostic.result.foda.fortalezas.map((f: string) => `<li style="margin-bottom:4px;">${f}</li>`).join('')}
+              </ul>
+            </td>
+            <td style="width:50%;padding:15px;vertical-align:top;border:1px solid #e1effe;border-radius:12px;background:#f4f6fb;">
+              <div style="font-weight:bold;color:#0870f7;font-size:13px;margin-bottom:8px;">Oportunidades</div>
+              <ul style="margin:0;padding-left:15px;font-size:11px;color:#4b5563;">
+                ${diagnostic.result.foda.oportunidades.map((o: string) => `<li style="margin-bottom:4px;">${o}</li>`).join('')}
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td style="width:50%;padding:15px;vertical-align:top;border:1px solid #fde8e8;border-radius:12px;background:#fdf2f2;">
+              <div style="font-weight:bold;color:#f05252;font-size:13px;margin-bottom:8px;">Amenazas</div>
+              <ul style="margin:0;padding-left:15px;font-size:11px;color:#4b5563;">
+                ${diagnostic.result.foda.amenazas.map((a: string) => `<li style="margin-bottom:4px;">${a}</li>`).join('')}
+              </ul>
+            </td>
+            <td style="width:50%;padding:15px;vertical-align:top;border:1px solid #fef3c7;border-radius:12px;background:#fffbeb;">
+              <div style="font-weight:bold;color:#c27803;font-size:13px;margin-bottom:8px;">Debilidades</div>
+              <ul style="margin:0;padding-left:15px;font-size:11px;color:#4b5563;">
+                ${diagnostic.result.foda.debilidades.map((d: string) => `<li style="margin-bottom:4px;">${d}</li>`).join('')}
+              </ul>
+            </td>
+          </tr>
+        </table>
+        ` : ''}
 
         <h2>Recomendaciones Estratégicas</h2>
         <table style="width:100%;border-collapse:collapse;border:1px solid #e2e8f0;margin-bottom:25px;">
@@ -247,14 +257,13 @@ export function downloadWord(diagnostic: any, chartImages?: ChartImages) {
 
   const barChartRef = chartImages?.barChart ? 'file:///img_barChart.png' : '';
   const radarChartRef = chartImages?.radarChart ? 'file:///img_radarChart.png' : '';
-  const lineChartRef = chartImages?.lineChart ? 'file:///img_lineChart.png' : '';
 
   // Package the content as MHTML to support inline base64 images inside Microsoft Word
   const boundary = '----=_NextPart_HUBSME_DIAGNOSTICO_MIME';
-  
+
   let mhtml = `MIME-Version: 1.0\r\n`;
   mhtml += `Content-Type: multipart/related; boundary="${boundary}"; type="text/html"\r\n\r\n`;
-  
+
   mhtml += `--${boundary}\r\n`;
   mhtml += `Content-Type: text/html; charset="utf-8"\r\n`;
   mhtml += `Content-Location: file:///main.html\r\n\r\n`;
@@ -278,7 +287,6 @@ export function downloadWord(diagnostic: any, chartImages?: ChartImages) {
 
   if (barChartRef) addImagePart(barChartRef, chartImages?.barChart);
   if (radarChartRef) addImagePart(radarChartRef, chartImages?.radarChart);
-  if (lineChartRef) addImagePart(lineChartRef, chartImages?.lineChart);
 
   mhtml += `--${boundary}--\r\n`;
 
@@ -313,9 +321,6 @@ export function downloadPdf(diagnostic: any, chartImages?: ChartImages) {
   }
   if (chartImages?.radarChart) {
     pdfHtml = pdfHtml.replace(/file:\/\/\/img_radarChart\.png/g, chartImages.radarChart);
-  }
-  if (chartImages?.lineChart) {
-    pdfHtml = pdfHtml.replace(/file:\/\/\/img_lineChart\.png/g, chartImages.lineChart);
   }
 
   const iframe = document.createElement('iframe');

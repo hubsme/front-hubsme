@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiResponse } from 'api/backend.api';
@@ -7,6 +8,7 @@ import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { ConsultantService } from '@service/admin/consultant.service';
 import { MeetingService } from '@service/admin/meeting.service';
 import { MercadoPagoService } from '@service/admin/mercado-pago.service';
+import { PromotionCodeService } from '@service/admin/promotion-code.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { PATH, buildPath } from '@route/path.route';
@@ -18,13 +20,14 @@ type ConsultantData = ApiResponse<'consultant', 'findByUser'>;
 
 @Component({
   selector: 'app-checkout',
-  imports: [CommonModule, ModalForm],
+  imports: [CommonModule, FormsModule, ModalForm],
   templateUrl: './checkout.html',
 })
 export class Checkout implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private mercadoPagoService = inject(MercadoPagoService);
+  private promotionCodeService = inject(PromotionCodeService);
   private meetingService = inject(MeetingService);
   private consultantService = inject(ConsultantService);
   private hubsme = inject(HubsmeService);
@@ -42,6 +45,8 @@ export class Checkout implements OnInit, OnDestroy {
   loading = signal(false);
   opening = signal(false);
   paymentModalOpen = signal(false);
+  promotionCode = signal('');
+  redeemingPromotion = signal(false);
 
   checkoutId = computed(() => Number(this.route.snapshot.paramMap.get('id') ?? 0));
   paymentUrl = computed(() => this.checkout()?.initPoint ?? this.checkout()?.sandboxInitPoint ?? null);
@@ -180,6 +185,27 @@ export class Checkout implements OnInit, OnDestroy {
     this.paymentModalOpen.set(false);
     this.opening.set(false);
     this.load();
+  }
+
+  redeemPromotionCode() {
+    const code = this.promotionCode().trim();
+    if (!code) {
+      this.toastService.warning('Ingresa un código promocional');
+      return;
+    }
+    if (this.isPaid() || this.redeemingPromotion()) return;
+
+    this.redeemingPromotion.set(true);
+    this.promotionCodeService
+      .redeem({ checkoutId: this.checkoutId(), code })
+      .then((result) => {
+        this.toastService.success(result.message);
+        this.completePaidFlow(result.meetingId);
+      })
+      .catch((error) =>
+        this.toastService.error(this.hubsme.getErrorMessage(error)),
+      )
+      .finally(() => this.redeemingPromotion.set(false));
   }
 
   goBack() {

@@ -9,6 +9,12 @@ import { PATH, buildPath } from '@route/path.route';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { downloadPdf } from '../../../functions/download-pdf';
 import { downloadWord, ChartImages } from '../../../functions/download-word';
+import {
+  AreaConsultantsMap,
+  CriticalArea,
+  RecommendedConsultant,
+  recommendConsultantsByArea,
+} from '../../../functions/recommend-consultants';
 
 type Diagnostic = ApiResponse<'diagnostic', 'findOne'>;
 type ResponseEntry = {
@@ -63,7 +69,7 @@ export class DiagnosticDetail implements OnInit {
   downloadingWord = signal(false);
   isDownloading = computed(() => this.downloadingPdf() || this.downloadingWord());
 
-  consultants = signal<any[]>([]);
+  areaConsultantsMap = signal<AreaConsultantsMap>({});
 
   readonly PATH = PATH;
   readonly buildPath = buildPath;
@@ -98,7 +104,7 @@ export class DiagnosticDetail implements OnInit {
   barChartOptions = computed(() => {
     const current = this.diagnostic();
     const areas = current?.result?.areasEvaluadas || [];
-    
+
     return {
       series: [
         {
@@ -118,7 +124,7 @@ export class DiagnosticDetail implements OnInit {
       ],
       chart: {
         type: 'bar' as const,
-        height: 480,
+        height: 340,
         toolbar: { show: false },
         animations: { enabled: false }
       },
@@ -131,7 +137,7 @@ export class DiagnosticDetail implements OnInit {
       },
       dataLabels: {
         enabled: true,
-        formatter: (val: any) => `${val}`,
+        formatter: (val: number) => `${val}`,
         style: {
           fontSize: '11px',
           fontWeight: 'bold',
@@ -183,7 +189,7 @@ export class DiagnosticDetail implements OnInit {
       });
       return area ? area.puntaje : 50;
     };
-    
+
     const finanzas = getScore('financiera');
     const operaciones = getScore('operaciones');
     const equipo = getScore('organizacional');
@@ -233,70 +239,6 @@ export class DiagnosticDetail implements OnInit {
     };
   });
 
-  lineChartOptions = computed(() => {
-    const score = this.diagnostic()?.score ?? 50;
-    const p2 = Math.min(100, Math.round(score + (100 - score) * 0.15));
-    const p3 = Math.min(100, Math.round(score + (100 - score) * 0.3));
-    const p4 = Math.min(100, Math.round(score + (100 - score) * 0.5));
-
-    return {
-      series: [{
-        name: 'Puntaje Proyectado',
-        data: [score, p2, p3, p4]
-      }],
-      chart: {
-        type: 'line' as const,
-        height: 220,
-        toolbar: { show: false },
-        animations: { enabled: false }
-      },
-      colors: ['#0870f7'],
-      stroke: {
-        curve: 'smooth' as const,
-        width: 3
-      },
-      markers: {
-        size: 5,
-        colors: ['#0870f7'],
-        strokeWidth: 2
-      },
-      dataLabels: {
-        enabled: true,
-        formatter: (val: any) => `${val}`,
-        style: {
-          fontSize: '11px',
-          fontWeight: 'bold',
-          colors: ['#334155']
-        }
-      },
-      xaxis: {
-        categories: ['Actual', '3 meses', '6 meses', '12 meses'],
-        labels: {
-          style: {
-            fontSize: '10px',
-            fontFamily: 'Inter Medium, sans-serif'
-          }
-        },
-        axisBorder: { show: false },
-        axisTicks: { show: false }
-      },
-      yaxis: {
-        min: 0,
-        max: 100,
-        tickAmount: 4,
-        labels: {
-          style: {
-            fontSize: '10px'
-          }
-        }
-      },
-      grid: {
-        show: true,
-        borderColor: '#e2e8f0',
-        strokeDashArray: 4
-      }
-    };
-  });
 
   areaDescription(areaName: string): string {
     const name = areaName.toLowerCase();
@@ -344,7 +286,7 @@ export class DiagnosticDetail implements OnInit {
           const startTime = Date.now();
           const checkAndDownload = () => {
             const svgs = document.querySelectorAll('apx-chart svg');
-            if (svgs.length >= 3 || Date.now() - startTime > 5000) {
+            if (svgs.length >= 2 || Date.now() - startTime > 5000) {
               setTimeout(() => {
                 this.downloadPdf();
                 setTimeout(() => {
@@ -363,47 +305,20 @@ export class DiagnosticDetail implements OnInit {
   }
 
   loadSuggestedConsultants() {
-    this.hubsme.listConsultants('', 1, 20, 'true')
+    this.hubsme.listConsultants('', 1, 100, 'true')
       .then((res) => {
         const all = res.data.data;
         const areas = this.diagnostic()?.result?.areasEvaluadas || [];
-        const criticalAreas = areas.filter(a => a.puntaje < 75).map(a => a.area.toLowerCase());
-
-        if (criticalAreas.length === 0) {
-          this.consultants.set(all.slice(0, 3));
-          return;
-        }
-
-        const areaKeywords: Record<string, string[]> = {
-          finanzas: ['finan', 'estrateg', 'caja', 'costo', 'tribut', 'presupuest'],
-          operaciones: ['operac', 'logist', 'proces', 'suminist', 'calidad', 'inventar'],
-          equipo: ['rrhh', 'talent', 'organiza', 'cultur', 'equip', 'funcion', 'rol'],
-          mercado: ['market', 'vent', 'comerc', 'satisfac', 'lead', 'client', 'publicid']
-        };
-
-        const ranked = all.map((c: any) => {
-          let matches = 0;
-          const specialties = (c.specialties || []).map((s: string) => s.toLowerCase());
-          
-          for (const area of criticalAreas) {
-            const keywords = areaKeywords[area] || [area];
-            const hasMatch = keywords.some(keyword => 
-              specialties.some((spec: string) => spec.includes(keyword))
-            );
-            if (hasMatch) matches += 2;
-          }
-          return { consultant: c, matches };
-        });
-
-        ranked.sort((a, b) => b.matches - a.matches);
-        this.consultants.set(ranked.map(r => r.consultant).slice(0, 3));
+        this.areaConsultantsMap.set(
+          recommendConsultantsByArea(all, this.getMainAreas(areas)),
+        );
       })
       .catch(err => {
         console.error('Error loading suggested consultants', err);
       });
   }
 
-  consultantPhoto(consultant: any): string {
+  consultantPhoto(consultant: RecommendedConsultant): string {
     return (
       consultant.photoUrl ||
       `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(consultant.fullName || consultant.firstName || 'User')}`
@@ -461,8 +376,7 @@ export class DiagnosticDetail implements OnInit {
       const chartImages = await this.captureCharts();
       console.log('downloadWord: calling downloadWord helper function. Chart images length:', {
         barChart: chartImages.barChart?.length || 0,
-        radarChart: chartImages.radarChart?.length || 0,
-        lineChart: chartImages.lineChart?.length || 0
+        radarChart: chartImages.radarChart?.length || 0
       });
       downloadWord(diagnostic, chartImages);
     } catch (err) {
@@ -474,7 +388,7 @@ export class DiagnosticDetail implements OnInit {
   }
 
   private async captureCharts(): Promise<ChartImages> {
-    const chartImages: ChartImages = { barChart: '', radarChart: '', lineChart: '' };
+    const chartImages: ChartImages = { barChart: '', radarChart: '' };
 
     if (!this.isBrowser) return chartImages;
 
@@ -515,9 +429,8 @@ export class DiagnosticDetail implements OnInit {
 
       const bar = getChartContainer(0, 'Desempeño por áreas');
       const radar = getChartContainer(1, 'Capacidades del negocio');
-      const line = getChartContainer(2, 'Proyección de evolución');
 
-      console.log('captureCharts: identified elements to capture - bar:', !!bar, 'radar:', !!radar, 'line:', !!line);
+      console.log('captureCharts: identified elements to capture - bar:', !!bar, 'radar:', !!radar);
 
       if (bar) {
         console.log('captureCharts: capturing bar chart...');
@@ -526,10 +439,6 @@ export class DiagnosticDetail implements OnInit {
       if (radar) {
         console.log('captureCharts: capturing radar chart...');
         chartImages.radarChart = await this.captureElement(capture, radar, 'radarChart');
-      }
-      if (line) {
-        console.log('captureCharts: capturing line chart...');
-        chartImages.lineChart = await this.captureElement(capture, line, 'lineChart');
       }
     } catch (captureErr) {
       console.error('captureCharts: Error during chart capture phase:', captureErr);
@@ -567,11 +476,11 @@ export class DiagnosticDetail implements OnInit {
       .replace(/\s*\(N\/A\s*-\s*se\s+excluye\s+del\s+calculo\)$/i, ' (N/A)');
   }
 
-  getMainAreas(areas: any[]): any[] {
+  getMainAreas(areas: CriticalArea[]): CriticalArea[] {
     if (!areas) return [];
     return [...areas]
       .sort((a, b) => a.puntaje - b.puntaje)
-      .slice(0, 4);
+      .slice(0, 3);
   }
 
   private responseValue(value: unknown) {

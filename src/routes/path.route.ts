@@ -48,6 +48,11 @@ export const PATH = {
     forgotPassword: { _path: 'forgot-password' },
     resetPassword: { _path: 'reset-password' },
   },
+  backoffice: {
+    _path: 'administracion',
+    login: { _path: 'login' },
+    promotionCodes: { _path: 'codigos-promocionales' },
+  },
   admin: {
     _path: 'admin',
     pyme: {

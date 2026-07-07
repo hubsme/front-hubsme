@@ -20,7 +20,9 @@ export function buildPath(node: PathNode): string {
       if (key === '_path') continue;
       const value = current[key];
       const nextPath =
-        '_path' in current && typeof current['_path'] === 'string' ? [...path, current['_path']] : path;
+        '_path' in current && typeof current['_path'] === 'string'
+          ? [...path, current['_path']]
+          : path;
       const result = findFullPath(value, target, nextPath);
       if (result) return result;
     }
@@ -45,13 +47,15 @@ export const PATH = {
     _path: 'auth',
     signIn: { _path: 'sign-in' },
     signUp: { _path: 'sign-up' },
+    adminLogin: { _path: 'admin-login' },
     forgotPassword: { _path: 'forgot-password' },
     resetPassword: { _path: 'reset-password' },
   },
   backoffice: {
-    _path: 'administracion',
-    login: { _path: 'login' },
+    _path: 'backoffice',
     promotionCodes: { _path: 'codigos-promocionales' },
+    pymes: { _path: 'pymes' },
+    consultants: { _path: 'consultores' },
   },
   admin: {
     _path: 'admin',
@@ -81,7 +85,6 @@ export const PATH = {
       subscription: { _path: 'subscription' },
     },
   },
-  
 } as const;
 
 export const ROUTE_CONFIG = {

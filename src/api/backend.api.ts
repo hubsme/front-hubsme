@@ -327,6 +327,29 @@ export interface PymeListDto {
   meta: PaginationMetaDto;
 }
 
+export interface PymeResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  userId: number;
+  name: string;
+  ruc: string | null;
+  ownerFirstName: string | null;
+  ownerLastName: string | null;
+  ownerEmail: string | null;
+  ownerPhone: string | null;
+  ownerPosition: string | null;
+  sector: string | null;
+  numEmployees: number | null;
+  yearsInOperation: number | null;
+  description: string | null;
+  logoUrl: string | null;
+}
+
 export interface ConsultantListItemDto {
   id: number;
   userId: number;
@@ -376,29 +399,6 @@ export interface ConsultantListItemDto {
 export interface ConsultantListDto {
   data: ConsultantListItemDto[];
   meta: PaginationMetaDto;
-}
-
-export interface PymeResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  /** @format date-time */
-  deletedAt: string | null;
-  userId: number;
-  name: string;
-  ruc: string | null;
-  ownerFirstName: string | null;
-  ownerLastName: string | null;
-  ownerEmail: string | null;
-  ownerPhone: string | null;
-  ownerPosition: string | null;
-  sector: string | null;
-  numEmployees: number | null;
-  yearsInOperation: number | null;
-  description: string | null;
-  logoUrl: string | null;
 }
 
 export interface PymeCreateDto {
@@ -457,6 +457,24 @@ export interface PymeUpdateDto {
   description?: string;
   /** @example "https://storage.example.com/pymes/logo.jpg" */
   logoUrl?: string;
+}
+
+export interface AdminLoginDto {
+  /** @example "admin" */
+  username: string;
+  /** @example "********" */
+  password: string;
+}
+
+export interface AdminLoginUserDto {
+  /** @example "admin" */
+  username: string;
+  role: "admin";
+}
+
+export interface AdminLoginResponseDto {
+  accessToken: string;
+  user: AdminLoginUserDto;
 }
 
 export interface WhatsappSendDto {
@@ -1390,24 +1408,6 @@ export interface PublicConsultantListDto {
   meta: PaginationMetaDto;
 }
 
-export interface AdminLoginDto {
-  /** @example "admin" */
-  username: string;
-  /** @example "********" */
-  password: string;
-}
-
-export interface AdminLoginUserDto {
-  /** @example "admin" */
-  username: string;
-  role: "admin";
-}
-
-export interface AdminLoginResponseDto {
-  accessToken: string;
-  user: AdminLoginUserDto;
-}
-
 export interface PromotionCodeResultDto {
   id: number;
   /** @format date-time */
@@ -1428,6 +1428,36 @@ export interface PromotionCodeResultDto {
 export interface PromotionCodeListDto {
   data: PromotionCodeResultDto[];
   meta: PaginationMetaDto;
+}
+
+export interface PromotionCodeRedemptionDetailDto {
+  id: number;
+  checkoutId: number;
+  pymeId: number;
+  pymeName: string;
+  consultantId: number;
+  consultantName: string;
+  meetingId: number | null;
+  /** @format date-time */
+  redeemedAt: string;
+}
+
+export interface PromotionCodeDetailDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  code: string;
+  description?: string | null;
+  maxRedemptions: number;
+  redemptionCount: number;
+  /** @format date-time */
+  startsAt?: string | null;
+  /** @format date-time */
+  expiresAt?: string | null;
+  isActive: boolean;
+  redemptions: PromotionCodeRedemptionDetailDto[];
 }
 
 export interface PromotionCodeCreateDto {
@@ -1578,6 +1608,35 @@ export type UserRemoveData = UserResultDto;
 
 export type UserRemoveError = HttpErrorDto;
 
+export interface PymeadminFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by business name or RUC */
+  search?: string;
+  /** Filter by sector */
+  sector?: string;
+}
+
+export type PymeadminFindAllData = PymeListDto;
+
+export type PymeadminFindAllError = HttpErrorDto;
+
+export interface PymeadminFindOneParams {
+  id: number;
+}
+
+export type PymeadminFindOneData = PymeResultDto;
+
+export type PymeadminFindOneError = HttpErrorDto;
+
 export interface PymeFindAllParams {
   /**
    * Page number
@@ -1658,9 +1717,44 @@ export type PymeRemoveData = PymeResultDto;
 
 export type PymeRemoveError = HttpErrorDto;
 
+export type AdminauthLoginData = AdminLoginResponseDto;
+
+export type AdminauthLoginError = HttpErrorDto;
+
 export type WhatsappSendMessageData = WhatsappSendResultDto;
 
 export type WhatsappSendMessageError = HttpErrorDto;
+
+export interface ConsultantadminFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by name, bio or specialty */
+  search?: string;
+  active?: "true" | "false";
+  validated?: "true" | "false";
+  /** Filter by sector */
+  sector?: string;
+}
+
+export type ConsultantadminFindAllData = ConsultantListDto;
+
+export type ConsultantadminFindAllError = HttpErrorDto;
+
+export interface ConsultantadminFindOneParams {
+  id: number;
+}
+
+export type ConsultantadminFindOneData = ConsultantResultDto;
+
+export type ConsultantadminFindOneError = HttpErrorDto;
 
 export interface ConsultantFindAllParams {
   /**
@@ -2291,10 +2385,6 @@ export interface PublicconsultantFindAllParams {
 
 export type PublicconsultantFindAllData = PublicConsultantListDto;
 
-export type AdminauthLoginData = AdminLoginResponseDto;
-
-export type AdminauthLoginError = HttpErrorDto;
-
 export interface PromotioncodeadminFindAllParams {
   /**
    * Page number
@@ -2310,6 +2400,14 @@ export interface PromotioncodeadminFindAllParams {
 }
 
 export type PromotioncodeadminFindAllData = PromotionCodeListDto;
+
+export interface PromotioncodeadminFindOneParams {
+  id: number;
+}
+
+export type PromotioncodeadminFindOneData = PromotionCodeDetailDto;
+
+export type PromotioncodeadminFindOneError = HttpErrorDto;
 
 export type PromotioncodeadminCreateData = PromotionCodeResultDto;
 
@@ -2608,6 +2706,61 @@ export namespace User {
   }
 }
 
+export namespace PymeAdmin {
+  /**
+   * No description
+   * @tags pymeAdmin
+   * @name PymeadminFindAll
+   * @summary List PYMEs for the internal admin panel
+   * @request GET:/admin/backoffice/pyme/find-all
+   * @secure
+   * @response `200` `PymeadminFindAllData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeadminFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by business name or RUC */
+      search?: string;
+      /** Filter by sector */
+      sector?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeadminFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags pymeAdmin
+   * @name PymeadminFindOne
+   * @summary Get a PYME profile for the internal admin panel
+   * @request GET:/admin/backoffice/pyme/find-one/{id}
+   * @secure
+   * @response `200` `PymeadminFindOneData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeadminFindOne {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeadminFindOneData;
+  }
+}
+
 export namespace Pyme {
   /**
    * No description
@@ -2776,6 +2929,25 @@ export namespace Pyme {
   }
 }
 
+export namespace AdminAuth {
+  /**
+   * No description
+   * @tags adminAuth
+   * @name AdminauthLogin
+   * @summary Login for the internal Hubsme administrative panel
+   * @request POST:/admin/auth/login
+   * @response `200` `AdminauthLoginData`
+   * @response `401` `HttpErrorDto`
+   */
+  export namespace AdminauthLogin {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = AdminLoginDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = AdminauthLoginData;
+  }
+}
+
 export namespace Whatsapp {
   /**
    * No description
@@ -2794,6 +2966,63 @@ export namespace Whatsapp {
     export type RequestBody = WhatsappSendDto;
     export type RequestHeaders = {};
     export type ResponseBody = WhatsappSendMessageData;
+  }
+}
+
+export namespace ConsultantAdmin {
+  /**
+   * No description
+   * @tags consultantAdmin
+   * @name ConsultantadminFindAll
+   * @summary List consultants for the internal admin panel
+   * @request GET:/admin/backoffice/consultant/find-all
+   * @secure
+   * @response `200` `ConsultantadminFindAllData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantadminFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by name, bio or specialty */
+      search?: string;
+      active?: "true" | "false";
+      validated?: "true" | "false";
+      /** Filter by sector */
+      sector?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantadminFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags consultantAdmin
+   * @name ConsultantadminFindOne
+   * @summary Get a consultant profile for the internal admin panel
+   * @request GET:/admin/backoffice/consultant/find-one/{id}
+   * @secure
+   * @response `200` `ConsultantadminFindOneData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantadminFindOne {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantadminFindOneData;
   }
 }
 
@@ -4210,25 +4439,6 @@ export namespace PublicConsultant {
   }
 }
 
-export namespace AdminAuth {
-  /**
-   * No description
-   * @tags adminAuth
-   * @name AdminauthLogin
-   * @summary Login for the internal Hubsme administrative panel
-   * @request POST:/admin/auth/login
-   * @response `200` `AdminauthLoginData`
-   * @response `401` `HttpErrorDto`
-   */
-  export namespace AdminauthLogin {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = AdminLoginDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = AdminauthLoginData;
-  }
-}
-
 export namespace PromotionCodeAdmin {
   /**
    * No description
@@ -4257,6 +4467,26 @@ export namespace PromotionCodeAdmin {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = PromotioncodeadminFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags promotionCodeAdmin
+   * @name PromotioncodeadminFindOne
+   * @summary Get promotional code details and redemptions
+   * @request GET:/admin/promotion-code/find-one/{id}
+   * @secure
+   * @response `200` `PromotioncodeadminFindOneData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PromotioncodeadminFindOne {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PromotioncodeadminFindOneData;
   }
 
   /**
@@ -4879,6 +5109,54 @@ export class Api<SecurityDataType extends unknown> {
         ...params,
       }),
   };
+  pymeAdmin = {
+    /**
+     * No description
+     *
+     * @tags pymeAdmin
+     * @name PymeadminFindAll
+     * @summary List PYMEs for the internal admin panel
+     * @request GET:/admin/backoffice/pyme/find-all
+     * @secure
+     * @response `200` `PymeadminFindAllData`
+     * @response `400` `HttpErrorDto`
+     */
+    pymeadminFindAll: (
+      query: PymeadminFindAllParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PymeadminFindAllData, PymeadminFindAllError>({
+        path: `/admin/backoffice/pyme/find-all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pymeAdmin
+     * @name PymeadminFindOne
+     * @summary Get a PYME profile for the internal admin panel
+     * @request GET:/admin/backoffice/pyme/find-one/{id}
+     * @secure
+     * @response `200` `PymeadminFindOneData`
+     * @response `400` `HttpErrorDto`
+     */
+    pymeadminFindOne: (
+      { id }: PymeadminFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PymeadminFindOneData, PymeadminFindOneError>({
+        path: `/admin/backoffice/pyme/find-one/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
   pyme = {
     /**
      * No description
@@ -5039,6 +5317,27 @@ export class Api<SecurityDataType extends unknown> {
         ...params,
       }),
   };
+  adminAuth = {
+    /**
+     * No description
+     *
+     * @tags adminAuth
+     * @name AdminauthLogin
+     * @summary Login for the internal Hubsme administrative panel
+     * @request POST:/admin/auth/login
+     * @response `200` `AdminauthLoginData`
+     * @response `401` `HttpErrorDto`
+     */
+    adminauthLogin: (data: AdminLoginDto, params: RequestParams = {}) =>
+      this.http.request<AdminauthLoginData, AdminauthLoginError>({
+        path: `/admin/auth/login`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
   whatsapp = {
     /**
      * No description
@@ -5059,6 +5358,60 @@ export class Api<SecurityDataType extends unknown> {
         body: data,
         secure: true,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  consultantAdmin = {
+    /**
+     * No description
+     *
+     * @tags consultantAdmin
+     * @name ConsultantadminFindAll
+     * @summary List consultants for the internal admin panel
+     * @request GET:/admin/backoffice/consultant/find-all
+     * @secure
+     * @response `200` `ConsultantadminFindAllData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantadminFindAll: (
+      query: ConsultantadminFindAllParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantadminFindAllData,
+        ConsultantadminFindAllError
+      >({
+        path: `/admin/backoffice/consultant/find-all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultantAdmin
+     * @name ConsultantadminFindOne
+     * @summary Get a consultant profile for the internal admin panel
+     * @request GET:/admin/backoffice/consultant/find-one/{id}
+     * @secure
+     * @response `200` `ConsultantadminFindOneData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantadminFindOne: (
+      { id }: ConsultantadminFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantadminFindOneData,
+        ConsultantadminFindOneError
+      >({
+        path: `/admin/backoffice/consultant/find-one/${id}`,
+        method: "GET",
+        secure: true,
         format: "json",
         ...params,
       }),
@@ -6577,27 +6930,6 @@ export class Api<SecurityDataType extends unknown> {
         ...params,
       }),
   };
-  adminAuth = {
-    /**
-     * No description
-     *
-     * @tags adminAuth
-     * @name AdminauthLogin
-     * @summary Login for the internal Hubsme administrative panel
-     * @request POST:/admin/auth/login
-     * @response `200` `AdminauthLoginData`
-     * @response `401` `HttpErrorDto`
-     */
-    adminauthLogin: (data: AdminLoginDto, params: RequestParams = {}) =>
-      this.http.request<AdminauthLoginData, AdminauthLoginError>({
-        path: `/admin/auth/login`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-  };
   promotionCodeAdmin = {
     /**
      * No description
@@ -6617,6 +6949,32 @@ export class Api<SecurityDataType extends unknown> {
         path: `/admin/promotion-code/find-all`,
         method: "GET",
         query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags promotionCodeAdmin
+     * @name PromotioncodeadminFindOne
+     * @summary Get promotional code details and redemptions
+     * @request GET:/admin/promotion-code/find-one/{id}
+     * @secure
+     * @response `200` `PromotioncodeadminFindOneData`
+     * @response `400` `HttpErrorDto`
+     */
+    promotioncodeadminFindOne: (
+      { id }: PromotioncodeadminFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PromotioncodeadminFindOneData,
+        PromotioncodeadminFindOneError
+      >({
+        path: `/admin/promotion-code/find-one/${id}`,
+        method: "GET",
         secure: true,
         format: "json",
         ...params,

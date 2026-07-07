@@ -10,22 +10,26 @@ import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import {
   PaginationMetaDto,
   PromotionCodeCreateDto,
+  PromotionCodeDetailDto,
   PromotionCodeResultDto,
 } from 'api/backend.api';
 
 @Component({
-  selector: 'app-promotion-codes',
+  selector: 'app-codes',
   imports: [DatePipe, FormsModule, ModalForm, PaginationComponent],
-  templateUrl: './promotion-codes.html',
+  templateUrl: './codes.html',
 })
-export class PromotionCodes {
+export class Codes {
   private readonly adminApi = inject(AdminApiService);
   private readonly toastService = inject(ToastService);
 
   readonly codes = signal<PromotionCodeResultDto[]>([]);
   readonly loading = signal(false);
+  readonly detailLoading = signal(false);
   readonly saving = signal(false);
   readonly showCreateModal = signal(false);
+  readonly showDetailModal = signal(false);
+  readonly selectedCode = signal<PromotionCodeDetailDto | null>(null);
   readonly search = signal('');
   readonly page = signal(1);
   readonly pageSize = 10;
@@ -35,9 +39,7 @@ export class PromotionCodes {
   readonly maxRedemptions = signal(1);
   readonly startsAt = signal('');
   readonly expiresAt = signal('');
-  readonly activeCount = computed(
-    () => this.codes().filter((code) => code.isActive).length,
-  );
+  readonly activeCount = computed(() => this.codes().filter((code) => code.isActive).length);
   readonly totalCodes = computed(() => this.meta()?.total ?? 0);
   readonly totalUses = computed(() =>
     this.codes().reduce((total, code) => total + code.redemptionCount, 0),
@@ -47,11 +49,7 @@ export class PromotionCodes {
 
   constructor() {
     this.searchTerms
-      .pipe(
-        debounceTime(500),
-        distinctUntilChanged(),
-        takeUntilDestroyed(),
-      )
+      .pipe(debounceTime(500), distinctUntilChanged(), takeUntilDestroyed())
       .subscribe(() => {
         this.page.set(1);
         void this.loadCodes();
@@ -63,12 +61,11 @@ export class PromotionCodes {
     const requestId = ++this.requestSequence;
     this.loading.set(true);
     try {
-      const response =
-        await this.adminApi.api.promotionCodeAdmin.promotioncodeadminFindAll({
-          page: this.page(),
-          limit: this.pageSize,
-          search: this.search().trim() || undefined,
-        });
+      const response = await this.adminApi.api.promotionCodeAdmin.promotioncodeadminFindAll({
+        page: this.page(),
+        limit: this.pageSize,
+        search: this.search().trim() || undefined,
+      });
       if (requestId !== this.requestSequence) return;
       this.codes.set(response.data.data);
       this.meta.set(response.data.meta);
@@ -103,6 +100,28 @@ export class PromotionCodes {
     this.showCreateModal.set(true);
   }
 
+  async openDetail(code: PromotionCodeResultDto) {
+    this.showDetailModal.set(true);
+    this.selectedCode.set(null);
+    this.detailLoading.set(true);
+    try {
+      const response = await this.adminApi.api.promotionCodeAdmin.promotioncodeadminFindOne({
+        id: code.id,
+      });
+      this.selectedCode.set(response.data);
+    } catch {
+      this.showDetailModal.set(false);
+      this.toastService.error('No se pudo cargar el detalle del código.');
+    } finally {
+      this.detailLoading.set(false);
+    }
+  }
+
+  closeDetailModal() {
+    this.showDetailModal.set(false);
+    this.selectedCode.set(null);
+  }
+
   async createCode() {
     if (this.maxRedemptions() < 1) {
       this.toastService.warning('El límite debe ser al menos 1.');
@@ -119,17 +138,13 @@ export class PromotionCodes {
 
     this.saving.set(true);
     try {
-      await this.adminApi.api.promotionCodeAdmin.promotioncodeadminCreate(
-        payload,
-      );
+      await this.adminApi.api.promotionCodeAdmin.promotioncodeadminCreate(payload);
       this.toastService.success('Código promocional creado.');
       this.showCreateModal.set(false);
       this.page.set(1);
       await this.loadCodes();
     } catch {
-      this.toastService.error(
-        'No se pudo crear. Revisa el código y las fechas.',
-      );
+      this.toastService.error('No se pudo crear. Revisa el código y las fechas.');
     } finally {
       this.saving.set(false);
     }
@@ -142,15 +157,9 @@ export class PromotionCodes {
         { isActive: !code.isActive },
       );
       this.codes.update((codes) =>
-        codes.map((item) =>
-          item.id === code.id
-            ? { ...item, isActive: !item.isActive }
-            : item,
-        ),
+        codes.map((item) => (item.id === code.id ? { ...item, isActive: !item.isActive } : item)),
       );
-      this.toastService.success(
-        code.isActive ? 'Código desactivado.' : 'Código activado.',
-      );
+      this.toastService.success(code.isActive ? 'Código desactivado.' : 'Código activado.');
     } catch {
       this.toastService.error('No se pudo actualizar el código.');
     }
@@ -162,10 +171,7 @@ export class PromotionCodes {
   }
 
   usagePercentage(code: PromotionCodeResultDto) {
-    return Math.min(
-      100,
-      Math.round((code.redemptionCount / code.maxRedemptions) * 100),
-    );
+    return Math.min(100, Math.round((code.redemptionCount / code.maxRedemptions) * 100));
   }
 
   private toIsoDate(value: string, endOfDay = false) {

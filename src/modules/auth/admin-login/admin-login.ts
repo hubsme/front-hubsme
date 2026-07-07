@@ -23,9 +23,7 @@ export class AdminLogin {
 
   constructor() {
     if (this.adminSession.session()) {
-      void this.router.navigate([
-        buildPath(PATH.backoffice.promotionCodes),
-      ]);
+      void this.router.navigate([buildPath(PATH.backoffice.promotionCodes)]);
     }
   }
 
@@ -49,9 +47,7 @@ export class AdminLogin {
       if (!this.adminSession.setSession(response.data)) {
         throw new Error('La sesión administrativa recibida no es válida');
       }
-      await this.router.navigate([
-        buildPath(PATH.backoffice.promotionCodes),
-      ]);
+      await this.router.navigate([buildPath(PATH.backoffice.promotionCodes)]);
     } catch {
       this.errorMessage.set('Usuario o contraseña incorrectos.');
     } finally {

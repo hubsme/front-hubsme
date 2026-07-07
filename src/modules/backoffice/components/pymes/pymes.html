@@ -1,0 +1,187 @@
+<main class="max-w-7xl mx-auto p-5 md:p-8">
+  <div class="mb-7">
+    <p class="text-xs font-inter-semibold uppercase text-secondary mb-2">Administración</p>
+    <h1 class="font-anton text-2xl md:text-3xl lowercase text-text">PYMES</h1>
+    <p class="text-muted mt-2">Revisa los perfiles de empresas registradas en Hubsme.</p>
+  </div>
+
+  <section class="grid sm:grid-cols-2 gap-3 mb-6">
+    <article class="bg-surface border border-border rounded-lg p-4">
+      <p class="text-xs uppercase font-inter-semibold text-muted">PYMES registradas</p>
+      <p class="text-2xl font-inter-bold mt-1">{{ totalPymes() }}</p>
+    </article>
+    <article class="bg-surface border border-border rounded-lg p-4">
+      <p class="text-xs uppercase font-inter-semibold text-muted">En esta página</p>
+      <p class="text-2xl font-inter-bold text-secondary mt-1">{{ pymes().length }}</p>
+    </article>
+  </section>
+
+  <section class="bg-surface border border-border rounded-lg overflow-hidden">
+    <div class="p-4 border-b border-border">
+      <div class="relative flex-1">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted"></i>
+        <input
+          [ngModel]="search()"
+          (ngModelChange)="onSearchChange($event)"
+          placeholder="Buscar por empresa o RUC"
+          class="w-full h-10 pl-10 pr-4 rounded-lg bg-background-50 border border-border text-text outline-none focus:border-secondary"
+        />
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="h-64 grid place-items-center text-muted">
+        <span><i class="fas fa-circle-notch fa-spin mr-2"></i>Cargando PYMES...</span>
+      </div>
+    } @else if (!pymes().length) {
+      <div class="h-64 grid place-items-center text-center p-6">
+        <div>
+          <i class="fas fa-building text-3xl text-secondary/40 mb-3"></i>
+          <p class="font-inter-semibold">No hay PYMES para mostrar</p>
+          <p class="text-sm text-muted mt-1">Prueba cambiando el término de búsqueda.</p>
+        </div>
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[900px] text-sm">
+          <thead class="bg-background-50 border-b border-border">
+            <tr class="text-left text-xs uppercase font-inter-semibold text-muted">
+              <th class="px-4 py-3">Empresa</th>
+              <th class="px-4 py-3">RUC</th>
+              <th class="px-4 py-3">Responsable</th>
+              <th class="px-4 py-3">Correo</th>
+              <th class="px-4 py-3">Sector</th>
+              <th class="px-4 py-3 text-right">Empleados</th>
+              <th class="px-4 py-3">Registro</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            @for (pyme of pymes(); track pyme.id) {
+              <tr
+                (click)="openDetail(pyme)"
+                class="hover:bg-background-50 cursor-pointer"
+                title="Ver detalle de la PYME"
+              >
+                <td class="px-4 py-4">
+                  <p class="font-inter-semibold text-text">{{ pyme.name }}</p>
+                  <p class="text-xs text-muted">Usuario #{{ pyme.userId }}</p>
+                </td>
+                <td class="px-4 py-4 text-muted">{{ pyme.ruc || '-' }}</td>
+                <td class="px-4 py-4 text-muted">
+                  {{ pyme.ownerFirstName || '-' }} {{ pyme.ownerLastName || '' }}
+                </td>
+                <td class="px-4 py-4 text-muted">{{ pyme.ownerEmail || '-' }}</td>
+                <td class="px-4 py-4 text-muted">{{ pyme.sector || '-' }}</td>
+                <td class="px-4 py-4 text-right text-muted">{{ pyme.numEmployees || '-' }}</td>
+                <td class="px-4 py-4 text-muted">{{ pyme.createdAt | date: 'dd/MM/yyyy' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (meta(); as paginationMeta) {
+      <app-pagination
+        [meta]="paginationMeta"
+        [currentPage]="page()"
+        [pageSize]="pageSize"
+        [showPageSizeSelector]="false"
+        (pageChange)="changePage($event)"
+      />
+    }
+  </section>
+</main>
+
+@if (showDetailModal()) {
+  <app-modal-form
+    title="Detalle de la PYME"
+    maxWidth="3xl"
+    [showFooter]="false"
+    (onClose)="closeDetailModal()"
+  >
+    <div class="p-5">
+      @if (detailLoading()) {
+        <div class="h-48 grid place-items-center text-muted">
+          <span><i class="fas fa-circle-notch fa-spin mr-2"></i>Cargando detalle...</span>
+        </div>
+      } @else if (selectedPyme(); as pyme) {
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-5">
+          <div class="min-w-0">
+            <p class="font-inter-bold text-xl text-text">{{ pyme.name }}</p>
+            <p class="text-sm text-muted mt-1">
+              {{ pyme.description || 'Sin descripción registrada' }}
+            </p>
+          </div>
+          <div class="text-sm text-muted md:text-right">
+            <p>Usuario #{{ pyme.userId }}</p>
+            <p>Registro {{ pyme.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+        </div>
+
+        <section class="grid sm:grid-cols-3 gap-3 mb-5">
+          <article class="bg-background-50 border border-border rounded-lg p-3">
+            <p class="text-xs uppercase font-inter-semibold text-muted">RUC</p>
+            <p class="text-sm font-inter-semibold mt-2">{{ pyme.ruc || '-' }}</p>
+          </article>
+          <article class="bg-background-50 border border-border rounded-lg p-3">
+            <p class="text-xs uppercase font-inter-semibold text-muted">Sector</p>
+            <p class="text-sm font-inter-semibold mt-2">{{ pyme.sector || '-' }}</p>
+          </article>
+          <article class="bg-background-50 border border-border rounded-lg p-3">
+            <p class="text-xs uppercase font-inter-semibold text-muted">Tamaño</p>
+            <p class="text-sm font-inter-semibold mt-2">{{ pyme.numEmployees || '-' }} empleados</p>
+          </article>
+        </section>
+
+        <div class="grid md:grid-cols-2 gap-4">
+          <section class="border border-border rounded-lg overflow-hidden">
+            <div class="px-4 py-3 bg-background-50 border-b border-border">
+              <p class="font-inter-semibold text-text">Responsable</p>
+            </div>
+            <div class="p-4 space-y-3 text-sm">
+              <div>
+                <p class="text-xs uppercase font-inter-semibold text-muted">Nombre</p>
+                <p class="text-text mt-1">
+                  {{ pyme.ownerFirstName || '-' }} {{ pyme.ownerLastName || '' }}
+                </p>
+              </div>
+              <div>
+                <p class="text-xs uppercase font-inter-semibold text-muted">Correo</p>
+                <p class="text-text mt-1">{{ pyme.ownerEmail || '-' }}</p>
+              </div>
+              <div>
+                <p class="text-xs uppercase font-inter-semibold text-muted">Teléfono</p>
+                <p class="text-text mt-1">{{ pyme.ownerPhone || '-' }}</p>
+              </div>
+              <div>
+                <p class="text-xs uppercase font-inter-semibold text-muted">Cargo</p>
+                <p class="text-text mt-1">{{ pyme.ownerPosition || '-' }}</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="border border-border rounded-lg overflow-hidden">
+            <div class="px-4 py-3 bg-background-50 border-b border-border">
+              <p class="font-inter-semibold text-text">Empresa</p>
+            </div>
+            <div class="p-4 space-y-3 text-sm">
+              <div>
+                <p class="text-xs uppercase font-inter-semibold text-muted">Años operando</p>
+                <p class="text-text mt-1">{{ pyme.yearsInOperation || '-' }}</p>
+              </div>
+              <div>
+                <p class="text-xs uppercase font-inter-semibold text-muted">Logo</p>
+                <p class="text-text mt-1 break-all">{{ pyme.logoUrl || '-' }}</p>
+              </div>
+              <div>
+                <p class="text-xs uppercase font-inter-semibold text-muted">Actualizado</p>
+                <p class="text-text mt-1">{{ pyme.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+              </div>
+            </div>
+          </section>
+        </div>
+      }
+    </div>
+  </app-modal-form>
+}

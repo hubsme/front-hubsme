@@ -17,15 +17,13 @@ export class AdminApiService {
       baseUrl: environment.baseUrl,
       securityWorker: async () => {
         const token = this.adminSession.session()?.accessToken;
-        return token
-          ? { headers: { Authorization: `Bearer ${token}` } }
-          : {};
+        return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
       },
       customFetch: async (input, init) => {
         const response = await fetch(input, init);
         if (response.status === 401 && isPlatformBrowser(this.platformId)) {
           this.adminSession.removeSession();
-          await this.router.navigate([buildPath(PATH.backoffice.login)]);
+          await this.router.navigate([buildPath(PATH.auth.adminLogin)]);
         }
         return response;
       },

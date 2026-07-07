@@ -8,7 +8,5 @@ export const adminAuthGuard: CanActivateFn = () => {
   const router = inject(Router);
   sessionService.restoreSession();
 
-  return sessionService.session()
-    ? true
-    : router.createUrlTree([buildPath(PATH.backoffice.login)]);
+  return sessionService.session() ? true : router.createUrlTree([buildPath(PATH.auth.adminLogin)]);
 };

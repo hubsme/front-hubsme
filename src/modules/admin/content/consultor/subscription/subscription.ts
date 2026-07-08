@@ -4,6 +4,7 @@ import { ApiResponse } from 'api/backend.api';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
+import { AnalyticsService } from '@service/analytics.service';
 
 type SubscriptionPlan = ApiResponse<'subscription', 'plans'>[number];
 
@@ -15,6 +16,7 @@ type SubscriptionPlan = ApiResponse<'subscription', 'plans'>[number];
 export class Subscription implements OnInit {
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
+  private analyticsService = inject(AnalyticsService);
 
   plans = signal<ApiResponse<'subscription', 'plans'>>([]);
   selectedPlan = signal<string | null>(null);
@@ -51,6 +53,7 @@ export class Subscription implements OnInit {
   }
 
   choose(plan: SubscriptionPlan) {
+    this.analyticsService.trackSubscriptionPlanClick(plan);
     this.developmentPlan.set(plan);
     this.developmentModalOpen.set(true);
   }

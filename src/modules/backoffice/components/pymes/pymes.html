@@ -100,83 +100,104 @@
     [showFooter]="false"
     (onClose)="closeDetailModal()"
   >
-    <div class="p-5">
+    <div class="p-6">
       @if (detailLoading()) {
         <div class="h-48 grid place-items-center text-muted">
           <span><i class="fas fa-circle-notch fa-spin mr-2"></i>Cargando detalle...</span>
         </div>
       } @else if (selectedPyme(); as pyme) {
-        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-5">
-          <div class="min-w-0">
-            <p class="font-inter-bold text-xl text-text">{{ pyme.name }}</p>
-            <p class="text-sm text-muted mt-1">
-              {{ pyme.description || 'Sin descripción registrada' }}
-            </p>
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+          <div class="flex items-start gap-4 min-w-0">
+            @if (pyme.logoUrl) {
+              <img
+                [src]="pyme.logoUrl"
+                [alt]="pyme.name"
+                class="w-14 h-14 rounded-xl object-cover ring-2 ring-border shrink-0"
+              />
+            } @else {
+              <div class="w-14 h-14 rounded-xl bg-gradient-to-br from-secondary to-primary grid place-items-center shrink-0 ring-2 ring-border">
+                <span class="text-lg font-inter-bold text-fixed-text-50">
+                  {{ pyme.name.charAt(0).toUpperCase() }}
+                </span>
+              </div>
+            }
+            <div class="min-w-0">
+              <p class="font-inter-bold text-xl text-text">{{ pyme.name }}</p>
+              <p class="text-sm text-muted mt-1.5">
+                {{ pyme.description || 'Sin descripción registrada' }}
+              </p>
+            </div>
           </div>
-          <div class="text-sm text-muted md:text-right">
+          <div class="text-sm text-muted md:text-right shrink-0">
             <p>Usuario #{{ pyme.userId }}</p>
-            <p>Registro {{ pyme.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+            <p class="mt-0.5">Registro {{ pyme.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
           </div>
         </div>
 
-        <section class="grid sm:grid-cols-3 gap-3 mb-5">
-          <article class="bg-background-50 border border-border rounded-lg p-3">
-            <p class="text-xs uppercase font-inter-semibold text-muted">RUC</p>
-            <p class="text-sm font-inter-semibold mt-2">{{ pyme.ruc || '-' }}</p>
+        <section class="grid sm:grid-cols-3 gap-3 mb-6">
+          <article class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-secondary">
+            <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">RUC</p>
+            <p class="text-sm font-inter-bold mt-2.5 text-text">{{ pyme.ruc || '-' }}</p>
           </article>
-          <article class="bg-background-50 border border-border rounded-lg p-3">
-            <p class="text-xs uppercase font-inter-semibold text-muted">Sector</p>
-            <p class="text-sm font-inter-semibold mt-2">{{ pyme.sector || '-' }}</p>
+          <article class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-primary">
+            <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Sector</p>
+            <p class="text-sm font-inter-semibold mt-2.5 text-text">{{ pyme.sector || '-' }}</p>
           </article>
-          <article class="bg-background-50 border border-border rounded-lg p-3">
-            <p class="text-xs uppercase font-inter-semibold text-muted">Tamaño</p>
-            <p class="text-sm font-inter-semibold mt-2">{{ pyme.numEmployees || '-' }} empleados</p>
+          <article class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-accent">
+            <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Tamaño</p>
+            <p class="text-sm font-inter-semibold mt-2.5 text-text">{{ pyme.numEmployees || '-' }} empleados</p>
           </article>
         </section>
 
         <div class="grid md:grid-cols-2 gap-4">
-          <section class="border border-border rounded-lg overflow-hidden">
-            <div class="px-4 py-3 bg-background-50 border-b border-border">
+          <section class="border border-border rounded-xl overflow-hidden">
+            <div class="px-5 py-3.5 bg-background-50 border-b border-border flex items-center gap-2">
+              <i class="fas fa-user text-secondary/60 text-sm"></i>
               <p class="font-inter-semibold text-text">Responsable</p>
             </div>
-            <div class="p-4 space-y-3 text-sm">
+            <div class="p-5 space-y-4 text-sm">
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted">Nombre</p>
-                <p class="text-text mt-1">
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Nombre</p>
+                <p class="text-text mt-1.5">
                   {{ pyme.ownerFirstName || '-' }} {{ pyme.ownerLastName || '' }}
                 </p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted">Correo</p>
-                <p class="text-text mt-1">{{ pyme.ownerEmail || '-' }}</p>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Correo</p>
+                <p class="text-text mt-1.5">{{ pyme.ownerEmail || '-' }}</p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted">Teléfono</p>
-                <p class="text-text mt-1">{{ pyme.ownerPhone || '-' }}</p>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Teléfono</p>
+                <p class="text-text mt-1.5">{{ pyme.ownerPhone || '-' }}</p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted">Cargo</p>
-                <p class="text-text mt-1">{{ pyme.ownerPosition || '-' }}</p>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Cargo</p>
+                <p class="text-text mt-1.5">{{ pyme.ownerPosition || '-' }}</p>
               </div>
             </div>
           </section>
 
-          <section class="border border-border rounded-lg overflow-hidden">
-            <div class="px-4 py-3 bg-background-50 border-b border-border">
-              <p class="font-inter-semibold text-text">Empresa</p>
+          <section class="border border-border rounded-xl overflow-hidden">
+            <div class="px-5 py-3.5 bg-background-50 border-b border-border flex items-center gap-2">
+              <i class="fas fa-id-badge text-secondary/60 text-sm"></i>
+              <p class="font-inter-semibold text-text">Cuenta de usuario</p>
             </div>
-            <div class="p-4 space-y-3 text-sm">
+            <div class="p-5 space-y-4 text-sm">
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted">Años operando</p>
-                <p class="text-text mt-1">{{ pyme.yearsInOperation || '-' }}</p>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Email de acceso</p>
+                <p class="text-text mt-1.5 break-all">{{ pyme.userEmail }}</p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted">Logo</p>
-                <p class="text-text mt-1 break-all">{{ pyme.logoUrl || '-' }}</p>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Tipo de cuenta</p>
+                <p class="text-text mt-1.5">{{ authProviderLabel(pyme.authProvider) }}</p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted">Actualizado</p>
-                <p class="text-text mt-1">{{ pyme.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Años operando</p>
+                <p class="text-text mt-1.5">{{ pyme.yearsInOperation || '-' }}</p>
+              </div>
+              <div>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Actualizado</p>
+                <p class="text-text mt-1.5">{{ pyme.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</p>
               </div>
             </div>
           </section>

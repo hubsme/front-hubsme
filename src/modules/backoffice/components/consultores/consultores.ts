@@ -99,4 +99,8 @@ export class Consultores {
     this.showDetailModal.set(false);
     this.selectedConsultant.set(null);
   }
+
+  authProviderLabel(provider: ConsultantResultDto['authProvider']) {
+    return provider === 'google' ? 'Google' : 'Email y contraseña';
+  }
 }

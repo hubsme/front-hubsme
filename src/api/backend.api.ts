@@ -336,6 +336,8 @@ export interface PymeResultDto {
   /** @format date-time */
   deletedAt: string | null;
   userId: number;
+  userEmail: string;
+  authProvider: "local" | "google";
   name: string;
   ruc: string | null;
   ownerFirstName: string | null;
@@ -510,6 +512,8 @@ export interface ConsultantResultDto {
   /** @format date-time */
   deletedAt: string | null;
   userId: number;
+  userEmail: string;
+  authProvider: "local" | "google";
   fullName: string;
   firstName: string | null;
   lastName: string | null;
@@ -1835,6 +1839,43 @@ export interface ConsultantRemoveParams {
 export type ConsultantRemoveData = ConsultantResultDto;
 
 export type ConsultantRemoveError = HttpErrorDto;
+
+export interface MeetingadminFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by title */
+  search?: string;
+  /** @example 2 */
+  pymeId?: number;
+  /** @example 3 */
+  consultantId?: number;
+  status?:
+    | "solicitada"
+    | "pago_pendiente"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada";
+}
+
+export type MeetingadminFindAllData = MeetingListDto;
+
+export type MeetingadminFindAllError = HttpErrorDto;
+
+export interface MeetingadminFindOneParams {
+  id: number;
+}
+
+export type MeetingadminFindOneData = MeetingResultDto;
+
+export type MeetingadminFindOneError = HttpErrorDto;
 
 export interface MeetingFindAllParams {
   /**
@@ -3191,6 +3232,69 @@ export namespace Consultant {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = ConsultantRemoveData;
+  }
+}
+
+export namespace MeetingAdmin {
+  /**
+   * No description
+   * @tags meetingAdmin
+   * @name MeetingadminFindAll
+   * @summary List meetings for the internal admin panel
+   * @request GET:/admin/backoffice/meeting/find-all
+   * @secure
+   * @response `200` `MeetingadminFindAllData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MeetingadminFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by title */
+      search?: string;
+      /** @example 2 */
+      pymeId?: number;
+      /** @example 3 */
+      consultantId?: number;
+      status?:
+        | "solicitada"
+        | "pago_pendiente"
+        | "confirmada"
+        | "finalizada"
+        | "cancelada";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingadminFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags meetingAdmin
+   * @name MeetingadminFindOne
+   * @summary Get a meeting for the internal admin panel
+   * @request GET:/admin/backoffice/meeting/find-one/{id}
+   * @secure
+   * @response `200` `MeetingadminFindOneData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MeetingadminFindOne {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingadminFindOneData;
   }
 }
 
@@ -5580,6 +5684,54 @@ export class Api<SecurityDataType extends unknown> {
       this.http.request<ConsultantRemoveData, ConsultantRemoveError>({
         path: `/admin/consultant/delete/${id}`,
         method: "DELETE",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
+  meetingAdmin = {
+    /**
+     * No description
+     *
+     * @tags meetingAdmin
+     * @name MeetingadminFindAll
+     * @summary List meetings for the internal admin panel
+     * @request GET:/admin/backoffice/meeting/find-all
+     * @secure
+     * @response `200` `MeetingadminFindAllData`
+     * @response `400` `HttpErrorDto`
+     */
+    meetingadminFindAll: (
+      query: MeetingadminFindAllParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<MeetingadminFindAllData, MeetingadminFindAllError>({
+        path: `/admin/backoffice/meeting/find-all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetingAdmin
+     * @name MeetingadminFindOne
+     * @summary Get a meeting for the internal admin panel
+     * @request GET:/admin/backoffice/meeting/find-one/{id}
+     * @secure
+     * @response `200` `MeetingadminFindOneData`
+     * @response `400` `HttpErrorDto`
+     */
+    meetingadminFindOne: (
+      { id }: MeetingadminFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<MeetingadminFindOneData, MeetingadminFindOneError>({
+        path: `/admin/backoffice/meeting/find-one/${id}`,
+        method: "GET",
         secure: true,
         format: "json",
         ...params,

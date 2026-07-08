@@ -56,6 +56,7 @@ export const PATH = {
     promotionCodes: { _path: 'codigos-promocionales' },
     pymes: { _path: 'pymes' },
     consultants: { _path: 'consultores' },
+    meetings: { _path: 'reuniones' },
   },
   admin: {
     _path: 'admin',

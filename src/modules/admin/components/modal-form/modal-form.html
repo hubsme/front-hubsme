@@ -1,18 +1,18 @@
 <div
-  class="fixed inset-0 bg-fixed-text-950/70 flex items-center justify-center z-50 p-4"
+  class="fixed inset-0 bg-fixed-text-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]"
   (click)="handleClose()"
 >
   <div
-    class="bg-surface rounded-xl shadow-2xl w-full flex flex-col max-h-[90vh]"
+    class="bg-surface rounded-2xl shadow-2xl w-full flex flex-col max-h-[90vh] overflow-hidden animate-[slideUp_0.25s_ease-out] ring-1 ring-text/5"
     [ngClass]="getMaxWidthClass()"
     (click)="$event.stopPropagation()"
   >
     <!-- Header -->
-    <div class="flex items-center justify-between p-4 border-b border-text/10 bg-surface shrink-0">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-border bg-background-50/50 shrink-0 rounded-t-2xl">
       <h2 class="text-xl font-anton lowercase text-text">{{ title() }}</h2>
       <button
         (click)="handleClose()"
-        class="w-8 h-8 flex items-center justify-center rounded-lg text-text/50 hover:bg-text/5 hover:text-text"
+        class="w-8 h-8 flex items-center justify-center rounded-full text-text/40 hover:bg-text/5 hover:text-text transition-all duration-200"
       >
         <i class="fas fa-times text-sm"></i>
       </button>
@@ -25,11 +25,11 @@
 
     <!-- Footer -->
     @if (showFooter()) {
-      <div class="flex items-center justify-end gap-2 p-4 border-t border-text/10 bg-surface shrink-0">
+      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-background-50/50 shrink-0 rounded-b-2xl">
         <button
           type="button"
           (click)="handleClose()"
-          class="px-3 py-1.5 text-sm bg-text/5 text-text rounded-lg font-inter-medium hover:bg-text/10"
+          class="px-4 py-2 text-sm bg-transparent text-muted rounded-lg font-inter-medium hover:bg-text/5 hover:text-text transition-all duration-200"
         >
           {{ cancelText() }}
         </button>
@@ -37,7 +37,7 @@
           type="button"
           (click)="handleSubmit()"
           [disabled]="loading() || isSubmitting()"
-          class="px-3 py-1.5 text-sm rounded-lg font-inter-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          class="px-4 py-2 text-sm rounded-lg font-inter-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
           [ngClass]="getSubmitButtonClass()"
         >
           {{ loading() || isSubmitting() ? 'Guardando...' : submitText() }}

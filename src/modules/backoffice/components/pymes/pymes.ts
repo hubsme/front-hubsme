@@ -96,4 +96,8 @@ export class Pymes {
     this.showDetailModal.set(false);
     this.selectedPyme.set(null);
   }
+
+  authProviderLabel(provider: PymeResultDto['authProvider']) {
+    return provider === 'google' ? 'Google' : 'Email y contraseña';
+  }
 }

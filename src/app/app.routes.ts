@@ -63,6 +63,11 @@ export const routes: Routes = [
               ),
           },
           {
+            path: getPath(PATH.backoffice.meetings),
+            loadComponent: () =>
+              import('@module/backoffice/components/reuniones/reuniones').then((m) => m.Reuniones),
+          },
+          {
             path: '',
             redirectTo: getPath(PATH.backoffice.promotionCodes),
             pathMatch: 'full',

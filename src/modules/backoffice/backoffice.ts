@@ -15,6 +15,7 @@ export class Backoffice {
   readonly promotionCodesPath = `/${buildPath(PATH.backoffice.promotionCodes)}`;
   readonly pymesPath = `/${buildPath(PATH.backoffice.pymes)}`;
   readonly consultantsPath = `/${buildPath(PATH.backoffice.consultants)}`;
+  readonly meetingsPath = `/${buildPath(PATH.backoffice.meetings)}`;
   readonly username = this.adminSession.session()?.user.username ?? 'Administrador';
 
   async logout() {

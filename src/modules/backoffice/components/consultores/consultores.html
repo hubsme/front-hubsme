@@ -119,116 +119,165 @@
     [showFooter]="false"
     (onClose)="closeDetailModal()"
   >
-    <div class="p-5">
+    <div class="p-6">
       @if (detailLoading()) {
         <div class="h-48 grid place-items-center text-muted">
           <span><i class="fas fa-circle-notch fa-spin mr-2"></i>Cargando detalle...</span>
         </div>
       } @else if (selectedConsultant(); as consultant) {
-        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-5">
-          <div class="min-w-0">
-            <div class="flex flex-wrap items-center gap-2">
-              <p class="font-inter-bold text-xl text-text">{{ consultant.fullName }}</p>
-              <span
-                class="px-2 py-1 rounded-full text-xs font-inter-semibold"
-                [class]="
-                  consultant.active === 'true'
-                    ? 'bg-success/10 text-success'
-                    : 'bg-text/5 text-muted'
-                "
-              >
-                {{ consultant.active === 'true' ? 'Activo' : 'Inactivo' }}
-              </span>
-              <span
-                class="px-2 py-1 rounded-full text-xs font-inter-semibold"
-                [class]="
-                  consultant.validated === 'true'
-                    ? 'bg-secondary/10 text-secondary'
-                    : 'bg-warning/10 text-warning'
-                "
-              >
-                {{ consultant.validated === 'true' ? 'Validado' : 'Pendiente' }}
-              </span>
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+          <div class="flex items-start gap-4 min-w-0">
+            @if (consultant.photoUrl) {
+              <img
+                [src]="consultant.photoUrl"
+                [alt]="consultant.fullName"
+                class="w-14 h-14 rounded-full object-cover ring-2 ring-border shrink-0"
+              />
+            } @else {
+              <div class="w-14 h-14 rounded-full bg-gradient-to-br from-secondary to-primary grid place-items-center shrink-0 ring-2 ring-border">
+                <span class="text-lg font-inter-bold text-fixed-text-50">
+                  {{ consultant.fullName.charAt(0).toUpperCase() }}
+                </span>
+              </div>
+            }
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2.5">
+                <p class="font-inter-bold text-xl text-text">{{ consultant.fullName }}</p>
+                <span
+                  class="px-2.5 py-1 rounded-full text-xs font-inter-semibold"
+                  [class]="
+                    consultant.active === 'true'
+                      ? 'bg-success/10 text-success'
+                      : 'bg-text/5 text-muted'
+                  "
+                >
+                  {{ consultant.active === 'true' ? 'Activo' : 'Inactivo' }}
+                </span>
+                <span
+                  class="px-2.5 py-1 rounded-full text-xs font-inter-semibold"
+                  [class]="
+                    consultant.validated === 'true'
+                      ? 'bg-secondary/10 text-secondary'
+                      : 'bg-warning/10 text-warning'
+                  "
+                >
+                  {{ consultant.validated === 'true' ? 'Validado' : 'Pendiente' }}
+                </span>
+              </div>
+              <p class="text-sm text-muted mt-1.5">
+                {{ consultant.headline || 'Sin titular profesional' }}
+              </p>
             </div>
-            <p class="text-sm text-muted mt-1">
-              {{ consultant.headline || 'Sin titular profesional' }}
-            </p>
           </div>
-          <div class="text-sm text-muted md:text-right">
+          <div class="text-sm text-muted md:text-right shrink-0">
             <p>Usuario #{{ consultant.userId }}</p>
-            <p>Registro {{ consultant.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+            <p class="mt-0.5">Registro {{ consultant.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
           </div>
         </div>
 
-        <section class="grid sm:grid-cols-4 gap-3 mb-5">
-          <article class="bg-background-50 border border-border rounded-lg p-3">
-            <p class="text-xs uppercase font-inter-semibold text-muted">Experiencia</p>
-            <p class="text-sm font-inter-semibold mt-2">{{ consultant.yearsExperience }} años</p>
+        <section class="grid sm:grid-cols-4 gap-3 mb-6">
+          <article class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-secondary">
+            <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Experiencia</p>
+            <p class="text-sm font-inter-bold mt-2.5 text-text">{{ consultant.yearsExperience }} años</p>
           </article>
-          <article class="bg-background-50 border border-border rounded-lg p-3">
-            <p class="text-xs uppercase font-inter-semibold text-muted">Tarifa</p>
-            <p class="text-sm font-inter-semibold mt-2">S/ {{ consultant.pricePerHour }}</p>
+          <article class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-primary">
+            <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Tarifa</p>
+            <p class="text-sm font-inter-bold mt-2.5 text-text">S/ {{ consultant.pricePerHour }}</p>
           </article>
-          <article class="bg-background-50 border border-border rounded-lg p-3">
-            <p class="text-xs uppercase font-inter-semibold text-muted">Rating</p>
-            <p class="text-sm font-inter-semibold mt-2">
+          <article class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-accent">
+            <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Rating</p>
+            <p class="text-sm font-inter-bold mt-2.5 text-text">
               {{ consultant.rating }} ({{ consultant.totalReviews }})
             </p>
           </article>
-          <article class="bg-background-50 border border-border rounded-lg p-3">
-            <p class="text-xs uppercase font-inter-semibold text-muted">Modalidad</p>
-            <p class="text-sm font-inter-semibold mt-2">{{ consultant.workModality || '-' }}</p>
+          <article class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-success">
+            <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Modalidad</p>
+            <p class="text-sm font-inter-semibold mt-2.5 text-text">{{ consultant.workModality || '-' }}</p>
           </article>
         </section>
 
         <div class="grid lg:grid-cols-[1fr_1.2fr] gap-4">
-          <section class="border border-border rounded-lg overflow-hidden">
-            <div class="px-4 py-3 bg-background-50 border-b border-border">
+          <section class="border border-border rounded-xl overflow-hidden">
+            <div class="px-5 py-3.5 bg-background-50 border-b border-border flex items-center gap-2">
+              <i class="fas fa-address-card text-secondary/60 text-sm"></i>
               <p class="font-inter-semibold text-text">Contacto y perfil</p>
             </div>
-            <div class="p-4 space-y-3 text-sm">
+            <div class="p-5 space-y-4 text-sm">
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted">Nombre</p>
-                <p class="text-text mt-1">
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Nombre</p>
+                <p class="text-text mt-1.5">
                   {{ consultant.firstName || '-' }} {{ consultant.lastName || '' }}
                 </p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted">Teléfono</p>
-                <p class="text-text mt-1">{{ consultant.ownerPhone || '-' }}</p>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Email de acceso</p>
+                <p class="text-text mt-1.5 break-all">{{ consultant.userEmail }}</p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted">Ubicación</p>
-                <p class="text-text mt-1">{{ consultant.location || '-' }}</p>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Tipo de cuenta</p>
+                <p class="text-text mt-1.5">{{ authProviderLabel(consultant.authProvider) }}</p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted">LinkedIn</p>
-                <p class="text-text mt-1 break-all">{{ consultant.linkedinUrl || '-' }}</p>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Teléfono</p>
+                <p class="text-text mt-1.5">{{ consultant.ownerPhone || '-' }}</p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted">CV</p>
-                <p class="text-text mt-1 break-all">{{ consultant.cvUrl || '-' }}</p>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Ubicación</p>
+                <p class="text-text mt-1.5">{{ consultant.location || '-' }}</p>
+              </div>
+              <div>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">LinkedIn</p>
+                @if (consultant.linkedinUrl) {
+                  <a
+                    [href]="consultant.linkedinUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-2 mt-1.5 px-3 py-1.5 rounded-lg bg-secondary/10 text-secondary hover:bg-secondary/20 font-inter-medium text-xs transition-all duration-200"
+                  >
+                    <i class="fab fa-linkedin text-sm"></i>
+                    Ver perfil de LinkedIn
+                  </a>
+                } @else {
+                  <p class="text-text mt-1.5">-</p>
+                }
+              </div>
+              <div>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">CV</p>
+                @if (consultant.cvUrl) {
+                  <a
+                    [href]="consultant.cvUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-2 mt-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 font-inter-medium text-xs transition-all duration-200"
+                  >
+                    <i class="fas fa-file-pdf text-sm"></i>
+                    Ver currículum vitae
+                  </a>
+                } @else {
+                  <p class="text-text mt-1.5">-</p>
+                }
               </div>
             </div>
           </section>
 
-          <section class="border border-border rounded-lg overflow-hidden">
-            <div class="px-4 py-3 bg-background-50 border-b border-border">
+          <section class="border border-border rounded-xl overflow-hidden">
+            <div class="px-5 py-3.5 bg-background-50 border-b border-border flex items-center gap-2">
+              <i class="fas fa-graduation-cap text-secondary/60 text-sm"></i>
               <p class="font-inter-semibold text-text">Especialización</p>
             </div>
-            <div class="p-4 space-y-4 text-sm">
+            <div class="p-5 space-y-5 text-sm">
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted mb-2">Bio</p>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide mb-2">Bio</p>
                 <p class="text-text leading-relaxed">{{ consultant.bio || '-' }}</p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted mb-2">
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide mb-2.5">
                   Áreas diagnósticas
                 </p>
                 <div class="flex flex-wrap gap-2">
                   @for (area of consultant.diagnosticAreas; track area) {
                     <span
-                      class="px-2 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-inter-semibold"
+                      class="px-2.5 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-inter-semibold"
                     >
                       {{ area }}
                     </span>
@@ -239,21 +288,21 @@
               </div>
               <div class="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <p class="text-xs uppercase font-inter-semibold text-muted mb-2">
+                  <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide mb-2">
                     Especialidades
                   </p>
                   <p class="text-text">{{ consultant.specialties.join(', ') || '-' }}</p>
                 </div>
                 <div>
-                  <p class="text-xs uppercase font-inter-semibold text-muted mb-2">Sectores</p>
+                  <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide mb-2">Sectores</p>
                   <p class="text-text">{{ consultant.sectors.join(', ') || '-' }}</p>
                 </div>
                 <div>
-                  <p class="text-xs uppercase font-inter-semibold text-muted mb-2">Servicios</p>
+                  <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide mb-2">Servicios</p>
                   <p class="text-text">{{ consultant.services.join(', ') || '-' }}</p>
                 </div>
                 <div>
-                  <p class="text-xs uppercase font-inter-semibold text-muted mb-2">
+                  <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide mb-2">
                     Certificaciones
                   </p>
                   <p class="text-text">{{ consultant.certifications.join(', ') || '-' }}</p>

@@ -2552,6 +2552,14 @@ export type MercadopagoFindCheckoutData = MercadoPagoCheckoutDto;
 
 export type MercadopagoFindCheckoutError = HttpErrorDto;
 
+export interface MercadopagoPrepareCheckoutPaymentParams {
+  id: number;
+}
+
+export type MercadopagoPrepareCheckoutPaymentData = MercadoPagoCheckoutDto;
+
+export type MercadopagoPrepareCheckoutPaymentError = HttpErrorDto;
+
 export interface MercadopagoWebhookParams {
   /** @example "payment" */
   type?: string;
@@ -4716,6 +4724,26 @@ export namespace MercadoPago {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = MercadopagoFindCheckoutData;
+  }
+
+  /**
+   * No description
+   * @tags mercadoPago
+   * @name MercadopagoPrepareCheckoutPayment
+   * @summary Create the Mercado Pago preference when the PYME is ready to pay
+   * @request POST:/admin/mercado-pago/checkout/{id}/payment
+   * @secure
+   * @response `200` `MercadopagoPrepareCheckoutPaymentData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MercadopagoPrepareCheckoutPayment {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MercadopagoPrepareCheckoutPaymentData;
   }
 
   /**
@@ -7395,6 +7423,32 @@ export class Api<SecurityDataType extends unknown> {
       >({
         path: `/admin/mercado-pago/checkout/${id}`,
         method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags mercadoPago
+     * @name MercadopagoPrepareCheckoutPayment
+     * @summary Create the Mercado Pago preference when the PYME is ready to pay
+     * @request POST:/admin/mercado-pago/checkout/{id}/payment
+     * @secure
+     * @response `200` `MercadopagoPrepareCheckoutPaymentData`
+     * @response `400` `HttpErrorDto`
+     */
+    mercadopagoPrepareCheckoutPayment: (
+      { id }: MercadopagoPrepareCheckoutPaymentParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MercadopagoPrepareCheckoutPaymentData,
+        MercadopagoPrepareCheckoutPaymentError
+      >({
+        path: `/admin/mercado-pago/checkout/${id}/payment`,
+        method: "POST",
         secure: true,
         format: "json",
         ...params,

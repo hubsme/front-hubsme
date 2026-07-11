@@ -503,6 +503,158 @@ export interface WhatsappSendResultDto {
   providerResponse?: object | null;
 }
 
+export interface WhatsappNotificacionPymeDto {
+  /**
+   * Número de WhatsApp del destinatario (sin @s.whatsapp.net)
+   * @example "51929073820"
+   */
+  to: string;
+  /**
+   * Nombre de la PYME
+   * @example "Erick"
+   */
+  nombre_pyme: string;
+  /**
+   * Nombre del consultor
+   * @example "Miguel Salinas"
+   */
+  nombre_consultor: string;
+  /**
+   * Título de la sesión
+   * @example "Sesión con Miguel Salinas"
+   */
+  titulo_sesion: string;
+  /**
+   * Fecha y hora de la sesión
+   * @example "26/06/2026, 12:00 pm"
+   */
+  fecha_hora: string;
+  /**
+   * Duración de la sesión
+   * @example "60 minutos"
+   */
+  duracion: string;
+}
+
+export interface WhatsappNotificacionConsultorDto {
+  /**
+   * Número de WhatsApp del destinatario (sin @s.whatsapp.net)
+   * @example "51929073820"
+   */
+  to: string;
+  /**
+   * Nombre del consultor
+   * @example "Miguel Salinas"
+   */
+  nombre_consultor: string;
+  /**
+   * Nombre de la PYME
+   * @example "CyM Ingenieros SAC"
+   */
+  nombre_pyme: string;
+  /**
+   * Título de la sesión
+   * @example "Sesión con Miguel Salinas"
+   */
+  titulo_sesion: string;
+  /**
+   * Fecha y hora de la sesión
+   * @example "26/06/2026, 12:00 pm"
+   */
+  fecha_hora: string;
+  /**
+   * Duración de la sesión
+   * @example "60 minutos"
+   */
+  duracion: string;
+}
+
+export interface WhatsappAlertaReunionConsultorDto {
+  /**
+   * Número de WhatsApp del destinatario (sin @s.whatsapp.net)
+   * @example "51929073820"
+   */
+  to: string;
+  /**
+   * Tiempo para el encabezado (header)
+   * @example "30 min"
+   */
+  tiempo_header: string;
+  /**
+   * Nombre del consultor
+   * @example "Miguel Salinas"
+   */
+  nombre_consultor: string;
+  /**
+   * Nombre de la PYME
+   * @example "CyM Ingenieros SAC"
+   */
+  nombre_pyme: string;
+  /**
+   * Título de la sesión
+   * @example "Sesión con Miguel Salinas"
+   */
+  titulo_sesion: string;
+  /**
+   * Fecha y hora de la sesión
+   * @example "09/09/2026"
+   */
+  fecha_hora: string;
+  /**
+   * Tiempo para el cuerpo (body)
+   * @example "60 minutos"
+   */
+  tiempo_body: string;
+  /**
+   * Enlace de la reunión
+   * @example "https://teams.microsoft.com/l/meetup-join/example"
+   */
+  link_reunion: string;
+}
+
+export interface WhatsappAlertaReunionDto {
+  /**
+   * Número de WhatsApp del destinatario (sin @s.whatsapp.net)
+   * @example "51929073820"
+   */
+  to: string;
+  /**
+   * Tiempo para el encabezado (header)
+   * @example "30 min"
+   */
+  tiempo_header: string;
+  /**
+   * Nombre de la PYME
+   * @example "Erick"
+   */
+  nombre_pyme: string;
+  /**
+   * Nombre del consultor
+   * @example "Miguel Salinas"
+   */
+  nombre_consultor: string;
+  /**
+   * Título de la sesión
+   * @example "Sesión con Miguel Salinas"
+   */
+  titulo_sesion: string;
+  /**
+   * Fecha y hora de la sesión
+   * @example "09/09/2026"
+   */
+  fecha_hora: string;
+  /**
+   * Tiempo para el cuerpo (body)
+   * @example "60 minutos"
+   */
+  tiempo_body: string;
+  /**
+   * Enlace de la reunión
+   * @example "https://teams.microsoft.com/l/meetup-join/example"
+   */
+  enlace: string;
+}
+
 export interface ConsultantResultDto {
   id: number;
   /** @format date-time */
@@ -1728,6 +1880,22 @@ export type AdminauthLoginError = HttpErrorDto;
 export type WhatsappSendMessageData = WhatsappSendResultDto;
 
 export type WhatsappSendMessageError = HttpErrorDto;
+
+export type WhatsappSendNotificacionPymeData = WhatsappSendResultDto;
+
+export type WhatsappSendNotificacionPymeError = HttpErrorDto;
+
+export type WhatsappSendNotificacionConsultorData = WhatsappSendResultDto;
+
+export type WhatsappSendNotificacionConsultorError = HttpErrorDto;
+
+export type WhatsappSendAlertaReunionConsultorData = WhatsappSendResultDto;
+
+export type WhatsappSendAlertaReunionConsultorError = HttpErrorDto;
+
+export type WhatsappSendAlertaReunionPymeData = WhatsappSendResultDto;
+
+export type WhatsappSendAlertaReunionPymeError = HttpErrorDto;
 
 export interface ConsultantadminFindAllParams {
   /**
@@ -3007,6 +3175,82 @@ export namespace Whatsapp {
     export type RequestBody = WhatsappSendDto;
     export type RequestHeaders = {};
     export type ResponseBody = WhatsappSendMessageData;
+  }
+
+  /**
+   * No description
+   * @tags whatsapp
+   * @name WhatsappSendNotificacionPyme
+   * @summary Enviar plantilla notificacion_pyme
+   * @request POST:/admin/whatsapp/notificacion-pyme
+   * @secure
+   * @response `201` `WhatsappSendNotificacionPymeData`
+   * @response `400` `HttpErrorDto`
+   * @response `500` `HttpErrorDto`
+   */
+  export namespace WhatsappSendNotificacionPyme {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = WhatsappNotificacionPymeDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = WhatsappSendNotificacionPymeData;
+  }
+
+  /**
+   * No description
+   * @tags whatsapp
+   * @name WhatsappSendNotificacionConsultor
+   * @summary Enviar plantilla notificacion_consultor
+   * @request POST:/admin/whatsapp/notificacion-consultor
+   * @secure
+   * @response `201` `WhatsappSendNotificacionConsultorData`
+   * @response `400` `HttpErrorDto`
+   * @response `500` `HttpErrorDto`
+   */
+  export namespace WhatsappSendNotificacionConsultor {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = WhatsappNotificacionConsultorDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = WhatsappSendNotificacionConsultorData;
+  }
+
+  /**
+   * No description
+   * @tags whatsapp
+   * @name WhatsappSendAlertaReunionConsultor
+   * @summary Enviar plantilla alerta_de_reunion_consultor
+   * @request POST:/admin/whatsapp/alerta-reunion-consultor
+   * @secure
+   * @response `201` `WhatsappSendAlertaReunionConsultorData`
+   * @response `400` `HttpErrorDto`
+   * @response `500` `HttpErrorDto`
+   */
+  export namespace WhatsappSendAlertaReunionConsultor {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = WhatsappAlertaReunionConsultorDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = WhatsappSendAlertaReunionConsultorData;
+  }
+
+  /**
+   * No description
+   * @tags whatsapp
+   * @name WhatsappSendAlertaReunionPyme
+   * @summary Enviar plantilla alerta_de_reunion_pyme
+   * @request POST:/admin/whatsapp/alerta-reunion-pyme
+   * @secure
+   * @response `201` `WhatsappSendAlertaReunionPymeData`
+   * @response `400` `HttpErrorDto`
+   * @response `500` `HttpErrorDto`
+   */
+  export namespace WhatsappSendAlertaReunionPyme {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = WhatsappAlertaReunionDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = WhatsappSendAlertaReunionPymeData;
   }
 }
 
@@ -5458,6 +5702,122 @@ export class Api<SecurityDataType extends unknown> {
     sendMessage: (data: WhatsappSendDto, params: RequestParams = {}) =>
       this.http.request<WhatsappSendMessageData, WhatsappSendMessageError>({
         path: `/admin/whatsapp/send`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags whatsapp
+     * @name WhatsappSendNotificacionPyme
+     * @summary Enviar plantilla notificacion_pyme
+     * @request POST:/admin/whatsapp/notificacion-pyme
+     * @secure
+     * @response `201` `WhatsappSendNotificacionPymeData`
+     * @response `400` `HttpErrorDto`
+     * @response `500` `HttpErrorDto`
+     */
+    sendNotificacionPyme: (
+      data: WhatsappNotificacionPymeDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        WhatsappSendNotificacionPymeData,
+        WhatsappSendNotificacionPymeError
+      >({
+        path: `/admin/whatsapp/notificacion-pyme`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags whatsapp
+     * @name WhatsappSendNotificacionConsultor
+     * @summary Enviar plantilla notificacion_consultor
+     * @request POST:/admin/whatsapp/notificacion-consultor
+     * @secure
+     * @response `201` `WhatsappSendNotificacionConsultorData`
+     * @response `400` `HttpErrorDto`
+     * @response `500` `HttpErrorDto`
+     */
+    sendNotificacionConsultor: (
+      data: WhatsappNotificacionConsultorDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        WhatsappSendNotificacionConsultorData,
+        WhatsappSendNotificacionConsultorError
+      >({
+        path: `/admin/whatsapp/notificacion-consultor`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags whatsapp
+     * @name WhatsappSendAlertaReunionConsultor
+     * @summary Enviar plantilla alerta_de_reunion_consultor
+     * @request POST:/admin/whatsapp/alerta-reunion-consultor
+     * @secure
+     * @response `201` `WhatsappSendAlertaReunionConsultorData`
+     * @response `400` `HttpErrorDto`
+     * @response `500` `HttpErrorDto`
+     */
+    sendAlertaReunionConsultor: (
+      data: WhatsappAlertaReunionConsultorDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        WhatsappSendAlertaReunionConsultorData,
+        WhatsappSendAlertaReunionConsultorError
+      >({
+        path: `/admin/whatsapp/alerta-reunion-consultor`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags whatsapp
+     * @name WhatsappSendAlertaReunionPyme
+     * @summary Enviar plantilla alerta_de_reunion_pyme
+     * @request POST:/admin/whatsapp/alerta-reunion-pyme
+     * @secure
+     * @response `201` `WhatsappSendAlertaReunionPymeData`
+     * @response `400` `HttpErrorDto`
+     * @response `500` `HttpErrorDto`
+     */
+    sendAlertaReunionPyme: (
+      data: WhatsappAlertaReunionDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        WhatsappSendAlertaReunionPymeData,
+        WhatsappSendAlertaReunionPymeError
+      >({
+        path: `/admin/whatsapp/alerta-reunion-pyme`,
         method: "POST",
         body: data,
         secure: true,

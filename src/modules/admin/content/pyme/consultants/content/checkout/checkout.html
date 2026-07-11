@@ -10,7 +10,9 @@
 
   <div>
     <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold">Checkout de pago</h1>
-    <p class="mt-1 text-[0.92rem] text-muted">Revisa el resumen de tu sesión antes de continuar con el pago.</p>
+    <p class="mt-1 text-[0.92rem] text-muted">
+      Revisa el resumen de tu sesión antes de continuar con el pago.
+    </p>
   </div>
 
   @if (loading()) {
@@ -22,7 +24,9 @@
       <section class="rounded-xl border border-border bg-surface p-6 shadow-soft">
         <div class="flex items-center justify-between gap-4 border-b border-border pb-5">
           <div class="inline-flex items-center gap-3">
-            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+            <span
+              class="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary"
+            >
               <i class="fas fa-credit-card"></i>
             </span>
             <div>
@@ -30,19 +34,26 @@
               <p class="font-inter-bold text-text">Tarjeta de débito/crédito y banca móvil</p>
             </div>
           </div>
-          <span class="rounded-full bg-success/10 px-3 py-1 text-xs text-success font-inter-bold">Pago protegido</span>
+          <span class="rounded-full bg-success/10 px-3 py-1 text-xs text-success font-inter-bold"
+            >Pago protegido</span
+          >
         </div>
 
         <div class="mt-6 rounded-xl border border-border bg-background p-5">
           <p class="text-xs uppercase text-muted font-inter-bold">Estado del pago</p>
           <p class="mt-2 text-lg capitalize font-inter-bold">{{ checkout.status }}</p>
-          <p class="mt-1 text-sm text-muted">Al pagar, la pasarela notificará al sistema y se habilitará automáticamente la reunión de Teams.</p>
+          <p class="mt-1 text-sm text-muted">
+            Al pagar, la pasarela notificará al sistema y se habilitará automáticamente la reunión
+            de Teams.
+          </p>
         </div>
 
         @if (!isPaid()) {
           <div class="mt-5 rounded-xl border border-border bg-surface p-4">
             <div class="flex items-center gap-2 mb-3">
-              <span class="flex size-8 items-center justify-center rounded-lg bg-success/10 text-success">
+              <span
+                class="flex size-8 items-center justify-center rounded-lg bg-success/10 text-success"
+              >
                 <i class="fas fa-ticket"></i>
               </span>
               <div>
@@ -77,7 +88,7 @@
         <button
           type="button"
           (click)="pay()"
-          [disabled]="isPaid() || !paymentUrl() || opening()"
+          [disabled]="isPaid() || opening()"
           class="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm text-fixed-text-50 transition hover:bg-secondary/90 disabled:opacity-50 font-inter-bold"
         >
           @if (isPaid()) {
@@ -145,7 +156,12 @@
   }
 
   @if (paymentModalOpen() && paymentFrameUrl(); as paymentFrameUrl) {
-    <app-modal-form title="Pasarela de pago" maxWidth="6xl" [showFooter]="false" (onClose)="closePaymentModal()">
+    <app-modal-form
+      title="Pasarela de pago"
+      maxWidth="6xl"
+      [showFooter]="false"
+      (onClose)="closePaymentModal()"
+    >
       <div class="h-[78vh] bg-surface flex flex-col">
         <iframe
           [src]="paymentFrameUrl"
@@ -155,13 +171,19 @@
           allow="payment *; clipboard-read; clipboard-write"
         ></iframe>
         <!-- Footer de creación de reunión -->
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-text/10 px-6 py-4 bg-surface shrink-0">
+        <div
+          class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-text/10 px-6 py-4 bg-surface shrink-0"
+        >
           <div class="flex items-center gap-3 text-sm text-text">
             <span class="relative flex h-3.5 w-3.5">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"></span>
+              <span
+                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75"
+              ></span>
               <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-secondary"></span>
             </span>
-            <span class="font-inter-medium text-[0.9rem] text-muted">Esperando confirmación de pago y creación de la reunión...</span>
+            <span class="font-inter-medium text-[0.9rem] text-muted"
+              >Esperando confirmación de pago y creación de la reunión...</span
+            >
           </div>
           <button
             type="button"

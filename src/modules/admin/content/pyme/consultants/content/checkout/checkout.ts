@@ -49,7 +49,9 @@ export class Checkout implements OnInit, OnDestroy {
   redeemingPromotion = signal(false);
 
   checkoutId = computed(() => Number(this.route.snapshot.paramMap.get('id') ?? 0));
-  paymentUrl = computed(() => this.checkout()?.initPoint ?? this.checkout()?.sandboxInitPoint ?? null);
+  paymentUrl = computed(
+    () => this.checkout()?.initPoint ?? this.checkout()?.sandboxInitPoint ?? null,
+  );
   paymentFrameUrl = computed<SafeResourceUrl | null>(() => {
     const url = this.paymentUrl();
     return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
@@ -93,10 +95,13 @@ export class Checkout implements OnInit, OnDestroy {
     this.checkout.set(checkout);
 
     if (checkout.meetingId) {
-      return this.meetingService.findOne(checkout.meetingId).then((meeting) => {
-        this.meeting.set(meeting);
-        return this.consultantService.findByUser(meeting.consultantId);
-      }).then((consultant) => this.consultant.set(consultant));
+      return this.meetingService
+        .findOne(checkout.meetingId)
+        .then((meeting) => {
+          this.meeting.set(meeting);
+          return this.consultantService.findByUser(meeting.consultantId);
+        })
+        .then((consultant) => this.consultant.set(consultant));
     }
 
     if (checkout.meetingDetails) {
@@ -119,7 +124,7 @@ export class Checkout implements OnInit, OnDestroy {
     if (Date.now() - this.pollingStartTime > this.maxPollingDurationMs) {
       this.stopPaymentPolling();
       this.toastService.warning(
-        'Tiempo de espera excedido. Si ya realizaste el pago, cierra el modal y ábrelo nuevamente para verificar.'
+        'Tiempo de espera excedido. Si ya realizaste el pago, cierra el modal y ábrelo nuevamente para verificar.',
       );
       return;
     }
@@ -139,7 +144,10 @@ export class Checkout implements OnInit, OnDestroy {
     this.stopPaymentPolling();
     this.pollingStartTime = Date.now();
     this.refreshPaymentStatus();
-    this.paymentPolling = setInterval(() => this.refreshPaymentStatus(), this.paymentPollingIntervalMs);
+    this.paymentPolling = setInterval(
+      () => this.refreshPaymentStatus(),
+      this.paymentPollingIntervalMs,
+    );
   }
 
   private stopPaymentPolling() {
@@ -169,15 +177,20 @@ export class Checkout implements OnInit, OnDestroy {
       return;
     }
 
-    const url = this.paymentUrl();
-    if (!url) {
-      this.toastService.error('La pasarela de pago no devolvió un enlace válido');
-      return;
-    }
-
     this.opening.set(true);
-    this.paymentModalOpen.set(true);
-    this.startPaymentPolling();
+    this.mercadoPagoService
+      .prepareCheckoutPayment(this.checkoutId())
+      .then((checkout) => {
+        this.checkout.set(checkout);
+        if (!checkout.initPoint && !checkout.sandboxInitPoint) {
+          throw new Error('La pasarela de pago no devolvió un enlace válido');
+        }
+
+        this.paymentModalOpen.set(true);
+        this.startPaymentPolling();
+      })
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.opening.set(false));
   }
 
   closePaymentModal() {
@@ -202,9 +215,7 @@ export class Checkout implements OnInit, OnDestroy {
         this.toastService.success(result.message);
         this.completePaidFlow(result.meetingId);
       })
-      .catch((error) =>
-        this.toastService.error(this.hubsme.getErrorMessage(error)),
-      )
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.redeemingPromotion.set(false));
   }
 
@@ -231,6 +242,9 @@ export class Checkout implements OnInit, OnDestroy {
   }
 
   consultantPhoto(consultant: ConsultantData) {
-    return consultant.photoUrl || `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(consultant.fullName)}`;
+    return (
+      consultant.photoUrl ||
+      `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(consultant.fullName)}`
+    );
   }
 }

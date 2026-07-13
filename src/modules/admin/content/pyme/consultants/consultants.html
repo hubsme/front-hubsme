@@ -22,8 +22,35 @@
   </div>
 
   @if (loading()) {
-    <div class="py-16 text-center text-muted">
-      <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+    <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" aria-label="Cargando consultores">
+      @for (card of skeletonCards; track card) {
+        <article class="overflow-hidden rounded-xl border border-border bg-surface shadow-soft">
+          <div class="aspect-square animate-pulse bg-text/5"></div>
+          <div class="flex min-h-[23.5rem] flex-col p-5">
+            <div class="h-6 w-3/4 animate-pulse rounded-full bg-text/10"></div>
+            <div class="mt-4 space-y-2">
+              <div class="h-3 w-full animate-pulse rounded-full bg-text/5"></div>
+              <div class="h-3 w-11/12 animate-pulse rounded-full bg-text/5"></div>
+              <div class="h-3 w-2/3 animate-pulse rounded-full bg-text/5"></div>
+            </div>
+
+            <div class="mt-6 flex gap-2">
+              <div class="h-7 w-24 animate-pulse rounded-full bg-text/5"></div>
+              <div class="h-7 w-28 animate-pulse rounded-full bg-text/5"></div>
+            </div>
+
+            <div class="mt-6 grid grid-cols-2 gap-4 border-y border-border py-4">
+              <div class="h-4 animate-pulse rounded-full bg-text/5"></div>
+              <div class="h-4 animate-pulse rounded-full bg-text/5"></div>
+            </div>
+
+            <div class="mt-auto grid grid-cols-2 gap-2 pt-5">
+              <div class="h-9 animate-pulse rounded-full bg-text/5"></div>
+              <div class="h-9 animate-pulse rounded-full bg-text/10"></div>
+            </div>
+          </div>
+        </article>
+      }
     </div>
   } @else {
     <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">

@@ -23,11 +23,12 @@ export class Consultants implements OnInit {
   private router = inject(Router);
   private searchTerms = new Subject<string>();
   private consultantRequestId = 0;
+  readonly skeletonCards = Array.from({ length: 8 }, (_, index) => index);
 
   consultants = signal<Consultant[]>([]);
   videoConsultant = signal<Consultant | null>(null);
   search = signal('');
-  loading = signal(false);
+  loading = signal(true);
   searching = signal(false);
 
   constructor() {
@@ -37,13 +38,12 @@ export class Consultants implements OnInit {
   }
 
   ngOnInit() {
-    this.load();
+    queueMicrotask(() => this.load());
   }
 
   load() {
     this.loading.set(true);
     this.loadConsultants(this.search(), false)
-      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
   }
 

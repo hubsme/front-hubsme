@@ -53,8 +53,21 @@
 
     <div class="mt-5 min-h-[45rem] overflow-hidden rounded-xl border border-border bg-background text-text">
       @if (loading()) {
-      <div class="flex min-h-[45rem] items-center justify-center text-muted">
-        <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+      <div class="min-h-[45rem] animate-pulse p-3" aria-label="Cargando reuniones">
+        <div class="grid grid-cols-7 overflow-hidden rounded-xl border border-border bg-surface">
+          @for (day of [1, 2, 3, 4, 5, 6, 7]; track day) {
+            <div class="h-12 border-r border-border bg-text/5 last:border-r-0"></div>
+          }
+          @if (view() === CalendarView.Month) {
+            @for (cell of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]; track cell) {
+              <div class="h-28 border-r border-t border-border bg-surface last:border-r-0"></div>
+            }
+          } @else {
+            @for (cell of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49]; track cell) {
+              <div class="h-20 border-r border-t border-border bg-surface last:border-r-0"></div>
+            }
+          }
+        </div>
       </div>
       } @else {
       @switch (view()) {

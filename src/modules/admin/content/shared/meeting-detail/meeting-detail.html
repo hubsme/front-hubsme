@@ -1,7 +1,35 @@
 <div class="font-inter-regular text-text">
   @if (loading()) {
-    <div class="py-16 text-center text-muted">
-      <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+    <div class="mx-auto max-w-2xl py-4" aria-label="Cargando reunión">
+      <section class="animate-pulse rounded-2xl border border-border bg-surface px-6 py-8 sm:px-10">
+        <header class="text-center">
+          <div class="mx-auto h-7 w-28 rounded-full bg-text/10"></div>
+          <div class="mx-auto mt-4 h-6 w-72 max-w-full rounded-full bg-text/10"></div>
+          <div class="mx-auto mt-3 h-3 w-96 max-w-full rounded-full bg-text/10"></div>
+        </header>
+        <div class="my-6 border-t border-dashed border-border"></div>
+        <div class="flex flex-col items-center gap-4">
+          <div class="flex items-center gap-3">
+            <div class="h-11 w-11 rounded-full bg-text/10"></div>
+            <div class="space-y-2">
+              <div class="h-3 w-28 rounded-full bg-text/10"></div>
+              <div class="h-4 w-40 rounded-full bg-text/10"></div>
+            </div>
+          </div>
+          <div class="flex flex-wrap justify-center gap-2">
+            @for (pill of [1, 2, 3]; track pill) {
+            <div class="h-7 w-28 rounded-full bg-text/10"></div>
+            }
+          </div>
+        </div>
+        <div class="mt-6 h-28 rounded-xl bg-text/10"></div>
+        <div class="mt-5 grid grid-cols-3 gap-3">
+          @for (card of [1, 2, 3]; track card) {
+          <div class="h-20 rounded-xl bg-text/10"></div>
+          }
+        </div>
+        <div class="mt-5 h-28 rounded-xl border border-border bg-text/5"></div>
+      </section>
     </div>
   } @else if (meeting(); as current) {
     <div class="mx-auto max-w-2xl py-4">

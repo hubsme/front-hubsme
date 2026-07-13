@@ -8,8 +8,31 @@
   </div>
 
   @if (loading()) {
-  <div class="py-16 text-center text-muted">
-    <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+  <div class="mx-auto grid max-w-7xl grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4" aria-label="Cargando planes">
+    @for (plan of [1, 2, 3, 4]; track plan) {
+    <article class="flex min-h-[31rem] animate-pulse flex-col rounded-2xl border border-border bg-surface">
+      <div class="flex flex-1 flex-col p-6">
+        <div class="h-12 w-12 rounded-2xl bg-text/10"></div>
+        <div class="mt-8 h-5 w-28 rounded-full bg-text/10"></div>
+        <div class="mt-4 space-y-2">
+          <div class="h-3 w-full rounded-full bg-text/10"></div>
+          <div class="h-3 w-3/4 rounded-full bg-text/10"></div>
+        </div>
+        <div class="mt-7 h-10 w-36 rounded-full bg-text/10"></div>
+        <div class="mt-8 flex-1 space-y-4">
+          @for (feature of [1, 2, 3, 4]; track feature) {
+          <div class="flex items-center gap-3">
+            <div class="h-5 w-5 rounded-full bg-text/10"></div>
+            <div class="h-3 flex-1 rounded-full bg-text/10"></div>
+          </div>
+          }
+        </div>
+      </div>
+      <div class="border-t border-border bg-background-50/70 p-5">
+        <div class="h-12 rounded-xl bg-text/10"></div>
+      </div>
+    </article>
+    }
   </div>
   } @else {
   <div class="mx-auto grid max-w-7xl grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">

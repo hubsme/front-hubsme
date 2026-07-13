@@ -16,8 +16,45 @@
   </div>
 
   @if (loading()) {
-    <div class="py-16 text-center text-muted">
-      <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+    <div class="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_25rem]" aria-label="Cargando checkout">
+      <section class="animate-pulse rounded-xl border border-border bg-surface p-6 shadow-soft">
+        <div class="flex items-center justify-between gap-4 border-b border-border pb-5">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-xl bg-text/10"></div>
+            <div class="space-y-2">
+              <div class="h-3 w-28 rounded-full bg-text/10"></div>
+              <div class="h-4 w-52 rounded-full bg-text/10"></div>
+            </div>
+          </div>
+          <div class="h-7 w-28 rounded-full bg-text/10"></div>
+        </div>
+        <div class="mt-6 h-28 rounded-xl bg-text/10"></div>
+        <div class="mt-5 h-32 rounded-xl bg-text/10"></div>
+        <div class="mt-6 h-12 rounded-xl bg-text/10"></div>
+      </section>
+
+      <aside class="animate-pulse rounded-xl border border-border bg-surface p-6 shadow-soft">
+        <div class="h-5 w-40 rounded-full bg-text/10"></div>
+        <div class="mt-5 flex items-center gap-3 border-b border-border pb-5">
+          <div class="h-14 w-14 rounded-full bg-text/10"></div>
+          <div class="space-y-2">
+            <div class="h-4 w-36 rounded-full bg-text/10"></div>
+            <div class="h-3 w-24 rounded-full bg-text/10"></div>
+          </div>
+        </div>
+        <div class="mt-5 space-y-4 border-b border-border pb-5">
+          @for (row of [1, 2]; track row) {
+          <div class="flex gap-3">
+            <div class="h-4 w-4 rounded bg-text/10"></div>
+            <div class="flex-1 space-y-2">
+              <div class="h-3 w-40 rounded-full bg-text/10"></div>
+              <div class="h-3 w-28 rounded-full bg-text/10"></div>
+            </div>
+          </div>
+          }
+        </div>
+        <div class="mt-5 h-20 rounded-xl bg-text/10"></div>
+      </aside>
     </div>
   } @else if (checkout(); as checkout) {
     <div class="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_25rem]">

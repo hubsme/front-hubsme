@@ -5,9 +5,39 @@
   </div>
 
   @if (loading()) {
-    <div class="py-16 text-center text-muted">
-      <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
-    </div>
+    <section class="grid grid-cols-1 gap-6 lg:grid-cols-[20rem_1fr]" aria-label="Cargando perfil">
+      <aside class="animate-pulse rounded-xl border border-border bg-surface p-6">
+        <div class="mx-auto h-28 w-28 rounded-2xl bg-text/5"></div>
+        <div class="mt-6 h-10 rounded-xl bg-text/5"></div>
+        <div class="mt-4 h-3 w-48 rounded bg-text/5"></div>
+      </aside>
+
+      <div class="animate-pulse rounded-xl border border-border bg-surface p-6 lg:p-8">
+        <div class="h-6 w-56 rounded bg-text/5"></div>
+        <div class="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
+          @for (field of [1, 2, 3, 4, 5]; track field) {
+            <div class="space-y-2">
+              <div class="h-3 w-24 rounded bg-text/5"></div>
+              <div class="h-10 rounded-xl bg-text/5"></div>
+            </div>
+          }
+          <div class="space-y-2 md:col-span-2">
+            <div class="h-3 w-24 rounded bg-text/5"></div>
+            <div class="h-24 rounded-xl bg-text/5"></div>
+          </div>
+        </div>
+        <div class="my-6 border-t border-border"></div>
+        <div class="h-6 w-48 rounded bg-text/5"></div>
+        <div class="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
+          @for (field of [6, 7, 8, 9, 10]; track field) {
+            <div class="space-y-2" [class.md:col-span-2]="field === 10">
+              <div class="h-3 w-28 rounded bg-text/5"></div>
+              <div class="h-10 rounded-xl bg-text/5"></div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
   } @else {
     <section class="grid grid-cols-1 gap-6 lg:grid-cols-[20rem_1fr]">
       <aside class="rounded-xl border border-border bg-surface p-6">

@@ -14,8 +14,63 @@
   </div>
 
   @if (loading()) {
-    <div class="py-16 text-center text-muted">
-      <i class="fas fa-spinner fa-spin text-3xl text-secondary"></i>
+    <div class="grid grid-cols-1 gap-5 xl:grid-cols-[20rem_1fr]" aria-label="Cargando detalle de consultor">
+      <aside class="animate-pulse rounded-xl border border-border bg-surface p-5 shadow-soft">
+        <div class="flex flex-col items-center text-center">
+          <div class="h-24 w-24 rounded-full bg-text/10"></div>
+          <div class="mt-4 h-5 w-40 rounded-full bg-text/10"></div>
+          <div class="mt-3 h-3 w-56 rounded-full bg-text/10"></div>
+          <div class="mt-2 h-3 w-44 rounded-full bg-text/10"></div>
+          <div class="mt-4 h-16 w-36 rounded-xl bg-text/10"></div>
+        </div>
+
+        <div class="mt-6 space-y-4 border-t border-border pt-5">
+          @for (row of [1, 2]; track row) {
+          <div class="flex items-start gap-3">
+            <div class="mt-1 h-4 w-4 rounded bg-text/10"></div>
+            <div class="flex-1 space-y-2">
+              <div class="h-3 w-28 rounded-full bg-text/10"></div>
+              <div class="h-3 w-36 rounded-full bg-text/10"></div>
+            </div>
+          </div>
+          }
+        </div>
+      </aside>
+
+      <section class="animate-pulse rounded-xl border border-border bg-surface p-5 shadow-soft">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_22rem]">
+          <div>
+            <div class="mb-5 flex items-center justify-between">
+              <div class="h-5 w-40 rounded-full bg-text/10"></div>
+              <div class="flex gap-2">
+                <div class="h-9 w-9 rounded-full bg-text/10"></div>
+                <div class="h-9 w-9 rounded-full bg-text/10"></div>
+              </div>
+            </div>
+            <div class="grid grid-cols-7 gap-2">
+              @for (day of [1, 2, 3, 4, 5, 6, 7]; track day) {
+              <div class="h-4 rounded bg-text/10"></div>
+              }
+              @for (day of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]; track day) {
+              <div class="aspect-square rounded-xl bg-text/10"></div>
+              }
+            </div>
+          </div>
+
+          <div class="border-border lg:border-l lg:pl-6">
+            <div class="h-4 w-32 rounded-full bg-text/10"></div>
+            <div class="mt-3 h-5 w-44 rounded-full bg-text/10"></div>
+            <div class="mt-6 h-10 rounded-xl bg-text/10"></div>
+            <div class="mt-5 grid grid-cols-2 gap-3">
+              @for (time of [1, 2, 3, 4, 5, 6]; track time) {
+              <div class="h-11 rounded-xl bg-text/10"></div>
+              }
+            </div>
+            <div class="mt-5 h-24 rounded-xl bg-text/10"></div>
+            <div class="mt-5 h-20 rounded-xl bg-text/10"></div>
+          </div>
+        </div>
+      </section>
     </div>
   } @else if (consultant(); as consultant) {
     <div class="grid grid-cols-1 gap-5 xl:grid-cols-[20rem_1fr]">

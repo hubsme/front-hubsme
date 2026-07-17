@@ -63,7 +63,7 @@ export class MeetingDetail implements OnInit {
     if (!meeting || meeting.status !== 'confirmada' || !meeting.meetingUrl) return false;
 
     const now = new Date();
-    const start = new Date(meeting.startTime);
+    const start = this.meetingDisplayStart(meeting);
     const end = new Date(start.getTime() + meeting.durationMinutes * 60 * 1000);
 
     // 10 minutes before
@@ -148,7 +148,17 @@ export class MeetingDetail implements OnInit {
     ]);
   }
 
-  meetingDate(value: string) {
+  meetingDisplayStart(meeting: Meeting) {
+    return new Date(meeting.startTime ?? meeting.proposedStartTimes?.[0] ?? meeting.createdAt);
+  }
+
+  proposedTimes(meeting: Meeting) {
+    return (meeting.proposedStartTimes?.length ? meeting.proposedStartTimes : [meeting.startTime]).filter(
+      (value): value is string => Boolean(value),
+    );
+  }
+
+  meetingDate(value: string | Date) {
     return new Date(value).toLocaleDateString('es-PE', {
       day: '2-digit',
       month: 'long',
@@ -156,7 +166,7 @@ export class MeetingDetail implements OnInit {
     });
   }
 
-  meetingTime(value: string) {
+  meetingTime(value: string | Date) {
     return new Date(value).toLocaleTimeString('es-PE', {
       hour: '2-digit',
       minute: '2-digit',
@@ -173,6 +183,8 @@ export class MeetingDetail implements OnInit {
 
   statusClass(status: Meeting['status']) {
     if (status === 'solicitada') return 'bg-warning/10 text-warning';
+    if (status === 'por_confirmar') return 'bg-warning/10 text-warning';
+    if (status === 'pago_pendiente') return 'bg-secondary/10 text-secondary';
     if (status === 'cancelada') return 'bg-danger/10 text-danger';
     if (status === 'finalizada') return 'bg-text/5 text-text';
     return 'bg-success/10 text-success';

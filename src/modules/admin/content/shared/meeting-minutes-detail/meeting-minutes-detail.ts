@@ -146,7 +146,12 @@ export class MeetingMinutesDetail implements OnInit {
     });
   }
 
-  meetingTime(value: string) {
+  meetingDisplayStart(meeting: Meeting) {
+    return meeting.startTime ?? meeting.proposedStartTimes?.[0] ?? meeting.createdAt;
+  }
+
+  meetingTime(value: string | null) {
+    if (!value) return 'Sin hora';
     return new Date(value).toLocaleTimeString('es-PE', {
       hour: '2-digit',
       minute: '2-digit',

@@ -22,6 +22,11 @@ type TimeOption = {
   startTime: Date;
   endTime: Date;
 };
+type SelectedProposal = {
+  iso: string;
+  dateLabel: string;
+  timeLabel: string;
+};
 type CalendarDay = {
   date: Date;
   day: number;
@@ -50,7 +55,7 @@ export class ConsultantDetail implements OnInit {
   scheduling = signal(false);
   viewDate = signal(new Date());
   selectedDate = signal<Date>(new Date());
-  selectedStartIso = signal<string | null>(null);
+  selectedStartIsos = signal<string[]>([]);
   durationMinutes = signal(60);
   description = signal('');
 
@@ -58,7 +63,25 @@ export class ConsultantDetail implements OnInit {
   weekDays = ['Dom', 'Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab'];
 
   consultantUserId = computed(() => Number(this.route.snapshot.paramMap.get('id') ?? 0));
-  selectedOption = computed(() => this.timeOptions().find((option) => option.startTime.toISOString() === this.selectedStartIso()) ?? null);
+  selectedProposals = computed<SelectedProposal[]>(() =>
+    this.selectedStartIsos().map((iso) => {
+      const date = new Date(iso);
+      return {
+        iso,
+        dateLabel: this.formatShortDate(date),
+        timeLabel: this.formatTime(date),
+      };
+    }),
+  );
+  selectedDateKeys = computed(() => new Set(this.selectedStartIsos().map((iso) => this.toDateKey(new Date(iso)))));
+  selectedDaysCount = computed(() => this.selectedDateKeys().size);
+  selectionProgressText = computed(() => {
+    const count = this.selectedStartIsos().length;
+    if (count === 0) return 'Elige el primer dia y horario disponible';
+    if (count === 1) return 'Elige 2 horarios mas en dias diferentes';
+    if (count === 2) return 'Elige 1 horario mas en otro dia disponible';
+    return 'Listo: tienes 3 opciones en dias diferentes';
+  });
   monthTitle = computed(() =>
     this.viewDate().toLocaleDateString('es-PE', {
       month: 'long',
@@ -117,27 +140,48 @@ export class ConsultantDetail implements OnInit {
     if (day.date.getTime() < tomorrow.getTime()) return;
 
     this.selectedDate.set(day.date);
-    this.selectedStartIso.set(null);
   }
 
   selectTime(option: TimeOption) {
-    this.selectedStartIso.set(option.startTime.toISOString());
+    const iso = option.startTime.toISOString();
+    this.selectedStartIsos.update((current) => {
+      if (current.includes(iso)) return current.filter((value) => value !== iso);
+      const selectedDay = this.toDateKey(option.startTime);
+      if (current.some((value) => this.toDateKey(new Date(value)) === selectedDay)) {
+        this.toastService.warning('Elige solo un horario por dia para darle alternativas reales al consultor');
+        return current;
+      }
+      if (current.length >= 3) {
+        this.toastService.warning('Solo puedes seleccionar 3 horarios');
+        return current;
+      }
+      return [...current, iso].sort();
+    });
   }
 
   updateDuration(value: string) {
     this.durationMinutes.set(Number(value) || 60);
-    this.selectedStartIso.set(null);
+    this.selectedStartIsos.set([]);
   }
 
   updateDescription(value: string) {
     this.description.set(value);
   }
 
+  removeSelectedTime(iso: string) {
+    this.selectedStartIsos.update((current) => current.filter((value) => value !== iso));
+  }
+
   schedule() {
-    const option = this.selectedOption();
     const consultant = this.consultant();
-    if (!option || !consultant) {
-      this.toastService.warning('Selecciona un horario disponible');
+    const selectedStartIsos = this.selectedStartIsos();
+    if (!consultant || selectedStartIsos.length !== 3) {
+      const missing = 3 - selectedStartIsos.length;
+      this.toastService.warning(
+        missing === 1
+          ? 'Selecciona 1 horario mas en otro dia disponible'
+          : `Selecciona ${missing} horarios mas en dias diferentes`,
+      );
       return;
     }
 
@@ -145,7 +189,8 @@ export class ConsultantDetail implements OnInit {
     this.mercadoPagoService
       .createCheckout({
         consultantId: consultant.userId,
-        startTime: option.startTime.toISOString(),
+        startTime: selectedStartIsos[0],
+        proposedStartTimes: selectedStartIsos,
         durationMinutes: this.durationMinutes(),
         title: `Sesión con ${consultant.fullName}`,
         description: this.description().trim() || undefined,
@@ -172,6 +217,22 @@ export class ConsultantDetail implements OnInit {
       day: '2-digit',
       month: 'long',
     });
+  }
+
+  formatShortDate(date: Date) {
+    return date.toLocaleDateString('es-PE', {
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+    });
+  }
+
+  formatTime(date: Date) {
+    return date.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  dayHasProposal(date: Date) {
+    return this.selectedDateKeys().has(this.toDateKey(date));
   }
 
   currency(value: number) {
@@ -233,7 +294,7 @@ export class ConsultantDetail implements OnInit {
         this.selectedDate.set(tomorrow);
       }
     }
-    this.selectedStartIso.set(null);
+    this.selectedStartIsos.set([]);
   }
 
   private buildCalendarDays(): CalendarDay[] {

@@ -56,6 +56,10 @@ export class HubsmeService {
     return this.api.meeting.confirm({ id });
   }
 
+  confirmMeetingOption(id: number, data: ApiBody<'meeting', 'confirmOption'>) {
+    return this.api.meeting.confirmOption({ id }, data);
+  }
+
   finalizeMeeting(id: number, data: ApiBody<'meeting', 'finalize'>) {
     return this.api.meeting.finalize({ id }, data);
   }

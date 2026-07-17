@@ -42,6 +42,7 @@ export function getPath(node: PathNode): string {
 export const PATH = {
   policyPrivacy: { _path: 'politicas-de-privacidad' },
   termsConditions: { _path: 'terminos-y-condiciones' },
+  dataDeletion: { _path: 'eliminacion-de-datos' },
   diagnostic: { _path: 'diagnostico' },
   auth: {
     _path: 'auth',

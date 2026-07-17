@@ -119,14 +119,27 @@
               Fecha de sesion
             </p>
             <p class="mt-1.5 text-[0.88rem] leading-tight font-plus-jakarta-sans font-bold">
-              {{ meetingDate(current.startTime) }}
+              {{ meetingDate(meetingDisplayStart(current)) }}
             </p>
             <p
               class="mt-1 text-[1.65rem] leading-none text-secondary font-inter-bold sm:text-[2rem]"
             >
-              {{ meetingTime(current.startTime) }}
+              {{ meetingTime(meetingDisplayStart(current)) }}
             </p>
           </div>
+
+          @if (current.status === 'por_confirmar') {
+          <div class="mt-5 rounded-xl border border-warning/20 bg-warning/5 p-4">
+            <p class="text-[0.62rem] uppercase tracking-[0.12em] text-muted font-inter-bold">
+              Horarios propuestos
+            </p>
+            <div class="mt-2 space-y-1 text-[0.82rem] text-text-700">
+              @for (option of proposedTimes(current); track option) {
+              <p>{{ meetingDate(option) }} · {{ meetingTime(option) }}</p>
+              }
+            </div>
+          </div>
+          }
 
           <!-- Info grid -->
           <div class="mt-5 grid grid-cols-3 gap-3">

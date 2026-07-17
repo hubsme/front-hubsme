@@ -33,6 +33,11 @@ export const routes: Routes = [
       import('@module/terms-conditions/terms-conditions').then((m) => m.TermsConditions),
   },
   {
+    path: getPath(PATH.dataDeletion),
+    loadComponent: () =>
+      import('@module/data-deletion/data-deletion').then((m) => m.DataDeletion),
+  },
+  {
     path: getPath(PATH.diagnostic),
     canActivate: [authGuard],
     loadComponent: () => import('@module/diagnostic/diagnostic').then((m) => m.Diagnostic),

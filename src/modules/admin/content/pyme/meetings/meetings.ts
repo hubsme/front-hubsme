@@ -120,9 +120,9 @@ export class Meetings implements OnInit {
   selectedMeeting = signal<ApiResponse<'meeting', 'findAll'>['data'][number] | null>(null);
   calendarEvents = computed<CalendarEvent<MeetingEventMeta>[]>(() =>
     this.meetings()
-      .filter((meeting) => meeting.status === 'confirmada' || meeting.status === 'pago_pendiente')
+      .filter((meeting) => ['confirmada', 'pago_pendiente', 'por_confirmar'].includes(meeting.status))
       .map((meeting) => ({
-        start: new Date(meeting.startTime),
+        start: this.meetingDisplayStart(meeting),
         end: this.meetingEnd(meeting),
         title: meeting.title,
         color: this.meetingColor(meeting),
@@ -394,6 +394,7 @@ export class Meetings implements OnInit {
     const labels: Record<Meeting['status'], string> = {
       solicitada: 'Solicitada',
       pago_pendiente: 'Pago pendiente',
+      por_confirmar: 'Por confirmación',
       confirmada: 'Confirmada',
       finalizada: 'Finalizada',
       cancelada: 'Cancelada',
@@ -404,6 +405,7 @@ export class Meetings implements OnInit {
   statusClass(status: Meeting['status']) {
     if (status === 'solicitada') return 'bg-warning/10 text-warning';
     if (status === 'pago_pendiente') return 'bg-secondary/10 text-secondary';
+    if (status === 'por_confirmar') return 'bg-warning/10 text-warning';
     if (status === 'cancelada') return 'bg-danger/10 text-danger';
     if (status === 'finalizada') return 'bg-text/5 text-text';
     return 'bg-success/10 text-success';
@@ -411,6 +413,7 @@ export class Meetings implements OnInit {
 
   meetingColor(meeting: Meeting) {
     if (meeting.status === 'confirmada') return { primary: '#0e9f6e', secondary: 'rgba(14,159,110,0.16)' };
+    if (meeting.status === 'por_confirmar') return { primary: '#f59e0b', secondary: 'rgba(245,158,11,0.16)' };
     return { primary: '#2563eb', secondary: 'rgba(37,99,235,0.16)' };
   }
 
@@ -430,7 +433,7 @@ export class Meetings implements OnInit {
     if (meeting.status !== 'confirmada' || !meeting.meetingUrl || meeting.description) return false;
 
     const now = new Date();
-    const start = new Date(meeting.startTime);
+    const start = this.meetingDisplayStart(meeting);
     const end = new Date(start.getTime() + meeting.durationMinutes * 60 * 1000);
 
     // 10 minutes before
@@ -442,9 +445,19 @@ export class Meetings implements OnInit {
   }
 
   meetingEnd(meeting: Meeting) {
-    const end = new Date(meeting.startTime);
+    const end = this.meetingDisplayStart(meeting);
     end.setMinutes(end.getMinutes() + meeting.durationMinutes);
     return end;
+  }
+
+  meetingDisplayStart(meeting: Meeting) {
+    return new Date(meeting.startTime ?? meeting.proposedStartTimes?.[0] ?? meeting.createdAt);
+  }
+
+  proposedTimes(meeting: Meeting) {
+    return (meeting.proposedStartTimes?.length ? meeting.proposedStartTimes : [meeting.startTime]).filter(
+      (value): value is string => Boolean(value),
+    );
   }
 
   consultantPhoto(meeting: Meeting) {

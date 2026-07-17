@@ -299,12 +299,10 @@
             </label>
             <label class="block text-xs text-muted font-inter-semibold">
               <span class="mb-2 block">Teléfono</span>
-              <input
-                type="text"
+              <app-phone-input
                 [ngModel]="form().ownerPhone"
                 name="ownerPhone"
                 (ngModelChange)="updateForm('ownerPhone', $event)"
-                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
               />
             </label>
             <label class="block text-xs text-muted font-inter-semibold">

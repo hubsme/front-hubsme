@@ -1,12 +1,31 @@
 @import 'tailwindcss';
 @import 'quill/dist/quill.snow.css';
 @import 'quill/dist/quill.bubble.css';
+@import 'intl-tel-input/styles';
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 /* Custom Fonts */
 @font-face {
   font-family: 'Anton SC';
   src: url('/font/AntonSC-Regular.ttf') format('truetype');
+}
+
+.iti {
+  width: 100%;
+}
+
+.iti .iti__tel-input {
+  width: 100%;
+}
+
+.iti__selected-country {
+  border-bottom-left-radius: 0.75rem;
+  border-top-left-radius: 0.75rem;
+}
+
+.iti__country-container:hover + .iti__tel-input,
+.iti__tel-input:focus {
+  border-color: var(--secondary-500);
 }
 
 @font-face {

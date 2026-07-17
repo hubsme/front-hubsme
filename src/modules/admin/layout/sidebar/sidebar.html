@@ -50,8 +50,6 @@
     } @for (item of menuItems(); track item.label) {
     <button
       (click)="navigateTo(item.path)"
-      (mouseenter)="prefetchRoute(item.path)"
-      (focus)="prefetchRoute(item.path)"
       [title]="isCollapsed() ? item.label : ''"
       class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl duration-200 group overflow-hidden text-left transition-colors"
       [class.bg-primary]="isActive(item.path)"

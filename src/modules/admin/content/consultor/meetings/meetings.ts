@@ -21,6 +21,7 @@ import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
 import { ApiBody, ApiResponse } from 'api/backend.api';
 import { ConsultantAvailabilityService } from '@service/admin/consultant-availability.service';
 import { ConsultantGoogleCalendarService } from '@service/admin/consultant-google-calendar.service';
+import { MeetingService } from '@service/admin/meeting.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { AlertService } from '@service/alert.service';
@@ -83,6 +84,7 @@ type GoogleCalendarMessage = { type: 'hubsme:google-calendar'; connected?: boole
 export class Meetings implements OnInit, OnDestroy {
   private availabilityService = inject(ConsultantAvailabilityService);
   private googleCalendarService = inject(ConsultantGoogleCalendarService);
+  private meetingService = inject(MeetingService);
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
   private alertService = inject(AlertService);
@@ -104,6 +106,8 @@ export class Meetings implements OnInit, OnDestroy {
   showTutorial = signal(false);
   selectedSlotLocalId = signal<string | null>(null);
   selectedMeeting = signal<Meeting | null>(null);
+  confirmingMeetingId = signal<number | null>(null);
+  selectedProposedStartTime = signal<string | null>(null);
   activeBrush = signal<DraftSlotStatus>('disponible');
   dragSelection = signal<{ start: Date; end: Date } | null>(null);
   slots = signal<DraftSlot[]>([]);
@@ -150,7 +154,7 @@ export class Meetings implements OnInit, OnDestroy {
     ...this.meetings()
       .filter((meeting) => meeting.status !== 'cancelada')
       .map((meeting) => ({
-        start: new Date(meeting.startTime),
+        start: this.meetingDisplayStart(meeting),
         end: this.meetingEnd(meeting),
         title: `Reunion: ${meeting.title}`,
         color: this.meetingColor(meeting),
@@ -425,6 +429,7 @@ export class Meetings implements OnInit, OnDestroy {
 
   closeMeetingDetail() {
     this.selectedMeeting.set(null);
+    this.selectedProposedStartTime.set(null);
   }
 
   joinMeeting(meeting: Meeting) {
@@ -435,6 +440,30 @@ export class Meetings implements OnInit, OnDestroy {
   finishMeeting(meeting: Meeting) {
     this.closeMeetingDetail();
     this.router.navigate([buildPath(PATH.admin.consultor.documents), meeting.id]);
+  }
+
+  selectProposedStartTime(startTime: string) {
+    this.selectedProposedStartTime.set(startTime);
+  }
+
+  confirmProposedStartTime(meeting: Meeting) {
+    const selectedStartTime = this.selectedProposedStartTime();
+    if (!selectedStartTime) {
+      this.toastService.warning('Selecciona uno de los horarios propuestos');
+      return;
+    }
+
+    this.confirmingMeetingId.set(meeting.id);
+    this.meetingService
+      .confirmOption(meeting.id, { selectedStartTime })
+      .then((updatedMeeting) => {
+        this.toastService.success('Horario confirmado y enlace de Teams generado');
+        this.selectedMeeting.set(updatedMeeting);
+        this.selectedProposedStartTime.set(null);
+        this.loadMeetings();
+      })
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.confirmingMeetingId.set(null));
   }
 
   addSlot() {
@@ -626,6 +655,7 @@ export class Meetings implements OnInit, OnDestroy {
     const labels: Record<Meeting['status'], string> = {
       solicitada: 'Solicitada',
       pago_pendiente: 'Pago pendiente',
+      por_confirmar: 'Por confirmar',
       confirmada: 'Confirmada',
       finalizada: 'Finalizada',
       cancelada: 'Cancelada',
@@ -636,6 +666,7 @@ export class Meetings implements OnInit, OnDestroy {
   meetingStatusClass(status: Meeting['status']) {
     if (status === 'confirmada') return 'bg-success/10 text-success';
     if (status === 'pago_pendiente') return 'bg-secondary/10 text-secondary';
+    if (status === 'por_confirmar') return 'bg-warning/10 text-warning';
     if (status === 'solicitada') return 'bg-warning/10 text-warning';
     if (status === 'finalizada') return 'bg-text/5 text-text';
     return 'bg-danger/10 text-danger';
@@ -645,7 +676,7 @@ export class Meetings implements OnInit, OnDestroy {
     if (meeting.status !== 'confirmada' || !meeting.meetingUrl || meeting.description) return false;
 
     const now = new Date();
-    const start = new Date(meeting.startTime);
+    const start = this.meetingDisplayStart(meeting);
     const end = new Date(start.getTime() + meeting.durationMinutes * 60 * 1000);
 
     // 10 minutes before
@@ -661,9 +692,19 @@ export class Meetings implements OnInit, OnDestroy {
   }
 
   meetingEnd(meeting: Meeting) {
-    const end = new Date(meeting.startTime);
+    const end = this.meetingDisplayStart(meeting);
     end.setMinutes(end.getMinutes() + meeting.durationMinutes);
     return end;
+  }
+
+  meetingDisplayStart(meeting: Meeting) {
+    return new Date(meeting.startTime ?? meeting.proposedStartTimes?.[0] ?? meeting.createdAt);
+  }
+
+  proposedTimes(meeting: Meeting) {
+    return (meeting.proposedStartTimes?.length ? meeting.proposedStartTimes : [meeting.startTime]).filter(
+      (value): value is string => Boolean(value),
+    );
   }
 
   trackBySlot(index: number, slot: DraftSlot) {
@@ -692,6 +733,9 @@ export class Meetings implements OnInit, OnDestroy {
   private meetingColor(meeting: Meeting) {
     if (meeting.status === 'finalizada') {
       return { primary: '#047857', secondary: 'rgba(4,120,87,0.16)' };
+    }
+    if (meeting.status === 'por_confirmar') {
+      return { primary: '#f59e0b', secondary: 'rgba(245,158,11,0.16)' };
     }
     return { primary: '#2563eb', secondary: 'rgba(37,99,235,0.16)' };
   }

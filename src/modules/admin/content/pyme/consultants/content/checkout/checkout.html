@@ -80,8 +80,8 @@
           <p class="text-xs uppercase text-muted font-inter-bold">Estado del pago</p>
           <p class="mt-2 text-lg capitalize font-inter-bold">{{ checkout.status }}</p>
           <p class="mt-1 text-sm text-muted">
-            Al pagar, la pasarela notificará al sistema y se habilitará automáticamente la reunión
-            de Teams.
+            Al pagar, la reunión quedará registrada por confirmación. El consultor escogerá uno de
+            tus horarios propuestos y se generará el enlace de Teams.
           </p>
         </div>
 
@@ -163,8 +163,10 @@
             <div class="flex items-start gap-3">
               <i class="far fa-calendar mt-1 text-muted"></i>
               <div>
-                <p class="font-inter-bold">{{ formatDate(meeting.startTime) }}</p>
-                <p class="text-muted">Microsoft Teams</p>
+                <p class="font-inter-bold">Horarios propuestos</p>
+                @for (time of proposedTimes(meeting); track time) {
+                  <p class="text-muted">{{ formatDate(time) }}</p>
+                }
               </div>
             </div>
             <div class="flex items-start gap-3">
@@ -219,7 +221,7 @@
               <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-secondary"></span>
             </span>
             <span class="font-inter-medium text-[0.9rem] text-muted"
-              >Esperando confirmación de pago y creación de la reunión...</span
+              >Esperando confirmación de pago y registro por confirmación...</span
             >
           </div>
           <button

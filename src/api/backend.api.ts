@@ -576,10 +576,10 @@ export interface WhatsappAlertaReunionConsultorDto {
    */
   to: string;
   /**
-   * Tiempo para el encabezado (header)
-   * @example "30 min"
+   * Tiempo restante para el inicio de la reunión
+   * @example "15 min"
    */
-  tiempo_header: string;
+  tiempo_restante: string;
   /**
    * Nombre del consultor
    * @example "Miguel Salinas"
@@ -601,15 +601,15 @@ export interface WhatsappAlertaReunionConsultorDto {
    */
   fecha_hora: string;
   /**
-   * Tiempo para el cuerpo (body)
+   * Duración de la reunión
    * @example "60 minutos"
    */
-  tiempo_body: string;
+  tiempo: string;
   /**
    * Enlace de la reunión
    * @example "https://teams.microsoft.com/l/meetup-join/example"
    */
-  link_reunion: string;
+  enlace: string;
 }
 
 export interface WhatsappAlertaReunionDto {
@@ -619,10 +619,10 @@ export interface WhatsappAlertaReunionDto {
    */
   to: string;
   /**
-   * Tiempo para el encabezado (header)
-   * @example "30 min"
+   * Tiempo restante para el inicio de la reunión
+   * @example "15 minutos"
    */
-  tiempo_header: string;
+  tiempo_restante: string;
   /**
    * Nombre de la PYME
    * @example "Erick"
@@ -644,10 +644,10 @@ export interface WhatsappAlertaReunionDto {
    */
   fecha_hora: string;
   /**
-   * Tiempo para el cuerpo (body)
+   * Duración de la reunión
    * @example "60 minutos"
    */
-  tiempo_body: string;
+  tiempo: string;
   /**
    * Enlace de la reunión
    * @example "https://teams.microsoft.com/l/meetup-join/example"
@@ -655,196 +655,40 @@ export interface WhatsappAlertaReunionDto {
   enlace: string;
 }
 
-export interface ConsultantResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  /** @format date-time */
-  deletedAt: string | null;
-  userId: number;
-  userEmail: string;
-  authProvider: "local" | "google";
-  fullName: string;
-  firstName: string | null;
-  lastName: string | null;
-  ownerPhone: string | null;
-  headline: string | null;
-  location: string | null;
-  workModality: string | null;
-  linkedinUrl: string | null;
-  bio: string | null;
-  diagnosticAreas: (
-    | "Estratégica"
-    | "Financiera"
-    | "Comercial / Ventas"
-    | "Marketing"
-    | "Servicio al cliente"
-    | "Operaciones"
-    | "Organizacional / RRHH"
-    | "Tecnología"
-    | "Legal"
-    | "Laboral"
-    | "Tributario / Contable"
-  )[];
-  specialties: string[];
-  sectors: string[];
-  industries: string[];
-  companyTypes: string[];
-  services: string[];
-  yearsExperience: number;
-  education: ConsultantEducationDto[];
-  certifications: string[];
-  workedSectors: string[];
-  caseStudies: ConsultantCaseStudyDto[];
-  cvText: string | null;
-  cvUrl: string | null;
-  photoUrl: string | null;
-  videoUrl: string | null;
-  pricePerHour: string;
-  rating: string;
-  totalReviews: number;
-  active: "true" | "false";
-  validated: "true" | "false";
+export interface WhatsappConsultorConfirmarReunionDto {
+  /** @example "+51999999999" */
+  to: string;
+  /**
+   * ID interno usado en el payload de los botones
+   * @example 42
+   */
+  reunion_id: number;
+  /** @example "Miguel Salinas" */
+  nombre_consultor: string;
+  /** @example "CyM Ingenieros SAC" */
+  nombre_pyme: string;
+  /** @example "Sesión de transformación digital" */
+  tema_reunion: string;
+  /** @example "60 minutos" */
+  duracion_reunion: string;
+  /** @example "15 de jul., 6:00 p. m." */
+  horario_opcion_a: string;
+  /** @example "16 de jul., 2:00 p. m." */
+  horario_opcion_b: string;
+  /** @example "17 de jul., 8:00 p. m." */
+  horario_opcion_c: string;
 }
 
-export interface ConsultantCreateDto {
-  /** @example 3 */
-  userId: number;
-  /** @example "Carlos" */
-  firstName?: string;
-  /** @example "Mendoza" */
-  lastName?: string;
-  /** @example "Carlos Mendoza" */
-  fullName?: string;
-  /** @example "51929073820" */
-  ownerPhone?: string;
-  /** @example "Consultor financiero y tributario para PYMES" */
-  headline?: string;
-  /** @example "Lima, Perú" */
-  location?: string;
-  /** @example "Presencial en Lima y remoto a nivel nacional" */
-  workModality?: string;
-  /** @example "https://www.linkedin.com/in/carlos-mendoza" */
-  linkedinUrl?: string;
-  /** @example "Consultor en transformacion digital para PYMES." */
-  bio?: string;
-  /** @example ["Estratégica","Operaciones"] */
-  diagnosticAreas?: (
-    | "Estratégica"
-    | "Financiera"
-    | "Comercial / Ventas"
-    | "Marketing"
-    | "Servicio al cliente"
-    | "Operaciones"
-    | "Organizacional / RRHH"
-    | "Tecnología"
-    | "Legal"
-    | "Laboral"
-    | "Tributario / Contable"
-  )[];
-  /** @example ["Tecnologia","Operaciones"] */
-  specialties?: string[];
-  /** @example ["Retail","Manufactura"] */
-  sectors?: string[];
-  /** @example ["Comercio","Gastronomia"] */
-  industries?: string[];
-  /** @example ["Microempresa","Pequeña empresa"] */
-  companyTypes?: string[];
-  /** @example ["Diagnóstico","Implementación"] */
-  services?: string[];
-  /** @example 12 */
-  yearsExperience?: number;
-  education?: ConsultantEducationDto[];
-  /** @example ["NIIF para PYMES"] */
-  certifications?: string[];
-  /** @example ["Retail","Logistica"] */
-  workedSectors?: string[];
-  caseStudies?: ConsultantCaseStudyDto[];
-  /** @example "Texto extraido del CV del consultor..." */
-  cvText?: string;
-  /** @example "https://storage.example.com/consultants/cv.pdf" */
-  cvUrl?: string;
-  /** @example "https://storage.example.com/consultants/photo.jpg" */
-  photoUrl?: string;
-  /** @example "https://storage.example.com/consultants/video.mp4" */
-  videoUrl?: string;
-  /** @example 150 */
-  pricePerHour?: number;
-  /** @default "true" */
-  active?: "true" | "false";
-  /** @default "false" */
-  validated?: "true" | "false";
+export interface WhatsappWebhookPayloadDto {
+  /** @example "whatsapp_business_account" */
+  object?: string;
+  /** @example [{"changes":[{"field":"messages","value":{"messages":[{"from":"51999999999","type":"button","button":{"text":"Horario A","payload":"meeting:42:option:a"}}]}}]}] */
+  entry?: object[];
 }
 
-export interface ConsultantUpdateDto {
-  /** @example 3 */
-  userId?: number;
-  /** @example "Carlos" */
-  firstName?: string;
-  /** @example "Mendoza" */
-  lastName?: string;
-  /** @example "Carlos Mendoza" */
-  fullName?: string;
-  /** @example "51929073820" */
-  ownerPhone?: string;
-  /** @example "Consultor financiero y tributario para PYMES" */
-  headline?: string;
-  /** @example "Lima, Perú" */
-  location?: string;
-  /** @example "Presencial en Lima y remoto a nivel nacional" */
-  workModality?: string;
-  /** @example "https://www.linkedin.com/in/carlos-mendoza" */
-  linkedinUrl?: string;
-  /** @example "Consultor en transformacion digital para PYMES." */
-  bio?: string;
-  /** @example ["Estratégica","Operaciones"] */
-  diagnosticAreas?: (
-    | "Estratégica"
-    | "Financiera"
-    | "Comercial / Ventas"
-    | "Marketing"
-    | "Servicio al cliente"
-    | "Operaciones"
-    | "Organizacional / RRHH"
-    | "Tecnología"
-    | "Legal"
-    | "Laboral"
-    | "Tributario / Contable"
-  )[];
-  /** @example ["Tecnologia","Operaciones"] */
-  specialties?: string[];
-  /** @example ["Retail","Manufactura"] */
-  sectors?: string[];
-  /** @example ["Comercio","Gastronomia"] */
-  industries?: string[];
-  /** @example ["Microempresa","Pequeña empresa"] */
-  companyTypes?: string[];
-  /** @example ["Diagnóstico","Implementación"] */
-  services?: string[];
-  /** @example 12 */
-  yearsExperience?: number;
-  education?: ConsultantEducationDto[];
-  /** @example ["NIIF para PYMES"] */
-  certifications?: string[];
-  /** @example ["Retail","Logistica"] */
-  workedSectors?: string[];
-  caseStudies?: ConsultantCaseStudyDto[];
-  /** @example "Texto extraido del CV del consultor..." */
-  cvText?: string;
-  /** @example "https://storage.example.com/consultants/cv.pdf" */
-  cvUrl?: string;
-  /** @example "https://storage.example.com/consultants/photo.jpg" */
-  photoUrl?: string;
-  /** @example "https://storage.example.com/consultants/video.mp4" */
-  videoUrl?: string;
-  /** @example 150 */
-  pricePerHour?: number;
-  /** @default "true" */
-  active?: "true" | "false";
-  /** @default "false" */
-  validated?: "true" | "false";
+export interface WhatsappWebhookAcceptedDto {
+  /** @example true */
+  received: boolean;
 }
 
 export interface TaskResultDto {
@@ -879,13 +723,15 @@ export interface MeetingResultDto {
   consultantId: number;
   title: string;
   /** @format date-time */
-  startTime: string;
+  startTime: string | null;
+  proposedStartTimes: string[];
   durationMinutes: number;
   meetingUrl: string | null;
   teamsOnlineMeetingId: string | null;
   status:
     | "solicitada"
     | "pago_pendiente"
+    | "por_confirmar"
     | "confirmada"
     | "finalizada"
     | "cancelada";
@@ -912,13 +758,20 @@ export interface MeetingCreateDto {
    * @format date-time
    * @example "2026-05-10T15:00:00.000Z"
    */
-  startTime: string;
+  startTime?: string;
+  /** @example ["2026-05-10T15:00:00.000Z","2026-05-10T16:00:00.000Z","2026-05-11T15:00:00.000Z"] */
+  proposedStartTimes?: string[];
   /** @example 60 */
   durationMinutes?: number;
   /** @example "Revisar objetivos, contexto y dudas principales para la sesion." */
   description?: string;
   /** @default "pyme" */
   requestedBy?: "pyme" | "consultor";
+}
+
+export interface MeetingConfirmOptionDto {
+  /** @example "2026-05-10T15:00:00.000Z" */
+  selectedStartTime: string;
 }
 
 export interface MeetingRecordingOrganizerUserDto {
@@ -987,6 +840,8 @@ export interface MeetingUpdateDto {
    * @example "2026-05-10T15:00:00.000Z"
    */
   startTime?: string;
+  /** @example ["2026-05-10T15:00:00.000Z","2026-05-10T16:00:00.000Z","2026-05-11T15:00:00.000Z"] */
+  proposedStartTimes?: string[];
   /** @example 60 */
   durationMinutes?: number;
   /** @example "Revisar objetivos, contexto y dudas principales para la sesion." */
@@ -994,6 +849,7 @@ export interface MeetingUpdateDto {
   status?:
     | "solicitada"
     | "pago_pendiente"
+    | "por_confirmar"
     | "confirmada"
     | "finalizada"
     | "cancelada";
@@ -1205,6 +1061,198 @@ export interface ConsultantGoogleCalendarBusyItemDto {
 
 export interface ConsultantGoogleCalendarBusyMonthResponseDto {
   data: ConsultantGoogleCalendarBusyItemDto[];
+}
+
+export interface ConsultantResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  userId: number;
+  userEmail: string;
+  authProvider: "local" | "google";
+  fullName: string;
+  firstName: string | null;
+  lastName: string | null;
+  ownerPhone: string | null;
+  headline: string | null;
+  location: string | null;
+  workModality: string | null;
+  linkedinUrl: string | null;
+  bio: string | null;
+  diagnosticAreas: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
+  specialties: string[];
+  sectors: string[];
+  industries: string[];
+  companyTypes: string[];
+  services: string[];
+  yearsExperience: number;
+  education: ConsultantEducationDto[];
+  certifications: string[];
+  workedSectors: string[];
+  caseStudies: ConsultantCaseStudyDto[];
+  cvText: string | null;
+  cvUrl: string | null;
+  photoUrl: string | null;
+  videoUrl: string | null;
+  pricePerHour: string;
+  rating: string;
+  totalReviews: number;
+  active: "true" | "false";
+  validated: "true" | "false";
+}
+
+export interface ConsultantCreateDto {
+  /** @example 3 */
+  userId: number;
+  /** @example "Carlos" */
+  firstName?: string;
+  /** @example "Mendoza" */
+  lastName?: string;
+  /** @example "Carlos Mendoza" */
+  fullName?: string;
+  /** @example "51929073820" */
+  ownerPhone?: string;
+  /** @example "Consultor financiero y tributario para PYMES" */
+  headline?: string;
+  /** @example "Lima, Perú" */
+  location?: string;
+  /** @example "Presencial en Lima y remoto a nivel nacional" */
+  workModality?: string;
+  /** @example "https://www.linkedin.com/in/carlos-mendoza" */
+  linkedinUrl?: string;
+  /** @example "Consultor en transformacion digital para PYMES." */
+  bio?: string;
+  /** @example ["Estratégica","Operaciones"] */
+  diagnosticAreas?: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
+  /** @example ["Tecnologia","Operaciones"] */
+  specialties?: string[];
+  /** @example ["Retail","Manufactura"] */
+  sectors?: string[];
+  /** @example ["Comercio","Gastronomia"] */
+  industries?: string[];
+  /** @example ["Microempresa","Pequeña empresa"] */
+  companyTypes?: string[];
+  /** @example ["Diagnóstico","Implementación"] */
+  services?: string[];
+  /** @example 12 */
+  yearsExperience?: number;
+  education?: ConsultantEducationDto[];
+  /** @example ["NIIF para PYMES"] */
+  certifications?: string[];
+  /** @example ["Retail","Logistica"] */
+  workedSectors?: string[];
+  caseStudies?: ConsultantCaseStudyDto[];
+  /** @example "Texto extraido del CV del consultor..." */
+  cvText?: string;
+  /** @example "https://storage.example.com/consultants/cv.pdf" */
+  cvUrl?: string;
+  /** @example "https://storage.example.com/consultants/photo.jpg" */
+  photoUrl?: string;
+  /** @example "https://storage.example.com/consultants/video.mp4" */
+  videoUrl?: string;
+  /** @example 150 */
+  pricePerHour?: number;
+  /** @default "true" */
+  active?: "true" | "false";
+  /** @default "false" */
+  validated?: "true" | "false";
+}
+
+export interface ConsultantUpdateDto {
+  /** @example 3 */
+  userId?: number;
+  /** @example "Carlos" */
+  firstName?: string;
+  /** @example "Mendoza" */
+  lastName?: string;
+  /** @example "Carlos Mendoza" */
+  fullName?: string;
+  /** @example "51929073820" */
+  ownerPhone?: string;
+  /** @example "Consultor financiero y tributario para PYMES" */
+  headline?: string;
+  /** @example "Lima, Perú" */
+  location?: string;
+  /** @example "Presencial en Lima y remoto a nivel nacional" */
+  workModality?: string;
+  /** @example "https://www.linkedin.com/in/carlos-mendoza" */
+  linkedinUrl?: string;
+  /** @example "Consultor en transformacion digital para PYMES." */
+  bio?: string;
+  /** @example ["Estratégica","Operaciones"] */
+  diagnosticAreas?: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
+  /** @example ["Tecnologia","Operaciones"] */
+  specialties?: string[];
+  /** @example ["Retail","Manufactura"] */
+  sectors?: string[];
+  /** @example ["Comercio","Gastronomia"] */
+  industries?: string[];
+  /** @example ["Microempresa","Pequeña empresa"] */
+  companyTypes?: string[];
+  /** @example ["Diagnóstico","Implementación"] */
+  services?: string[];
+  /** @example 12 */
+  yearsExperience?: number;
+  education?: ConsultantEducationDto[];
+  /** @example ["NIIF para PYMES"] */
+  certifications?: string[];
+  /** @example ["Retail","Logistica"] */
+  workedSectors?: string[];
+  caseStudies?: ConsultantCaseStudyDto[];
+  /** @example "Texto extraido del CV del consultor..." */
+  cvText?: string;
+  /** @example "https://storage.example.com/consultants/cv.pdf" */
+  cvUrl?: string;
+  /** @example "https://storage.example.com/consultants/photo.jpg" */
+  photoUrl?: string;
+  /** @example "https://storage.example.com/consultants/video.mp4" */
+  videoUrl?: string;
+  /** @example 150 */
+  pricePerHour?: number;
+  /** @default "true" */
+  active?: "true" | "false";
+  /** @default "false" */
+  validated?: "true" | "false";
 }
 
 export interface TaskListDto {
@@ -1489,6 +1537,8 @@ export interface MercadoPagoCreateCheckoutDto {
   consultantId: number;
   /** @example "2026-05-10T15:00:00.000Z" */
   startTime: string;
+  /** @example ["2026-05-10T15:00:00.000Z","2026-05-10T16:00:00.000Z","2026-05-11T15:00:00.000Z"] */
+  proposedStartTimes: string[];
   /** @example 60 */
   durationMinutes?: number;
   /** @example "Sesión de consultoría" */
@@ -1499,6 +1549,7 @@ export interface MercadoPagoCreateCheckoutDto {
 
 export interface CheckoutMeetingDetailsDto {
   startTime: string;
+  proposedStartTimes: string[];
   durationMinutes: number;
   title: string;
   description?: string;
@@ -1897,116 +1948,22 @@ export type WhatsappSendAlertaReunionPymeData = WhatsappSendResultDto;
 
 export type WhatsappSendAlertaReunionPymeError = HttpErrorDto;
 
-export interface ConsultantadminFindAllParams {
-  /**
-   * Page number
-   * @default 1
-   */
-  page?: number;
-  /**
-   * Items per page
-   * @default 10
-   */
-  limit?: number;
-  /** Search by name, bio or specialty */
-  search?: string;
-  active?: "true" | "false";
-  validated?: "true" | "false";
-  /** Filter by sector */
-  sector?: string;
+export type WhatsappSendConsultorConfirmarReunionData = WhatsappSendResultDto;
+
+export type WhatsappSendConsultorConfirmarReunionError = HttpErrorDto;
+
+export interface WhatsappVerifyWebhookParams {
+  /** @example "subscribe" */
+  "hub.mode": string;
+  /** @example "token-configurado-en-el-backend" */
+  "hub.verify_token": string;
+  /** @example "123456" */
+  "hub.challenge": string;
 }
 
-export type ConsultantadminFindAllData = ConsultantListDto;
+export type WhatsappVerifyWebhookData = string;
 
-export type ConsultantadminFindAllError = HttpErrorDto;
-
-export interface ConsultantadminFindOneParams {
-  id: number;
-}
-
-export type ConsultantadminFindOneData = ConsultantResultDto;
-
-export type ConsultantadminFindOneError = HttpErrorDto;
-
-export interface ConsultantFindAllParams {
-  /**
-   * Page number
-   * @default 1
-   */
-  page?: number;
-  /**
-   * Items per page
-   * @default 10
-   */
-  limit?: number;
-  /** Search by name, bio or specialty */
-  search?: string;
-  active?: "true" | "false";
-  validated?: "true" | "false";
-  /** Filter by sector */
-  sector?: string;
-}
-
-export type ConsultantFindAllData = ConsultantListDto;
-
-export type ConsultantFindAllError = HttpErrorDto;
-
-export interface ConsultantMeetingPymesParams {
-  /**
-   * Page number
-   * @default 1
-   */
-  page?: number;
-  /**
-   * Items per page
-   * @default 10
-   */
-  limit?: number;
-  /** Search by business name or RUC */
-  search?: string;
-  /** Filter by sector */
-  sector?: string;
-}
-
-export type ConsultantMeetingPymesData = PymeListDto;
-
-export type ConsultantMeetingPymesError = HttpErrorDto;
-
-export interface ConsultantFindOneParams {
-  id: number;
-}
-
-export type ConsultantFindOneData = ConsultantResultDto;
-
-export type ConsultantFindOneError = HttpErrorDto;
-
-export interface ConsultantFindByUserParams {
-  userId: number;
-}
-
-export type ConsultantFindByUserData = ConsultantResultDto;
-
-export type ConsultantFindByUserError = HttpErrorDto;
-
-export type ConsultantCreateData = ConsultantResultDto;
-
-export type ConsultantCreateError = HttpErrorDto;
-
-export interface ConsultantUpdateParams {
-  id: number;
-}
-
-export type ConsultantUpdateData = ConsultantResultDto;
-
-export type ConsultantUpdateError = HttpErrorDto;
-
-export interface ConsultantRemoveParams {
-  id: number;
-}
-
-export type ConsultantRemoveData = ConsultantResultDto;
-
-export type ConsultantRemoveError = HttpErrorDto;
+export type WhatsappReceiveWebhookData = WhatsappWebhookAcceptedDto;
 
 export interface MeetingadminFindAllParams {
   /**
@@ -2028,6 +1985,7 @@ export interface MeetingadminFindAllParams {
   status?:
     | "solicitada"
     | "pago_pendiente"
+    | "por_confirmar"
     | "confirmada"
     | "finalizada"
     | "cancelada";
@@ -2065,6 +2023,7 @@ export interface MeetingFindAllParams {
   status?:
     | "solicitada"
     | "pago_pendiente"
+    | "por_confirmar"
     | "confirmada"
     | "finalizada"
     | "cancelada";
@@ -2093,6 +2052,14 @@ export interface MeetingConfirmParams {
 export type MeetingConfirmData = MeetingResultDto;
 
 export type MeetingConfirmError = HttpErrorDto;
+
+export interface MeetingConfirmOptionParams {
+  id: number;
+}
+
+export type MeetingConfirmOptionData = MeetingResultDto;
+
+export type MeetingConfirmOptionError = HttpErrorDto;
 
 export interface MeetingGetRecordingsParams {
   id: number;
@@ -2283,6 +2250,117 @@ export type ConsultantgooglecalendarDisconnectData =
   ConsultantGoogleCalendarStatusDto;
 
 export type ConsultantgooglecalendarDisconnectError = HttpErrorDto;
+
+export interface ConsultantadminFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by name, bio or specialty */
+  search?: string;
+  active?: "true" | "false";
+  validated?: "true" | "false";
+  /** Filter by sector */
+  sector?: string;
+}
+
+export type ConsultantadminFindAllData = ConsultantListDto;
+
+export type ConsultantadminFindAllError = HttpErrorDto;
+
+export interface ConsultantadminFindOneParams {
+  id: number;
+}
+
+export type ConsultantadminFindOneData = ConsultantResultDto;
+
+export type ConsultantadminFindOneError = HttpErrorDto;
+
+export interface ConsultantFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by name, bio or specialty */
+  search?: string;
+  active?: "true" | "false";
+  validated?: "true" | "false";
+  /** Filter by sector */
+  sector?: string;
+}
+
+export type ConsultantFindAllData = ConsultantListDto;
+
+export type ConsultantFindAllError = HttpErrorDto;
+
+export interface ConsultantMeetingPymesParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by business name or RUC */
+  search?: string;
+  /** Filter by sector */
+  sector?: string;
+}
+
+export type ConsultantMeetingPymesData = PymeListDto;
+
+export type ConsultantMeetingPymesError = HttpErrorDto;
+
+export interface ConsultantFindOneParams {
+  id: number;
+}
+
+export type ConsultantFindOneData = ConsultantResultDto;
+
+export type ConsultantFindOneError = HttpErrorDto;
+
+export interface ConsultantFindByUserParams {
+  userId: number;
+}
+
+export type ConsultantFindByUserData = ConsultantResultDto;
+
+export type ConsultantFindByUserError = HttpErrorDto;
+
+export type ConsultantCreateData = ConsultantResultDto;
+
+export type ConsultantCreateError = HttpErrorDto;
+
+export interface ConsultantUpdateParams {
+  id: number;
+}
+
+export type ConsultantUpdateData = ConsultantResultDto;
+
+export type ConsultantUpdateError = HttpErrorDto;
+
+export interface ConsultantRemoveParams {
+  id: number;
+}
+
+export type ConsultantRemoveData = ConsultantResultDto;
+
+export type ConsultantRemoveError = HttpErrorDto;
 
 export interface TaskFindAllParams {
   /**
@@ -3227,7 +3305,7 @@ export namespace Whatsapp {
    * No description
    * @tags whatsapp
    * @name WhatsappSendAlertaReunionConsultor
-   * @summary Enviar plantilla alerta_de_reunion_consultor
+   * @summary Enviar plantilla alerta_reunion_consultor
    * @request POST:/admin/whatsapp/alerta-reunion-consultor
    * @secure
    * @response `201` `WhatsappSendAlertaReunionConsultorData`
@@ -3246,7 +3324,7 @@ export namespace Whatsapp {
    * No description
    * @tags whatsapp
    * @name WhatsappSendAlertaReunionPyme
-   * @summary Enviar plantilla alerta_de_reunion_pyme
+   * @summary Enviar plantilla alerta_reunion_pyme
    * @request POST:/admin/whatsapp/alerta-reunion-pyme
    * @secure
    * @response `201` `WhatsappSendAlertaReunionPymeData`
@@ -3260,230 +3338,68 @@ export namespace Whatsapp {
     export type RequestHeaders = {};
     export type ResponseBody = WhatsappSendAlertaReunionPymeData;
   }
-}
 
-export namespace ConsultantAdmin {
   /**
    * No description
-   * @tags consultantAdmin
-   * @name ConsultantadminFindAll
-   * @summary List consultants for the internal admin panel
-   * @request GET:/admin/backoffice/consultant/find-all
+   * @tags whatsapp
+   * @name WhatsappSendConsultorConfirmarReunion
+   * @summary Enviar plantilla consultor_confirmar_reunion
+   * @request POST:/admin/whatsapp/consultor-confirmar-reunion
    * @secure
-   * @response `200` `ConsultantadminFindAllData`
+   * @response `201` `WhatsappSendConsultorConfirmarReunionData`
    * @response `400` `HttpErrorDto`
+   * @response `500` `HttpErrorDto`
    */
-  export namespace ConsultantadminFindAll {
+  export namespace WhatsappSendConsultorConfirmarReunion {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = WhatsappConsultorConfirmarReunionDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = WhatsappSendConsultorConfirmarReunionData;
+  }
+
+  /**
+   * No description
+   * @tags whatsapp
+   * @name WhatsappVerifyWebhook
+   * @summary Verificar el webhook de WhatsApp con Meta
+   * @request GET:/admin/whatsapp/webhook
+   * @response `200` `WhatsappVerifyWebhookData` Devuelve el valor recibido en hub.challenge
+   * @response `403` `void` El token de verificación no coincide
+   */
+  export namespace WhatsappVerifyWebhook {
     export type RequestParams = {};
     export type RequestQuery = {
-      /**
-       * Page number
-       * @default 1
-       */
-      page?: number;
-      /**
-       * Items per page
-       * @default 10
-       */
-      limit?: number;
-      /** Search by name, bio or specialty */
-      search?: string;
-      active?: "true" | "false";
-      validated?: "true" | "false";
-      /** Filter by sector */
-      sector?: string;
+      /** @example "subscribe" */
+      "hub.mode": string;
+      /** @example "token-configurado-en-el-backend" */
+      "hub.verify_token": string;
+      /** @example "123456" */
+      "hub.challenge": string;
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = ConsultantadminFindAllData;
+    export type ResponseBody = WhatsappVerifyWebhookData;
   }
 
   /**
    * No description
-   * @tags consultantAdmin
-   * @name ConsultantadminFindOne
-   * @summary Get a consultant profile for the internal admin panel
-   * @request GET:/admin/backoffice/consultant/find-one/{id}
-   * @secure
-   * @response `200` `ConsultantadminFindOneData`
-   * @response `400` `HttpErrorDto`
+   * @tags whatsapp
+   * @name WhatsappReceiveWebhook
+   * @summary Recibir mensajes y eventos entrantes de WhatsApp
+   * @request POST:/admin/whatsapp/webhook
+   * @response `200` `WhatsappReceiveWebhookData`
+   * @response `401` `void` La firma enviada por Meta es inválida
    */
-  export namespace ConsultantadminFindOne {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantadminFindOneData;
-  }
-}
-
-export namespace Consultant {
-  /**
-   * No description
-   * @tags consultant
-   * @name ConsultantFindAll
-   * @summary Get all consultants paginated
-   * @request GET:/admin/consultant/find-all
-   * @secure
-   * @response `200` `ConsultantFindAllData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantFindAll {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /**
-       * Page number
-       * @default 1
-       */
-      page?: number;
-      /**
-       * Items per page
-       * @default 10
-       */
-      limit?: number;
-      /** Search by name, bio or specialty */
-      search?: string;
-      active?: "true" | "false";
-      validated?: "true" | "false";
-      /** Filter by sector */
-      sector?: string;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantFindAllData;
-  }
-
-  /**
-   * No description
-   * @tags consultant
-   * @name ConsultantMeetingPymes
-   * @summary Get PYMEs with at least one meeting with current consultant
-   * @request GET:/admin/consultant/meeting-pymes
-   * @secure
-   * @response `200` `ConsultantMeetingPymesData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantMeetingPymes {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /**
-       * Page number
-       * @default 1
-       */
-      page?: number;
-      /**
-       * Items per page
-       * @default 10
-       */
-      limit?: number;
-      /** Search by business name or RUC */
-      search?: string;
-      /** Filter by sector */
-      sector?: string;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantMeetingPymesData;
-  }
-
-  /**
-   * No description
-   * @tags consultant
-   * @name ConsultantFindOne
-   * @summary Get a consultant profile by ID
-   * @request GET:/admin/consultant/find-one/{id}
-   * @secure
-   * @response `200` `ConsultantFindOneData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantFindOne {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantFindOneData;
-  }
-
-  /**
-   * No description
-   * @tags consultant
-   * @name ConsultantFindByUser
-   * @summary Get a consultant profile by user ID
-   * @request GET:/admin/consultant/find-by-user/{userId}
-   * @secure
-   * @response `200` `ConsultantFindByUserData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantFindByUser {
-    export type RequestParams = {
-      userId: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantFindByUserData;
-  }
-
-  /**
-   * No description
-   * @tags consultant
-   * @name ConsultantCreate
-   * @summary Create a new consultant profile
-   * @request POST:/admin/consultant/create
-   * @secure
-   * @response `200` `ConsultantCreateData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantCreate {
+  export namespace WhatsappReceiveWebhook {
     export type RequestParams = {};
     export type RequestQuery = {};
-    export type RequestBody = ConsultantCreateDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantCreateData;
-  }
-
-  /**
-   * No description
-   * @tags consultant
-   * @name ConsultantUpdate
-   * @summary Update a consultant profile
-   * @request PATCH:/admin/consultant/update/{id}
-   * @secure
-   * @response `200` `ConsultantUpdateData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantUpdate {
-    export type RequestParams = {
-      id: number;
+    export type RequestBody = WhatsappWebhookPayloadDto;
+    export type RequestHeaders = {
+      /** Firma HMAC SHA-256 enviada por Meta */
+      "x-hub-signature-256": string;
     };
-    export type RequestQuery = {};
-    export type RequestBody = ConsultantUpdateDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantUpdateData;
-  }
-
-  /**
-   * No description
-   * @tags consultant
-   * @name ConsultantRemove
-   * @summary Soft-delete a consultant profile
-   * @request DELETE:/admin/consultant/delete/{id}
-   * @secure
-   * @response `200` `ConsultantRemoveData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantRemove {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantRemoveData;
+    export type ResponseBody = WhatsappReceiveWebhookData;
   }
 }
 
@@ -3520,6 +3436,7 @@ export namespace MeetingAdmin {
       status?:
         | "solicitada"
         | "pago_pendiente"
+        | "por_confirmar"
         | "confirmada"
         | "finalizada"
         | "cancelada";
@@ -3583,6 +3500,7 @@ export namespace Meeting {
       status?:
         | "solicitada"
         | "pago_pendiente"
+        | "por_confirmar"
         | "confirmada"
         | "finalizada"
         | "cancelada";
@@ -3648,6 +3566,26 @@ export namespace Meeting {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = MeetingConfirmData;
+  }
+
+  /**
+   * No description
+   * @tags meeting
+   * @name MeetingConfirmOption
+   * @summary Confirm one of the proposed meeting times and create its Teams meeting URL internally
+   * @request POST:/admin/meeting/confirm-option/{id}
+   * @secure
+   * @response `200` `MeetingConfirmOptionData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MeetingConfirmOption {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = MeetingConfirmOptionDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingConfirmOptionData;
   }
 
   /**
@@ -4085,6 +4023,231 @@ export namespace ConsultantGoogleCalendar {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = ConsultantgooglecalendarDisconnectData;
+  }
+}
+
+export namespace ConsultantAdmin {
+  /**
+   * No description
+   * @tags consultantAdmin
+   * @name ConsultantadminFindAll
+   * @summary List consultants for the internal admin panel
+   * @request GET:/admin/backoffice/consultant/find-all
+   * @secure
+   * @response `200` `ConsultantadminFindAllData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantadminFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by name, bio or specialty */
+      search?: string;
+      active?: "true" | "false";
+      validated?: "true" | "false";
+      /** Filter by sector */
+      sector?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantadminFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags consultantAdmin
+   * @name ConsultantadminFindOne
+   * @summary Get a consultant profile for the internal admin panel
+   * @request GET:/admin/backoffice/consultant/find-one/{id}
+   * @secure
+   * @response `200` `ConsultantadminFindOneData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantadminFindOne {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantadminFindOneData;
+  }
+}
+
+export namespace Consultant {
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantFindAll
+   * @summary Get all consultants paginated
+   * @request GET:/admin/consultant/find-all
+   * @secure
+   * @response `200` `ConsultantFindAllData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by name, bio or specialty */
+      search?: string;
+      active?: "true" | "false";
+      validated?: "true" | "false";
+      /** Filter by sector */
+      sector?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantMeetingPymes
+   * @summary Get PYMEs with at least one meeting with current consultant
+   * @request GET:/admin/consultant/meeting-pymes
+   * @secure
+   * @response `200` `ConsultantMeetingPymesData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantMeetingPymes {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by business name or RUC */
+      search?: string;
+      /** Filter by sector */
+      sector?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantMeetingPymesData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantFindOne
+   * @summary Get a consultant profile by ID
+   * @request GET:/admin/consultant/find-one/{id}
+   * @secure
+   * @response `200` `ConsultantFindOneData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantFindOne {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantFindOneData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantFindByUser
+   * @summary Get a consultant profile by user ID
+   * @request GET:/admin/consultant/find-by-user/{userId}
+   * @secure
+   * @response `200` `ConsultantFindByUserData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantFindByUser {
+    export type RequestParams = {
+      userId: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantFindByUserData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantCreate
+   * @summary Create a new consultant profile
+   * @request POST:/admin/consultant/create
+   * @secure
+   * @response `200` `ConsultantCreateData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantCreateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantCreateData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantUpdate
+   * @summary Update a consultant profile
+   * @request PATCH:/admin/consultant/update/{id}
+   * @secure
+   * @response `200` `ConsultantUpdateData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantUpdate {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantUpdateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantUpdateData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantRemove
+   * @summary Soft-delete a consultant profile
+   * @request DELETE:/admin/consultant/delete/{id}
+   * @secure
+   * @response `200` `ConsultantRemoveData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantRemove {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantRemoveData;
   }
 }
 
@@ -5801,7 +5964,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags whatsapp
      * @name WhatsappSendAlertaReunionConsultor
-     * @summary Enviar plantilla alerta_de_reunion_consultor
+     * @summary Enviar plantilla alerta_reunion_consultor
      * @request POST:/admin/whatsapp/alerta-reunion-consultor
      * @secure
      * @response `201` `WhatsappSendAlertaReunionConsultorData`
@@ -5830,7 +5993,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags whatsapp
      * @name WhatsappSendAlertaReunionPyme
-     * @summary Enviar plantilla alerta_de_reunion_pyme
+     * @summary Enviar plantilla alerta_reunion_pyme
      * @request POST:/admin/whatsapp/alerta-reunion-pyme
      * @secure
      * @response `201` `WhatsappSendAlertaReunionPymeData`
@@ -5853,173 +6016,28 @@ export class Api<SecurityDataType extends unknown> {
         format: "json",
         ...params,
       }),
-  };
-  consultantAdmin = {
+
     /**
      * No description
      *
-     * @tags consultantAdmin
-     * @name ConsultantadminFindAll
-     * @summary List consultants for the internal admin panel
-     * @request GET:/admin/backoffice/consultant/find-all
+     * @tags whatsapp
+     * @name WhatsappSendConsultorConfirmarReunion
+     * @summary Enviar plantilla consultor_confirmar_reunion
+     * @request POST:/admin/whatsapp/consultor-confirmar-reunion
      * @secure
-     * @response `200` `ConsultantadminFindAllData`
+     * @response `201` `WhatsappSendConsultorConfirmarReunionData`
      * @response `400` `HttpErrorDto`
+     * @response `500` `HttpErrorDto`
      */
-    consultantadminFindAll: (
-      query: ConsultantadminFindAllParams = {},
+    sendConsultorConfirmarReunion: (
+      data: WhatsappConsultorConfirmarReunionDto,
       params: RequestParams = {},
     ) =>
       this.http.request<
-        ConsultantadminFindAllData,
-        ConsultantadminFindAllError
+        WhatsappSendConsultorConfirmarReunionData,
+        WhatsappSendConsultorConfirmarReunionError
       >({
-        path: `/admin/backoffice/consultant/find-all`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultantAdmin
-     * @name ConsultantadminFindOne
-     * @summary Get a consultant profile for the internal admin panel
-     * @request GET:/admin/backoffice/consultant/find-one/{id}
-     * @secure
-     * @response `200` `ConsultantadminFindOneData`
-     * @response `400` `HttpErrorDto`
-     */
-    consultantadminFindOne: (
-      { id }: ConsultantadminFindOneParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        ConsultantadminFindOneData,
-        ConsultantadminFindOneError
-      >({
-        path: `/admin/backoffice/consultant/find-one/${id}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-  };
-  consultant = {
-    /**
-     * No description
-     *
-     * @tags consultant
-     * @name ConsultantFindAll
-     * @summary Get all consultants paginated
-     * @request GET:/admin/consultant/find-all
-     * @secure
-     * @response `200` `ConsultantFindAllData`
-     * @response `400` `HttpErrorDto`
-     */
-    findAll: (
-      query: ConsultantFindAllParams = {},
-      params: RequestParams = {},
-    ) =>
-      this.http.request<ConsultantFindAllData, ConsultantFindAllError>({
-        path: `/admin/consultant/find-all`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultant
-     * @name ConsultantMeetingPymes
-     * @summary Get PYMEs with at least one meeting with current consultant
-     * @request GET:/admin/consultant/meeting-pymes
-     * @secure
-     * @response `200` `ConsultantMeetingPymesData`
-     * @response `400` `HttpErrorDto`
-     */
-    meetingPymes: (
-      query: ConsultantMeetingPymesParams = {},
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        ConsultantMeetingPymesData,
-        ConsultantMeetingPymesError
-      >({
-        path: `/admin/consultant/meeting-pymes`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultant
-     * @name ConsultantFindOne
-     * @summary Get a consultant profile by ID
-     * @request GET:/admin/consultant/find-one/{id}
-     * @secure
-     * @response `200` `ConsultantFindOneData`
-     * @response `400` `HttpErrorDto`
-     */
-    findOne: (
-      { id }: ConsultantFindOneParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<ConsultantFindOneData, ConsultantFindOneError>({
-        path: `/admin/consultant/find-one/${id}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultant
-     * @name ConsultantFindByUser
-     * @summary Get a consultant profile by user ID
-     * @request GET:/admin/consultant/find-by-user/{userId}
-     * @secure
-     * @response `200` `ConsultantFindByUserData`
-     * @response `400` `HttpErrorDto`
-     */
-    findByUser: (
-      { userId }: ConsultantFindByUserParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<ConsultantFindByUserData, ConsultantFindByUserError>({
-        path: `/admin/consultant/find-by-user/${userId}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultant
-     * @name ConsultantCreate
-     * @summary Create a new consultant profile
-     * @request POST:/admin/consultant/create
-     * @secure
-     * @response `200` `ConsultantCreateData`
-     * @response `400` `HttpErrorDto`
-     */
-    create: (data: ConsultantCreateDto, params: RequestParams = {}) =>
-      this.http.request<ConsultantCreateData, ConsultantCreateError>({
-        path: `/admin/consultant/create`,
+        path: `/admin/whatsapp/consultor-confirmar-reunion`,
         method: "POST",
         body: data,
         secure: true,
@@ -6031,48 +6049,43 @@ export class Api<SecurityDataType extends unknown> {
     /**
      * No description
      *
-     * @tags consultant
-     * @name ConsultantUpdate
-     * @summary Update a consultant profile
-     * @request PATCH:/admin/consultant/update/{id}
-     * @secure
-     * @response `200` `ConsultantUpdateData`
-     * @response `400` `HttpErrorDto`
+     * @tags whatsapp
+     * @name WhatsappVerifyWebhook
+     * @summary Verificar el webhook de WhatsApp con Meta
+     * @request GET:/admin/whatsapp/webhook
+     * @response `200` `WhatsappVerifyWebhookData` Devuelve el valor recibido en hub.challenge
+     * @response `403` `void` El token de verificación no coincide
      */
-    update: (
-      { id }: ConsultantUpdateParams,
-      data: ConsultantUpdateDto,
+    verifyWebhook: (
+      query: WhatsappVerifyWebhookParams,
       params: RequestParams = {},
     ) =>
-      this.http.request<ConsultantUpdateData, ConsultantUpdateError>({
-        path: `/admin/consultant/update/${id}`,
-        method: "PATCH",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
+      this.http.request<WhatsappVerifyWebhookData, void>({
+        path: `/admin/whatsapp/webhook`,
+        method: "GET",
+        query: query,
         ...params,
       }),
 
     /**
      * No description
      *
-     * @tags consultant
-     * @name ConsultantRemove
-     * @summary Soft-delete a consultant profile
-     * @request DELETE:/admin/consultant/delete/{id}
-     * @secure
-     * @response `200` `ConsultantRemoveData`
-     * @response `400` `HttpErrorDto`
+     * @tags whatsapp
+     * @name WhatsappReceiveWebhook
+     * @summary Recibir mensajes y eventos entrantes de WhatsApp
+     * @request POST:/admin/whatsapp/webhook
+     * @response `200` `WhatsappReceiveWebhookData`
+     * @response `401` `void` La firma enviada por Meta es inválida
      */
-    remove: (
-      { id }: ConsultantRemoveParams,
+    receiveWebhook: (
+      data: WhatsappWebhookPayloadDto,
       params: RequestParams = {},
     ) =>
-      this.http.request<ConsultantRemoveData, ConsultantRemoveError>({
-        path: `/admin/consultant/delete/${id}`,
-        method: "DELETE",
-        secure: true,
+      this.http.request<WhatsappReceiveWebhookData, void>({
+        path: `/admin/whatsapp/webhook`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
@@ -6214,6 +6227,32 @@ export class Api<SecurityDataType extends unknown> {
         path: `/admin/meeting/confirm/${id}`,
         method: "POST",
         secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meeting
+     * @name MeetingConfirmOption
+     * @summary Confirm one of the proposed meeting times and create its Teams meeting URL internally
+     * @request POST:/admin/meeting/confirm-option/{id}
+     * @secure
+     * @response `200` `MeetingConfirmOptionData`
+     * @response `400` `HttpErrorDto`
+     */
+    confirmOption: (
+      { id }: MeetingConfirmOptionParams,
+      data: MeetingConfirmOptionDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<MeetingConfirmOptionData, MeetingConfirmOptionError>({
+        path: `/admin/meeting/confirm-option/${id}`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
@@ -6727,6 +6766,229 @@ export class Api<SecurityDataType extends unknown> {
         path: `/admin/consultant-google-calendar/disconnect`,
         method: "DELETE",
         query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
+  consultantAdmin = {
+    /**
+     * No description
+     *
+     * @tags consultantAdmin
+     * @name ConsultantadminFindAll
+     * @summary List consultants for the internal admin panel
+     * @request GET:/admin/backoffice/consultant/find-all
+     * @secure
+     * @response `200` `ConsultantadminFindAllData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantadminFindAll: (
+      query: ConsultantadminFindAllParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantadminFindAllData,
+        ConsultantadminFindAllError
+      >({
+        path: `/admin/backoffice/consultant/find-all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultantAdmin
+     * @name ConsultantadminFindOne
+     * @summary Get a consultant profile for the internal admin panel
+     * @request GET:/admin/backoffice/consultant/find-one/{id}
+     * @secure
+     * @response `200` `ConsultantadminFindOneData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantadminFindOne: (
+      { id }: ConsultantadminFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantadminFindOneData,
+        ConsultantadminFindOneError
+      >({
+        path: `/admin/backoffice/consultant/find-one/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
+  consultant = {
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantFindAll
+     * @summary Get all consultants paginated
+     * @request GET:/admin/consultant/find-all
+     * @secure
+     * @response `200` `ConsultantFindAllData`
+     * @response `400` `HttpErrorDto`
+     */
+    findAll: (
+      query: ConsultantFindAllParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ConsultantFindAllData, ConsultantFindAllError>({
+        path: `/admin/consultant/find-all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantMeetingPymes
+     * @summary Get PYMEs with at least one meeting with current consultant
+     * @request GET:/admin/consultant/meeting-pymes
+     * @secure
+     * @response `200` `ConsultantMeetingPymesData`
+     * @response `400` `HttpErrorDto`
+     */
+    meetingPymes: (
+      query: ConsultantMeetingPymesParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantMeetingPymesData,
+        ConsultantMeetingPymesError
+      >({
+        path: `/admin/consultant/meeting-pymes`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantFindOne
+     * @summary Get a consultant profile by ID
+     * @request GET:/admin/consultant/find-one/{id}
+     * @secure
+     * @response `200` `ConsultantFindOneData`
+     * @response `400` `HttpErrorDto`
+     */
+    findOne: (
+      { id }: ConsultantFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ConsultantFindOneData, ConsultantFindOneError>({
+        path: `/admin/consultant/find-one/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantFindByUser
+     * @summary Get a consultant profile by user ID
+     * @request GET:/admin/consultant/find-by-user/{userId}
+     * @secure
+     * @response `200` `ConsultantFindByUserData`
+     * @response `400` `HttpErrorDto`
+     */
+    findByUser: (
+      { userId }: ConsultantFindByUserParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ConsultantFindByUserData, ConsultantFindByUserError>({
+        path: `/admin/consultant/find-by-user/${userId}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantCreate
+     * @summary Create a new consultant profile
+     * @request POST:/admin/consultant/create
+     * @secure
+     * @response `200` `ConsultantCreateData`
+     * @response `400` `HttpErrorDto`
+     */
+    create: (data: ConsultantCreateDto, params: RequestParams = {}) =>
+      this.http.request<ConsultantCreateData, ConsultantCreateError>({
+        path: `/admin/consultant/create`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantUpdate
+     * @summary Update a consultant profile
+     * @request PATCH:/admin/consultant/update/{id}
+     * @secure
+     * @response `200` `ConsultantUpdateData`
+     * @response `400` `HttpErrorDto`
+     */
+    update: (
+      { id }: ConsultantUpdateParams,
+      data: ConsultantUpdateDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ConsultantUpdateData, ConsultantUpdateError>({
+        path: `/admin/consultant/update/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantRemove
+     * @summary Soft-delete a consultant profile
+     * @request DELETE:/admin/consultant/delete/{id}
+     * @secure
+     * @response `200` `ConsultantRemoveData`
+     * @response `400` `HttpErrorDto`
+     */
+    remove: (
+      { id }: ConsultantRemoveParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ConsultantRemoveData, ConsultantRemoveError>({
+        path: `/admin/consultant/delete/${id}`,
+        method: "DELETE",
         secure: true,
         format: "json",
         ...params,

@@ -93,7 +93,7 @@
               Fecha
             </dt>
             <dd class="text-[0.9rem] font-inter-semibold text-text truncate">
-              {{ meetingDate(current.completedAt || current.startTime) }}
+              {{ meetingDate(current.completedAt || meetingDisplayStart(current)) }}
             </dd>
           </div>
         </div>
@@ -121,7 +121,7 @@
               Hora
             </dt>
             <dd class="text-[0.9rem] font-inter-semibold text-text truncate">
-              {{ meetingTime(current.startTime) }}
+              {{ meetingTime(meetingDisplayStart(current)) }}
             </dd>
           </div>
         </div>

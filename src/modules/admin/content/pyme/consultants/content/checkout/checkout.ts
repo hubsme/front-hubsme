@@ -15,7 +15,7 @@ import { PATH, buildPath } from '@route/path.route';
 
 type CheckoutData = ApiResponse<'mercadoPago', 'mercadopagoFindCheckout'>;
 type MeetingData = ApiResponse<'meeting', 'findOne'>;
-type CheckoutMeetingData = Pick<MeetingData, 'startTime' | 'durationMinutes'>;
+type CheckoutMeetingData = Pick<MeetingData, 'startTime' | 'proposedStartTimes' | 'durationMinutes'>;
 type ConsultantData = ApiResponse<'consultant', 'findByUser'>;
 
 @Component({
@@ -107,6 +107,7 @@ export class Checkout implements OnInit, OnDestroy {
     if (checkout.meetingDetails) {
       this.meeting.set({
         startTime: checkout.meetingDetails.startTime,
+        proposedStartTimes: checkout.meetingDetails.proposedStartTimes,
         durationMinutes: checkout.meetingDetails.durationMinutes,
       });
 
@@ -162,7 +163,7 @@ export class Checkout implements OnInit, OnDestroy {
     this.stopPaymentPolling();
     this.paymentModalOpen.set(false);
     this.opening.set(false);
-    this.toastService.success('Pago confirmado. Abriendo detalle de la reunion');
+    this.toastService.success('Pago confirmado. La reunión queda por confirmación del consultor');
     this.router.navigate([buildPath(PATH.admin.pyme.meetings), meetingId], { replaceUrl: true });
   }
 
@@ -232,6 +233,12 @@ export class Checkout implements OnInit, OnDestroy {
       hour: '2-digit',
       minute: '2-digit',
     });
+  }
+
+  proposedTimes(meeting: MeetingData | CheckoutMeetingData) {
+    return (meeting.proposedStartTimes?.length ? meeting.proposedStartTimes : [meeting.startTime]).filter(
+      (value): value is string => Boolean(value),
+    );
   }
 
   currency(value: number) {

@@ -27,6 +27,13 @@ export class MeetingService {
     return this.api.meeting.finalize({ id }, data).then((response) => response.data);
   }
 
+  confirmOption(
+    id: number,
+    data: ApiBody<'meeting', 'confirmOption'>,
+  ): Promise<ApiResponse<'meeting', 'confirmOption'>> {
+    return this.api.meeting.confirmOption({ id }, data).then((response) => response.data);
+  }
+
   delete(id: number): Promise<ApiResponse<'meeting', 'remove'>> {
     return this.api.meeting.remove({ id }).then((response) => response.data);
   }

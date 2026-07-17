@@ -176,6 +176,7 @@ export class Reuniones {
     const labels: Record<MeetingStatus, string> = {
       solicitada: 'Solicitada',
       pago_pendiente: 'Pago pendiente',
+      por_confirmar: 'Por confirmar',
       confirmada: 'Confirmada',
       finalizada: 'Finalizada',
       cancelada: 'Cancelada',
@@ -187,6 +188,7 @@ export class Reuniones {
     const classes: Record<MeetingStatus, string> = {
       solicitada: 'bg-info/10 text-info',
       pago_pendiente: 'bg-warning/10 text-warning',
+      por_confirmar: 'bg-warning/10 text-warning',
       confirmada: 'bg-success/10 text-success',
       finalizada: 'bg-secondary/10 text-secondary',
       cancelada: 'bg-danger/10 text-danger',

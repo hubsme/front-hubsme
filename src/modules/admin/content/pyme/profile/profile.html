@@ -123,7 +123,7 @@
           </label>
           <label class="block text-xs text-muted font-inter-semibold">
             <span class="mb-2 block">Celular del dueño</span>
-            <input [ngModel]="form().ownerPhone" name="ownerPhone" (ngModelChange)="updateForm('ownerPhone', $event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary" />
+            <app-phone-input [ngModel]="form().ownerPhone" name="ownerPhone" (ngModelChange)="updateForm('ownerPhone', $event)" />
           </label>
           <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
             <span class="mb-2 block">Cargo del dueño</span>

@@ -5,6 +5,8 @@ import { Api, ApiBody, ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { SessionService } from '@service/session.service';
+import { PhoneInputComponent } from '@component/phone-input/phone-input';
+import { normalizePhoneForSubmit } from '@function/phone.function';
 
 type PymeProfileData = ApiResponse<'pyme', 'findByUser'>;
 
@@ -25,7 +27,7 @@ type PymeForm = {
 
 @Component({
   selector: 'app-profile',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PhoneInputComponent],
   templateUrl: './profile.html',
 })
 export class Profile implements OnInit {
@@ -117,7 +119,7 @@ export class Profile implements OnInit {
       ownerFirstName: form.ownerFirstName || undefined,
       ownerLastName: form.ownerLastName || undefined,
       ownerEmail: form.ownerEmail || undefined,
-      ownerPhone: form.ownerPhone || undefined,
+      ownerPhone: normalizePhoneForSubmit(form.ownerPhone) || undefined,
       ownerPosition: form.ownerPosition || undefined,
     };
     const current = this.pyme();

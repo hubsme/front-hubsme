@@ -6,7 +6,7 @@ import {
   inject,
   Injector,
 } from '@angular/core';
-import { provideRouter, Router } from '@angular/router';
+import { PreloadAllModules, provideRouter, Router, withPreloading } from '@angular/router';
 import { isPlatformBrowser, registerLocaleData } from '@angular/common';
 import localeEsPE from '@angular/common/locales/es-PE';
 import { SessionService } from '@service/session.service';
@@ -23,7 +23,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZonelessChangeDetection(),
-    provideRouter(routes),
+    provideRouter(routes, withPreloading(PreloadAllModules)),
     provideClientHydration(withEventReplay()),
 
     // agregado

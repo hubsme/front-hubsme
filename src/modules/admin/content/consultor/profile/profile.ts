@@ -7,6 +7,8 @@ import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { SessionService } from '@service/session.service';
 import { AlertService } from '@service/alert.service';
+import { PhoneInputComponent } from '@component/phone-input/phone-input';
+import { normalizePhoneForSubmit } from '@function/phone.function';
 import {
   CONSULTANT_DIAGNOSTIC_AREAS,
   ConsultantDiagnosticArea,
@@ -69,7 +71,7 @@ type ChipField =
 
 @Component({
   selector: 'app-profile',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PhoneInputComponent],
   templateUrl: './profile.html',
 })
 export class Profile implements OnInit, OnDestroy {
@@ -241,7 +243,7 @@ export class Profile implements OnInit, OnDestroy {
       videoUrl: form.videoUrl || undefined,
       active: 'true',
       validated: this.consultant()?.validated ?? 'false',
-      ownerPhone: form.ownerPhone || undefined,
+      ownerPhone: normalizePhoneForSubmit(form.ownerPhone) || undefined,
     };
     const current = this.consultant();
     const request = current

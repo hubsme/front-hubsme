@@ -58,6 +58,7 @@ type ConsultantForm = {
   photoUrl: string;
   videoUrl: string;
   ownerPhone: string;
+  active: 'true' | 'false';
 };
 
 type ChipField =
@@ -148,6 +149,7 @@ export class Profile implements OnInit, OnDestroy {
     photoUrl: '',
     videoUrl: '',
     ownerPhone: '',
+    active: 'true',
   });
 
   ngOnInit(): void {
@@ -198,6 +200,7 @@ export class Profile implements OnInit, OnDestroy {
           photoUrl: data.photoUrl ?? '',
           videoUrl: data.videoUrl ?? '',
           ownerPhone: data.ownerPhone ?? '',
+          active: data.active,
         });
         this.loadMercadoPagoStatus(data.id);
       })
@@ -241,8 +244,7 @@ export class Profile implements OnInit, OnDestroy {
       pricePerHour: Number(form.pricePerHour) || 0,
       photoUrl: form.photoUrl || undefined,
       videoUrl: form.videoUrl || undefined,
-      active: 'true',
-      validated: this.consultant()?.validated ?? 'false',
+      active: form.active,
       ownerPhone: normalizePhoneForSubmit(form.ownerPhone) || undefined,
     };
     const current = this.consultant();
@@ -258,6 +260,10 @@ export class Profile implements OnInit, OnDestroy {
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.saving.set(false));
+  }
+
+  toggleActive() {
+    this.updateForm('active', this.form().active === 'true' ? 'false' : 'true');
   }
 
   toggleDiagnosticArea(area: ConsultantDiagnosticArea): void {

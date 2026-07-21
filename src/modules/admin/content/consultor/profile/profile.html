@@ -1,465 +1,554 @@
-<div class="space-y-6 font-inter-regular text-text">
-  <div class="flex flex-col gap-2">
-    <h1 class="text-3xl font-plus-jakarta-sans font-bold capitalize">mi perfil</h1>
-    <p class="text-[0.82rem] text-muted">
-      Actualiza tu informacion publica, foto y video de presentacion.
+<div class="space-y-8 pb-24 font-inter-regular text-text">
+  <div class="flex flex-col gap-3 border-b border-border/70 pb-6">
+    <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold capitalize"> Mi Perfil </h1>
+    <p class="max-w-2xl text-sm leading-6 text-muted">
+      Mantén actualizada la información que verán las PYMEs antes de agendar una consultoría
+      contigo.
     </p>
   </div>
 
   @if (loading()) {
-    <section class="grid grid-cols-1 gap-6 xl:grid-cols-[22rem_1fr]" aria-label="Cargando perfil">
-      <aside class="animate-pulse rounded-xl border border-border bg-surface p-6">
-        <div class="h-3 w-36 rounded bg-text/5"></div>
-        <div class="mx-auto mt-6 h-36 w-36 rounded-full bg-text/5"></div>
-        <div class="mt-6 h-10 rounded-xl bg-text/5"></div>
-        <div class="mt-6 h-72 rounded-2xl bg-text/5"></div>
-        <div class="mt-4 h-10 rounded-xl bg-text/5"></div>
-        <div class="my-5 border-t border-border/60"></div>
-        <div class="h-3 w-24 rounded bg-text/5"></div>
-        <div class="mt-4 h-16 rounded-xl border border-dashed border-border bg-text/5"></div>
-        <div class="mt-4 h-10 rounded-xl bg-text/5"></div>
-      </aside>
+  <section class="grid grid-cols-1 gap-6 xl:grid-cols-[19rem_minmax(0,1fr)]" aria-label="Cargando perfil">
+    <aside class="animate-pulse rounded-2xl border border-border bg-surface p-5 shadow-sm">
+      <div class="h-3 w-36 rounded bg-text/5"></div>
+      <div class="mx-auto mt-6 h-36 w-36 rounded-full bg-text/5"></div>
+      <div class="mt-6 h-10 rounded-xl bg-text/5"></div>
+      <div class="mt-6 h-64 rounded-2xl bg-text/5"></div>
+      <div class="mt-4 h-10 rounded-xl bg-text/5"></div>
+      <div class="my-5 border-t border-border/60"></div>
+      <div class="h-3 w-24 rounded bg-text/5"></div>
+      <div class="mt-4 h-16 rounded-xl border border-dashed border-border bg-text/5"></div>
+      <div class="mt-4 h-10 rounded-xl bg-text/5"></div>
+    </aside>
 
-      <div class="animate-pulse rounded-xl border border-border bg-surface p-6 lg:p-8">
-        <div class="h-6 w-56 rounded bg-text/5"></div>
-        <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-          @for (field of [1, 2, 3, 4]; track field) {
-            <div class="space-y-2">
-              <div class="h-3 w-24 rounded bg-text/5"></div>
-              <div class="h-10 rounded-xl bg-text/5"></div>
-            </div>
-          }
-          <div class="space-y-2 md:col-span-2">
-            <div class="h-3 w-16 rounded bg-text/5"></div>
-            <div class="h-28 rounded-xl bg-text/5"></div>
-          </div>
-          @for (field of [5, 6, 7, 8]; track field) {
-            <div class="h-20 rounded-xl bg-text/5"></div>
-          }
+    <div class="animate-pulse rounded-2xl border border-border bg-surface p-6 shadow-sm lg:p-8">
+      <div class="h-6 w-56 rounded bg-text/5"></div>
+      <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+        @for (field of [1, 2, 3, 4]; track field) {
+        <div class="space-y-2">
+          <div class="h-3 w-24 rounded bg-text/5"></div>
+          <div class="h-10 rounded-xl bg-text/5"></div>
         </div>
+        }
+        <div class="space-y-2 md:col-span-2">
+          <div class="h-3 w-16 rounded bg-text/5"></div>
+          <div class="h-28 rounded-xl bg-text/5"></div>
+        </div>
+        @for (field of [5, 6, 7, 8]; track field) {
+        <div class="h-20 rounded-xl bg-text/5"></div>
+        }
       </div>
-    </section>
+    </div>
+  </section>
   } @else {
-    <section class="grid grid-cols-1 gap-6 xl:grid-cols-[22rem_1fr]">
-      <aside class="rounded-xl border border-border bg-surface p-6">
-        <h2 class="mb-5 block text-xs font-inter-semibold text-muted">Foto de perfil y video</h2>
-        <div class="relative mx-auto h-36 w-36">
-          <div class="h-full w-full overflow-hidden rounded-full border border-border bg-text/5 shadow-inner">
-            @if (form().photoUrl && !photoError()) {
-              <img [src]="form().photoUrl" alt="Foto de perfil" (error)="onPhotoError()" class="h-full w-full object-cover pointer-events-none" />
-            } @else {
-              <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-secondary/60 font-plus-jakarta-sans text-4xl font-bold text-background uppercase select-none">
-                {{ getInitials() }}
-              </div>
-            }
+  <section class="grid grid-cols-1 items-start gap-6 xl:grid-cols-[19rem_minmax(0,1fr)]">
+    <aside class="rounded-2xl border border-border bg-surface p-5 shadow-sm xl:sticky xl:top-0">
+      <div class="mb-5">
+        <h2 class="font-plus-jakarta-sans text-base font-bold text-text">
+          Visibilidad del perfil
+        </h2>
+        <p class="mt-1 text-xs leading-5 text-muted">
+          Controla tu disponibilidad y tus recursos públicos.
+        </p>
+      </div>
+      <div class="mb-6 flex items-center justify-between gap-3 rounded-xl border border-border bg-background p-4">
+        <div class="flex min-w-0 items-start gap-3">
+          <span class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full" [class.bg-success]="form().active === 'true'"
+            [class.bg-muted]="form().active !== 'true'"></span>
+          <div>
+            <p class="text-sm font-inter-bold text-text">Disponibilidad</p>
+            <p class="mt-1 text-xs leading-5 text-muted">
+              {{
+              form().active === 'true'
+              ? 'Visible para nuevas agendas'
+              : 'No disponible para nuevas agendas'
+              }}
+            </p>
           </div>
-          <!-- Distintivo de Verificado -->
-          @if (consultant()?.validated === 'true') {
-            <div class="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full border-4 border-surface bg-primary text-fixed-background-50 shadow-md" title="Consultor Verificado">
-              <i class="fas fa-check text-xs"></i>
-            </div>
+        </div>
+        <button type="button" (click)="toggleActive()" [attr.aria-pressed]="form().active === 'true'"
+          class="relative h-7 w-12 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/30"
+          [class.bg-success]="form().active === 'true'" [class.bg-text/20]="form().active !== 'true'" [attr.aria-label]="
+              form().active === 'true' ? 'Marcar como no disponible' : 'Marcar como disponible'
+            ">
+          <span class="absolute top-1 h-5 w-5 rounded-full bg-fixed-background-50 shadow transition-transform"
+            [class.left-6]="form().active === 'true'" [class.left-1]="form().active !== 'true'"></span>
+        </button>
+      </div>
+      <div class="relative mx-auto h-32 w-32">
+        <div class="h-full w-full overflow-hidden rounded-full border border-border bg-text/5 shadow-inner">
+          @if (form().photoUrl && !photoError()) {
+          <img [src]="form().photoUrl" alt="Foto de perfil" (error)="onPhotoError()"
+            class="pointer-events-none h-full w-full object-cover" />
           } @else {
-            <div class="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full border-4 border-surface bg-muted text-fixed-background-50 shadow-md" title="Perfil no verificado (Sube foto y video de presentación)">
-              <i class="fas fa-question text-xs"></i>
-            </div>
+          <div
+            class="flex h-full w-full select-none items-center justify-center bg-gradient-to-br from-secondary to-secondary/60 font-plus-jakarta-sans text-4xl font-bold uppercase text-background">
+            {{ getInitials() }}
+          </div>
           }
         </div>
-        <label
-          class="mt-5 flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border text-sm font-inter-semibold"
-        >
-          @if (uploadingPhoto()) {
-            <i class="fas fa-spinner fa-spin"></i>
-          } @else {
-            <i class="fas fa-image"></i>
-          }
-          Subir foto
-          <input type="file" accept="image/*" class="hidden" (change)="uploadPhoto($event)" />
-        </label>
-        @if (form().videoUrl) {
-          <div class="mt-5">
-            <p class="mb-3 text-xs text-muted font-inter-semibold">Preview</p>
-            <video
-              [src]="form().videoUrl"
-              class="mx-auto aspect-[9/16] max-h-[24rem] max-w-[15rem] rounded-2xl bg-text/5 object-contain"
-              controls
-              preload="metadata"
-            ></video>
-          </div>
-        }
-        <label
-          class="mt-4 flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border text-sm font-inter-semibold"
-        >
-          @if (uploadingVideo()) {
-            <i class="fas fa-spinner fa-spin"></i>
-          } @else {
-            <i class="fas fa-video"></i>
-          }
-          Subir video
-          <input type="file" accept="video/*" class="hidden" (change)="uploadVideo($event)" />
-        </label>
-
-        <!-- Carga de CV -->
-        <hr class="my-5 border-border/60" />
-        <h3 class="mb-3 block text-xs font-inter-semibold text-muted">Hoja de Vida (CV)</h3>
-        
-        @if (form().cvUrl) {
-          <div class="mb-4 rounded-xl border border-border/80 bg-background px-3 py-3 flex items-center justify-between gap-3">
-            <div class="flex items-center gap-2 overflow-hidden">
-              <i class="far fa-file-pdf text-danger text-lg shrink-0"></i>
-              <a [href]="form().cvUrl" target="_blank" class="text-xs text-secondary hover:underline truncate font-inter-medium">
-                Ver CV cargado
-              </a>
-            </div>
-            <i class="fas fa-check-circle text-success text-sm shrink-0" title="CV cargado"></i>
-          </div>
+        <!-- Distintivo de Verificado -->
+        @if (consultant()?.validated === 'true') {
+        <div
+          class="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full border-4 border-surface bg-primary text-fixed-background-50 shadow-md"
+          title="Consultor aprobado por administración">
+          <i class="fas fa-check text-xs"></i>
+        </div>
         } @else {
-          <p class="mb-4 text-center text-xs text-muted/80 rounded-xl border border-dashed border-border/80 py-4 px-2">
-            No hay CV cargado. Sube un archivo PDF para autocompletar tu perfil.
-          </p>
+        <div
+          class="absolute bottom-0 right-0 flex h-9 w-9 items-center justify-center rounded-full border-4 border-surface bg-muted text-fixed-background-50 shadow-md"
+          title="Pendiente de revisión administrativa">
+          <i class="fas fa-question text-xs"></i>
+        </div>
         }
+      </div>
+      <div class="mt-4 flex justify-center">
+        @if (consultant()?.validated === 'true') {
+        <span
+          class="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-inter-bold text-primary">
+          <i class="fas fa-circle-check"></i>
+          Aprobado por Hubsme
+        </span>
+        } @else {
+        <span
+          class="inline-flex items-center gap-2 rounded-full bg-warning/10 px-3 py-1.5 text-xs font-inter-bold text-warning">
+          <i class="fas fa-clock"></i>
+          Pendiente de revisión
+        </span>
+        }
+      </div>
+      <label
+        class="mt-4 flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-surface text-sm font-inter-semibold transition hover:border-secondary hover:text-secondary">
+        @if (uploadingPhoto()) {
+        <i class="fas fa-spinner fa-spin"></i>
+        } @else {
+        <i class="fas fa-image"></i>
+        }
+        Subir foto
+        <input type="file" accept="image/*" class="hidden" (change)="uploadPhoto($event)" />
+      </label>
+      @if (form().videoUrl) {
+      <div class="mt-5">
+        <p class="mb-3 text-xs font-inter-semibold text-muted">Video de presentación</p>
+        <video [src]="form().videoUrl"
+          class="mx-auto aspect-[9/16] max-h-[18rem] max-w-[12rem] rounded-2xl border border-border bg-text/5 object-contain shadow-sm"
+          controls preload="metadata"></video>
+      </div>
+      }
+      <label
+        class="mt-4 flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-surface text-sm font-inter-semibold transition hover:border-secondary hover:text-secondary">
+        @if (uploadingVideo()) {
+        <i class="fas fa-spinner fa-spin"></i>
+        } @else {
+        <i class="fas fa-video"></i>
+        }
+        Subir video
+        <input type="file" accept="video/*" class="hidden" (change)="uploadVideo($event)" />
+      </label>
 
-        <label
-          class="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border text-sm font-inter-semibold bg-surface hover:bg-background-50/50 transition"
-        >
-          @if (uploadingCv()) {
-            <i class="fas fa-spinner fa-spin"></i>
-            Subiendo...
+      <!-- Carga de CV -->
+      <hr class="my-5 border-border/60" />
+      <h3 class="mb-3 block text-xs font-inter-semibold text-muted">Hoja de vida (CV)</h3>
+
+      @if (form().cvUrl) {
+      <div
+        class="mb-4 flex items-center justify-between gap-3 rounded-xl border border-border/80 bg-background px-3 py-3">
+        <div class="flex items-center gap-2 overflow-hidden">
+          <i class="far fa-file-pdf shrink-0 text-lg text-danger"></i>
+          <a [href]="form().cvUrl" target="_blank"
+            class="truncate text-xs font-inter-medium text-secondary hover:underline">
+            Ver CV cargado
+          </a>
+        </div>
+        <i class="fas fa-check-circle shrink-0 text-sm text-success" title="CV cargado"></i>
+      </div>
+      } @else {
+      <p
+        class="mb-4 rounded-xl border border-dashed border-border/80 px-2 py-4 text-center text-xs leading-5 text-muted/80">
+        No hay CV cargado. Sube un archivo PDF para autocompletar tu perfil.
+      </p>
+      }
+
+      <label
+        class="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-surface text-sm font-inter-semibold transition hover:border-secondary hover:text-secondary">
+        @if (uploadingCv()) {
+        <i class="fas fa-spinner fa-spin"></i>
+        Subiendo...
+        } @else {
+        <i class="fas fa-file-arrow-up"></i>
+        Subir nuevo CV (PDF)
+        }
+        <input type="file" accept="application/pdf" class="hidden" (change)="uploadCv($event)" />
+      </label>
+      @if (cvError()) {
+      <p class="mt-2 text-center text-[0.78rem] font-inter-medium text-danger">
+        {{ cvError() }}
+      </p>
+      }
+    </aside>
+
+    <form (ngSubmit)="save()" class="min-w-0 space-y-6">
+      <div
+        class="flex flex-col gap-4 rounded-2xl border border-border bg-surface px-5 py-4 shadow-md sm:flex-row sm:items-center sm:justify-between lg:sticky lg:-top-8 lg:z-20 lg:rounded-t-none">
+        <div>
+          <p class="text-sm font-inter-bold text-text">Tu perfil público</p>
+          <p class="mt-1 text-xs leading-5 text-muted">Revisa tus cambios antes de guardarlos.</p>
+        </div>
+        <button type="submit" [disabled]="saving()"
+          class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-secondary px-6 text-sm font-inter-bold text-fixed-text-50 shadow-sm transition hover:bg-secondary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/30 disabled:cursor-not-allowed disabled:opacity-50">
+          @if (saving()) {
+          <i class="fas fa-spinner fa-spin"></i>
+          Guardando...
           } @else {
-            <i class="fas fa-file-arrow-up"></i>
-            Subir nuevo CV (PDF)
+          <i class="fas fa-check"></i>
+          Guardar cambios
           }
-          <input type="file" accept="application/pdf" class="hidden" (change)="uploadCv($event)" />
-        </label>
-        @if (cvError()) {
-          <p class="mt-2 text-center text-[0.78rem] text-danger font-inter-medium">{{ cvError() }}</p>
-        }
-      </aside>
+        </button>
+      </div>
 
-      <form (ngSubmit)="save()" class="rounded-xl border border-border bg-surface p-6 lg:p-8">
-        <h2 class="mb-6 font-anton text-xl lowercase text-text">mi información personal</h2>
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <label class="block text-xs text-muted font-inter-semibold">
+      <section class="rounded-2xl border border-border bg-surface p-6 shadow-sm lg:p-8">
+        <div class="mb-6 border-b border-border/70 pb-5">
+          <p class="text-xs font-inter-bold uppercase tracking-[0.14em] text-secondary">
+            Información pública
+          </p>
+          <h2 class="mt-2 font-plus-jakarta-sans text-xl font-bold text-text">
+            Datos principales
+          </h2>
+          <p class="mt-1 text-sm leading-6 text-muted">
+            Presenta claramente quién eres y cómo trabajas.
+          </p>
+        </div>
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <label class="block text-[0.78rem] font-inter-semibold text-muted">
             <span class="mb-2 block">Nombres</span>
-            <input
-              [ngModel]="form().firstName"
-              name="consultantFirstName"
+            <input [ngModel]="form().firstName" name="consultantFirstName"
               (ngModelChange)="updateForm('firstName', $event)"
-              class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
-            />
+              class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
           </label>
-          <label class="block text-xs text-muted font-inter-semibold">
+          <label class="block text-[0.78rem] font-inter-semibold text-muted">
             <span class="mb-2 block">Apellidos</span>
-            <input
-              [ngModel]="form().lastName"
-              name="consultantLastName"
+            <input [ngModel]="form().lastName" name="consultantLastName"
               (ngModelChange)="updateForm('lastName', $event)"
-              class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
-            />
+              class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
           </label>
-          <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+          <label class="block text-[0.78rem] font-inter-semibold text-muted md:col-span-2">
             <span class="mb-2 block">Titular profesional</span>
-            <input
-              [ngModel]="form().headline"
-              name="headline"
-              (ngModelChange)="updateForm('headline', $event)"
+            <input [ngModel]="form().headline" name="headline" (ngModelChange)="updateForm('headline', $event)"
               placeholder="Consultor financiero y tributario para PYMEs"
-              class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary placeholder:text-text-400"
-            />
+              class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none transition placeholder:text-text-400 focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
           </label>
-          <label class="block text-xs text-muted font-inter-semibold">
+          <label class="block text-[0.78rem] font-inter-semibold text-muted">
             <span class="mb-2 block">Ubicación</span>
-            <input
-              [ngModel]="form().location"
-              name="location"
-              (ngModelChange)="updateForm('location', $event)"
+            <input [ngModel]="form().location" name="location" (ngModelChange)="updateForm('location', $event)"
               placeholder="Lima, Perú"
-              class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary placeholder:text-text-400"
-            />
+              class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none transition placeholder:text-text-400 focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
           </label>
-          <label class="block text-xs text-muted font-inter-semibold">
+          <label class="block text-[0.78rem] font-inter-semibold text-muted">
             <span class="mb-2 block">Modalidad</span>
-            <input
-              [ngModel]="form().workModality"
-              name="workModality"
-              (ngModelChange)="updateForm('workModality', $event)"
-              placeholder="Remoto a nivel nacional"
-              class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary placeholder:text-text-400"
-            />
+            <input [ngModel]="form().workModality" name="workModality"
+              (ngModelChange)="updateForm('workModality', $event)" placeholder="Remoto a nivel nacional"
+              class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none transition placeholder:text-text-400 focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
           </label>
-          <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+          <label class="block text-[0.78rem] font-inter-semibold text-muted md:col-span-2">
             <span class="mb-2 block">Bio</span>
-            <textarea
-              [ngModel]="form().bio"
-              name="bio"
-              (ngModelChange)="updateForm('bio', $event)"
-              class="min-h-28 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-text outline-none focus:border-secondary"
-            ></textarea>
+            <textarea [ngModel]="form().bio" name="bio" (ngModelChange)="updateForm('bio', $event)"
+              class="min-h-32 w-full rounded-xl border border-border bg-background px-3 py-3 text-sm leading-6 text-text outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/10"></textarea>
           </label>
-          <div class="md:col-span-2 block text-xs text-muted font-inter-semibold">
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-border bg-surface p-6 shadow-sm lg:p-8">
+        <div class="mb-6 border-b border-border/70 pb-5">
+          <p class="text-xs font-inter-bold uppercase tracking-[0.14em] text-secondary">
+            Propuesta profesional
+          </p>
+          <h2 class="mt-2 font-plus-jakarta-sans text-xl font-bold text-text">
+            Especialidades y experiencia
+          </h2>
+          <p class="mt-1 text-sm leading-6 text-muted">
+            Ayuda a las PYMEs a encontrarte por tus áreas de dominio.
+          </p>
+        </div>
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div class="block text-[0.78rem] font-inter-semibold text-muted md:col-span-2">
             <span class="mb-2 block">Áreas especializadas</span>
             <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
               @for (area of diagnosticAreaOptions; track area) {
-                <label
-                  class="flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-3 text-xs font-inter-semibold transition-colors"
+              <label
+                class="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-3 py-3 text-[0.78rem] font-inter-semibold transition-colors"
+                [class.border-secondary]="form().diagnosticAreas.includes(area)"
+                [class.bg-secondary/5]="form().diagnosticAreas.includes(area)"
+                [class.text-secondary]="form().diagnosticAreas.includes(area)"
+                [class.border-border]="!form().diagnosticAreas.includes(area)"
+                [class.bg-surface]="!form().diagnosticAreas.includes(area)"
+                [class.text-text]="!form().diagnosticAreas.includes(area)">
+                <input type="checkbox" class="sr-only" [checked]="form().diagnosticAreas.includes(area)"
+                  (change)="toggleDiagnosticArea(area)" />
+                <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border"
                   [class.border-secondary]="form().diagnosticAreas.includes(area)"
-                  [class.bg-secondary/5]="form().diagnosticAreas.includes(area)"
-                  [class.text-secondary]="form().diagnosticAreas.includes(area)"
+                  [class.bg-secondary]="form().diagnosticAreas.includes(area)"
+                  [class.text-background]="form().diagnosticAreas.includes(area)"
                   [class.border-border]="!form().diagnosticAreas.includes(area)"
-                  [class.bg-surface]="!form().diagnosticAreas.includes(area)"
-                  [class.text-text]="!form().diagnosticAreas.includes(area)"
-                >
-                  <input
-                    type="checkbox"
-                    class="sr-only"
-                    [checked]="form().diagnosticAreas.includes(area)"
-                    (change)="toggleDiagnosticArea(area)"
-                  />
-                  <span
-                    class="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border"
-                    [class.border-secondary]="form().diagnosticAreas.includes(area)"
-                    [class.bg-secondary]="form().diagnosticAreas.includes(area)"
-                    [class.text-background]="form().diagnosticAreas.includes(area)"
-                    [class.border-border]="!form().diagnosticAreas.includes(area)"
-                    [class.bg-background]="!form().diagnosticAreas.includes(area)"
-                  >
-                    @if (form().diagnosticAreas.includes(area)) {
-                      <i class="fas fa-check text-[0.6rem]"></i>
-                    }
-                  </span>
-                  <span>{{ area }}</span>
-                </label>
+                  [class.bg-background]="!form().diagnosticAreas.includes(area)">
+                  @if (form().diagnosticAreas.includes(area)) {
+                  <i class="fas fa-check text-[0.6rem]"></i>
+                  }
+                </span>
+                <span>{{ area }}</span>
+              </label>
               }
             </div>
           </div>
           @for (chip of chipFields; track chip.field) {
-            <div class="block text-xs text-muted font-inter-semibold">
-              <span class="mb-2 block">{{ chip.label }}</span>
-              <div
-                class="flex min-h-10 w-full flex-wrap items-center gap-2 rounded-xl border border-border bg-background px-2 py-2 focus-within:border-secondary"
-              >
-                @for (item of form()[chip.field]; track item) {
-                  <span
-                    class="inline-flex h-7 items-center gap-2 rounded-full bg-text/5 px-3 text-xs text-muted font-inter-bold"
-                  >
-                    {{ item }}
-                    <button
-                      type="button"
-                      class="cursor-pointer text-muted/70 transition-colors hover:text-text"
-                      [attr.aria-label]="'Quitar ' + item"
-                      (click)="removeChip(chip.field, $index)"
-                    >
-                      <i class="fas fa-xmark"></i>
-                    </button>
-                  </span>
-                }
-                <input
-                  [ngModel]="chipInput(chip.field)"
-                  [name]="'chipInput-' + chip.field"
-                  (ngModelChange)="updateChipInput(chip.field, $event)"
-                  (keydown)="handleChipKeydown($event, chip.field)"
-                  (blur)="addChip(chip.field)"
-                  [placeholder]="chip.placeholder"
-                  class="min-w-40 flex-1 bg-transparent px-1 text-sm text-text outline-none placeholder:text-text-400"
-                />
-                <button
-                  type="button"
-                  class="h-7 w-7 shrink-0 cursor-pointer rounded-full bg-text text-background transition-colors hover:bg-text/90"
-                  [attr.aria-label]="'Agregar ' + chip.label"
-                  (click)="addChip(chip.field)"
-                >
-                  <i class="fas fa-plus text-[0.7rem]"></i>
+          <div class="block text-[0.78rem] font-inter-semibold text-muted">
+            <span class="mb-2 block">{{ chip.label }}</span>
+            <div
+              class="flex min-h-11 w-full flex-wrap items-center gap-2 rounded-xl border border-border bg-background px-2 py-2 transition focus-within:border-secondary focus-within:ring-2 focus-within:ring-secondary/10">
+              @for (item of form()[chip.field]; track item) {
+              <span
+                class="inline-flex h-7 items-center gap-2 rounded-full bg-text/5 px-3 text-xs text-muted font-inter-bold">
+                {{ item }}
+                <button type="button" class="cursor-pointer text-muted/70 transition-colors hover:text-text"
+                  [attr.aria-label]="'Quitar ' + item" (click)="removeChip(chip.field, $index)">
+                  <i class="fas fa-xmark"></i>
                 </button>
-              </div>
+              </span>
+              }
+              <input [ngModel]="chipInput(chip.field)" [name]="'chipInput-' + chip.field"
+                (ngModelChange)="updateChipInput(chip.field, $event)" (keydown)="handleChipKeydown($event, chip.field)"
+                (blur)="addChip(chip.field)" [placeholder]="chip.placeholder"
+                class="min-w-40 flex-1 bg-transparent px-1 text-sm text-text outline-none placeholder:text-text-400" />
+              <button type="button"
+                class="h-8 w-8 shrink-0 cursor-pointer rounded-full bg-secondary text-fixed-text-50 transition-colors hover:bg-secondary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/30"
+                [attr.aria-label]="'Agregar ' + chip.label" (click)="addChip(chip.field)">
+                <i class="fas fa-plus text-[0.7rem]"></i>
+              </button>
             </div>
+          </div>
           }
-          <div class="grid grid-cols-1 gap-4 md:col-span-2 md:grid-cols-2">
-            <div class="block text-xs text-muted font-inter-semibold">
-              <span class="mb-2 block">Precio por hora (Tarifa de consultoría)</span>
-              <div class="relative flex h-10 items-center overflow-hidden rounded-xl border border-border bg-background focus-within:border-secondary focus-within:ring-2 focus-within:ring-secondary/15 transition-all">
-                <span class="flex h-full items-center bg-background-200 border-r border-border/80 px-4 text-sm font-inter-bold text-text-500">S/</span>
-                <input
-                  type="number"
-                  [ngModel]="form().pricePerHour"
-                  name="pricePerHour"
-                  (ngModelChange)="updateForm('pricePerHour', +$event)"
-                  placeholder="0.00"
-                  class="h-full w-full bg-transparent px-3 text-sm font-inter-semibold text-text outline-none"
-                />
-              </div>
-            </div>
-            <label class="block text-xs text-muted font-inter-semibold">
-              <span class="mb-2 block">Años de experiencia</span>
-              <input
-                type="number"
-                [ngModel]="form().yearsExperience"
-                name="yearsExperience"
-                (ngModelChange)="updateForm('yearsExperience', +$event)"
-                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
-              />
-            </label>
-            <label class="block text-xs text-muted font-inter-semibold">
-              <span class="mb-2 block">Teléfono</span>
-              <app-phone-input
-                [ngModel]="form().ownerPhone"
-                name="ownerPhone"
-                (ngModelChange)="updateForm('ownerPhone', $event)"
-              />
-            </label>
-            <label class="block text-xs text-muted font-inter-semibold">
-              <span class="mb-2 block">LinkedIn</span>
-              <input
-                type="url"
-                [ngModel]="form().linkedinUrl"
-                name="linkedinUrl"
-                (ngModelChange)="updateForm('linkedinUrl', $event)"
-                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
-              />
-            </label>
-          </div>
-
-          <div class="md:col-span-2 rounded-2xl border border-border bg-background p-4">
-            <div class="mb-4 flex items-center justify-between gap-3">
-              <h3 class="font-anton text-lg lowercase text-text">formación académica</h3>
-              <button type="button" class="h-8 rounded-xl border border-border bg-surface px-3 text-xs font-inter-bold text-text" (click)="addEducation()">
-                Agregar
-              </button>
-            </div>
-            <div class="space-y-3">
-              @for (education of form().education; track $index) {
-                <div class="grid gap-3 rounded-xl border border-border bg-surface p-3 md:grid-cols-[1fr_1fr_7rem_auto]">
-                  <input
-                    [ngModel]="education.degree"
-                    [name]="'educationDegree-' + $index"
-                    (ngModelChange)="updateEducation($index, 'degree', $event)"
-                    placeholder="Título o carrera"
-                    class="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
-                  />
-                  <input
-                    [ngModel]="education.institution"
-                    [name]="'educationInstitution-' + $index"
-                    (ngModelChange)="updateEducation($index, 'institution', $event)"
-                    placeholder="Institución"
-                    class="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
-                  />
-                  <input
-                    [ngModel]="education.year"
-                    [name]="'educationYear-' + $index"
-                    (ngModelChange)="updateEducation($index, 'year', $event)"
-                    placeholder="Año"
-                    class="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
-                  />
-                  <button type="button" class="h-10 rounded-xl border border-danger/20 px-3 text-danger" (click)="removeEducation($index)">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </div>
-              } @empty {
-                <p class="rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted">Sin formación registrada.</p>
-              }
-            </div>
-          </div>
-
-          <div class="md:col-span-2 rounded-2xl border border-border bg-background p-4">
-            <div class="mb-4 flex items-center justify-between gap-3">
-              <h3 class="font-anton text-lg lowercase text-text">casos reales</h3>
-              <button type="button" class="h-8 rounded-xl border border-border bg-surface px-3 text-xs font-inter-bold text-text" (click)="addCaseStudy()">
-                Agregar
-              </button>
-            </div>
-            <div class="space-y-3">
-              @for (caseStudy of form().caseStudies; track $index) {
-                <div class="rounded-xl border border-border bg-surface p-3">
-                  <div class="mb-3 flex justify-end">
-                    <button type="button" class="h-8 rounded-xl border border-danger/20 px-3 text-xs font-inter-bold text-danger" (click)="removeCaseStudy($index)">
-                      Quitar
-                    </button>
-                  </div>
-                  <div class="grid gap-3 md:grid-cols-2">
-                    <input [ngModel]="caseStudy.title" [name]="'caseTitle-' + $index" (ngModelChange)="updateCaseStudy($index, 'title', $event)" placeholder="Título" class="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary" />
-                    <input [ngModel]="caseStudy.sector" [name]="'caseSector-' + $index" (ngModelChange)="updateCaseStudy($index, 'sector', $event)" placeholder="Sector" class="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary" />
-                    <input [ngModel]="caseStudy.problem" [name]="'caseProblem-' + $index" (ngModelChange)="updateCaseStudy($index, 'problem', $event)" placeholder="Problema" class="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary" />
-                    <input [ngModel]="caseStudy.action" [name]="'caseAction-' + $index" (ngModelChange)="updateCaseStudy($index, 'action', $event)" placeholder="Qué hizo" class="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary" />
-                    <input [ngModel]="caseStudy.result" [name]="'caseResult-' + $index" (ngModelChange)="updateCaseStudy($index, 'result', $event)" placeholder="Resultado" class="h-10 rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary md:col-span-2" />
-                  </div>
-                </div>
-              } @empty {
-                <p class="rounded-xl border border-dashed border-border p-4 text-center text-sm text-muted">Sin casos registrados.</p>
-              }
-            </div>
-          </div>
-
-          <div class="md:col-span-2 rounded-2xl border border-border bg-text/[0.02] p-5 mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div class="flex items-center gap-3">
-              <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-background border border-border/60 shadow-sm">
-                <img src="/avif/mercado_pago.avif" alt="Mercado Pago" class="h-7 w-7 object-contain" />
-              </div>
-              <div>
-                <p class="text-sm font-inter-bold text-text">Pasarela de cobros (Mercado Pago)</p>
-                @if (mercadoPagoStatus().connected) {
-                  <p class="text-xs text-muted mt-0.5">
-                    Conectado como: <span class="font-inter-semibold text-text/80">{{ mercadoPagoAccountLabel() }}</span>
-                  </p>
-                } @else {
-                  <p class="text-xs text-muted mt-0.5">Vincula tu cuenta para poder recibir los pagos de las consultorías.</p>
-                }
-              </div>
-            </div>
-
-            <div class="flex items-center gap-3 self-end sm:self-center">
-              @if (mercadoPagoStatus().connected) {
-                <span class="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-xs font-inter-bold text-success">
-                  <span class="h-1.5 w-1.5 rounded-full bg-success"></span>
-                  Conectado
-                </span>
-                <button
-                  type="button"
-                  [disabled]="mercadoPagoLoading() || !consultant()"
-                  class="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-danger/30 bg-surface px-4 text-xs font-inter-bold text-danger transition hover:bg-danger/5 disabled:opacity-50"
-                  (click)="confirmDisconnectMercadoPago()"
-                >
-                  @if (mercadoPagoLoading()) {
-                    <i class="fas fa-spinner fa-spin"></i>
-                  } @else {
-                    <i class="fas fa-link-slash"></i>
-                  }
-                  Desconectar
-                </button>
-              } @else {
-                <span class="inline-flex items-center gap-1.5 rounded-full bg-danger/10 px-3 py-1 text-xs font-inter-bold text-danger">
-                  <span class="h-1.5 w-1.5 rounded-full bg-danger"></span>
-                  Desconectado
-                </span>
-                <button
-                  type="button"
-                  [disabled]="mercadoPagoLoading() || !consultant()"
-                  class="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-xs font-inter-bold text-text shadow-sm transition hover:bg-background-50 disabled:opacity-50"
-                  (click)="startMercadoPagoConnect()"
-                >
-                  @if (mercadoPagoLoading()) {
-                    <i class="fas fa-spinner fa-spin"></i>
-                    Vinculando...
-                  } @else {
-                    <i class="fas fa-link"></i>
-                    Conectar cuenta
-                  }
-                </button>
-              }
-            </div>
-          </div>
         </div>
-        <div class="mt-6 flex justify-end">
-          <button
-            type="submit"
-            [disabled]="saving()"
-            class="h-10 rounded-xl bg-secondary px-5 text-sm text-background font-inter-bold hover:bg-secondary/90 transition-colors disabled:opacity-50"
-          >
-            @if (saving()) {
-              <i class="fas fa-spinner fa-spin mr-2"></i> Guardando...
-            } @else {
-              Guardar perfil
-            }
+      </section>
+
+      <section class="rounded-2xl border border-border bg-surface p-6 shadow-sm lg:p-8">
+        <div class="mb-6 border-b border-border/70 pb-5">
+          <p class="text-xs font-inter-bold uppercase tracking-[0.14em] text-secondary">
+            Condiciones de trabajo
+          </p>
+          <h2 class="mt-2 font-plus-jakarta-sans text-xl font-bold text-text">
+            Tarifa y contacto
+          </h2>
+          <p class="mt-1 text-sm leading-6 text-muted">
+            Define tu tarifa y los datos básicos para coordinar contigo.
+          </p>
+        </div>
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div class="block text-[0.78rem] font-inter-semibold text-muted">
+            <span class="mb-2 block">Precio por hora (Tarifa de consultoría)</span>
+            <div
+              class="relative flex h-11 items-center overflow-hidden rounded-xl border border-border bg-background transition-all focus-within:border-secondary focus-within:ring-2 focus-within:ring-secondary/10">
+              <span
+                class="flex h-full items-center border-r border-border/80 bg-background-200 px-4 text-sm font-inter-bold text-text-500">S/</span>
+              <input type="number" [ngModel]="form().pricePerHour" name="pricePerHour"
+                (ngModelChange)="updateForm('pricePerHour', +$event)" placeholder="0.00"
+                class="h-full w-full bg-transparent px-3 text-sm font-inter-semibold text-text outline-none" />
+            </div>
+          </div>
+          <label class="block text-[0.78rem] font-inter-semibold text-muted">
+            <span class="mb-2 block">Años de experiencia</span>
+            <input type="number" [ngModel]="form().yearsExperience" name="yearsExperience"
+              (ngModelChange)="updateForm('yearsExperience', +$event)"
+              class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
+          </label>
+          <label class="block text-[0.78rem] font-inter-semibold text-muted">
+            <span class="mb-2 block">Teléfono</span>
+            <app-phone-input [ngModel]="form().ownerPhone" name="ownerPhone"
+              (ngModelChange)="updateForm('ownerPhone', $event)" />
+          </label>
+          <label class="block text-[0.78rem] font-inter-semibold text-muted">
+            <span class="mb-2 block">LinkedIn</span>
+            <input type="url" [ngModel]="form().linkedinUrl" name="linkedinUrl"
+              (ngModelChange)="updateForm('linkedinUrl', $event)"
+              class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
+          </label>
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-border bg-surface p-6 shadow-sm lg:p-8">
+        <div
+          class="mb-6 flex flex-col gap-4 border-b border-border/70 pb-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="text-xs font-inter-bold uppercase tracking-[0.14em] text-secondary">
+              Trayectoria
+            </p>
+            <h2 class="mt-2 font-plus-jakarta-sans text-xl font-bold text-text">
+              Formación académica
+            </h2>
+            <p class="mt-1 text-sm leading-6 text-muted">
+              Agrega los estudios que respaldan tu experiencia profesional.
+            </p>
+          </div>
+          <button type="button"
+            class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-xs font-inter-bold text-text transition hover:border-secondary hover:text-secondary"
+            (click)="addEducation()">
+            <i class="fas fa-plus text-[0.7rem]"></i>
+            Agregar
           </button>
         </div>
-      </form>
-    </section>
+        <div class="space-y-3">
+          @for (education of form().education; track $index) {
+          <div class="grid gap-3 rounded-xl border border-border bg-background p-4 md:grid-cols-[1fr_1fr_7rem_auto]">
+            <input [ngModel]="education.degree" [name]="'educationDegree-' + $index"
+              (ngModelChange)="updateEducation($index, 'degree', $event)" placeholder="Título o carrera"
+              class="h-11 rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
+            <input [ngModel]="education.institution" [name]="'educationInstitution-' + $index"
+              (ngModelChange)="updateEducation($index, 'institution', $event)" placeholder="Institución"
+              class="h-11 rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
+            <input [ngModel]="education.year" [name]="'educationYear-' + $index"
+              (ngModelChange)="updateEducation($index, 'year', $event)" placeholder="Año"
+              class="h-11 rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
+            <button type="button"
+              class="h-11 rounded-xl border border-danger/20 bg-surface px-3 text-danger transition hover:bg-danger/5"
+              aria-label="Eliminar formación" (click)="removeEducation($index)">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+          } @empty {
+          <div class="rounded-xl border border-dashed border-border bg-background px-4 py-8 text-center">
+            <i class="fas fa-graduation-cap text-xl text-muted/70"></i>
+            <p class="mt-2 text-sm font-inter-semibold text-text">
+              Aún no registraste formación
+            </p>
+            <p class="mt-1 text-xs leading-5 text-muted">
+              Agrega tu primer estudio para fortalecer tu perfil.
+            </p>
+          </div>
+          }
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-border bg-surface p-6 shadow-sm lg:p-8">
+        <div
+          class="mb-6 flex flex-col gap-4 border-b border-border/70 pb-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="text-xs font-inter-bold uppercase tracking-[0.14em] text-secondary">
+              Resultados
+            </p>
+            <h2 class="mt-2 font-plus-jakarta-sans text-xl font-bold text-text">Casos reales</h2>
+            <p class="mt-1 text-sm leading-6 text-muted">
+              Demuestra tu impacto con experiencias y resultados concretos.
+            </p>
+          </div>
+          <button type="button"
+            class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-xs font-inter-bold text-text transition hover:border-secondary hover:text-secondary"
+            (click)="addCaseStudy()">
+            <i class="fas fa-plus text-[0.7rem]"></i>
+            Agregar
+          </button>
+        </div>
+        <div class="space-y-3">
+          @for (caseStudy of form().caseStudies; track $index) {
+          <div class="rounded-xl border border-border bg-background p-4">
+            <div class="mb-3 flex justify-end">
+              <button type="button"
+                class="h-9 rounded-xl border border-danger/20 bg-surface px-3 text-xs font-inter-bold text-danger transition hover:bg-danger/5"
+                (click)="removeCaseStudy($index)">
+                Quitar
+              </button>
+            </div>
+            <div class="grid gap-3 md:grid-cols-2">
+              <input [ngModel]="caseStudy.title" [name]="'caseTitle-' + $index"
+                (ngModelChange)="updateCaseStudy($index, 'title', $event)" placeholder="Título"
+                class="h-11 rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
+              <input [ngModel]="caseStudy.sector" [name]="'caseSector-' + $index"
+                (ngModelChange)="updateCaseStudy($index, 'sector', $event)" placeholder="Sector"
+                class="h-11 rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
+              <input [ngModel]="caseStudy.problem" [name]="'caseProblem-' + $index"
+                (ngModelChange)="updateCaseStudy($index, 'problem', $event)" placeholder="Problema"
+                class="h-11 rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
+              <input [ngModel]="caseStudy.action" [name]="'caseAction-' + $index"
+                (ngModelChange)="updateCaseStudy($index, 'action', $event)" placeholder="Qué hizo"
+                class="h-11 rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
+              <input [ngModel]="caseStudy.result" [name]="'caseResult-' + $index"
+                (ngModelChange)="updateCaseStudy($index, 'result', $event)" placeholder="Resultado"
+                class="h-11 rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/10 md:col-span-2" />
+            </div>
+          </div>
+          } @empty {
+          <div class="rounded-xl border border-dashed border-border bg-background px-4 py-8 text-center">
+            <i class="fas fa-chart-line text-xl text-muted/70"></i>
+            <p class="mt-2 text-sm font-inter-semibold text-text">
+              Aún no registraste casos reales
+            </p>
+            <p class="mt-1 text-xs leading-5 text-muted">
+              Comparte un caso para demostrar el valor de tu trabajo.
+            </p>
+          </div>
+          }
+        </div>
+      </section>
+
+      <section
+        class="flex flex-col gap-5 rounded-2xl border border-border bg-surface p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between lg:p-8">
+        <div class="flex items-center gap-3">
+          <div
+            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background shadow-sm">
+            <img src="/avif/mercado_pago.avif" alt="Mercado Pago" class="h-7 w-7 object-contain" />
+          </div>
+          <div>
+            <p class="text-sm font-inter-bold text-text">Pasarela de cobros (Mercado Pago)</p>
+            @if (mercadoPagoStatus().connected) {
+            <p class="mt-1 text-xs leading-5 text-muted">
+              Conectado como:
+              <span class="font-inter-semibold text-text/80">{{
+                mercadoPagoAccountLabel()
+                }}</span>
+            </p>
+            } @else {
+            <p class="mt-1 text-xs leading-5 text-muted">
+              Vincula tu cuenta para recibir los pagos de tus consultorías.
+            </p>
+            }
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 sm:justify-end">
+          @if (mercadoPagoStatus().connected) {
+          <span
+            class="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-xs font-inter-bold text-success">
+            <span class="h-1.5 w-1.5 rounded-full bg-success"></span>
+            Conectado
+          </span>
+          <button type="button" [disabled]="mercadoPagoLoading() || !consultant()"
+            class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-danger/30 bg-surface px-4 text-xs font-inter-bold text-danger transition hover:bg-danger/5 disabled:opacity-50"
+            (click)="confirmDisconnectMercadoPago()">
+            @if (mercadoPagoLoading()) {
+            <i class="fas fa-spinner fa-spin"></i>
+            } @else {
+            <i class="fas fa-link-slash"></i>
+            }
+            Desconectar
+          </button>
+          } @else {
+          <span
+            class="inline-flex items-center gap-1.5 rounded-full bg-danger/10 px-3 py-1 text-xs font-inter-bold text-danger">
+            <span class="h-1.5 w-1.5 rounded-full bg-danger"></span>
+            Desconectado
+          </span>
+          <button type="button" [disabled]="mercadoPagoLoading() || !consultant()"
+            class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-xs font-inter-bold text-text shadow-sm transition hover:border-secondary hover:text-secondary disabled:opacity-50"
+            (click)="startMercadoPagoConnect()">
+            @if (mercadoPagoLoading()) {
+            <i class="fas fa-spinner fa-spin"></i>
+            Vinculando...
+            } @else {
+            <i class="fas fa-link"></i>
+            Conectar cuenta
+            }
+          </button>
+          }
+        </div>
+      </section>
+    </form>
+  </section>
   }
 </div>

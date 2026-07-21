@@ -15,21 +15,57 @@
       <p class="text-2xl font-inter-bold text-success mt-1">{{ activeConsultants() }}</p>
     </article>
     <article class="bg-surface border border-border rounded-lg p-4">
-      <p class="text-xs uppercase font-inter-semibold text-muted">En esta página</p>
-      <p class="text-2xl font-inter-bold text-secondary mt-1">{{ consultants().length }}</p>
+      <p class="text-xs uppercase font-inter-semibold text-muted">Aprobados en esta página</p>
+      <p class="text-2xl font-inter-bold text-secondary mt-1">{{ validatedConsultants() }}</p>
     </article>
   </section>
 
   <section class="bg-surface border border-border rounded-lg overflow-hidden">
     <div class="p-4 border-b border-border">
-      <div class="relative flex-1">
-        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted"></i>
-        <input
-          [ngModel]="search()"
-          (ngModelChange)="onSearchChange($event)"
-          placeholder="Buscar por nombre, bio o especialidad"
-          class="w-full h-10 pl-10 pr-4 rounded-lg bg-background-50 border border-border text-text outline-none focus:border-secondary"
-        />
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+        <div class="relative md:col-span-2">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted"></i>
+          <input
+            [ngModel]="search()"
+            (ngModelChange)="onSearchChange($event)"
+            placeholder="Buscar por nombre, bio o especialidad"
+            class="w-full h-10 pl-10 pr-4 rounded-lg bg-background-50 border border-border text-text outline-none focus:border-secondary"
+          />
+        </div>
+        <label class="block text-xs font-inter-semibold text-muted md:col-span-1">
+          <span class="block mb-1">Estado de disponibilidad</span>
+          <span class="relative block">
+            <select
+              [ngModel]="activeFilter()"
+              (ngModelChange)="onActiveFilterChange($event)"
+              class="appearance-none h-10 w-full rounded-lg border border-border bg-background-50 pl-3 pr-10 text-sm font-inter-regular text-text outline-none focus:border-secondary"
+            >
+              <option value="">Todos</option>
+              <option value="true">Activos</option>
+              <option value="false">Inactivos</option>
+            </select>
+            <i
+              class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted"
+            ></i>
+          </span>
+        </label>
+        <label class="block text-xs font-inter-semibold text-muted md:col-span-1">
+          <span class="block mb-1">Estado de aprobación</span>
+          <span class="relative block">
+            <select
+              [ngModel]="validatedFilter()"
+              (ngModelChange)="onValidatedFilterChange($event)"
+              class="appearance-none h-10 w-full rounded-lg border border-border bg-background-50 pl-3 pr-10 text-sm font-inter-regular text-text outline-none focus:border-secondary"
+            >
+              <option value="">Todos</option>
+              <option value="true">Aprobados</option>
+              <option value="false">Pendientes</option>
+            </select>
+            <i
+              class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted"
+            ></i>
+          </span>
+        </label>
       </div>
     </div>
 
@@ -56,6 +92,7 @@
               <th class="px-4 py-3">Modalidad</th>
               <th class="px-4 py-3 text-right">Experiencia</th>
               <th class="px-4 py-3">Estado</th>
+              <th class="px-4 py-3">Aprobación</th>
               <th class="px-4 py-3">Registro</th>
             </tr>
           </thead>
@@ -90,6 +127,18 @@
                     {{ consultant.active === 'true' ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
+                <td class="px-4 py-4">
+                  <span
+                    class="px-2 py-1 rounded-full text-xs font-inter-semibold"
+                    [class]="
+                      consultant.validated === 'true'
+                        ? 'bg-secondary/10 text-secondary'
+                        : 'bg-warning/10 text-warning'
+                    "
+                  >
+                    {{ consultant.validated === 'true' ? 'Aprobado' : 'Pendiente' }}
+                  </span>
+                </td>
                 <td class="px-4 py-4 text-muted">
                   {{ consultant.createdAt | date: 'dd/MM/yyyy' }}
                 </td>
@@ -115,36 +164,42 @@
 @if (showDetailModal()) {
   <app-modal-form
     title="Detalle del consultor"
-    maxWidth="4xl"
+    maxWidth="5xl"
     [showFooter]="false"
     (onClose)="closeDetailModal()"
   >
-    <div class="p-6">
+    <div class="p-5 sm:p-6 lg:p-7">
       @if (detailLoading()) {
         <div class="h-48 grid place-items-center text-muted">
           <span><i class="fas fa-circle-notch fa-spin mr-2"></i>Cargando detalle...</span>
         </div>
       } @else if (selectedConsultant(); as consultant) {
-        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+        <div
+          class="mb-6 flex flex-col gap-5 border-b border-border/70 pb-6 md:flex-row md:items-start md:justify-between"
+        >
           <div class="flex items-start gap-4 min-w-0">
             @if (consultant.photoUrl) {
               <img
                 [src]="consultant.photoUrl"
                 [alt]="consultant.fullName"
-                class="w-14 h-14 rounded-full object-cover ring-2 ring-border shrink-0"
+                class="h-16 w-16 shrink-0 rounded-2xl object-cover shadow-sm ring-1 ring-border"
               />
             } @else {
-              <div class="w-14 h-14 rounded-full bg-gradient-to-br from-secondary to-primary grid place-items-center shrink-0 ring-2 ring-border">
-                <span class="text-lg font-inter-bold text-fixed-text-50">
+              <div
+                class="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-secondary to-primary shadow-sm ring-1 ring-border"
+              >
+                <span class="text-xl font-inter-bold text-fixed-text-50">
                   {{ consultant.fullName.charAt(0).toUpperCase() }}
                 </span>
               </div>
             }
             <div class="min-w-0">
-              <div class="flex flex-wrap items-center gap-2.5">
-                <p class="font-inter-bold text-xl text-text">{{ consultant.fullName }}</p>
+              <div class="flex flex-wrap items-center gap-2">
+                <p class="font-plus-jakarta-sans text-xl font-bold tracking-tight text-text">
+                  {{ consultant.fullName }}
+                </p>
                 <span
-                  class="px-2.5 py-1 rounded-full text-xs font-inter-semibold"
+                  class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-inter-semibold"
                   [class]="
                     consultant.active === 'true'
                       ? 'bg-success/10 text-success'
@@ -154,85 +209,201 @@
                   {{ consultant.active === 'true' ? 'Activo' : 'Inactivo' }}
                 </span>
                 <span
-                  class="px-2.5 py-1 rounded-full text-xs font-inter-semibold"
+                  class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-inter-semibold"
                   [class]="
                     consultant.validated === 'true'
                       ? 'bg-secondary/10 text-secondary'
                       : 'bg-warning/10 text-warning'
                   "
                 >
-                  {{ consultant.validated === 'true' ? 'Validado' : 'Pendiente' }}
+                  <i
+                    class="fas"
+                    [class.fa-circle-check]="consultant.validated === 'true'"
+                    [class.fa-clock]="consultant.validated !== 'true'"
+                  ></i>
+                  {{ consultant.validated === 'true' ? 'Aprobado' : 'Pendiente' }}
                 </span>
               </div>
-              <p class="text-sm text-muted mt-1.5">
+              <p class="mt-2 max-w-2xl text-sm leading-6 text-muted">
                 {{ consultant.headline || 'Sin titular profesional' }}
               </p>
             </div>
           </div>
-          <div class="text-sm text-muted md:text-right shrink-0">
-            <p>Usuario #{{ consultant.userId }}</p>
-            <p class="mt-0.5">Registro {{ consultant.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
+          <div
+            class="shrink-0 rounded-xl border border-border bg-background px-4 py-3 text-xs text-muted md:min-w-48 md:text-right"
+          >
+            <p class="font-inter-semibold text-text">Usuario #{{ consultant.userId }}</p>
+            <p class="mt-1">Registro {{ consultant.createdAt | date: 'dd/MM/yyyy HH:mm' }}</p>
           </div>
         </div>
 
-        <section class="grid sm:grid-cols-4 gap-3 mb-6">
-          <article class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-secondary">
-            <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Experiencia</p>
-            <p class="text-sm font-inter-bold mt-2.5 text-text">{{ consultant.yearsExperience }} años</p>
+        <div
+          class="mb-6 flex flex-col gap-4 rounded-2xl border border-border bg-background p-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div>
+            <p class="text-sm font-inter-bold text-text">Acciones administrativas</p>
+            <p class="mt-1 text-xs leading-5 text-muted">
+              Gestiona la disponibilidad, aprobación y visibilidad del perfil.
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2 sm:justify-end">
+            @if (consultant.active === 'true') {
+              <button
+                type="button"
+                (click)="requestActiveChange(false)"
+                [disabled]="actionLoading()"
+                class="inline-flex h-10 items-center gap-2 rounded-xl border border-warning/40 bg-surface px-3 text-xs font-inter-semibold text-warning transition hover:bg-warning/10 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <i class="fas fa-pause"></i>
+                Marcar inactivo
+              </button>
+            } @else {
+              <button
+                type="button"
+                (click)="requestActiveChange(true)"
+                [disabled]="actionLoading()"
+                class="inline-flex h-10 items-center gap-2 rounded-xl bg-success px-3 text-xs font-inter-semibold text-fixed-text-50 transition hover:bg-success/90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <i class="fas fa-play"></i>
+                Activar consultor
+              </button>
+            }
+            @if (consultant.validated === 'true') {
+              <button
+                type="button"
+                (click)="requestApprovalChange(false)"
+                [disabled]="actionLoading()"
+                class="inline-flex h-10 items-center gap-2 rounded-xl border border-warning/40 bg-surface px-3 text-xs font-inter-semibold text-warning transition hover:bg-warning/10 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <i class="fas fa-xmark"></i>
+                Retirar aprobación
+              </button>
+            } @else {
+              <button
+                type="button"
+                (click)="requestApprovalChange(true)"
+                [disabled]="actionLoading()"
+                class="inline-flex h-10 items-center gap-2 rounded-xl bg-secondary px-3 text-xs font-inter-semibold text-fixed-text-50 transition hover:bg-secondary/90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <i class="fas fa-check"></i>
+                Aprobar consultor
+              </button>
+            }
+            <button
+              type="button"
+              (click)="requestDelete()"
+              [disabled]="actionLoading()"
+              class="inline-flex h-10 items-center gap-2 rounded-xl border border-danger/30 bg-surface px-3 text-xs font-inter-semibold text-danger transition hover:bg-danger/10 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <i class="fas fa-trash"></i>
+              Eliminar consultor
+            </button>
+          </div>
+        </div>
+
+        <section class="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <article
+            class="relative overflow-hidden rounded-2xl border border-border border-l-4 border-l-secondary bg-background p-4 shadow-sm"
+          >
+            <i class="fas fa-briefcase absolute right-4 top-4 text-secondary/30"></i>
+            <p class="text-xs font-inter-semibold uppercase tracking-wide text-muted">
+              Experiencia
+            </p>
+            <p class="mt-2 text-xl font-inter-bold text-text">
+              {{ consultant.yearsExperience }} años
+            </p>
           </article>
-          <article class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-primary">
-            <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Tarifa</p>
-            <p class="text-sm font-inter-bold mt-2.5 text-text">S/ {{ consultant.pricePerHour }}</p>
+          <article
+            class="relative overflow-hidden rounded-2xl border border-border border-l-4 border-l-primary bg-background p-4 shadow-sm"
+          >
+            <i class="fas fa-money-bill-wave absolute right-4 top-4 text-primary/30"></i>
+            <p class="text-xs font-inter-semibold uppercase tracking-wide text-muted">Tarifa</p>
+            <p class="mt-2 text-xl font-inter-bold text-text">S/ {{ consultant.pricePerHour }}</p>
           </article>
-          <article class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-accent">
-            <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Rating</p>
-            <p class="text-sm font-inter-bold mt-2.5 text-text">
+          <article
+            class="relative overflow-hidden rounded-2xl border border-border border-l-4 border-l-accent bg-background p-4 shadow-sm"
+          >
+            <i class="fas fa-star absolute right-4 top-4 text-accent/30"></i>
+            <p class="text-xs font-inter-semibold uppercase tracking-wide text-muted">Rating</p>
+            <p class="mt-2 text-xl font-inter-bold text-text">
               {{ consultant.rating }} ({{ consultant.totalReviews }})
             </p>
           </article>
-          <article class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-success">
-            <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Modalidad</p>
-            <p class="text-sm font-inter-semibold mt-2.5 text-text">{{ consultant.workModality || '-' }}</p>
+          <article
+            class="relative overflow-hidden rounded-2xl border border-border border-l-4 border-l-success bg-background p-4 shadow-sm"
+          >
+            <i class="fas fa-laptop absolute right-4 top-4 text-success/30"></i>
+            <p class="text-xs font-inter-semibold uppercase tracking-wide text-muted">Modalidad</p>
+            <p class="mt-2 text-base font-inter-semibold text-text">
+              {{ consultant.workModality || '-' }}
+            </p>
           </article>
         </section>
 
-        <div class="grid lg:grid-cols-[1fr_1.2fr] gap-4">
-          <section class="border border-border rounded-xl overflow-hidden">
-            <div class="px-5 py-3.5 bg-background-50 border-b border-border flex items-center gap-2">
-              <i class="fas fa-address-card text-secondary/60 text-sm"></i>
-              <p class="font-inter-semibold text-text">Contacto y perfil</p>
-            </div>
-            <div class="p-5 space-y-4 text-sm">
+        <div class="grid items-start gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+          <section
+            class="h-fit overflow-hidden rounded-2xl border border-border bg-surface shadow-sm"
+          >
+            <div class="flex items-center gap-3 border-b border-border bg-background px-5 py-4">
+              <span
+                class="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/10 text-secondary"
+              >
+                <i class="fas fa-address-card text-sm"></i>
+              </span>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Nombre</p>
+                <p
+                  class="text-[0.68rem] font-inter-bold uppercase tracking-[0.14em] text-secondary"
+                >
+                  Información
+                </p>
+                <p class="mt-0.5 font-inter-semibold text-text">Contacto y perfil</p>
+              </div>
+            </div>
+            <div class="grid gap-x-5 gap-y-5 p-5 text-sm sm:grid-cols-2">
+              <div class="sm:col-span-2">
+                <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                  Nombre
+                </p>
                 <p class="text-text mt-1.5">
                   {{ consultant.firstName || '-' }} {{ consultant.lastName || '' }}
                 </p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Email de acceso</p>
-                <p class="text-text mt-1.5 break-all">{{ consultant.userEmail }}</p>
+                <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                  Email de acceso
+                </p>
+                <p class="mt-1.5 break-all leading-5 text-text">{{ consultant.userEmail }}</p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Tipo de cuenta</p>
-                <p class="text-text mt-1.5">{{ authProviderLabel(consultant.authProvider) }}</p>
+                <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                  Tipo de cuenta
+                </p>
+                <p class="mt-1.5 leading-5 text-text">
+                  {{ authProviderLabel(consultant.authProvider) }}
+                </p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Teléfono</p>
-                <p class="text-text mt-1.5">{{ consultant.ownerPhone || '-' }}</p>
+                <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                  Teléfono
+                </p>
+                <p class="mt-1.5 leading-5 text-text">{{ consultant.ownerPhone || '-' }}</p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Ubicación</p>
-                <p class="text-text mt-1.5">{{ consultant.location || '-' }}</p>
+                <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                  Ubicación
+                </p>
+                <p class="mt-1.5 leading-5 text-text">{{ consultant.location || '-' }}</p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">LinkedIn</p>
+                <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                  LinkedIn
+                </p>
                 @if (consultant.linkedinUrl) {
                   <a
                     [href]="consultant.linkedinUrl"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="inline-flex items-center gap-2 mt-1.5 px-3 py-1.5 rounded-lg bg-secondary/10 text-secondary hover:bg-secondary/20 font-inter-medium text-xs transition-all duration-200"
+                    class="mt-1.5 inline-flex items-center gap-2 rounded-xl bg-secondary/10 px-3 py-2 text-xs font-inter-medium text-secondary transition-all duration-200 hover:bg-secondary/20"
                   >
                     <i class="fab fa-linkedin text-sm"></i>
                     Ver perfil de LinkedIn
@@ -242,13 +413,13 @@
                 }
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">CV</p>
+                <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">CV</p>
                 @if (consultant.cvUrl) {
                   <a
                     [href]="consultant.cvUrl"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="inline-flex items-center gap-2 mt-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 font-inter-medium text-xs transition-all duration-200"
+                    class="mt-1.5 inline-flex items-center gap-2 rounded-xl bg-primary/10 px-3 py-2 text-xs font-inter-medium text-primary transition-all duration-200 hover:bg-primary/20"
                   >
                     <i class="fas fa-file-pdf text-sm"></i>
                     Ver currículum vitae
@@ -260,24 +431,37 @@
             </div>
           </section>
 
-          <section class="border border-border rounded-xl overflow-hidden">
-            <div class="px-5 py-3.5 bg-background-50 border-b border-border flex items-center gap-2">
-              <i class="fas fa-graduation-cap text-secondary/60 text-sm"></i>
-              <p class="font-inter-semibold text-text">Especialización</p>
+          <section
+            class="h-fit overflow-hidden rounded-2xl border border-border bg-surface shadow-sm"
+          >
+            <div class="flex items-center gap-3 border-b border-border bg-background px-5 py-4">
+              <span
+                class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary"
+              >
+                <i class="fas fa-graduation-cap text-sm"></i>
+              </span>
+              <div>
+                <p class="text-[0.68rem] font-inter-bold uppercase tracking-[0.14em] text-primary">
+                  Experiencia
+                </p>
+                <p class="mt-0.5 font-inter-semibold text-text">Especialización</p>
+              </div>
             </div>
             <div class="p-5 space-y-5 text-sm">
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide mb-2">Bio</p>
-                <p class="text-text leading-relaxed">{{ consultant.bio || '-' }}</p>
+                <p class="mb-2 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                  Bio
+                </p>
+                <p class="leading-6 text-text">{{ consultant.bio || '-' }}</p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide mb-2.5">
+                <p class="mb-2.5 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
                   Áreas diagnósticas
                 </p>
                 <div class="flex flex-wrap gap-2">
                   @for (area of consultant.diagnosticAreas; track area) {
                     <span
-                      class="px-2.5 py-1 rounded-full bg-secondary/10 text-secondary text-xs font-inter-semibold"
+                      class="rounded-full border border-secondary/15 bg-secondary/10 px-2.5 py-1.5 text-xs font-inter-semibold text-secondary"
                     >
                       {{ area }}
                     </span>
@@ -286,31 +470,73 @@
                   }
                 </div>
               </div>
-              <div class="grid sm:grid-cols-2 gap-4">
+              <div class="grid gap-5 border-t border-border/70 pt-5 sm:grid-cols-2">
                 <div>
-                  <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide mb-2">
+                  <p class="mb-2 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
                     Especialidades
                   </p>
-                  <p class="text-text">{{ consultant.specialties.join(', ') || '-' }}</p>
+                  <p class="leading-6 text-text">{{ consultant.specialties.join(', ') || '-' }}</p>
                 </div>
                 <div>
-                  <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide mb-2">Sectores</p>
-                  <p class="text-text">{{ consultant.sectors.join(', ') || '-' }}</p>
+                  <p class="mb-2 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                    Sectores
+                  </p>
+                  <p class="leading-6 text-text">{{ consultant.sectors.join(', ') || '-' }}</p>
                 </div>
                 <div>
-                  <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide mb-2">Servicios</p>
-                  <p class="text-text">{{ consultant.services.join(', ') || '-' }}</p>
+                  <p class="mb-2 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                    Servicios
+                  </p>
+                  <p class="leading-6 text-text">{{ consultant.services.join(', ') || '-' }}</p>
                 </div>
                 <div>
-                  <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide mb-2">
+                  <p class="mb-2 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
                     Certificaciones
                   </p>
-                  <p class="text-text">{{ consultant.certifications.join(', ') || '-' }}</p>
+                  <p class="leading-6 text-text">
+                    {{ consultant.certifications.join(', ') || '-' }}
+                  </p>
                 </div>
               </div>
             </div>
           </section>
         </div>
+
+        <section class="mt-5 overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+          <div class="flex items-center gap-3 border-b border-border bg-background px-5 py-4">
+            <span
+              class="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/10 text-accent"
+            >
+              <i class="fas fa-photo-film text-sm"></i>
+            </span>
+            <div>
+              <p class="text-[0.68rem] font-inter-bold uppercase tracking-[0.14em] text-accent">
+                Presentación
+              </p>
+              <p class="mt-0.5 font-inter-semibold text-text">Contenido multimedia</p>
+            </div>
+          </div>
+          <div class="bg-background/40 p-5">
+            @if (consultant.videoUrl) {
+              <video
+                [src]="consultant.videoUrl"
+                controls
+                preload="metadata"
+                class="mx-auto max-h-[24rem] w-full rounded-2xl border border-border bg-fixed-text-950 object-contain shadow-sm"
+              ></video>
+            } @else {
+              <div
+                class="rounded-2xl border border-dashed border-border bg-surface px-5 py-10 text-center"
+              >
+                <i class="fas fa-video-slash text-2xl text-muted/60"></i>
+                <p class="mt-2 text-sm font-inter-semibold text-text">Sin video de presentación</p>
+                <p class="mt-1 text-xs text-muted">
+                  El consultor todavía no ha cargado este recurso.
+                </p>
+              </div>
+            }
+          </div>
+        </section>
       }
     </div>
   </app-modal-form>

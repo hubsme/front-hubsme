@@ -26,8 +26,20 @@ export class HubsmeService {
     return this.api.pyme.findAll({ page, limit, search: search || undefined });
   }
 
-  listConsultants(search = '', page = 1, limit = 10, active?: 'true' | 'false') {
-    return this.api.consultant.findAll({ page, limit, search: search || undefined, active });
+  listConsultants(
+    search = '',
+    page = 1,
+    limit = 10,
+    active: 'true' | 'false' = 'true',
+    validated: 'true' | 'false' = 'true',
+  ) {
+    return this.api.consultant.findAll({
+      page,
+      limit,
+      search: search || undefined,
+      active,
+      validated,
+    });
   }
 
   listMeetings(page = 1, limit = 20) {

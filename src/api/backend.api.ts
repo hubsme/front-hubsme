@@ -394,6 +394,7 @@ export interface ConsultantListItemDto {
   rating: string;
   totalReviews: number;
   active: "true" | "false";
+  validated: "true" | "false";
   /** @format date-time */
   createdAt: string;
 }
@@ -1117,6 +1118,16 @@ export interface ConsultantResultDto {
   validated: "true" | "false";
 }
 
+export interface ConsultantApprovalDto {
+  /** Estado de aprobación asignado manualmente por backoffice */
+  validated: "true" | "false";
+}
+
+export interface ConsultantActiveDto {
+  /** Estado de disponibilidad del consultor */
+  active: "true" | "false";
+}
+
 export interface ConsultantCreateDto {
   /** @example 3 */
   userId: number;
@@ -1182,8 +1193,6 @@ export interface ConsultantCreateDto {
   pricePerHour?: number;
   /** @default "true" */
   active?: "true" | "false";
-  /** @default "false" */
-  validated?: "true" | "false";
 }
 
 export interface ConsultantUpdateDto {
@@ -1251,8 +1260,6 @@ export interface ConsultantUpdateDto {
   pricePerHour?: number;
   /** @default "true" */
   active?: "true" | "false";
-  /** @default "false" */
-  validated?: "true" | "false";
 }
 
 export interface TaskListDto {
@@ -2282,6 +2289,30 @@ export type ConsultantadminFindOneData = ConsultantResultDto;
 
 export type ConsultantadminFindOneError = HttpErrorDto;
 
+export interface ConsultantadminApproveParams {
+  id: number;
+}
+
+export type ConsultantadminApproveData = ConsultantResultDto;
+
+export type ConsultantadminApproveError = HttpErrorDto;
+
+export interface ConsultantadminSetActiveParams {
+  id: number;
+}
+
+export type ConsultantadminSetActiveData = ConsultantResultDto;
+
+export type ConsultantadminSetActiveError = HttpErrorDto;
+
+export interface ConsultantadminRemoveParams {
+  id: number;
+}
+
+export type ConsultantadminRemoveData = ConsultantResultDto;
+
+export type ConsultantadminRemoveError = HttpErrorDto;
+
 export interface ConsultantFindAllParams {
   /**
    * Page number
@@ -2353,6 +2384,14 @@ export interface ConsultantUpdateParams {
 export type ConsultantUpdateData = ConsultantResultDto;
 
 export type ConsultantUpdateError = HttpErrorDto;
+
+export interface ConsultantSetActiveParams {
+  id: number;
+}
+
+export type ConsultantSetActiveData = ConsultantResultDto;
+
+export type ConsultantSetActiveError = HttpErrorDto;
 
 export interface ConsultantRemoveParams {
   id: number;
@@ -4081,6 +4120,66 @@ export namespace ConsultantAdmin {
     export type RequestHeaders = {};
     export type ResponseBody = ConsultantadminFindOneData;
   }
+
+  /**
+   * No description
+   * @tags consultantAdmin
+   * @name ConsultantadminApprove
+   * @summary Approve or withdraw a consultant approval
+   * @request PATCH:/admin/backoffice/consultant/approve/{id}
+   * @secure
+   * @response `200` `ConsultantadminApproveData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantadminApprove {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantApprovalDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantadminApproveData;
+  }
+
+  /**
+   * No description
+   * @tags consultantAdmin
+   * @name ConsultantadminSetActive
+   * @summary Activate or deactivate a consultant
+   * @request PATCH:/admin/backoffice/consultant/active/{id}
+   * @secure
+   * @response `200` `ConsultantadminSetActiveData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantadminSetActive {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantActiveDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantadminSetActiveData;
+  }
+
+  /**
+   * No description
+   * @tags consultantAdmin
+   * @name ConsultantadminRemove
+   * @summary Soft-delete a consultant from the internal admin panel
+   * @request DELETE:/admin/backoffice/consultant/delete/{id}
+   * @secure
+   * @response `200` `ConsultantadminRemoveData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantadminRemove {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantadminRemoveData;
+  }
 }
 
 export namespace Consultant {
@@ -4228,6 +4327,26 @@ export namespace Consultant {
     export type RequestBody = ConsultantUpdateDto;
     export type RequestHeaders = {};
     export type ResponseBody = ConsultantUpdateData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantSetActive
+   * @summary Update consultant availability
+   * @request PATCH:/admin/consultant/active/{id}
+   * @secure
+   * @response `200` `ConsultantSetActiveData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantSetActive {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantActiveDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantSetActiveData;
   }
 
   /**
@@ -6824,6 +6943,87 @@ export class Api<SecurityDataType extends unknown> {
         format: "json",
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags consultantAdmin
+     * @name ConsultantadminApprove
+     * @summary Approve or withdraw a consultant approval
+     * @request PATCH:/admin/backoffice/consultant/approve/{id}
+     * @secure
+     * @response `200` `ConsultantadminApproveData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantadminApprove: (
+      { id }: ConsultantadminApproveParams,
+      data: ConsultantApprovalDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantadminApproveData,
+        ConsultantadminApproveError
+      >({
+        path: `/admin/backoffice/consultant/approve/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultantAdmin
+     * @name ConsultantadminSetActive
+     * @summary Activate or deactivate a consultant
+     * @request PATCH:/admin/backoffice/consultant/active/{id}
+     * @secure
+     * @response `200` `ConsultantadminSetActiveData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantadminSetActive: (
+      { id }: ConsultantadminSetActiveParams,
+      data: ConsultantActiveDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantadminSetActiveData,
+        ConsultantadminSetActiveError
+      >({
+        path: `/admin/backoffice/consultant/active/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultantAdmin
+     * @name ConsultantadminRemove
+     * @summary Soft-delete a consultant from the internal admin panel
+     * @request DELETE:/admin/backoffice/consultant/delete/{id}
+     * @secure
+     * @response `200` `ConsultantadminRemoveData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantadminRemove: (
+      { id }: ConsultantadminRemoveParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ConsultantadminRemoveData, ConsultantadminRemoveError>({
+        path: `/admin/backoffice/consultant/delete/${id}`,
+        method: "DELETE",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
   };
   consultant = {
     /**
@@ -6963,6 +7163,32 @@ export class Api<SecurityDataType extends unknown> {
     ) =>
       this.http.request<ConsultantUpdateData, ConsultantUpdateError>({
         path: `/admin/consultant/update/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantSetActive
+     * @summary Update consultant availability
+     * @request PATCH:/admin/consultant/active/{id}
+     * @secure
+     * @response `200` `ConsultantSetActiveData`
+     * @response `400` `HttpErrorDto`
+     */
+    setActive: (
+      { id }: ConsultantSetActiveParams,
+      data: ConsultantActiveDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ConsultantSetActiveData, ConsultantSetActiveError>({
+        path: `/admin/consultant/active/${id}`,
         method: "PATCH",
         body: data,
         secure: true,

@@ -22,7 +22,6 @@ import { ApiBody, ApiResponse } from 'api/backend.api';
 import { ConsultantAvailabilityService } from '@service/admin/consultant-availability.service';
 import { ConsultantGoogleCalendarService } from '@service/admin/consultant-google-calendar.service';
 import { MeetingService } from '@service/admin/meeting.service';
-import { PymeService } from '@service/admin/pyme.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { AlertService } from '@service/alert.service';
@@ -33,7 +32,7 @@ type AvailabilityMonth = ApiResponse<'consultantAvailability', 'consultant-avail
 type AvailabilitySchedule = Record<string, string[]>;
 type GoogleBusySlot = ApiResponse<'consultantGoogleCalendar', 'consultantgooglecalendarBusyMonth'>['data'][number];
 type GoogleCalendarStatus = ApiResponse<'consultantGoogleCalendar', 'consultantgooglecalendarStatus'>;
-type Meeting = ApiResponse<'meeting', 'findAll'>['data'][number];
+type Meeting = ApiResponse<'meeting', 'calendar'>['data'][number];
 type DraftSlotStatus = 'disponible' | 'bloqueado';
 
 type DraftSlot = {
@@ -90,7 +89,6 @@ export class Meetings implements OnInit, OnDestroy {
   private availabilityService = inject(ConsultantAvailabilityService);
   private googleCalendarService = inject(ConsultantGoogleCalendarService);
   private meetingService = inject(MeetingService);
-  private pymeService = inject(PymeService);
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
   private alertService = inject(AlertService);
@@ -104,6 +102,7 @@ export class Meetings implements OnInit, OnDestroy {
   view = signal<CalendarView>(CalendarView.Week);
   viewDate = signal(new Date());
   loading = signal(false);
+  meetingsLoading = signal(false);
   saving = signal(false);
   googleLoading = signal(false);
   googleBusyLoading = signal(false);
@@ -119,7 +118,6 @@ export class Meetings implements OnInit, OnDestroy {
   dragSelection = signal<{ start: Date; end: Date } | null>(null);
   slots = signal<DraftSlot[]>([]);
   meetings = signal<Meeting[]>([]);
-  pymeNames = signal<Record<number, string>>({});
   googleStatus = signal<GoogleCalendarStatus>({
     connected: false,
     googleEmail: null,
@@ -140,6 +138,8 @@ export class Meetings implements OnInit, OnDestroy {
   private dragStartDate: Date | null = null;
   private readonly googleMessageHandler = (event: MessageEvent<unknown>) => this.handleGoogleCalendarMessage(event);
   readonly monthEventLimit = 2;
+  private calendarLoadSequence = 0;
+  private readonly calendarPageLimit = 50;
 
   consultantId = computed(() => this.hubsme.currentUser().id);
   monthLabel = computed(() => this.viewDate());
@@ -190,11 +190,10 @@ export class Meetings implements OnInit, OnDestroy {
   }
 
   setView(view: CalendarView) {
-    if (view === CalendarView.Day) {
-      this.view.set(CalendarView.Week);
-      return;
-    }
-    this.view.set(view);
+    const nextView = view === CalendarView.Day ? CalendarView.Week : view;
+    if (this.view() === nextView) return;
+    this.view.set(nextView);
+    this.loadMeetings();
   }
 
   beforeMonthViewRender(event: CalendarMonthViewBeforeRenderEvent) {
@@ -223,6 +222,7 @@ export class Meetings implements OnInit, OnDestroy {
     this.syncFormDate();
     this.loadMonth();
     this.loadGoogleBusyMonth();
+    this.loadMeetings();
   }
 
   next(newDate?: Date) {
@@ -241,6 +241,7 @@ export class Meetings implements OnInit, OnDestroy {
     this.syncFormDate();
     this.loadMonth();
     this.loadGoogleBusyMonth();
+    this.loadMeetings();
   }
 
   today() {
@@ -248,6 +249,7 @@ export class Meetings implements OnInit, OnDestroy {
     this.syncFormDate();
     this.loadMonth();
     this.loadGoogleBusyMonth();
+    this.loadMeetings();
   }
 
   updateForm<K extends keyof SlotForm>(key: K, value: SlotForm[K]) {
@@ -496,7 +498,10 @@ export class Meetings implements OnInit, OnDestroy {
       .confirmOption(meeting.id, { selectedStartTime })
       .then((updatedMeeting) => {
         this.toastService.success('Horario confirmado y enlace de Teams generado');
-        this.selectedMeeting.set(updatedMeeting);
+        const currentMeeting = this.selectedMeeting();
+        if (currentMeeting?.id === updatedMeeting.id) {
+          this.selectedMeeting.set({ ...currentMeeting, ...updatedMeeting });
+        }
         this.selectedProposedStartTime.set(null);
         this.loadMeetings();
       })
@@ -769,39 +774,63 @@ export class Meetings implements OnInit, OnDestroy {
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
   }
 
-  private loadMeetings() {
-    this.hubsme
-      .listMeetings(1, 200)
-      .then((response) => {
-        const meetings = response.data.data;
-        this.meetings.set(meetings);
-        this.loadPymeNames(meetings);
-      })
-      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
+  private async loadMeetings() {
+    const loadSequence = ++this.calendarLoadSequence;
+    const { startDate, endDate } = this.visibleMeetingRange();
+    const loadedMeetings: Meeting[] = [];
+    let page = 1;
+
+    this.meetings.set([]);
+    this.meetingsLoading.set(true);
+
+    try {
+      while (true) {
+        const response = await this.meetingService.calendar({
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          page,
+          limit: this.calendarPageLimit,
+        });
+
+        if (loadSequence !== this.calendarLoadSequence) return;
+
+        loadedMeetings.push(...response.data);
+        this.meetings.set([...loadedMeetings]);
+        this.meetingsLoading.set(false);
+
+        if (!response.meta.hasNextPage) break;
+        page += 1;
+      }
+    } catch (error) {
+      if (loadSequence === this.calendarLoadSequence) {
+        this.toastService.error(this.hubsme.getErrorMessage(error));
+      }
+    } finally {
+      if (loadSequence === this.calendarLoadSequence) {
+        this.meetingsLoading.set(false);
+      }
+    }
   }
 
-  private loadPymeNames(meetings: Meeting[]) {
-    const pymeIds = [...new Set(meetings.map((meeting) => meeting.pymeId))];
-
-    if (pymeIds.length === 0) {
-      this.pymeNames.set({});
-      return;
+  private visibleMeetingRange() {
+    if (this.view() === CalendarView.Week) {
+      const { start, end } = this.visibleWeekRange();
+      return { startDate: start, endDate: end };
     }
 
-    Promise.all(
-      pymeIds.map(async (pymeId) => {
-        try {
-          const pyme = await this.pymeService.findByUser(pymeId);
-          return [pymeId, pyme.name.trim() || 'PYME'] as const;
-        } catch {
-          return [pymeId, 'PYME'] as const;
-        }
-      }),
-    ).then((entries) => this.pymeNames.set(Object.fromEntries(entries)));
+    const viewDate = this.viewDate();
+    const monthStart = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+    const startDate = new Date(monthStart);
+    startDate.setDate(startDate.getDate() - startDate.getDay());
+    const nextMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1);
+    const daysUntilNextWeek = (7 - nextMonth.getDay()) % 7;
+    const endDate = this.addDays(nextMonth, daysUntilNextWeek);
+
+    return { startDate, endDate };
   }
 
   private pymeDisplayName(meeting: Meeting) {
-    return this.pymeNames()[meeting.pymeId] ?? 'PYME';
+    return meeting.pymeName || 'PYME';
   }
 
   private meetingColor(meeting: Meeting) {

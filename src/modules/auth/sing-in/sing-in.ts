@@ -63,7 +63,7 @@ export class SingIn implements OnInit, OnDestroy {
 
   onLogin(): void {
     if (!this.email() || !this.password()) {
-      this.toastService.error('Please enter email and password');
+      this.toastService.error('Ingresa tu correo y contraseña.');
       return;
     }
 
@@ -78,7 +78,7 @@ export class SingIn implements OnInit, OnDestroy {
       .login(credentials)
       .then((res) => {
         if (res.error) {
-          this.toastService.error(res.error.message[0]);
+          this.toastService.error(this.translateErrorMessage(res.error.message[0]));
           return;
         }
         this.session.setSession(res.data);
@@ -91,9 +91,7 @@ export class SingIn implements OnInit, OnDestroy {
         this.toastService.success('Bienvenido!');
       })
       .catch((error) => {
-        const message = error.error?.message || error.message || 'Ocurrió un error inesperado';
-        const text = Array.isArray(message) ? message[0] : message;
-        this.toastService.error(text);
+        this.toastService.error(this.getErrorMessage(error));
       })
       .finally(() => {
         this.loading.set(false);
@@ -153,7 +151,7 @@ export class SingIn implements OnInit, OnDestroy {
     this.googleLoading.set(false);
 
     if (event.data.error) {
-      this.toastService.error(event.data.error);
+      this.toastService.error(this.translateErrorMessage(event.data.error));
       return;
     }
 
@@ -183,8 +181,19 @@ export class SingIn implements OnInit, OnDestroy {
 
   private getErrorMessage(error: unknown): string {
     const apiError = error as { error?: { message?: string | string[] }; message?: string };
-    const message = apiError.error?.message || apiError.message || 'Ocurrio un error inesperado';
-    return Array.isArray(message) ? message[0] : message;
+    const message = apiError.error?.message || apiError.message || 'Ocurrió un error inesperado';
+    const text = Array.isArray(message) ? message[0] : message;
+    return this.translateErrorMessage(text);
+  }
+
+  private translateErrorMessage(message: string): string {
+    const normalizedMessage = message.trim().toLowerCase().replace(/[.!]+$/, '');
+
+    if (normalizedMessage === 'invalid credentials') {
+      return 'Correo o contraseña incorrectos.';
+    }
+
+    return message;
   }
 
   private getGooglePopupFeatures(): string {

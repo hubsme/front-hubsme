@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
@@ -9,6 +10,8 @@ import { ConsultantService } from '@service/admin/consultant.service';
 import { PATH, buildPath } from '@route/path.route';
 import { downloadPdf } from '../../../functions/download-pdf';
 import { downloadWord } from '../../../functions/download-word';
+
+type DocumentTab = 'meetings' | 'diagnostics';
 
 @Component({
   selector: 'app-documents',
@@ -19,6 +22,9 @@ export class Documents implements OnInit {
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
   private consultantService = inject(ConsultantService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
   readonly PATH = PATH;
   readonly buildPath = buildPath;
 
@@ -28,7 +34,7 @@ export class Documents implements OnInit {
   consultantNames = signal<Record<number, string>>({});
   loading = signal(false);
   search = signal('');
-  activeTab = signal<'meetings' | 'diagnostics'>('meetings');
+  activeTab = signal<DocumentTab>('meetings');
   downloadingPdfId = signal<number | null>(null);
   downloadingWordId = signal<number | null>(null);
 
@@ -55,7 +61,23 @@ export class Documents implements OnInit {
   });
 
   ngOnInit() {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      this.activeTab.set(this.tabFromQuery(params.get('type')));
+    });
     this.load();
+  }
+
+  selectTab(tab: DocumentTab): void {
+    this.activeTab.set(tab);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { type: tab === 'meetings' ? 'actas' : 'diagnosticos' },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  private tabFromQuery(type: string | null): DocumentTab {
+    return type === 'diagnosticos' ? 'diagnostics' : 'meetings';
   }
 
   load() {

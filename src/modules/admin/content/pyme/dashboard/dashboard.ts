@@ -26,6 +26,12 @@ import { ThemeService } from '@service/theme.service';
 
 type DashboardSummary = ApiResponse<'dashboard', 'summary'>;
 type DashboardRole = 'admin' | 'pyme' | 'consultor';
+type KpiCardAction = 'upcomingMeetings';
+
+type KpiDetail = {
+  label: string;
+  value: string;
+};
 
 type KpiCard = {
   label: string;
@@ -34,6 +40,8 @@ type KpiCard = {
   badge: string;
   icon: string;
   iconClass: string;
+  details?: KpiDetail[];
+  action?: KpiCardAction;
 };
 
 type WorkloadRow = {
@@ -47,12 +55,6 @@ type TaskSlice = {
   value: number;
   shortLabel: string;
   color: string;
-};
-
-type AlertItem = {
-  client: string;
-  message: string;
-  tone: 'danger' | 'warning' | 'info';
 };
 
 type AxisChartOptions = {
@@ -150,6 +152,17 @@ export class Dashboard implements OnInit {
     return this.summary()?.stats.clients ?? 0;
   });
 
+  meetingStats = computed(
+    () =>
+      this.summary()?.meetingStats ?? {
+        total: 0,
+        confirmed: 0,
+        requested: 0,
+        pending: 0,
+        completed: 0,
+      },
+  );
+
   kpiCards = computed<KpiCard[]>(() => {
     const stats = this.summary()?.stats ?? {
       clients: 0,
@@ -170,12 +183,18 @@ export class Dashboard implements OnInit {
           iconClass: 'bg-secondary/8 text-secondary',
         },
         {
-          label: 'Sesiones totales',
-          value: `${stats.meetings}`,
-          helper: 'Reuniones gestionadas',
-          badge: `${Math.max(1, Math.min(4, this.upcomingMeetings().length || 4))} esta semana`,
+          label: 'Reuniones',
+          value: `${this.meetingStats().total}`,
+          helper: 'Total de reuniones',
+          badge: `${this.upcomingMeetings().length} confirmadas esta semana`,
           icon: 'fas fa-calendar-days',
           iconClass: 'bg-accent/10 text-accent',
+          details: [
+            { label: 'Confirmadas', value: `${this.meetingStats().confirmed}` },
+            { label: 'Solicitadas', value: `${this.meetingStats().requested}` },
+            { label: 'Pendientes', value: `${this.meetingStats().pending}` },
+            { label: 'Completadas', value: `${this.meetingStats().completed}` },
+          ],
         },
         {
           label: 'Tareas pendientes',
@@ -207,11 +226,18 @@ export class Dashboard implements OnInit {
       },
       {
         label: 'Reuniones',
-        value: `${stats.meetings}`,
-        helper: 'Sesiones completadas',
-        badge: `${this.upcomingMeetings().length} pendientes esta semana`,
+        value: `${this.meetingStats().total}`,
+        helper: 'Total de reuniones',
+        badge: `${this.upcomingMeetings().length} confirmadas esta semana`,
         icon: 'fas fa-calendar-days',
         iconClass: 'bg-accent/10 text-accent',
+        details: [
+          { label: 'Confirmadas', value: `${this.meetingStats().confirmed}` },
+          { label: 'Solicitadas', value: `${this.meetingStats().requested}` },
+          { label: 'Pendientes', value: `${this.meetingStats().pending}` },
+          { label: 'Completadas', value: `${this.meetingStats().completed}` },
+        ],
+        action: 'upcomingMeetings',
       },
       {
         label: 'Tareas',
@@ -225,7 +251,7 @@ export class Dashboard implements OnInit {
         label: 'Consultores',
         value: `${this.consultantCount()}`,
         helper: 'Expertos conectados',
-        badge: `${this.consultantCount()} matches aceptados`,
+        badge: `${this.consultantCount()} interacciones`,
         icon: 'fas fa-users',
         iconClass: 'bg-violet-500/10 text-violet-600',
       },
@@ -589,14 +615,6 @@ export class Dashboard implements OnInit {
     responsive: [],
   }));
 
-  alerts = computed<AlertItem[]>(() => {
-    if (this.isConsultant()) {
-      return this.summary()?.alerts ?? [];
-    }
-
-    return this.summary()?.alerts ?? [];
-  });
-
   upcomingMeetings = computed(() => {
     const meetings = this.summary()?.upcomingMeetings ?? [];
     return meetings.map((meeting, index) => ({
@@ -628,10 +646,21 @@ export class Dashboard implements OnInit {
       .finally(() => this.loading.set(false));
   }
 
-  alertToneClasses(tone: AlertItem['tone']) {
-    if (tone === 'danger') return 'border-danger/10 bg-danger/6 text-danger';
-    if (tone === 'warning') return 'border-accent/15 bg-accent/6 text-amber-700';
-    return 'border-secondary/10 bg-secondary/6 text-secondary';
+  onKpiCardClick(card: KpiCard): void {
+    if (card.action !== 'upcomingMeetings' || !isPlatformBrowser(this.platformId)) return;
+
+    document.getElementById('upcoming-sessions')?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  }
+
+  onKpiCardKeydown(event: Event, card: KpiCard): void {
+    const key = (event as KeyboardEvent).key;
+    if (key !== 'Enter' && key !== ' ') return;
+
+    event.preventDefault();
+    this.onKpiCardClick(card);
   }
 
   trackByLabel(_: number, item: { label: string }) {

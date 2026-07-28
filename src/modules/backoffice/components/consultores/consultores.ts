@@ -8,7 +8,12 @@ import { AdminApiService } from '@service/admin-api.service';
 import { AlertService } from '@service/alert.service';
 import { ToastService } from '@service/toast.service';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
-import { ConsultantListItemDto, ConsultantResultDto, PaginationMetaDto } from 'api/backend.api';
+import {
+  ConsultantListItemDto,
+  ConsultantMercadoPagoAdminDto,
+  ConsultantResultDto,
+  PaginationMetaDto,
+} from 'api/backend.api';
 
 @Component({
   selector: 'app-consultores',
@@ -25,6 +30,7 @@ export class Consultores {
   readonly detailLoading = signal(false);
   readonly showDetailModal = signal(false);
   readonly selectedConsultant = signal<ConsultantResultDto | null>(null);
+  readonly mercadoPagoDetails = signal<ConsultantMercadoPagoAdminDto | null>(null);
   readonly search = signal('');
   readonly activeFilter = signal<'' | 'true' | 'false'>('');
   readonly validatedFilter = signal<'' | 'true' | 'false'>('');
@@ -103,12 +109,15 @@ export class Consultores {
   async openDetail(consultant: ConsultantListItemDto) {
     this.showDetailModal.set(true);
     this.selectedConsultant.set(null);
+    this.mercadoPagoDetails.set(null);
     this.detailLoading.set(true);
     try {
-      const response = await this.adminApi.api.consultantAdmin.consultantadminFindOne({
-        id: consultant.id,
-      });
-      this.selectedConsultant.set(response.data);
+      const [consultantResponse, mercadoPagoResponse] = await Promise.all([
+        this.adminApi.api.consultantAdmin.consultantadminFindOne({ id: consultant.id }),
+        this.adminApi.api.consultantAdmin.consultantadminMercadoPago({ id: consultant.id }),
+      ]);
+      this.selectedConsultant.set(consultantResponse.data);
+      this.mercadoPagoDetails.set(mercadoPagoResponse.data);
     } catch {
       this.showDetailModal.set(false);
       this.toastService.error('No se pudo cargar el detalle del consultor.');
@@ -120,6 +129,7 @@ export class Consultores {
   closeDetailModal() {
     this.showDetailModal.set(false);
     this.selectedConsultant.set(null);
+    this.mercadoPagoDetails.set(null);
   }
 
   requestApprovalChange(validated: boolean) {

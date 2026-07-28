@@ -4,7 +4,8 @@
       <!-- Icon Container -->
       <div class="flex h-20 w-20 mx-auto items-center justify-center rounded-2xl bg-secondary/5 transition-all duration-300 overflow-hidden">
         @if (currentOnboardingSlide() === 0) {
-          <img src="/avif/icono.avif" alt="Hubsme" class="h-12 w-auto animate-pulse" />
+          <img src="/avif/icono.avif" alt="Hubsme"
+            class="h-12 w-auto animate-pulse dark:brightness-0 dark:invert" />
         } @else if (currentOnboardingSlide() === 1) {
           <img src="/avif/mercado_pago.avif" alt="Mercado Pago" class="h-10 w-auto object-contain" />
         } @else {
@@ -95,7 +96,11 @@
     >
     <!-- Logo Header -->
     <div class="pt-10 pb-2 text-center">
-      <img src="/avif/logo_completo.avif" alt="HUBSME" class="mx-auto h-11 w-auto hover:scale-102 transition-transform duration-300" />
+      <a href="/" aria-label="Ir a la página principal"
+        class="inline-flex cursor-pointer">
+        <img src="/avif/logo_completo.avif" alt="HUBSME"
+          class="mx-auto h-11 w-auto transition-transform duration-300 hover:scale-102 dark:brightness-0 dark:invert" />
+      </a>
     </div>
 
     <!-- Progress Stepper -->

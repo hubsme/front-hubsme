@@ -1,4 +1,4 @@
-import { Injectable, signal, inject, effect, PLATFORM_ID } from '@angular/core';
+import { Injectable, signal, inject, effect, PLATFORM_ID, computed } from '@angular/core';
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 
 type Theme = 'light' | 'dark';
@@ -17,13 +17,14 @@ export class ThemeService {
       this.loadTheme();
       effect(() => {
         const htmlElement = this.document.documentElement;
-        htmlElement.setAttribute('data-theme', this._theme());
+        htmlElement.setAttribute('data-theme', this.theme());
       });
     }
   }
 
   private _theme = signal<Theme>('light');
-  readonly theme = this._theme.asReadonly();
+  private themeOverride = signal<Theme | null>(null);
+  readonly theme = computed(() => this.themeOverride() ?? this._theme());
 
   setTheme(theme: Theme): void {
     this._theme.set(theme);
@@ -33,6 +34,13 @@ export class ThemeService {
   toggleTheme(): void {
     const newTheme = this._theme() === 'light' ? 'dark' : 'light';
     this.setTheme(newTheme);
+  }
+
+  forceTheme(theme: Theme): () => void {
+    const previousOverride = this.themeOverride();
+    this.themeOverride.set(theme);
+
+    return () => this.themeOverride.set(previousOverride);
   }
 
   loadTheme(): void {

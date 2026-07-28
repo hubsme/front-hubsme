@@ -301,6 +301,92 @@
           </div>
         </div>
 
+        @if (mercadoPagoDetails(); as mercadoPago) {
+          <section class="mb-6 overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+            <div
+              class="flex flex-col gap-3 border-b border-border bg-background px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary"
+                >
+                  <i class="fas fa-credit-card text-sm"></i>
+                </span>
+                <div>
+                  <p class="text-[0.68rem] font-inter-bold uppercase tracking-[0.14em] text-primary">
+                    Integración de pagos
+                  </p>
+                  <p class="mt-0.5 font-inter-semibold text-text">Cuenta de Mercado Pago</p>
+                </div>
+              </div>
+              <span
+                class="inline-flex w-fit items-center gap-2 rounded-full px-3 py-1.5 text-xs font-inter-semibold"
+                [class]="
+                  mercadoPago.connected
+                    ? 'bg-success/10 text-success'
+                    : 'bg-text/5 text-muted'
+                "
+              >
+                <i
+                  class="fas"
+                  [class.fa-circle-check]="mercadoPago.connected"
+                  [class.fa-circle-xmark]="!mercadoPago.connected"
+                ></i>
+                {{ mercadoPago.connected ? 'Conectada' : 'No conectada' }}
+              </span>
+            </div>
+            @if (mercadoPago.connected) {
+              <div class="grid gap-x-6 gap-y-5 p-5 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                  <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                    Alias
+                  </p>
+                  <p class="mt-1.5 break-words leading-5 text-text">
+                    {{ mercadoPago.nickname || '-' }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                    Correo de Mercado Pago
+                  </p>
+                  <p class="mt-1.5 break-all leading-5 text-text">
+                    {{ mercadoPago.email || '-' }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                    ID de usuario
+                  </p>
+                  <p class="mt-1.5 leading-5 text-text">
+                    {{ mercadoPago.mercadoPagoUserId || '-' }}
+                  </p>
+                </div>
+                <div>
+                  <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                    Conectada desde
+                  </p>
+                  <p class="mt-1.5 leading-5 text-text">
+                    {{ mercadoPago.connectedAt ? (mercadoPago.connectedAt | date: 'dd/MM/yyyy HH:mm') : '-' }}
+                  </p>
+                </div>
+                <div class="sm:col-span-2 lg:col-span-4">
+                  <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                    Última actualización de la conexión
+                  </p>
+                  <p class="mt-1.5 leading-5 text-text">
+                    {{ mercadoPago.lastUpdatedAt ? (mercadoPago.lastUpdatedAt | date: 'dd/MM/yyyy HH:mm') : '-' }}
+                  </p>
+                </div>
+              </div>
+            } @else {
+              <div class="flex items-center gap-3 p-5 text-sm text-muted">
+                <i class="fas fa-circle-info text-muted/70"></i>
+                <p>El consultor todavía no ha conectado una cuenta de Mercado Pago.</p>
+              </div>
+            }
+          </section>
+        }
+
         <section class="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <article
             class="relative overflow-hidden rounded-2xl border border-border border-l-4 border-l-secondary bg-background p-4 shadow-sm"

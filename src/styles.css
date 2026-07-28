@@ -474,11 +474,22 @@
   background-color: var(--color-surface) !important;
 }
 
-.cal-month-view .cal-cell:hover,
 .cal-month-view .cal-day-cell.cal-today,
 .cal-week-view .cal-day-headers .cal-header.cal-today,
 .cal-week-view .cal-hour-segment:hover,
 .cal-day-view .cal-hour-segment:hover {
+  background-color: color-mix(in srgb, var(--color-secondary) 12%, var(--color-surface)) !important;
+}
+
+.cal-month-view .cal-cell-row:hover {
+  background-color: var(--color-surface) !important;
+}
+
+.cal-month-view .cal-cell-row .cal-cell:hover {
+  background-color: var(--color-surface) !important;
+}
+
+.cal-month-view .cal-cell-row .cal-day-cell.cal-today:hover {
   background-color: color-mix(in srgb, var(--color-secondary) 12%, var(--color-surface)) !important;
 }
 
@@ -515,7 +526,8 @@
   pointer-events: none !important;
 }
 
-.cal-month-view .cal-day-cell.calendar-day-available {
+.cal-month-view .cal-day-cell.calendar-day-available,
+.cal-month-view .cal-cell-row .cal-day-cell.calendar-day-available:hover {
   background-color: rgba(14, 159, 110, 0.16) !important;
 }
 

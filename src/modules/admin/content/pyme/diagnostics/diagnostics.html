@@ -25,10 +25,14 @@
         Tomar nuevo diagnóstico
       </button>
 
-      <p class="mt-5 inline-flex items-center gap-2 text-xs text-muted">
+      <a
+        [routerLink]="['/' + buildPath(PATH.admin.pyme.documents)]"
+        [queryParams]="{ type: 'diagnosticos' }"
+        class="mt-5 inline-flex items-center gap-2 text-xs text-secondary transition-colors hover:text-secondary/80 hover:underline"
+      >
         <i class="far fa-folder-open"></i>
         Consulta tus diagnósticos anteriores en Mis documentos.
-      </p>
+      </a>
     </div>
   </section>
 </div>

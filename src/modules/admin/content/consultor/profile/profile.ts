@@ -1,5 +1,5 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Api, ApiBody, ApiResponse } from 'api/backend.api';
 import { MercadoPagoService } from '@service/admin/mercado-pago.service';
@@ -70,6 +70,9 @@ type ChipField =
   | 'certifications'
   | 'workedSectors';
 
+type PreviewList = 'specialties' | 'diagnosticAreas';
+type DraggedPreviewItem = { list: PreviewList; index: number };
+
 @Component({
   selector: 'app-profile',
   imports: [CommonModule, FormsModule, PhoneInputComponent],
@@ -94,6 +97,9 @@ export class Profile implements OnInit, OnDestroy {
   uploadingCv = signal(false);
   cvFileName = signal('');
   cvError = signal('');
+  profilePreviewEditing = signal(false);
+  previewMediaActive = signal(false);
+  draggedPreviewItem = signal<DraggedPreviewItem | null>(null);
   consultant = signal<ConsultantProfileData | null>(null);
   readonly diagnosticAreaOptions = CONSULTANT_DIAGNOSTIC_AREAS;
   readonly chipFields: { field: ChipField; label: string; placeholder: string }[] = [
@@ -151,6 +157,12 @@ export class Profile implements OnInit, OnDestroy {
     ownerPhone: '',
     active: 'true',
   });
+
+  readonly previewSpecialties = computed(() => this.form().specialties);
+  readonly previewDiagnosticAreas = computed(() => this.form().diagnosticAreas);
+  readonly visibleDiagnosticAreas = computed(() => this.form().diagnosticAreas.slice(0, 3));
+  readonly primarySpecialty = computed(() => this.form().specialties[0] || 'Consultoría para PYMES');
+  readonly previewDisplayName = computed(() => this.capitalizeName(this.form().fullName || 'Tu nombre'));
 
   ngOnInit(): void {
     this.load();
@@ -266,6 +278,59 @@ export class Profile implements OnInit, OnDestroy {
     this.updateForm('active', this.form().active === 'true' ? 'false' : 'true');
   }
 
+  toggleProfilePreviewEdit(): void {
+    this.profilePreviewEditing.update((editing) => !editing);
+    this.previewMediaActive.set(false);
+    this.draggedPreviewItem.set(null);
+  }
+
+  activatePreviewMedia(container: HTMLElement): void {
+    if (this.profilePreviewEditing()) return;
+
+    this.previewMediaActive.set(true);
+    const video = container.querySelector('video');
+    if (video) void video.play().catch(() => undefined);
+  }
+
+  deactivatePreviewMedia(container: HTMLElement): void {
+    this.previewMediaActive.set(false);
+    container.querySelector('video')?.pause();
+  }
+
+  onPreviewDragStart(event: DragEvent, list: PreviewList, index: number): void {
+    if (!event.dataTransfer) return;
+
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', `${list}:${index}`);
+    this.draggedPreviewItem.set({ list, index });
+  }
+
+  onPreviewDragOver(event: DragEvent): void {
+    event.preventDefault();
+    if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
+  }
+
+  onPreviewDrop(event: DragEvent, list: PreviewList, targetIndex: number): void {
+    event.preventDefault();
+    const dragged = this.draggedPreviewItem();
+    if (!dragged || dragged.list !== list) return;
+
+    this.reorderPreviewItem(list, dragged.index, targetIndex);
+    this.draggedPreviewItem.set(null);
+  }
+
+  onPreviewDragEnd(): void {
+    this.draggedPreviewItem.set(null);
+  }
+
+  movePreviewItem(list: PreviewList, index: number, direction: -1 | 1): void {
+    const items = list === 'specialties' ? this.previewSpecialties() : this.previewDiagnosticAreas();
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= items.length) return;
+
+    this.reorderPreviewItem(list, index, targetIndex);
+  }
+
   toggleDiagnosticArea(area: ConsultantDiagnosticArea): void {
     const selected = this.form().diagnosticAreas;
     this.updateForm(
@@ -274,6 +339,26 @@ export class Profile implements OnInit, OnDestroy {
         ? selected.filter((item) => item !== area)
         : [...selected, area],
     );
+  }
+
+  private reorderPreviewItem(list: PreviewList, fromIndex: number, toIndex: number): void {
+    if (fromIndex === toIndex) return;
+
+    this.form.update((current) => {
+      if (list === 'specialties') {
+        const specialties = [...current.specialties];
+        const [item] = specialties.splice(fromIndex, 1);
+        if (!item) return current;
+        specialties.splice(toIndex, 0, item);
+        return { ...current, specialties };
+      }
+
+      const diagnosticAreas = [...current.diagnosticAreas];
+      const [item] = diagnosticAreas.splice(fromIndex, 1);
+      if (!item) return current;
+      diagnosticAreas.splice(toIndex, 0, item);
+      return { ...current, diagnosticAreas };
+    });
   }
 
   uploadPhoto(event: Event) {
@@ -383,6 +468,14 @@ export class Profile implements OnInit, OnDestroy {
     const first = this.form().firstName?.trim()?.charAt(0) || '';
     const last = this.form().lastName?.trim()?.charAt(0) || '';
     return (first + last).toUpperCase() || 'C';
+  }
+
+  private capitalizeName(value: string): string {
+    return value
+      .toLocaleLowerCase('es-PE')
+      .replace(/(^|[\s-])([a-záéíóúñü])/g, (_match, separator: string, letter: string) =>
+        `${separator}${letter.toLocaleUpperCase('es-PE')}`,
+      );
   }
 
   uploadVideo(event: Event) {

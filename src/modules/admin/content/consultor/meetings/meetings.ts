@@ -22,6 +22,7 @@ import { ApiBody, ApiResponse } from 'api/backend.api';
 import { ConsultantAvailabilityService } from '@service/admin/consultant-availability.service';
 import { ConsultantGoogleCalendarService } from '@service/admin/consultant-google-calendar.service';
 import { MeetingService } from '@service/admin/meeting.service';
+import { PymeService } from '@service/admin/pyme.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { AlertService } from '@service/alert.service';
@@ -56,6 +57,10 @@ type SlotForm = {
 type SaveAvailabilityMode = 'week' | 'month';
 type SlotEventMeta = { type: 'google-calendar'; id: string } | { type: 'meeting'; meetingId: number };
 type GoogleCalendarMessage = { type: 'hubsme:google-calendar'; connected?: boolean; googleEmail?: string; error?: string };
+type MonthDaySelection = {
+  date: Date;
+  events: CalendarEvent<SlotEventMeta>[];
+};
 
 @Component({
   selector: 'app-meetings',
@@ -85,6 +90,7 @@ export class Meetings implements OnInit, OnDestroy {
   private availabilityService = inject(ConsultantAvailabilityService);
   private googleCalendarService = inject(ConsultantGoogleCalendarService);
   private meetingService = inject(MeetingService);
+  private pymeService = inject(PymeService);
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
   private alertService = inject(AlertService);
@@ -106,12 +112,14 @@ export class Meetings implements OnInit, OnDestroy {
   showTutorial = signal(false);
   selectedSlotLocalId = signal<string | null>(null);
   selectedMeeting = signal<Meeting | null>(null);
+  expandedMonthDay = signal<MonthDaySelection | null>(null);
   confirmingMeetingId = signal<number | null>(null);
   selectedProposedStartTime = signal<string | null>(null);
   activeBrush = signal<DraftSlotStatus>('disponible');
   dragSelection = signal<{ start: Date; end: Date } | null>(null);
   slots = signal<DraftSlot[]>([]);
   meetings = signal<Meeting[]>([]);
+  pymeNames = signal<Record<number, string>>({});
   googleStatus = signal<GoogleCalendarStatus>({
     connected: false,
     googleEmail: null,
@@ -131,9 +139,9 @@ export class Meetings implements OnInit, OnDestroy {
   private googlePopupTimer: ReturnType<typeof setInterval> | null = null;
   private dragStartDate: Date | null = null;
   private readonly googleMessageHandler = (event: MessageEvent<unknown>) => this.handleGoogleCalendarMessage(event);
+  readonly monthEventLimit = 2;
 
   consultantId = computed(() => this.hubsme.currentUser().id);
-  currentUserName = computed(() => this.hubsme.currentUser().name || 'Consultor Hubsme');
   monthLabel = computed(() => this.viewDate());
   sortedSlots = computed(() => [...this.slots()].sort((left, right) => left.startTime.getTime() - right.startTime.getTime()));
   availableDayKeys = computed(() => new Set(this.slots().map((slot) => this.toDateKey(slot.startTime))));
@@ -144,9 +152,10 @@ export class Meetings implements OnInit, OnDestroy {
   });
   events = computed<CalendarEvent<SlotEventMeta>[]>(() => [
     ...this.googleBusySlots().map((slot) => ({
+      id: slot.id,
       start: new Date(slot.startTime),
       end: new Date(slot.endTime),
-      title: `Google ocupado${slot.summary ? `: ${slot.summary}` : ''}`,
+      title: `${this.calendarEventTime(new Date(slot.startTime))} · Ocupado Google`,
       color: { primary: '#f59e0b', secondary: 'rgba(245,158,11,0.18)' },
       cssClass: 'calendar-event-google-busy',
       meta: { type: 'google-calendar' as const, id: slot.id },
@@ -154,9 +163,10 @@ export class Meetings implements OnInit, OnDestroy {
     ...this.meetings()
       .filter((meeting) => meeting.status !== 'cancelada')
       .map((meeting) => ({
+        id: meeting.id,
         start: this.meetingDisplayStart(meeting),
         end: this.meetingEnd(meeting),
-        title: `Reunion: ${meeting.title}`,
+        title: `${this.calendarEventTime(this.meetingDisplayStart(meeting))} · ${this.pymeDisplayName(meeting)}`,
         color: this.meetingColor(meeting),
         meta: { type: 'meeting' as const, meetingId: meeting.id },
       })),
@@ -277,6 +287,34 @@ export class Meetings implements OnInit, OnDestroy {
 
   closeSlotDetail() {
     this.selectedSlotLocalId.set(null);
+  }
+
+  openMonthDay(
+    date: Date,
+    events: CalendarEvent<SlotEventMeta>[],
+    sourceEvent: MouseEvent,
+  ) {
+    sourceEvent.stopPropagation();
+    this.expandedMonthDay.set({
+      date: new Date(date),
+      events: [...events],
+    });
+  }
+
+  closeMonthDay() {
+    this.expandedMonthDay.set(null);
+  }
+
+  openExpandedMonthEvent(event: CalendarEvent<SlotEventMeta>) {
+    this.closeMonthDay();
+    this.openEventDetail(event);
+  }
+
+  monthDayLabel(date: Date) {
+    return date.toLocaleDateString('es-PE', {
+      day: 'numeric',
+      month: 'long',
+    });
   }
 
   setBrush(brush: DraftSlotStatus) {
@@ -701,6 +739,14 @@ export class Meetings implements OnInit, OnDestroy {
     return new Date(meeting.startTime ?? meeting.proposedStartTimes?.[0] ?? meeting.createdAt);
   }
 
+  private calendarEventTime(value: Date) {
+    return value.toLocaleTimeString('es-PE', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  }
+
   proposedTimes(meeting: Meeting) {
     return (meeting.proposedStartTimes?.length ? meeting.proposedStartTimes : [meeting.startTime]).filter(
       (value): value is string => Boolean(value),
@@ -726,8 +772,36 @@ export class Meetings implements OnInit, OnDestroy {
   private loadMeetings() {
     this.hubsme
       .listMeetings(1, 200)
-      .then((response) => this.meetings.set(response.data.data))
+      .then((response) => {
+        const meetings = response.data.data;
+        this.meetings.set(meetings);
+        this.loadPymeNames(meetings);
+      })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
+  }
+
+  private loadPymeNames(meetings: Meeting[]) {
+    const pymeIds = [...new Set(meetings.map((meeting) => meeting.pymeId))];
+
+    if (pymeIds.length === 0) {
+      this.pymeNames.set({});
+      return;
+    }
+
+    Promise.all(
+      pymeIds.map(async (pymeId) => {
+        try {
+          const pyme = await this.pymeService.findByUser(pymeId);
+          return [pymeId, pyme.name.trim() || 'PYME'] as const;
+        } catch {
+          return [pymeId, 'PYME'] as const;
+        }
+      }),
+    ).then((entries) => this.pymeNames.set(Object.fromEntries(entries)));
+  }
+
+  private pymeDisplayName(meeting: Meeting) {
+    return this.pymeNames()[meeting.pymeId] ?? 'PYME';
   }
 
   private meetingColor(meeting: Meeting) {

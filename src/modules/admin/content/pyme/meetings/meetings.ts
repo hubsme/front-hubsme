@@ -18,7 +18,7 @@ import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
-import { ConsultantService } from '@service/admin/consultant.service';
+import { MeetingService } from '@service/admin/meeting.service';
 import { PATH, buildPath } from '@route/path.route';
 
 type MeetingForm = {
@@ -38,13 +38,7 @@ type FinalizeTask = {
   dueDate?: string;
 };
 
-type ConsultantOption = ApiResponse<'consultant', 'findAll'>['data'][number];
-type Meeting = ApiResponse<'meeting', 'findAll'>['data'][number];
-type ConsultantBilling = {
-  photoUrl: string | null;
-  pricePerHour: string;
-  fullName: string;
-};
+type Meeting = ApiResponse<'meeting', 'calendar'>['data'][number];
 type MeetingEventMeta = { meetingId: number };
 type MonthDaySelection = {
   date: Date;
@@ -74,6 +68,7 @@ type MonthDaySelection = {
 })
 export class Meetings implements OnInit {
   private hubsme = inject(HubsmeService);
+  private meetingService = inject(MeetingService);
   private toastService = inject(ToastService);
   readonly CalendarView = CalendarView;
   readonly PATH = PATH;
@@ -88,12 +83,9 @@ export class Meetings implements OnInit {
     }
   });
 
-  meetings = signal<ApiResponse<'meeting', 'findAll'>['data']>([]);
+  meetings = signal<Meeting[]>([]);
   view = signal<CalendarView>(CalendarView.Month);
   viewDate = signal(new Date());
-  consultants = signal<ConsultantOption[]>([]);
-  private consultantService = inject(ConsultantService);
-  consultantBilling = signal<Record<number, ConsultantBilling>>({});
   loading = signal(false);
   creating = signal(false);
   showCreate = signal(false);
@@ -101,6 +93,8 @@ export class Meetings implements OnInit {
   calendarMeeting = signal<Meeting | null>(null);
   expandedMonthDay = signal<MonthDaySelection | null>(null);
   readonly monthEventLimit = 2;
+  private calendarLoadSequence = 0;
+  private readonly calendarPageLimit = 50;
 
   form = signal<MeetingForm>({
     pymeId: 0,
@@ -124,7 +118,7 @@ export class Meetings implements OnInit {
     ]
   };
   viewingActaId = signal<number | null>(null);
-  selectedMeeting = signal<ApiResponse<'meeting', 'findAll'>['data'][number] | null>(null);
+  selectedMeeting = signal<Meeting | null>(null);
   calendarEvents = computed<CalendarEvent<MeetingEventMeta>[]>(() =>
     this.meetings()
       .filter((meeting) => ['confirmada', 'pago_pendiente', 'por_confirmar'].includes(meeting.status))
@@ -145,69 +139,16 @@ export class Meetings implements OnInit {
       pymeId: user.role === 'pyme' ? user.id : current.pymeId,
       consultantId: user.role === 'consultor' ? user.id : current.consultantId,
     }));
-    this.loadLookups();
     this.load();
   }
 
-  loadLookups() {
-    this.loadConsultants().catch((error) =>
-      this.toastService.error(this.hubsme.getErrorMessage(error)),
-    );
-  }
-
-  loadConsultants() {
-    return this.hubsme
-      .listConsultants('', 1, 100, 'true')
-      .then((consultantsRes) => {
-        const consultants = consultantsRes.data.data;
-        this.consultants.set(consultants);
-        this.form.update((current) => ({
-          ...current,
-          consultantId: consultants.some((consultant) => consultant.userId === current.consultantId)
-            ? current.consultantId
-            : (consultants[0]?.userId ?? 0),
-        }));
-      });
-  }
-
   load() {
-    this.loading.set(true);
-    this.hubsme
-      .listMeetings()
-      .then((res) => {
-        this.meetings.set(res.data.data);
-        this.loadConsultantBilling(res.data.data);
-      })
-      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
-      .finally(() => this.loading.set(false));
+    void this.loadCalendarMeetings();
   }
 
-  private loadConsultantBilling(meetings: ApiResponse<'meeting', 'findAll'>['data']) {
-    const uniqueIds = [...new Set(meetings.map((m) => m.consultantId))];
-    uniqueIds.forEach((id) => {
-      this.consultantService
-        .findByUser(id)
-        .then((consultant) => {
-          this.consultantBilling.update((current) => ({
-            ...current,
-            [id]: {
-              photoUrl: consultant.photoUrl,
-              pricePerHour: consultant.pricePerHour,
-              fullName: consultant.fullName,
-            },
-          }));
-        })
-        .catch(() => {
-          this.consultantBilling.update((current) => ({
-            ...current,
-            [id]: {
-              photoUrl: null,
-              pricePerHour: '0.00',
-              fullName: 'Consultor asignado',
-            },
-          }));
-        });
-    });
+  changeViewDate(date: Date) {
+    this.viewDate.set(date);
+    this.load();
   }
 
   updateForm<K extends keyof MeetingForm>(key: K, value: MeetingForm[K]) {
@@ -215,11 +156,10 @@ export class Meetings implements OnInit {
   }
 
   setView(view: CalendarView) {
-    if (view === CalendarView.Day) {
-      this.view.set(CalendarView.Week);
-      return;
-    }
-    this.view.set(view);
+    const nextView = view === CalendarView.Day ? CalendarView.Week : view;
+    if (this.view() === nextView) return;
+    this.view.set(nextView);
+    this.load();
   }
 
   openCalendarMeeting(event: CalendarEvent<MeetingEventMeta>) {
@@ -401,7 +341,7 @@ export class Meetings implements OnInit {
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
   }
 
-  viewActa(meeting: ApiResponse<'meeting', 'findAll'>['data'][number]) {
+  viewActa(meeting: Meeting) {
     this.selectedMeeting.set(meeting);
     this.viewingActaId.set(meeting.id);
   }
@@ -502,15 +442,15 @@ export class Meetings implements OnInit {
   }
 
   consultantPhoto(meeting: Meeting) {
-    return this.consultantBilling()[meeting.consultantId]?.photoUrl ?? null;
+    return meeting.consultantPhotoUrl;
   }
 
   consultantDisplayName(meeting: Meeting) {
-    return this.consultantBilling()[meeting.consultantId]?.fullName ?? 'Consultor asignado';
+    return meeting.consultantName || 'Consultor asignado';
   }
 
   pricePerHour(meeting: Meeting) {
-    return Number(this.consultantBilling()[meeting.consultantId]?.pricePerHour ?? 0);
+    return Number(meeting.consultantPricePerHour);
   }
 
   meetingTotal(meeting: Meeting) {
@@ -530,5 +470,73 @@ export class Meetings implements OnInit {
       minute: '2-digit',
       hour12: false,
     });
+  }
+
+  private async loadCalendarMeetings() {
+    const loadSequence = ++this.calendarLoadSequence;
+    const { startDate, endDate } = this.visibleCalendarRange();
+    const loadedMeetings: Meeting[] = [];
+    let page = 1;
+
+    this.meetings.set([]);
+    this.loading.set(true);
+
+    try {
+      while (true) {
+        const response = await this.meetingService.calendar({
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          page,
+          limit: this.calendarPageLimit,
+        });
+
+        if (loadSequence !== this.calendarLoadSequence) return;
+
+        loadedMeetings.push(...response.data);
+        this.meetings.set([...loadedMeetings]);
+        this.loading.set(false);
+
+        if (!response.meta.hasNextPage) break;
+        page += 1;
+      }
+    } catch (error) {
+      if (loadSequence === this.calendarLoadSequence) {
+        this.toastService.error(this.hubsme.getErrorMessage(error));
+      }
+    } finally {
+      if (loadSequence === this.calendarLoadSequence) {
+        this.loading.set(false);
+      }
+    }
+  }
+
+  private visibleCalendarRange() {
+    const viewDate = this.viewDate();
+
+    if (this.view() === CalendarView.Week) {
+      const startDate = this.startOfWeek(viewDate);
+      return { startDate, endDate: this.addDays(startDate, 7) };
+    }
+
+    const monthStart = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+    const startDate = this.startOfWeek(monthStart);
+    const nextMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1);
+    const daysUntilNextWeek = (7 - nextMonth.getDay()) % 7;
+    const endDate = this.addDays(nextMonth, daysUntilNextWeek);
+
+    return { startDate, endDate };
+  }
+
+  private startOfWeek(date: Date) {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - start.getDay());
+    return start;
+  }
+
+  private addDays(date: Date, days: number) {
+    const next = new Date(date);
+    next.setDate(next.getDate() + days);
+    return next;
   }
 }

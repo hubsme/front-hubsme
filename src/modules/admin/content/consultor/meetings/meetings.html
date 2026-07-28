@@ -236,7 +236,7 @@
     </ng-template>
 
     <div class="mt-5 overflow-y-auto max-h-[70vh] rounded-xl border border-border bg-background text-text">
-      @if (loading()) {
+      @if (loading() || meetingsLoading()) {
       <div class="animate-pulse p-3"
         [class.min-h-[45rem]]="view() !== CalendarView.Month"
         [class.min-h-[25rem]]="view() === CalendarView.Month"

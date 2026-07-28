@@ -11,6 +11,10 @@ export class MeetingService {
     return this.api.meeting.findAll(query).then((response) => response.data);
   }
 
+  calendar(query: ApiQuery<'meeting', 'calendar'>): Promise<ApiResponse<'meeting', 'calendar'>> {
+    return this.api.meeting.calendar(query).then((response) => response.data);
+  }
+
   findOne(id: number): Promise<ApiResponse<'meeting', 'findOne'>> {
     return this.api.meeting.findOne({ id }).then((response) => response.data);
   }

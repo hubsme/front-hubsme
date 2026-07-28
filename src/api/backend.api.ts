@@ -748,6 +748,41 @@ export interface MeetingListDto {
   meta: PaginationMetaDto;
 }
 
+export interface MeetingCalendarItemDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  pymeId: number;
+  pymeName: string;
+  consultantId: number;
+  consultantName: string;
+  consultantPhotoUrl: string | null;
+  /** @example "150.00" */
+  consultantPricePerHour: string;
+  title: string;
+  /** @format date-time */
+  startTime: string | null;
+  proposedStartTimes: string[];
+  durationMinutes: number;
+  meetingUrl: string | null;
+  status:
+    | "solicitada"
+    | "pago_pendiente"
+    | "por_confirmar"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada";
+  requestedBy: "pyme" | "consultor";
+  description: string | null;
+  /** @format date-time */
+  completedAt: string | null;
+}
+
+export interface MeetingCalendarListDto {
+  data: MeetingCalendarItemDto[];
+  meta: PaginationMetaDto;
+}
+
 export interface MeetingCreateDto {
   /** @example 2 */
   pymeId: number;
@@ -2078,6 +2113,33 @@ export interface MeetingadminFindOneParams {
 export type MeetingadminFindOneData = MeetingResultDto;
 
 export type MeetingadminFindOneError = HttpErrorDto;
+
+export interface MeetingCalendarParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /**
+   * Inclusive beginning of the visible calendar range
+   * @example "2026-07-01T00:00:00.000Z"
+   */
+  startDate: string;
+  /**
+   * Exclusive end of the visible calendar range
+   * @example "2026-08-01T00:00:00.000Z"
+   */
+  endDate: string;
+}
+
+export type MeetingCalendarData = MeetingCalendarListDto;
+
+export type MeetingCalendarError = HttpErrorDto;
 
 export interface MeetingFindAllParams {
   /**
@@ -3588,6 +3650,45 @@ export namespace MeetingAdmin {
 }
 
 export namespace Meeting {
+  /**
+   * No description
+   * @tags meeting
+   * @name MeetingCalendar
+   * @summary Get lightweight calendar meetings for the authenticated user and date range
+   * @request GET:/admin/meeting/calendar
+   * @secure
+   * @response `200` `MeetingCalendarData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MeetingCalendar {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /**
+       * Inclusive beginning of the visible calendar range
+       * @example "2026-07-01T00:00:00.000Z"
+       */
+      startDate: string;
+      /**
+       * Exclusive end of the visible calendar range
+       * @example "2026-08-01T00:00:00.000Z"
+       */
+      endDate: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingCalendarData;
+  }
+
   /**
    * No description
    * @tags meeting
@@ -6379,6 +6480,30 @@ export class Api<SecurityDataType extends unknown> {
       }),
   };
   meeting = {
+    /**
+     * No description
+     *
+     * @tags meeting
+     * @name MeetingCalendar
+     * @summary Get lightweight calendar meetings for the authenticated user and date range
+     * @request GET:/admin/meeting/calendar
+     * @secure
+     * @response `200` `MeetingCalendarData`
+     * @response `400` `HttpErrorDto`
+     */
+    calendar: (
+      query: MeetingCalendarParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<MeetingCalendarData, MeetingCalendarError>({
+        path: `/admin/meeting/calendar`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *

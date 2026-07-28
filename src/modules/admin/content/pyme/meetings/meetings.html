@@ -51,9 +51,63 @@
       </div>
     </div>
 
-    <div class="mt-5 min-h-[45rem] overflow-hidden rounded-xl border border-border bg-background text-text">
+    <ng-template #monthCellTemplate let-day="day">
+      <div class="flex min-h-[7.5rem] w-full min-w-0 cursor-default flex-col overflow-hidden p-2" [class.opacity-40]="!day.inMonth">
+        <div class="flex items-center justify-between gap-2">
+          <span
+            class="text-sm font-inter-bold"
+            [class.text-secondary]="day.isToday"
+            [class.text-danger]="day.isWeekend && !day.isToday"
+            [class.text-text]="!day.isWeekend && !day.isToday"
+          >
+            {{ day.date | date: 'd' }}
+          </span>
+          @if (day.events.length > 0) {
+            <button
+              type="button"
+              (click)="openMonthDay(day.date, day.events, $event)"
+              class="inline-flex h-5 min-w-5 cursor-pointer items-center justify-center rounded-full bg-warning px-1.5 text-[0.62rem] font-inter-bold text-fixed-text-50 transition hover:brightness-95"
+              [attr.aria-label]="'Ver las ' + day.events.length + ' reuniones del día'"
+            >
+              {{ day.events.length }}
+            </button>
+          }
+        </div>
+
+        <div class="mt-2 min-w-0 space-y-1 overflow-hidden">
+          @for (event of day.events.slice(0, monthEventLimit); track event.id ?? $index) {
+            <button
+              type="button"
+              [title]="event.title"
+              [style.background-color]="event.color?.secondary"
+              [style.border-left-color]="event.color?.primary"
+              (click)="$event.stopPropagation(); openCalendarMeeting(event)"
+              class="flex h-6 w-full min-w-0 max-w-full cursor-pointer items-center overflow-hidden rounded-md border-l-[3px] px-2 text-left text-[0.65rem] font-inter-bold text-text transition hover:brightness-95"
+            >
+              <span class="block min-w-0 flex-1 truncate whitespace-nowrap">{{ event.title }}</span>
+            </button>
+          }
+
+          @if (day.events.length > monthEventLimit) {
+            <button
+              type="button"
+              (click)="openMonthDay(day.date, day.events, $event)"
+              class="flex h-5 w-full cursor-pointer items-center px-1 text-left text-[0.62rem] font-inter-bold text-secondary transition hover:text-secondary/80"
+              [attr.aria-label]="'Ver ' + (day.events.length - monthEventLimit) + ' reuniones más'"
+            >
+              +{{ day.events.length - monthEventLimit }} más
+            </button>
+          }
+        </div>
+      </div>
+    </ng-template>
+
+    <div class="mt-5 max-h-[70vh] overflow-y-auto rounded-xl border border-border bg-background text-text">
       @if (loading()) {
-      <div class="min-h-[45rem] animate-pulse p-3" aria-label="Cargando reuniones">
+      <div class="animate-pulse p-3"
+        [class.min-h-[45rem]]="view() !== CalendarView.Month"
+        [class.min-h-[25rem]]="view() === CalendarView.Month"
+        aria-label="Cargando reuniones">
         <div class="grid grid-cols-7 overflow-hidden rounded-xl border border-border bg-surface">
           @for (day of [1, 2, 3, 4, 5, 6, 7]; track day) {
             <div class="h-12 border-r border-border bg-text/5 last:border-r-0"></div>
@@ -72,8 +126,10 @@
       } @else {
       @switch (view()) {
       @case (CalendarView.Month) {
-      <mwl-calendar-month-view [viewDate]="viewDate()" [events]="calendarEvents()"
-        (eventClicked)="openCalendarMeeting($event.event)" locale="es-PE"></mwl-calendar-month-view>
+      <mwl-calendar-month-view class="block w-full min-w-0 [&_.cal-cell]:min-w-0 [&_.cal-cell]:basis-0"
+        [viewDate]="viewDate()" [events]="calendarEvents()"
+        [cellTemplate]="monthCellTemplate" (eventClicked)="openCalendarMeeting($event.event)"
+        locale="es-PE"></mwl-calendar-month-view>
       }
       @case (CalendarView.Week) {
       <mwl-calendar-week-view [viewDate]="viewDate()" [events]="calendarEvents()" [hourSegments]="2" [dayStartHour]="6"
@@ -102,6 +158,25 @@
       <span class="font-inter-semibold">{{ calendarEvents().length }} reuniones visibles</span>
     </div>
   </section>
+
+  @if (expandedMonthDay(); as monthDay) {
+  <app-modal-form [title]="'agenda del ' + monthDayLabel(monthDay.date)" [showFooter]="false" maxWidth="lg"
+    (onClose)="closeMonthDay()">
+    <div class="space-y-2 p-5">
+      @for (event of monthDay.events; track event.id ?? $index) {
+        <button type="button" (click)="openExpandedMonthEvent(event)"
+          [style.border-left-color]="event.color?.primary"
+          class="flex w-full items-center gap-3 rounded-xl border border-l-4 border-border bg-background p-3 text-left transition hover:border-secondary/40 hover:bg-secondary/5">
+          <div class="min-w-0 flex-1">
+            <p class="truncate text-sm font-inter-bold text-text">{{ event.title }}</p>
+            <p class="mt-1 text-xs text-muted">Ver detalle de la reunión</p>
+          </div>
+          <i class="fas fa-chevron-right shrink-0 text-xs text-muted"></i>
+        </button>
+      }
+    </div>
+  </app-modal-form>
+  }
 
   @if (calendarMeeting(); as meeting) {
   <app-modal-form title="detalle de reunion" [submitText]="canJoin(meeting) ? 'Unirse' : 'Cerrar'" cancelText="Cerrar"

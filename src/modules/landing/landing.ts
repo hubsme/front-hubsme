@@ -31,7 +31,8 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private api = inject(Api);
   private session = inject(SessionService);
-  themeService = inject(ThemeService);
+  private themeService = inject(ThemeService);
+  private readonly releaseThemeLock = this.themeService.forceTheme('light');
 
   protected photoError = signal(false);
 
@@ -150,7 +151,7 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
       description: 'Expande tu negocio a mercados internacionales con estrategias de importación y exportación.',
     },
     {
-      title: 'Consultoría de Data Analytics',
+      title: 'Consultoría de análisis de datos',
       description: 'Convierte datos en información útil para tomar decisiones más rápidas y estratégicas.',
     },
     {
@@ -196,7 +197,7 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
   ];
 
   protected readonly stats = [
-    { value: '+120', label: 'Diagnosticos realizados' },
+    { value: '+120', label: 'Diagnósticos realizados' },
     { value: '92%', label: 'Empresas con plan accionable' },
     { value: '+45', label: 'Consultores validados' },
   ];
@@ -224,6 +225,7 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.releaseThemeLock();
     this.interactionCleanups.forEach((cleanup) => cleanup());
     if (isPlatformBrowser(this.platformId) && this.resizeListener) {
       window.removeEventListener('resize', this.resizeListener);
@@ -250,6 +252,13 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
   }
 
   protected viewConsultantProfile(consultant: LandingConsultant): void {
+    this.session.restoreSession();
+
+    if (!this.session.session()) {
+      this.goToLogin();
+      return;
+    }
+
     this.router.navigate([buildPath(PATH.admin.pyme.consultants.profile), consultant.userId]);
   }
 
@@ -282,8 +291,24 @@ export class Landing implements OnInit, AfterViewInit, OnDestroy {
     );
   }
 
+  protected consultantDisplayName(consultant: LandingConsultant): string {
+    return this.capitalizeName(consultant.fullName);
+  }
+
   protected consultantSpecialty(consultant: LandingConsultant): string {
-    return consultant.specialties[0] ?? 'Consultoria para PYMES';
+    return consultant.specialties[0] ?? 'Consultoría para PYMES';
+  }
+
+  protected consultantAreas(consultant: LandingConsultant): string[] {
+    return consultant.diagnosticAreas.slice(0, 3);
+  }
+
+  private capitalizeName(value: string): string {
+    return value
+      .toLocaleLowerCase('es-PE')
+      .replace(/(^|[\s-])([a-záéíóúñü])/g, (_match, separator: string, letter: string) =>
+        `${separator}${letter.toLocaleUpperCase('es-PE')}`,
+      );
   }
 
   protected scrollToSection(sectionId: string, event?: Event): void {

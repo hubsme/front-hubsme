@@ -1118,6 +1118,27 @@ export interface ConsultantResultDto {
   validated: "true" | "false";
 }
 
+export interface ConsultantMercadoPagoAdminDto {
+  /** @example true */
+  connected: boolean;
+  /** @example "123456789" */
+  mercadoPagoUserId: string | null;
+  /** @example "consultor_mp" */
+  nickname: string | null;
+  /** @example "consultor@mail.com" */
+  email: string | null;
+  /**
+   * @format date-time
+   * @example "2026-06-17T15:00:00.000Z"
+   */
+  connectedAt: string | null;
+  /**
+   * @format date-time
+   * @example "2026-06-17T15:00:00.000Z"
+   */
+  lastUpdatedAt: string | null;
+}
+
 export interface ConsultantApprovalDto {
   /** Estado de aprobación asignado manualmente por backoffice */
   validated: "true" | "false";
@@ -1471,6 +1492,15 @@ export interface DashboardStatsDto {
   billableHours: number;
 }
 
+export interface DashboardMeetingStatsDto {
+  total: number;
+  confirmed: number;
+  requested: number;
+  pending: number;
+  /** Reuniones finalizadas con acta registrada */
+  completed: number;
+}
+
 export interface DashboardTaskStatusDto {
   pendiente: number;
   enProgreso: number;
@@ -1502,6 +1532,7 @@ export interface DashboardAlertDto {
 
 export interface DashboardResponseDto {
   stats: DashboardStatsDto;
+  meetingStats: DashboardMeetingStatsDto;
   taskStatus: DashboardTaskStatusDto;
   upcomingMeetings: DashboardMeetingDto[];
   workloadByClient: DashboardWorkloadClientDto[];
@@ -1725,6 +1756,44 @@ export interface PromotionCodeRedeemResultDto {
   checkoutId: number;
   code: string;
   /** @example "Consultoria gratuita confirmada" */
+  message: string;
+}
+
+export interface DniVerificationDto {
+  /**
+   * Número de DNI peruano de 8 dígitos
+   * @example "72750623"
+   */
+  documentNumber: string;
+  /** @example "Juan" */
+  firstName: string;
+  /** @example "Pérez" */
+  paternalLastName: string;
+  /** @example "Gómez" */
+  maternalLastName: string;
+  /**
+   * Fecha en formato ISO: YYYY-MM-DD
+   * @example "1990-05-21"
+   */
+  birthDate: string;
+}
+
+export interface DniVerificationMatchesDto {
+  /** Coincide el número de DNI consultado con el registro devuelto */
+  documentNumber: boolean;
+  firstName: boolean;
+  paternalLastName: boolean;
+  maternalLastName: boolean;
+  birthDate: boolean;
+}
+
+export interface DniVerificationResultDto {
+  /** Indica si todos los datos enviados coinciden */
+  verified: boolean;
+  /** Indica si PeruDevs encontró un registro para el DNI */
+  providerFound: boolean;
+  matches: DniVerificationMatchesDto;
+  /** @example "Los datos coinciden con el registro consultado." */
   message: string;
 }
 
@@ -2289,6 +2358,14 @@ export type ConsultantadminFindOneData = ConsultantResultDto;
 
 export type ConsultantadminFindOneError = HttpErrorDto;
 
+export interface ConsultantadminMercadoPagoParams {
+  id: number;
+}
+
+export type ConsultantadminMercadoPagoData = ConsultantMercadoPagoAdminDto;
+
+export type ConsultantadminMercadoPagoError = HttpErrorDto;
+
 export interface ConsultantadminApproveParams {
   id: number;
 }
@@ -2758,6 +2835,10 @@ export type PromotioncodeadminUpdateError = HttpErrorDto;
 export type PromotioncodeRedeemData = PromotionCodeRedeemResultDto;
 
 export type PromotioncodeRedeemError = HttpErrorDto;
+
+export type IdentityverificationVerifyDniData = DniVerificationResultDto;
+
+export type IdentityverificationVerifyDniError = HttpErrorDto;
 
 export namespace App {
   /**
@@ -4124,6 +4205,26 @@ export namespace ConsultantAdmin {
   /**
    * No description
    * @tags consultantAdmin
+   * @name ConsultantadminMercadoPago
+   * @summary Get a consultant Mercado Pago connection for the internal admin panel
+   * @request GET:/admin/backoffice/consultant/mercado-pago/{id}
+   * @secure
+   * @response `200` `ConsultantadminMercadoPagoData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantadminMercadoPago {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantadminMercadoPagoData;
+  }
+
+  /**
+   * No description
+   * @tags consultantAdmin
    * @name ConsultantadminApprove
    * @summary Approve or withdraw a consultant approval
    * @request PATCH:/admin/backoffice/consultant/approve/{id}
@@ -5203,6 +5304,26 @@ export namespace PromotionCode {
     export type RequestBody = PromotionCodeRedeemDto;
     export type RequestHeaders = {};
     export type ResponseBody = PromotioncodeRedeemData;
+  }
+}
+
+export namespace IdentityVerification {
+  /**
+   * No description
+   * @tags identityVerification
+   * @name IdentityverificationVerifyDni
+   * @summary Validar datos personales contra el registro de DNI de PeruDevs
+   * @request POST:/admin/identity-verification/dni
+   * @response `200` `IdentityverificationVerifyDniData`
+   * @response `400` `HttpErrorDto`
+   * @response `502` `HttpErrorDto`
+   */
+  export namespace IdentityverificationVerifyDni {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = DniVerificationDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = IdentityverificationVerifyDniData;
   }
 }
 
@@ -6948,6 +7069,32 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags consultantAdmin
+     * @name ConsultantadminMercadoPago
+     * @summary Get a consultant Mercado Pago connection for the internal admin panel
+     * @request GET:/admin/backoffice/consultant/mercado-pago/{id}
+     * @secure
+     * @response `200` `ConsultantadminMercadoPagoData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantadminMercadoPago: (
+      { id }: ConsultantadminMercadoPagoParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantadminMercadoPagoData,
+        ConsultantadminMercadoPagoError
+      >({
+        path: `/admin/backoffice/consultant/mercado-pago/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultantAdmin
      * @name ConsultantadminApprove
      * @summary Approve or withdraw a consultant approval
      * @request PATCH:/admin/backoffice/consultant/approve/{id}
@@ -8112,6 +8259,34 @@ export class Api<SecurityDataType extends unknown> {
         method: "POST",
         body: data,
         secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  identityVerification = {
+    /**
+     * No description
+     *
+     * @tags identityVerification
+     * @name IdentityverificationVerifyDni
+     * @summary Validar datos personales contra el registro de DNI de PeruDevs
+     * @request POST:/admin/identity-verification/dni
+     * @response `200` `IdentityverificationVerifyDniData`
+     * @response `400` `HttpErrorDto`
+     * @response `502` `HttpErrorDto`
+     */
+    identityverificationVerifyDni: (
+      data: DniVerificationDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        IdentityverificationVerifyDniData,
+        IdentityverificationVerifyDniError
+      >({
+        path: `/admin/identity-verification/dni`,
+        method: "POST",
+        body: data,
         type: ContentType.Json,
         format: "json",
         ...params,

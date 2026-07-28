@@ -2,13 +2,12 @@
   <header class="sticky top-0 z-50 border-b border-border bg-surface/95 backdrop-blur">
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-6 py-5 lg:px-8">
       <a href="#top" (click)="scrollToSection('top', $event)" class="flex items-center">
-        <img src="/avif/logo_completo.avif" alt="HUBSME" class="h-10 w-auto"
-          [class.brightness-0]="themeService.theme() === 'dark'" [class.invert]="themeService.theme() === 'dark'" />
+        <img src="/avif/logo_completo.avif" alt="HUBSME" class="h-10 w-auto" />
       </a>
 
       <nav class="hidden items-center gap-8 text-sm font-inter-semibold text-text-700 md:flex">
         <a href="#quienes-somos" (click)="scrollToSection('quienes-somos', $event)" class="transition hover:text-text">
-          Quienes Somos
+          Quiénes Somos
         </a>
         <a href="#servicios" (click)="scrollToSection('servicios', $event)" class="transition hover:text-text">
           Servicios
@@ -45,7 +44,7 @@
       } @else {
       <button type="button" (click)="goToLogin()"
         class="rounded-full bg-primary px-6 py-3 text-sm font-inter-bold text-fixed-background-50 transition hover:bg-primary-600">
-        Login
+        Iniciar sesión
       </button>
       }
     </div>
@@ -64,21 +63,21 @@
         <div class="max-w-3xl pb-8 text-fixed-background-50 lg:pb-16">
           <div
             class="mb-5 inline-flex rounded-full border border-surface/25 bg-surface/10 px-4 py-2 text-sm font-inter-medium">
-            Plataforma de diagnostico y consultoria para PYMES
+            Plataforma de diagnóstico y consultoría para PYMES
           </div>
           <h1 class="max-w-2xl text-5xl font-inter-bold leading-none sm:text-6xl lg:text-7xl">
             Conectamos tu PYME con expertos.
           </h1>
           <p class="mt-6 max-w-2xl text-lg leading-8 text-text-100 sm:text-xl">
-            HUBSME es una aplicacion web para PYMES y consultores: permite crear diagnosticos
+            HUBSME es una aplicación web para PYMES y consultores: permite crear diagnósticos
             empresariales, encontrar especialistas, agendar reuniones, gestionar tareas y pagar
-            sesiones de consultoria en un solo lugar.
+            sesiones de consultoría en un solo lugar.
           </p>
 
           <div class="mt-8 flex flex-col gap-4 sm:flex-row">
             <button type="button" (click)="startFreeDiagnostic()"
               class="rounded-full bg-primary px-7 py-4 text-base font-inter-bold text-fixed-background-50 transition hover:bg-primary-600">
-              Empezar Diagnostico Gratis
+              Empezar diagnóstico gratis
             </button>
             <button type="button" (click)="goToSignUp('consultor')"
               class="rounded-full border border-surface/35 bg-surface/18 px-7 py-4 text-base font-inter-bold text-fixed-background-50 backdrop-blur transition hover:bg-surface/25">
@@ -104,17 +103,17 @@
           <article class="rounded-3xl border border-border bg-surface p-6 shadow-sm lg:p-8">
             <div
               class="mb-5 inline-flex rounded-full bg-primary-100 px-4 py-2 text-sm font-inter-semibold text-primary-700">
-              Proposito de la aplicacion
+              Propósito de la aplicación
             </div>
             <h2 class="text-3xl font-inter-bold leading-tight text-text">
-              HUBSME ayuda a coordinar consultoria empresarial de inicio a fin.
+              HUBSME ayuda a coordinar consultoría empresarial de inicio a fin.
             </h2>
             <p class="mt-5 text-base leading-relaxed text-text-600">
-              La plataforma permite que una PYME registre informacion de su negocio, reciba un
-              diagnostico asistido por IA, revise consultores disponibles, seleccione un horario,
-              pague la sesion y acceda a la reunion virtual. Los consultores pueden administrar su
+              La plataforma permite que una PYME registre información de su negocio, reciba un
+              diagnóstico asistido por IA, revise consultores disponibles, seleccione un horario,
+              pague la sesión y acceda a la reunión virtual. Los consultores pueden administrar su
               perfil, calendario, disponibilidad, clientes, tareas y documentos generados durante la
-              consultoria.
+              consultoría.
             </p>
           </article>
 
@@ -125,10 +124,10 @@
               </div>
               <h3 class="mt-5 text-xl font-inter-bold text-text">Uso de Google</h3>
               <p class="mt-3 text-sm leading-7 text-text-600">
-                HUBSME puede usar Google para iniciar sesion y, si el consultor lo autoriza,
-                conectar Google Calendar para leer horarios ocupados. Esta informacion se usa para
+                HUBSME puede usar Google para iniciar sesión y, si el consultor lo autoriza,
+                conectar Google Calendar para leer horarios ocupados. Esta información se usa para
                 autenticar usuarios, evitar reservas en horas no disponibles y mejorar la
-                coordinacion de reuniones dentro de la plataforma.
+                coordinación de reuniones dentro de la plataforma.
               </p>
             </article>
 
@@ -138,8 +137,8 @@
               </div>
               <h3 class="mt-5 text-xl font-inter-bold text-text">Datos y seguridad</h3>
               <p class="mt-3 text-sm leading-7 text-text-600">
-                Los datos se usan para operar funciones visibles de la plataforma: autenticacion,
-                diagnosticos, agenda, disponibilidad, reuniones, documentos y pagos. HUBSME no vende
+                Los datos se usan para operar funciones visibles de la plataforma: autenticación,
+                diagnósticos, agenda, disponibilidad, reuniones, documentos y pagos. HUBSME no vende
                 datos personales ni usa datos de Google para publicidad.
               </p>
             </article>
@@ -157,14 +156,14 @@
 
         <div>
           <div class="inline-flex rounded-full bg-primary-100 px-4 py-2 text-sm font-inter-semibold text-primary-700">
-            Nuestra Historia
+            Nuestra historia
           </div>
           <h2 class="mt-6 max-w-xl text-3xl font-inter-bold leading-tight text-text sm:text-4xl">
             Transformando el futuro de las PYMES con CONSULTORES REALES CALIFICADOS apoyados con IA
           </h2>
           <p class="mt-5 text-base leading-relaxed text-text-600">
-            HUBSME nacio para democratizar el acceso a consultoria de alto nivel para pequenas y
-            medianas empresas. Combinamos diagnostico asistido por IA con una red de especialistas
+            HUBSME nació para democratizar el acceso a consultoría de alto nivel para pequeñas y
+            medianas empresas. Combinamos diagnóstico asistido por IA con una red de especialistas
             validados para convertir problemas difusos en planes accionables.
           </p>
 
@@ -175,9 +174,9 @@
                 <i class="fas fa-bolt text-lg"></i>
               </div>
               <div>
-                <h3 class="text-lg font-inter-bold text-text">Nuestra Mision</h3>
+                <h3 class="text-lg font-inter-bold text-text">Nuestra misión</h3>
                 <p class="mt-1.5 text-sm text-text-600">
-                  Empoderar empresarios con diagnosticos precisos y conexiones estrategicas con
+                  Empoderar empresarios con diagnósticos precisos y conexiones estratégicas con
                   consultores validados.
                 </p>
               </div>
@@ -188,9 +187,9 @@
                 <i class="fas fa-eye text-lg"></i>
               </div>
               <div>
-                <h3 class="text-lg font-inter-bold text-text">Nuestra Vision</h3>
+                <h3 class="text-lg font-inter-bold text-text">Nuestra visión</h3>
                 <p class="mt-1.5 text-sm text-text-600">
-                  Ser el ecosistema digital lider en Latinoamerica para la optimizacion y
+                  Ser el ecosistema digital líder en Latinoamérica para la optimización y
                   crecimiento sostenible de negocios emergentes.
                 </p>
               </div>
@@ -261,12 +260,12 @@
               @for (consultant of consultants(); track consultant.id) {
               <div class="w-full sm:w-1/2 lg:w-1/3 xl:w-1/4 shrink-0 px-3 select-none">
                 <article
-                  class="relative flex h-[500px] w-full flex-col overflow-hidden rounded-3xl border border-border bg-surface shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/10">
+                  class="relative flex h-[560px] w-full flex-col overflow-hidden rounded-3xl border border-border bg-surface shadow-sm transition-all duration-300 hover:-translate-y-2 hover:border-primary-200 hover:shadow-xl hover:shadow-primary-500/10">
 
                   <!-- Capa de Media (Expansible) -->
                   <div
                     class="absolute top-0 left-0 z-0 w-full overflow-hidden bg-background-50 transition-all duration-500 ease-in-out"
-                    [class.h-[55%]]="!isConsultantMediaActive(consultant.id.toString())"
+                    [class.h-[53%]]="!isConsultantMediaActive(consultant.id.toString())"
                     [class.h-full]="isConsultantMediaActive(consultant.id.toString())"
                     (mouseenter)="activateConsultantMedia(consultant.id.toString(), $event)"
                     (mouseleave)="deactivateConsultantMedia(consultant.id.toString(), $event)">
@@ -285,6 +284,14 @@
                       class="absolute inset-0 bg-black/10 opacity-0 transition-opacity duration-500 pointer-events-none"
                       [class.opacity-100]="isConsultantMediaActive(consultant.id.toString())"></div>
 
+                    <div
+                      class="pointer-events-none absolute left-3 top-3 z-10 inline-flex items-center gap-1 rounded-full bg-surface/95 px-2.5 py-1 text-xs font-inter-bold text-text-700 shadow-lg shadow-text/15 backdrop-blur transition-opacity duration-300"
+                      [class.opacity-0]="consultant.videoUrl && isConsultantMediaActive(consultant.id.toString())"
+                      [attr.aria-label]="'Calificación: ' + consultant.rating">
+                      <i class="fas fa-star text-warning"></i>
+                      <span>{{ consultant.rating }}</span>
+                    </div>
+
                     @if (consultant.videoUrl) {
                     <button type="button" aria-label="Activar o silenciar audio" data-consultant-audio-toggle
                       class="absolute right-3 top-3 z-20 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full bg-text/70 text-fixed-background-50 opacity-0 shadow-lg shadow-text/20 backdrop-blur transition hover:bg-text"
@@ -297,35 +304,46 @@
 
                   <!-- Contenido (Visible por defecto) -->
                   <div
-                    class="absolute bottom-0 left-0 z-10 flex h-[45%] w-full flex-col items-center justify-center bg-surface p-6 text-center transition-all duration-500 ease-in-out cursor-grab active:cursor-grabbing"
+                    class="absolute bottom-0 left-0 z-10 flex h-[47%] w-full cursor-grab flex-col items-center justify-start overflow-hidden bg-surface p-4 text-center transition-all duration-500 ease-in-out active:cursor-grabbing"
                     [class.translate-y-full]="isConsultantMediaActive(consultant.id.toString())"
                     [class.opacity-0]="isConsultantMediaActive(consultant.id.toString())">
-                    <h3
-                      class="text-xl font-inter-bold text-text pointer-events-none flex items-center justify-center gap-1.5">
-                      {{ consultant.fullName }}
-                      @if (consultant.validated === 'true') {
-                      <i class="fas fa-check-circle text-primary text-sm" title="Verificado"></i>
+                    <div
+                      class="flex min-h-0 w-full flex-1 flex-col items-center justify-evenly overflow-hidden">
+                      <h3
+                        class="pointer-events-none flex items-center justify-center gap-1.5 text-lg font-inter-bold leading-tight text-text">
+                        {{ consultantDisplayName(consultant) }}
+                        @if (consultant.validated === 'true') {
+                        <i class="fas fa-check-circle text-primary text-sm" title="Verificado"></i>
+                        }
+                      </h3>
+                      <div
+                        class="pointer-events-none inline-flex max-w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-full bg-primary-50 px-2.5 py-0.5 text-[0.68rem] font-inter-bold text-primary-600">
+                        {{ consultantSpecialty(consultant) }}
+                      </div>
+                      @if (consultantAreas(consultant).length > 0) {
+                      <div class="pointer-events-none flex max-w-[95%] flex-wrap justify-center gap-1">
+                        @for (area of consultantAreas(consultant); track area) {
+                        <span
+                          class="rounded-full border border-border/60 bg-text/5 px-2 py-0.5 text-[0.56rem] font-inter-bold leading-tight text-text-500">
+                          {{ area }}
+                        </span>
+                        }
+                      </div>
                       }
-                    </h3>
-                    <div
-                      class="mt-2 inline-flex rounded-full bg-primary-50 px-3 py-1 text-xs font-inter-bold text-primary-600 pointer-events-none">
-                      {{ consultantSpecialty(consultant) }}
+                      <p
+                        class="pointer-events-none line-clamp-2 min-h-8 text-[0.72rem] leading-4 text-text-500">
+                        {{
+                        consultant.bio ||
+                        'Especialista validado para acompañar el crecimiento de tu PYME.'
+                        }}
+                      </p>
                     </div>
-                    <p class="mt-3 line-clamp-2 text-xs leading-relaxed text-text-500 pointer-events-none">
-                      {{
-                      consultant.bio ||
-                      'Especialista validado para acompañar el crecimiento de tu PYME.'
-                      }}
-                    </p>
-                    <div
-                      class="mt-3 flex items-center gap-1.5 text-xs font-inter-bold text-text-700 pointer-events-none">
-                      <i class="fas fa-star text-warning"></i>
-                      <span>{{ consultant.rating }}</span>
+                    <div class="w-full shrink-0 pt-2">
+                      <button type="button" (click)="viewConsultantProfile(consultant)"
+                        class="h-9 w-full cursor-pointer rounded-xl bg-primary px-5 text-xs font-inter-bold text-fixed-background-50 transition hover:bg-primary-600">
+                        Ver Perfil
+                      </button>
                     </div>
-                    <button type="button" (click)="viewConsultantProfile(consultant)"
-                      class="mt-5 w-full rounded-xl bg-primary px-5 py-2.5 text-xs font-inter-bold text-fixed-background-50 transition hover:bg-primary-600">
-                      Ver Perfil
-                    </button>
                   </div>
                 </article>
               </div>
@@ -362,17 +380,17 @@
         <div class="grid gap-12 lg:grid-cols-[1fr_0.95fr] lg:items-center">
           <div>
             <h2 class="max-w-2xl text-3xl font-inter-bold leading-tight text-text sm:text-4xl">
-              Consultoria Especializada para cada area de tu negocio
+            Consultoría especializada para cada área de tu negocio
             </h2>
             <p class="mt-5 max-w-2xl text-base leading-relaxed text-text-600">
-              No importa el desafio, tenemos una red de expertos y herramientas de IA disenadas para
-              resolver problemas complejos en tiempo record.
+              No importa el desafío, tenemos una red de expertos y herramientas de IA diseñadas para
+              resolver problemas complejos en tiempo récord.
             </p>
           </div>
 
           <div class="overflow-hidden rounded-[32px] shadow-2xl shadow-text-200/70">
             <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1200&q=80"
-              alt="Sesion de consultoria en equipo" class="h-full min-h-[280px] w-full object-cover" />
+              alt="Sesión de consultoría en equipo" class="h-full min-h-[280px] w-full object-cover" />
           </div>
         </div>
 
@@ -425,7 +443,7 @@
             Oficina Principal
           </h3>
           <p class="mt-4 text-sm text-text-400">
-            Av Manuel Olguin 595 Santiago de Surco<br />Lima, Perú
+            Av. Manuel Olguín 595, Santiago de Surco<br />Lima, Perú
           </p>
 
           <h3 class="mt-8 text-xs font-inter-bold uppercase tracking-wider text-text-300">
@@ -457,7 +475,7 @@
           <ul class="mt-4 space-y-3 text-sm text-text-400">
             <li>
               <a href="#quienes-somos" (click)="scrollToSection('quienes-somos', $event)"
-                class="hover:text-fixed-background-50 transition-colors">Quienes Somos</a>
+                class="hover:text-fixed-background-50 transition-colors">Quiénes Somos</a>
             </li>
             <li>
               <a href="#servicios" (click)="scrollToSection('servicios', $event)"
@@ -481,9 +499,9 @@
         <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-text-500">
           <span class="font-inter-bold text-text-300">HUBSME S.A.C.</span>
           <span>© 2026 Todos los derechos reservados.</span>
-          <a href="/politicas-de-privacidad" class="hover:text-fixed-background-50 transition-colors">Politica de
+          <a href="/politicas-de-privacidad" class="hover:text-fixed-background-50 transition-colors">Política de
             Privacidad</a>
-          <a href="/terminos-y-condiciones" class="hover:text-fixed-background-50 transition-colors">Terminos y
+          <a href="/terminos-y-condiciones" class="hover:text-fixed-background-50 transition-colors">Términos y
             Condiciones</a>
         </div>
       </div>

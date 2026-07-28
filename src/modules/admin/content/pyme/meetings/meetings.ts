@@ -43,8 +43,13 @@ type Meeting = ApiResponse<'meeting', 'findAll'>['data'][number];
 type ConsultantBilling = {
   photoUrl: string | null;
   pricePerHour: string;
+  fullName: string;
 };
 type MeetingEventMeta = { meetingId: number };
+type MonthDaySelection = {
+  date: Date;
+  events: CalendarEvent<MeetingEventMeta>[];
+};
 
 @Component({
   selector: 'app-meetings',
@@ -94,6 +99,8 @@ export class Meetings implements OnInit {
   showCreate = signal(false);
   paymentMeeting = signal<Meeting | null>(null);
   calendarMeeting = signal<Meeting | null>(null);
+  expandedMonthDay = signal<MonthDaySelection | null>(null);
+  readonly monthEventLimit = 2;
 
   form = signal<MeetingForm>({
     pymeId: 0,
@@ -122,9 +129,10 @@ export class Meetings implements OnInit {
     this.meetings()
       .filter((meeting) => ['confirmada', 'pago_pendiente', 'por_confirmar'].includes(meeting.status))
       .map((meeting) => ({
+        id: meeting.id,
         start: this.meetingDisplayStart(meeting),
         end: this.meetingEnd(meeting),
-        title: meeting.title,
+        title: `${this.calendarEventTime(this.meetingDisplayStart(meeting))} · ${this.consultantDisplayName(meeting)}`,
         color: this.meetingColor(meeting),
         meta: { meetingId: meeting.id },
       })),
@@ -185,13 +193,18 @@ export class Meetings implements OnInit {
             [id]: {
               photoUrl: consultant.photoUrl,
               pricePerHour: consultant.pricePerHour,
+              fullName: consultant.fullName,
             },
           }));
         })
         .catch(() => {
           this.consultantBilling.update((current) => ({
             ...current,
-            [id]: { photoUrl: null, pricePerHour: '0.00' },
+            [id]: {
+              photoUrl: null,
+              pricePerHour: '0.00',
+              fullName: 'Consultor asignado',
+            },
           }));
         });
     });
@@ -218,6 +231,34 @@ export class Meetings implements OnInit {
 
   closeCalendarMeeting() {
     this.calendarMeeting.set(null);
+  }
+
+  openMonthDay(
+    date: Date,
+    events: CalendarEvent<MeetingEventMeta>[],
+    sourceEvent: MouseEvent,
+  ) {
+    sourceEvent.stopPropagation();
+    this.expandedMonthDay.set({
+      date: new Date(date),
+      events: [...events],
+    });
+  }
+
+  closeMonthDay() {
+    this.expandedMonthDay.set(null);
+  }
+
+  openExpandedMonthEvent(event: CalendarEvent<MeetingEventMeta>) {
+    this.closeMonthDay();
+    this.openCalendarMeeting(event);
+  }
+
+  monthDayLabel(date: Date) {
+    return date.toLocaleDateString('es-PE', {
+      day: 'numeric',
+      month: 'long',
+    });
   }
 
   joinMeeting(meeting: Meeting) {
@@ -464,6 +505,10 @@ export class Meetings implements OnInit {
     return this.consultantBilling()[meeting.consultantId]?.photoUrl ?? null;
   }
 
+  consultantDisplayName(meeting: Meeting) {
+    return this.consultantBilling()[meeting.consultantId]?.fullName ?? 'Consultor asignado';
+  }
+
   pricePerHour(meeting: Meeting) {
     return Number(this.consultantBilling()[meeting.consultantId]?.pricePerHour ?? 0);
   }
@@ -476,6 +521,14 @@ export class Meetings implements OnInit {
     return value.toLocaleString('es-PE', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
+    });
+  }
+
+  private calendarEventTime(value: Date) {
+    return value.toLocaleTimeString('es-PE', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
     });
   }
 }

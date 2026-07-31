@@ -120,6 +120,26 @@ export interface RegisterDto {
    */
   lastName?: string;
   /**
+   * DNI validado del consultor
+   * @example "72750623"
+   */
+  documentNumber?: string;
+  /**
+   * Apellido paterno usado en la validación de identidad
+   * @example "Pérez"
+   */
+  paternalLastName?: string;
+  /**
+   * Apellido materno usado en la validación de identidad
+   * @example "Gómez"
+   */
+  maternalLastName?: string;
+  /**
+   * Fecha de nacimiento usada en la validación de identidad
+   * @example "1990-05-21"
+   */
+  birthDate?: string;
+  /**
    * PYME RUC
    * @example "20600000001"
    */
@@ -243,6 +263,79 @@ export interface EmailSendResultDto {
   message: string;
   /** @example "<abc123@mail.gmail.com>" */
   messageId: string;
+}
+
+export interface DniVerificationDto {
+  /**
+   * Número de DNI peruano de 8 dígitos
+   * @example "72750623"
+   */
+  documentNumber: string;
+  /** @example "Juan" */
+  firstName: string;
+  /** @example "Pérez" */
+  paternalLastName: string;
+  /** @example "Gómez" */
+  maternalLastName: string;
+  /**
+   * Fecha en formato ISO: YYYY-MM-DD
+   * @example "1990-05-21"
+   */
+  birthDate: string;
+}
+
+export interface DniVerificationMatchesDto {
+  /** Coincide el número de DNI consultado con el registro devuelto */
+  documentNumber: boolean;
+  firstName: boolean;
+  paternalLastName: boolean;
+  maternalLastName: boolean;
+  birthDate: boolean;
+}
+
+export interface DniVerificationIdentityDto {
+  id: string;
+  nombres: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  nombre_completo: string;
+  genero: string;
+  fecha_nacimiento: string;
+  codigo_verificacion: string;
+}
+
+export interface DniVerificationResultDto {
+  /** Indica si todos los datos enviados coinciden */
+  verified: boolean;
+  /** Indica si PeruDevs encontró un registro para el DNI */
+  providerFound: boolean;
+  matches: DniVerificationMatchesDto;
+  /** Datos devueltos por el proveedor para conservarlos internamente al crear la cuenta */
+  identity: DniVerificationIdentityDto | null;
+  /** @example "Los datos coinciden con el registro consultado." */
+  message: string;
+}
+
+export interface RucVerificationDto {
+  /**
+   * Número de RUC peruano de 11 dígitos
+   * @example "20123456789"
+   */
+  ruc: string;
+}
+
+export interface RucVerificationResultDto {
+  /** Indica si el RUC existe en el registro consultado */
+  verified: boolean;
+  /** Indica si PeruDevs encontró información para el RUC */
+  providerFound: boolean;
+  /**
+   * Nombre comercial asociado al RUC cuando existe en el registro
+   * @example "Textiles del Sur SAC"
+   */
+  nombreComercial: string | null;
+  /** @example "El RUC existe en el registro consultado." */
+  message: string;
 }
 
 export interface UserListItemDto {
@@ -1113,6 +1206,13 @@ export interface ConsultantResultDto {
   fullName: string;
   firstName: string | null;
   lastName: string | null;
+  /** @example "72750623" */
+  dni: string | null;
+  /**
+   * @format date
+   * @example "1990-05-21"
+   */
+  birthDate: string | null;
   ownerPhone: string | null;
   headline: string | null;
   location: string | null;
@@ -1191,6 +1291,16 @@ export interface ConsultantCreateDto {
   firstName?: string;
   /** @example "Mendoza" */
   lastName?: string;
+  /**
+   * DNI validado del consultor
+   * @example "72750623"
+   */
+  dni?: string;
+  /**
+   * Fecha de nacimiento validada del consultor en formato YYYY-MM-DD
+   * @example "1990-05-21"
+   */
+  birthDate?: string;
   /** @example "Carlos Mendoza" */
   fullName?: string;
   /** @example "51929073820" */
@@ -1258,6 +1368,16 @@ export interface ConsultantUpdateDto {
   firstName?: string;
   /** @example "Mendoza" */
   lastName?: string;
+  /**
+   * DNI validado del consultor
+   * @example "72750623"
+   */
+  dni?: string;
+  /**
+   * Fecha de nacimiento validada del consultor en formato YYYY-MM-DD
+   * @example "1990-05-21"
+   */
+  birthDate?: string;
   /** @example "Carlos Mendoza" */
   fullName?: string;
   /** @example "51929073820" */
@@ -1794,44 +1914,6 @@ export interface PromotionCodeRedeemResultDto {
   message: string;
 }
 
-export interface DniVerificationDto {
-  /**
-   * Número de DNI peruano de 8 dígitos
-   * @example "72750623"
-   */
-  documentNumber: string;
-  /** @example "Juan" */
-  firstName: string;
-  /** @example "Pérez" */
-  paternalLastName: string;
-  /** @example "Gómez" */
-  maternalLastName: string;
-  /**
-   * Fecha en formato ISO: YYYY-MM-DD
-   * @example "1990-05-21"
-   */
-  birthDate: string;
-}
-
-export interface DniVerificationMatchesDto {
-  /** Coincide el número de DNI consultado con el registro devuelto */
-  documentNumber: boolean;
-  firstName: boolean;
-  paternalLastName: boolean;
-  maternalLastName: boolean;
-  birthDate: boolean;
-}
-
-export interface DniVerificationResultDto {
-  /** Indica si todos los datos enviados coinciden */
-  verified: boolean;
-  /** Indica si PeruDevs encontró un registro para el DNI */
-  providerFound: boolean;
-  matches: DniVerificationMatchesDto;
-  /** @example "Los datos coinciden con el registro consultado." */
-  message: string;
-}
-
 export type AppGetHelloData = any;
 
 export type AuthLoginData = LoginResponseDto;
@@ -1876,6 +1958,14 @@ export type AuthResetPasswordError = HttpErrorDto;
 export type EmailSendEmailData = EmailSendResultDto;
 
 export type EmailSendEmailError = HttpErrorDto;
+
+export type IdentityverificationVerifyDniData = DniVerificationResultDto;
+
+export type IdentityverificationVerifyDniError = HttpErrorDto;
+
+export type IdentityverificationVerifyRucData = RucVerificationResultDto;
+
+export type IdentityverificationVerifyRucError = HttpErrorDto;
 
 export interface UserFindAllParams {
   /**
@@ -2898,10 +2988,6 @@ export type PromotioncodeRedeemData = PromotionCodeRedeemResultDto;
 
 export type PromotioncodeRedeemError = HttpErrorDto;
 
-export type IdentityverificationVerifyDniData = DniVerificationResultDto;
-
-export type IdentityverificationVerifyDniError = HttpErrorDto;
-
 export namespace App {
   /**
    * No description
@@ -3067,6 +3153,44 @@ export namespace Email {
     export type RequestBody = EmailSendDto;
     export type RequestHeaders = {};
     export type ResponseBody = EmailSendEmailData;
+  }
+}
+
+export namespace IdentityVerification {
+  /**
+   * No description
+   * @tags identityVerification
+   * @name IdentityverificationVerifyDni
+   * @summary Validar datos personales contra el registro de DNI de PeruDevs
+   * @request POST:/admin/identity-verification/dni
+   * @response `200` `IdentityverificationVerifyDniData`
+   * @response `400` `HttpErrorDto`
+   * @response `502` `HttpErrorDto`
+   */
+  export namespace IdentityverificationVerifyDni {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = DniVerificationDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = IdentityverificationVerifyDniData;
+  }
+
+  /**
+   * No description
+   * @tags identityVerification
+   * @name IdentityverificationVerifyRuc
+   * @summary Validar si un RUC existe en el registro de PeruDevs
+   * @request POST:/admin/identity-verification/ruc
+   * @response `200` `IdentityverificationVerifyRucData`
+   * @response `400` `HttpErrorDto`
+   * @response `502` `HttpErrorDto`
+   */
+  export namespace IdentityverificationVerifyRuc {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = RucVerificationDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = IdentityverificationVerifyRucData;
   }
 }
 
@@ -5408,26 +5532,6 @@ export namespace PromotionCode {
   }
 }
 
-export namespace IdentityVerification {
-  /**
-   * No description
-   * @tags identityVerification
-   * @name IdentityverificationVerifyDni
-   * @summary Validar datos personales contra el registro de DNI de PeruDevs
-   * @request POST:/admin/identity-verification/dni
-   * @response `200` `IdentityverificationVerifyDniData`
-   * @response `400` `HttpErrorDto`
-   * @response `502` `HttpErrorDto`
-   */
-  export namespace IdentityverificationVerifyDni {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = DniVerificationDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = IdentityverificationVerifyDniData;
-  }
-}
-
 export type QueryParamsType = Record<string | number, any>;
 export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
 
@@ -5874,6 +5978,61 @@ export class Api<SecurityDataType extends unknown> {
         method: "POST",
         body: data,
         secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  identityVerification = {
+    /**
+     * No description
+     *
+     * @tags identityVerification
+     * @name IdentityverificationVerifyDni
+     * @summary Validar datos personales contra el registro de DNI de PeruDevs
+     * @request POST:/admin/identity-verification/dni
+     * @response `200` `IdentityverificationVerifyDniData`
+     * @response `400` `HttpErrorDto`
+     * @response `502` `HttpErrorDto`
+     */
+    identityverificationVerifyDni: (
+      data: DniVerificationDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        IdentityverificationVerifyDniData,
+        IdentityverificationVerifyDniError
+      >({
+        path: `/admin/identity-verification/dni`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags identityVerification
+     * @name IdentityverificationVerifyRuc
+     * @summary Validar si un RUC existe en el registro de PeruDevs
+     * @request POST:/admin/identity-verification/ruc
+     * @response `200` `IdentityverificationVerifyRucData`
+     * @response `400` `HttpErrorDto`
+     * @response `502` `HttpErrorDto`
+     */
+    identityverificationVerifyRuc: (
+      data: RucVerificationDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        IdentityverificationVerifyRucData,
+        IdentityverificationVerifyRucError
+      >({
+        path: `/admin/identity-verification/ruc`,
+        method: "POST",
+        body: data,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -8384,34 +8543,6 @@ export class Api<SecurityDataType extends unknown> {
         method: "POST",
         body: data,
         secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-  };
-  identityVerification = {
-    /**
-     * No description
-     *
-     * @tags identityVerification
-     * @name IdentityverificationVerifyDni
-     * @summary Validar datos personales contra el registro de DNI de PeruDevs
-     * @request POST:/admin/identity-verification/dni
-     * @response `200` `IdentityverificationVerifyDniData`
-     * @response `400` `HttpErrorDto`
-     * @response `502` `HttpErrorDto`
-     */
-    identityverificationVerifyDni: (
-      data: DniVerificationDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        IdentityverificationVerifyDniData,
-        IdentityverificationVerifyDniError
-      >({
-        path: `/admin/identity-verification/dni`,
-        method: "POST",
-        body: data,
         type: ContentType.Json,
         format: "json",
         ...params,

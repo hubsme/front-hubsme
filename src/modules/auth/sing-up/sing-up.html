@@ -91,8 +91,8 @@
   } @else {
     <div
       class="w-full bg-surface rounded-3xl shadow-xl border border-text/10 overflow-hidden transition-all duration-300 relative z-10"
-      [class.max-w-lg]="role() !== 'consultor' || step() !== 1"
-      [class.max-w-5xl]="role() === 'consultor' && step() === 1"
+      [class.max-w-3xl]="role() !== 'consultor' || step() !== 1 || consultantPhase() === 1"
+      [class.max-w-5xl]="role() === 'consultor' && step() === 1 && consultantPhase() === 2"
     >
     <!-- Logo Header -->
     <div class="pt-10 pb-2 text-center">
@@ -106,61 +106,98 @@
     <!-- Progress Stepper -->
     <div class="flex items-center justify-center px-10 pt-4 pb-2">
       <div class="flex items-center w-full max-w-xs sm:max-w-md">
-        <!-- Step 1: Info -->
-        <div class="flex flex-col items-center flex-1">
-          <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 shadow-sm"
-            [class.border-secondary]="step() === 1"
-            [class.bg-secondary]="step() === 1"
-            [class.text-background]="step() === 1"
-            [class.border-success]="step() === 2"
-            [class.bg-success]="step() === 2"
-            [class.text-background]="step() === 2"
-          >
-            @if (step() === 2) {
-              <i class="fas fa-check text-xs"></i>
-            } @else {
-              <span class="text-xs font-inter-bold">1</span>
+        @if (role() === 'consultor') {
+          @for (wizardStep of [1, 2, 3]; track wizardStep) {
+            <div class="flex flex-col items-center flex-1">
+              <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 shadow-sm"
+                [class.border-secondary]="(step() === 1 ? consultantPhase() : 3) === wizardStep"
+                [class.bg-secondary]="(step() === 1 ? consultantPhase() : 3) === wizardStep"
+                [class.text-background]="(step() === 1 ? consultantPhase() : 3) === wizardStep"
+                [class.border-success]="(step() === 1 ? consultantPhase() : 3) > wizardStep"
+                [class.bg-success]="(step() === 1 ? consultantPhase() : 3) > wizardStep"
+                [class.text-text/40]="(step() === 1 ? consultantPhase() : 3) < wizardStep"
+              >
+                @if ((step() === 1 ? consultantPhase() : 3) > wizardStep) {
+                  <i class="fas fa-check text-xs text-background"></i>
+                } @else {
+                  <span class="text-xs font-inter-bold">{{ wizardStep }}</span>
+                }
+              </div>
+              <span class="mt-1.5 text-[11px] font-inter-semibold"
+                [class.text-secondary]="(step() === 1 ? consultantPhase() : 3) === wizardStep"
+                [class.text-success]="(step() === 1 ? consultantPhase() : 3) > wizardStep"
+                [class.text-text/40]="(step() === 1 ? consultantPhase() : 3) < wizardStep">
+                @if (wizardStep === 1) {
+                  Identidad
+                } @else if (wizardStep === 2) {
+                  CV y áreas
+                } @else {
+                  Cuenta
+                }
+              </span>
+            </div>
+            @if (wizardStep < 3) {
+              <div class="h-[2px] flex-1 bg-border transition-all duration-300 mx-2"
+                [class.bg-success]="(step() === 1 ? consultantPhase() : 3) > wizardStep">
+              </div>
             }
+          }
+        } @else {
+          <!-- Step 1: Perfil -->
+          <div class="flex flex-col items-center flex-1">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 shadow-sm"
+              [class.border-secondary]="step() === 1"
+              [class.bg-secondary]="step() === 1"
+              [class.text-background]="step() === 1"
+              [class.border-success]="step() === 2"
+              [class.bg-success]="step() === 2"
+              [class.text-background]="step() === 2"
+            >
+              @if (step() === 2) {
+                <i class="fas fa-check text-xs"></i>
+              } @else {
+                <span class="text-xs font-inter-bold">1</span>
+              }
+            </div>
+            <span class="mt-1.5 text-[11px] font-inter-semibold"
+              [class.text-secondary]="step() === 1"
+              [class.text-success]="step() === 2"
+              [class.text-text/40]="step() !== 1 && step() !== 2">
+              Perfil
+            </span>
           </div>
-          <span class="mt-1.5 text-[11px] font-inter-semibold" 
-            [class.text-secondary]="step() === 1"
-            [class.text-success]="step() === 2"
-            [class.text-text/40]="step() !== 1 && step() !== 2">
-            Perfil
-          </span>
-        </div>
-        
-        <!-- Divider Line -->
-        <div class="h-[2px] flex-1 bg-border transition-all duration-300 mx-2"
-          [class.bg-success]="step() === 2">
-        </div>
-        
-        <!-- Step 2: Credentials -->
-        <div class="flex flex-col items-center flex-1">
-          <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 shadow-sm"
-            [class.border-secondary]="step() === 2"
-            [class.bg-secondary]="step() === 2"
-            [class.text-background]="step() === 2"
-            [class.border-border]="step() !== 2"
-            [class.text-text/40]="step() !== 2"
-          >
-            <span class="text-xs font-inter-bold">2</span>
+
+          <div class="h-[2px] flex-1 bg-border transition-all duration-300 mx-2"
+            [class.bg-success]="step() === 2">
           </div>
-          <span class="mt-1.5 text-[11px] font-inter-semibold" 
-            [class.text-secondary]="step() === 2"
-            [class.text-text/40]="step() !== 2">
-            Credenciales
-          </span>
-        </div>
+
+          <!-- Step 2: Credentials -->
+          <div class="flex flex-col items-center flex-1">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 shadow-sm"
+              [class.border-secondary]="step() === 2"
+              [class.bg-secondary]="step() === 2"
+              [class.text-background]="step() === 2"
+              [class.border-border]="step() !== 2"
+              [class.text-text/40]="step() !== 2"
+            >
+              <span class="text-xs font-inter-bold">2</span>
+            </div>
+            <span class="mt-1.5 text-[11px] font-inter-semibold"
+              [class.text-secondary]="step() === 2"
+              [class.text-text/40]="step() !== 2">
+              Credenciales
+            </span>
+          </div>
+        }
       </div>
     </div>
 
     <div class="p-6 sm:p-10 pt-4">
       <form (ngSubmit)="onRegister()" class="space-y-6" autocomplete="off">
         @if (step() === 1) {
-          
-          <!-- Role Selection Step -->
-          @if (!roleLocked()) {
+          @if (role() === 'pyme' || consultantPhase() === 1) {
+            <!-- Role Selection Step -->
+            @if (!roleLocked()) {
             <div class="grid grid-cols-2 gap-4">
               <!-- Soy PYME Button -->
               <button
@@ -258,6 +295,7 @@
               </div>
 
             </div>
+            }
           }
 
           <!-- PYME Forms -->
@@ -297,12 +335,32 @@
                     <input
                       name="ruc"
                       autocomplete="off"
+                      inputmode="numeric"
+                      maxlength="11"
                       [ngModel]="ruc()"
-                      (ngModelChange)="ruc.set($event)"
-                      class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
+                      (ngModelChange)="onRucChange($event)"
+                      class="block w-full pl-10 pr-10 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
                       placeholder="20600000001"
                     />
+                    <div class="absolute right-3.5 top-1/2 -translate-y-1/2 text-text/40">
+                      @if (rucLookupLoading()) {
+                        <i class="fas fa-circle-notch fa-spin text-xs text-secondary"></i>
+                      } @else if (rucVerified() === true) {
+                        <i class="fas fa-check-circle text-xs text-success"></i>
+                      } @else if (rucVerified() === false) {
+                        <i class="fas fa-times-circle text-xs text-danger"></i>
+                      }
+                    </div>
                   </div>
+                  @if (rucLookupLoading()) {
+                    <p class="text-[10px] font-inter-semibold text-secondary">Consultando RUC...</p>
+                  } @else if (rucLookupError()) {
+                    <p class="text-[10px] font-inter-semibold text-danger">{{ rucLookupError() }}</p>
+                  } @else if (rucVerified() === true) {
+                    <p class="text-[10px] font-inter-semibold text-success">RUC validado correctamente</p>
+                  } @else if (ruc().length > 0 && ruc().length < 11) {
+                    <p class="text-[10px] text-text/45">Ingresa los 11 dígitos para validar</p>
+                  }
                 </div>
               </div>
             </div>
@@ -390,9 +448,20 @@
           
           <!-- Consultor Forms -->
           @else if (role() === 'consultor') {
-            <div class="grid gap-6 pt-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
-              <!-- Left Column: Nombres + CV Upload -->
-              <div class="space-y-5">
+            @if (consultantPhase() === 1) {
+              <div class="space-y-5 pt-2">
+                <div class="flex items-start gap-3 rounded-2xl border border-secondary/15 bg-secondary/[0.03] p-4">
+                  <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                    <i class="fas fa-id-card text-sm"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-sm font-inter-bold text-text">Valida tu identidad</h3>
+                    <p class="mt-1 text-xs leading-relaxed text-text/55">
+                      Confirma tus datos para verificar que eres la persona que se registrará como consultor.
+                    </p>
+                  </div>
+                </div>
+
                 <div class="grid gap-4 sm:grid-cols-2">
                   <div class="space-y-1.5">
                     <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Nombres</label>
@@ -401,26 +470,26 @@
                         <i class="fas fa-user text-xs"></i>
                       </div>
                       <input
-                        name="consultantFirstName"
+                        name="consultantIdentityFirstName"
                         autocomplete="given-name"
                         [ngModel]="firstName()"
-                        (ngModelChange)="firstName.set($event)"
+                        (ngModelChange)="firstName.set($event); onConsultantIdentityFieldChange()"
                         class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
                         placeholder="María"
                       />
                     </div>
                   </div>
                   <div class="space-y-1.5">
-                    <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Apellidos</label>
+                    <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Apellido paterno</label>
                     <div class="relative">
                       <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text/40">
                         <i class="fas fa-user text-xs"></i>
                       </div>
                       <input
-                        name="consultantLastName"
+                        name="consultantPaternalLastName"
                         autocomplete="family-name"
-                        [ngModel]="lastName()"
-                        (ngModelChange)="lastName.set($event)"
+                        [ngModel]="paternalLastName()"
+                        (ngModelChange)="onConsultantPaternalLastNameChange($event)"
                         class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
                         placeholder="Torres"
                       />
@@ -428,10 +497,94 @@
                   </div>
                 </div>
 
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div class="space-y-1.5">
+                    <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Apellido materno</label>
+                    <div class="relative">
+                      <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text/40">
+                        <i class="fas fa-user text-xs"></i>
+                      </div>
+                      <input
+                        name="consultantMaternalLastName"
+                        autocomplete="additional-name"
+                        [ngModel]="maternalLastName()"
+                        (ngModelChange)="onConsultantMaternalLastNameChange($event)"
+                        class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
+                        placeholder="Gómez"
+                      />
+                    </div>
+                  </div>
+                  <div class="space-y-1.5">
+                    <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Fecha de nacimiento</label>
+                    <div class="relative">
+                      <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text/40">
+                        <i class="fas fa-calendar text-xs"></i>
+                      </div>
+                      <input
+                        type="date"
+                        name="consultantBirthDate"
+                        [ngModel]="birthDate()"
+                        (ngModelChange)="birthDate.set($event); onConsultantIdentityFieldChange()"
+                        class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text transition-all duration-200 text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                  <div class="space-y-1.5">
+                    <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Número de DNI</label>
+                    <div class="relative">
+                      <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text/40">
+                        <i class="fas fa-id-card text-xs"></i>
+                      </div>
+                      <input
+                        name="consultantDni"
+                        inputmode="numeric"
+                        maxlength="8"
+                        [ngModel]="documentNumber()"
+                        (ngModelChange)="onConsultantDniChange($event)"
+                        class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
+                        placeholder="72750623"
+                      />
+                    </div>
+                  </div>
+                  <div class="flex items-end">
+                    <button
+                      type="button"
+                      (click)="verifyConsultantIdentity()"
+                      [disabled]="!consultantIdentityComplete() || identityLookupLoading() || identityVerified() === true"
+                      class="w-full flex items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-sm font-inter-bold text-background shadow-md shadow-secondary/10 transition-all hover:bg-secondary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      @if (identityLookupLoading()) {
+                        <i class="fas fa-circle-notch fa-spin text-xs"></i>
+                        Validando...
+                      } @else if (identityVerified() === true) {
+                        <i class="fas fa-check text-xs"></i>
+                        Identidad validada
+                      } @else {
+                        <i class="fas fa-shield-alt text-xs"></i>
+                        Validar identidad
+                      }
+                    </button>
+                  </div>
+                </div>
+
+                @if (identityLookupError()) {
+                  <p class="rounded-xl border border-danger/10 bg-danger/[0.03] px-3.5 py-2.5 text-xs font-inter-semibold text-danger">
+                    {{ identityLookupError() }}
+                  </p>
+                }
+              </div>
+            } @else {
+              <div class="grid gap-6 pt-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]">
+                <!-- Left Column: CV Upload -->
+                <div class="space-y-5">
+
                 <!-- CV Upload Container -->
                 <div class="space-y-2">
                   <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Currículum Vitae (PDF)</label>
-                  
+
                   @if (cvProcessing()) {
                     <div class="flex min-h-[170px] flex-col items-center justify-center rounded-2xl border border-dashed border-secondary/40 bg-secondary/[0.02] p-6 text-center transition-all duration-300">
                       <div class="relative flex items-center justify-center h-12 w-12 rounded-full bg-secondary/10 mb-3">
@@ -447,7 +600,7 @@
                       </div>
                       <span class="text-sm font-inter-bold text-text truncate max-w-[220px]">{{ cvFileName() }}</span>
                       <span class="mt-1 text-xs text-success font-inter-semibold">¡Leído con éxito!</span>
-                      
+
                       <label class="mt-4 flex items-center gap-2 cursor-pointer rounded-lg bg-surface border border-border px-3 py-1.5 text-xs font-inter-semibold text-text hover:bg-secondary/5 hover:border-secondary transition-all">
                         <i class="fas fa-redo text-[10px]"></i> Cambiar archivo
                         <input type="file" accept="application/pdf" class="hidden" (change)="onConsultantCvSelected($event)" />
@@ -474,7 +627,7 @@
                     <span>{{ cvError() }}</span>
                   </div>
                 }
-              </div>
+                </div>
 
               <!-- Right Column: Live Profile Preview Card -->
               <div class="rounded-2xl border border-border bg-background p-6 shadow-sm flex flex-col justify-between">
@@ -659,6 +812,7 @@
                 </div>
               </fieldset>
             </div>
+            }
           }
 
           <!-- Next step actions -->
@@ -666,12 +820,30 @@
             <button
               type="button"
               (click)="goToCredentialsStep()"
-              [disabled]="!profileComplete()"
+              [disabled]="!canAdvanceCurrentStep()"
               class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-inter-bold text-background bg-secondary hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] shadow-md shadow-secondary/10"
             >
-              <span>Siguiente</span>
+              <span>
+                @if (role() === 'consultor' && consultantPhase() === 1) {
+                  Continuar al CV
+                } @else if (role() === 'consultor') {
+                  Continuar a la cuenta
+                } @else {
+                  Siguiente
+                }
+              </span>
               <i class="fas fa-arrow-right text-xs"></i>
             </button>
+            @if (role() === 'consultor' && consultantPhase() === 2) {
+              <button
+                type="button"
+                (click)="consultantPhase.set(1)"
+                class="mt-3 w-full rounded-xl border border-border px-4 py-2.5 text-xs font-inter-bold text-text/60 transition-all hover:border-secondary/40 hover:text-secondary"
+              >
+                <i class="fas fa-arrow-left mr-2 text-[10px]"></i>
+                Volver a identidad
+              </button>
+            }
           </div>
 
         } @else {

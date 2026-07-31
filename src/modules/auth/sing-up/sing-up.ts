@@ -12,6 +12,7 @@ import {
 } from '@enum/consultant-diagnostic-area.enum';
 
 type ConsultantCvProfile = ApiResponse<'ia', 'runConsultantCv'>;
+type DniVerificationResult = ApiResponse<'identityVerification', 'identityverificationVerifyDni'>;
 type ConsultantCvPayload = Pick<
   ApiBody<'auth', 'register'>,
   | 'headline'
@@ -61,8 +62,19 @@ export class SingUp implements OnInit, OnDestroy {
 
   companyName = signal('');
   ruc = signal('');
+  rucLookupLoading = signal(false);
+  rucVerified = signal<boolean | null>(null);
+  rucLookupError = signal('');
   firstName = signal('');
   lastName = signal('');
+  paternalLastName = signal('');
+  maternalLastName = signal('');
+  birthDate = signal('');
+  documentNumber = signal('');
+  identityLookupLoading = signal(false);
+  identityVerified = signal<boolean | null>(null);
+  identityLookupError = signal('');
+  identityVerification = signal<DniVerificationResult['identity'] | null>(null);
   email = signal('');
   password = signal('');
   ownerPhone = signal('');
@@ -70,6 +82,7 @@ export class SingUp implements OnInit, OnDestroy {
   role = signal<'pyme' | 'consultor'>('pyme');
   roleLocked = signal(false);
   step = signal<1 | 2>(1);
+  consultantPhase = signal<1 | 2>(1);
   loading = signal(false);
   googleLoading = signal(false);
   cvFileName = signal('');
@@ -83,9 +96,14 @@ export class SingUp implements OnInit, OnDestroy {
   profileComplete = computed(() => {
     const hasPerson = !!this.firstName().trim() && !!this.lastName().trim();
     if (this.role() === 'consultor') {
-      return hasPerson && !!this.consultantProfile() && this.diagnosticAreas().length > 0;
+      return this.identityVerified() === true && hasPerson && !!this.consultantProfile() && this.diagnosticAreas().length > 0;
     }
-    return hasPerson && !!this.companyName().trim() && !!this.ruc().trim();
+    return (
+      hasPerson &&
+      !!this.companyName().trim() &&
+      this.ruc().length === 11 &&
+      this.rucVerified() === true
+    );
   });
 
   showOnboarding = signal(false);
@@ -104,6 +122,10 @@ export class SingUp implements OnInit, OnDestroy {
   }
   private googlePopup: Window | null = null;
   private googlePopupTimer: ReturnType<typeof setInterval> | null = null;
+  private rucLookupTimer: ReturnType<typeof setTimeout> | null = null;
+  private rucLookupSequence = 0;
+  private identityLookupTimer: ReturnType<typeof setTimeout> | null = null;
+  private identityLookupSequence = 0;
   private readonly googleMessageHandler = (event: MessageEvent<unknown>) => this.handleGoogleMessage(event);
 
   constructor() {
@@ -125,15 +147,42 @@ export class SingUp implements OnInit, OnDestroy {
       window.removeEventListener('message', this.googleMessageHandler);
     }
     this.clearGooglePopupTimer();
+    this.clearRucLookupTimer();
+    this.clearIdentityLookupTimer();
   }
 
   setRole(role: 'pyme' | 'consultor') {
     if (this.roleLocked()) return;
     this.role.set(role);
     this.step.set(1);
+    this.consultantPhase.set(1);
   }
 
   goToCredentialsStep() {
+    if (this.role() === 'consultor') {
+      if (this.consultantPhase() === 1) {
+        if (this.identityVerified() !== true) {
+          this.toastService.error('Valida tus datos de identidad antes de continuar');
+          return;
+        }
+        this.consultantPhase.set(2);
+        return;
+      }
+
+      if (!this.profileComplete()) {
+        this.toastService.error('Sube tu CV y selecciona al menos un área de diagnóstico');
+        return;
+      }
+
+      this.step.set(2);
+      return;
+    }
+
+    if (this.role() === 'pyme' && this.rucVerified() !== true) {
+      this.toastService.error('Ingresa un RUC válido y espera su validación');
+      return;
+    }
+
     if (!this.profileComplete()) {
       this.toastService.error(
         this.role() === 'pyme'
@@ -147,6 +196,82 @@ export class SingUp implements OnInit, OnDestroy {
 
   goToProfileStep() {
     this.step.set(1);
+    if (this.role() === 'consultor') this.consultantPhase.set(2);
+  }
+
+  canAdvanceCurrentStep(): boolean {
+    if (this.role() === 'consultor') {
+      return this.consultantPhase() === 1
+        ? this.consultantIdentityComplete() && this.identityVerified() === true
+        : !!this.consultantProfile() && this.diagnosticAreas().length > 0;
+    }
+
+    return this.profileComplete();
+  }
+
+  onConsultantPaternalLastNameChange(value: string): void {
+    this.paternalLastName.set(value);
+    this.syncConsultantLastName();
+    this.resetIdentityVerification();
+  }
+
+  onConsultantMaternalLastNameChange(value: string): void {
+    this.maternalLastName.set(value);
+    this.syncConsultantLastName();
+    this.resetIdentityVerification();
+  }
+
+  onConsultantIdentityFieldChange(): void {
+    this.resetIdentityVerification();
+  }
+
+  onConsultantDniChange(value: string): void {
+    this.documentNumber.set(value.replace(/\D/g, '').slice(0, 8));
+    this.resetIdentityVerification();
+  }
+
+  verifyConsultantIdentity(): void {
+    if (!this.consultantIdentityComplete()) {
+      this.identityLookupError.set('Completa nombres, apellidos, fecha de nacimiento y DNI');
+      return;
+    }
+
+    this.clearIdentityLookupTimer();
+    const lookupSequence = ++this.identityLookupSequence;
+    this.identityLookupLoading.set(true);
+    this.identityLookupError.set('');
+    this.identityLookupTimer = setTimeout(() => {
+      this.identityLookupTimer = null;
+      this.api.identityVerification
+        .identityverificationVerifyDni({
+          documentNumber: this.documentNumber(),
+          firstName: this.firstName().trim(),
+          paternalLastName: this.paternalLastName().trim(),
+          maternalLastName: this.maternalLastName().trim(),
+          birthDate: this.birthDate(),
+        })
+        .then((response) => {
+          if (lookupSequence !== this.identityLookupSequence) return;
+          this.identityVerified.set(response.data.verified);
+          if (response.data.verified) {
+            this.identityVerification.set(response.data.identity);
+            this.toastService.success('Identidad validada correctamente');
+          } else {
+            this.identityVerification.set(null);
+            this.identityLookupError.set('Los datos no coinciden con el registro de identidad');
+          }
+        })
+        .catch((error: unknown) => {
+          if (lookupSequence !== this.identityLookupSequence) return;
+          this.identityVerified.set(false);
+          this.identityLookupError.set(this.getErrorMessage(error, 'No se pudo validar tu identidad'));
+        })
+        .finally(() => {
+          if (lookupSequence === this.identityLookupSequence) {
+            this.identityLookupLoading.set(false);
+          }
+        });
+    }, 300);
   }
 
   onRegister() {
@@ -173,6 +298,10 @@ export class SingUp implements OnInit, OnDestroy {
       password: this.password(),
       role: this.role(),
       ruc: this.role() === 'pyme' ? this.ruc() : undefined,
+      documentNumber: this.role() === 'consultor' ? this.documentNumber() : undefined,
+      paternalLastName: this.role() === 'consultor' ? this.paternalLastName() : undefined,
+      maternalLastName: this.role() === 'consultor' ? this.maternalLastName() : undefined,
+      birthDate: this.role() === 'consultor' ? this.birthDate() : undefined,
       ownerPhone: this.role() === 'pyme' ? this.ownerPhone() || undefined : undefined,
       ownerPosition: this.role() === 'pyme' ? this.ownerPosition() || undefined : undefined,
       ...(this.role() === 'consultor' ? this.consultantProfilePayload() : {}),
@@ -291,6 +420,49 @@ export class SingUp implements OnInit, OnDestroy {
     );
   }
 
+  onRucChange(value: string): void {
+    const normalizedRuc = value.replace(/\D/g, '').slice(0, 11);
+    const lookupSequence = ++this.rucLookupSequence;
+    this.ruc.set(normalizedRuc);
+    this.rucVerified.set(null);
+    this.rucLookupError.set('');
+    this.clearRucLookupTimer();
+
+    if (normalizedRuc.length !== 11) {
+      this.rucLookupLoading.set(false);
+      return;
+    }
+
+    this.rucLookupLoading.set(true);
+    this.rucLookupTimer = setTimeout(() => {
+      this.rucLookupTimer = null;
+      this.api.identityVerification
+        .identityverificationVerifyRuc({ ruc: normalizedRuc })
+        .then((response) => {
+          if (lookupSequence !== this.rucLookupSequence) return;
+
+          const verified = response.data.verified && response.data.providerFound;
+          this.rucVerified.set(verified);
+          if (verified && response.data.nombreComercial) {
+            this.companyName.set(response.data.nombreComercial);
+          }
+          if (!verified) {
+            this.rucLookupError.set('No se encontró información para este RUC');
+          }
+        })
+        .catch((error: unknown) => {
+          if (lookupSequence !== this.rucLookupSequence) return;
+          this.rucVerified.set(false);
+          this.rucLookupError.set(this.getErrorMessage(error, 'No se pudo validar el RUC'));
+        })
+        .finally(() => {
+          if (lookupSequence === this.rucLookupSequence) {
+            this.rucLookupLoading.set(false);
+          }
+        });
+    }, 550);
+  }
+
   private handleGoogleMessage(event: MessageEvent<unknown>): void {
     if (!this.isGoogleAuthMessage(event.data)) return;
 
@@ -341,6 +513,43 @@ export class SingUp implements OnInit, OnDestroy {
     this.googlePopupTimer = null;
   }
 
+  private clearRucLookupTimer(): void {
+    if (!this.rucLookupTimer) return;
+    clearTimeout(this.rucLookupTimer);
+    this.rucLookupTimer = null;
+  }
+
+  consultantIdentityComplete(): boolean {
+    return Boolean(
+      this.firstName().trim() &&
+        this.paternalLastName().trim() &&
+        this.maternalLastName().trim() &&
+        /^\d{8}$/.test(this.documentNumber()) &&
+        /^\d{4}-\d{2}-\d{2}$/.test(this.birthDate()),
+    );
+  }
+
+  private syncConsultantLastName(): void {
+    this.lastName.set(
+      [this.paternalLastName().trim(), this.maternalLastName().trim()].filter(Boolean).join(' '),
+    );
+  }
+
+  private resetIdentityVerification(): void {
+    this.identityLookupSequence += 1;
+    this.clearIdentityLookupTimer();
+    this.identityLookupLoading.set(false);
+    this.identityVerified.set(null);
+    this.identityVerification.set(null);
+    this.identityLookupError.set('');
+  }
+
+  private clearIdentityLookupTimer(): void {
+    if (!this.identityLookupTimer) return;
+    clearTimeout(this.identityLookupTimer);
+    this.identityLookupTimer = null;
+  }
+
   private getGooglePopupFeatures(): string {
     const width = 520;
     const height = 680;
@@ -381,10 +590,14 @@ export class SingUp implements OnInit, OnDestroy {
       const response = await this.api.consultant.findByUser({ userId: user.id });
       const firstName = this.firstName().trim();
       const lastName = this.lastName().trim();
+      const dni = this.documentNumber().trim();
+      const birthDate = this.birthDate();
       const payload: ApiBody<'consultant', 'update'> = this.consultantProfilePayload();
 
       if (firstName) payload.firstName = firstName;
       if (lastName) payload.lastName = lastName;
+      if (this.identityVerified() === true && dni) payload.dni = dni;
+      if (this.identityVerified() === true && birthDate) payload.birthDate = birthDate;
       if (firstName || lastName) {
         payload.fullName = `${firstName} ${lastName}`.trim();
       }

@@ -321,18 +321,16 @@ export class MeetingMinutesDetail implements OnInit {
         const actaText = response.data.summary || '';
         this.editDescription.set(actaText);
 
-        if (response.data.tasks && response.data.tasks.length > 0) {
-          const suggestedTasks: FinalizeTask[] = response.data.tasks
-            .filter((t) => t.assignedTo === 'pyme')
-            .map((t) => ({
-              title: t.title,
-              description: t.description,
-              assignedTo: 'pyme',
-              priority: t.priority,
-              dueDate: t.dueDate || undefined,
-            }));
-          this.editTasks.set(suggestedTasks);
-        }
+        const suggestedTasks: FinalizeTask[] = (response.data.tasks || [])
+          .filter((t) => t.assignedTo === 'pyme')
+          .map((t) => ({
+            title: t.title,
+            description: t.description,
+            assignedTo: 'pyme',
+            priority: t.priority,
+            dueDate: t.dueDate || undefined,
+          }));
+        this.editTasks.set(suggestedTasks);
 
         this.toastService.success('Acta y compromisos sugeridos generados con IA');
       })

@@ -125,67 +125,95 @@
             <div class="rounded-3xl border border-border bg-surface p-6 lg:p-8 shadow-sm space-y-3">
               <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider">Video de presentación</h3>
               <div class="relative aspect-video w-full overflow-hidden rounded-2xl bg-text-950 shadow-inner">
-                <video class="h-full w-full object-cover" [src]="c.videoUrl" controls></video>
+                <video class="h-full w-full object-contain" [src]="c.videoUrl" controls></video>
               </div>
             </div>
           }
 
           <!-- Cases section -->
           @if (c.caseStudies && c.caseStudies.length) {
-            <div class="space-y-4">
-              <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider pl-1">Casos de éxito</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                @for (study of c.caseStudies; track study.title; let idx = $index) {
-                  <div class="rounded-3xl border border-border bg-surface p-6 shadow-sm flex flex-col justify-between hover:border-secondary/20 transition-all duration-300">
-                    <div class="space-y-3">
-                      <div class="flex items-center gap-3">
-                        <div class="flex h-9 w-9 items-center justify-center rounded-xl text-xs font-inter-bold"
-                          [class.bg-success/10]="idx % 3 === 0" [class.text-success]="idx % 3 === 0"
-                          [class.bg-secondary/10]="idx % 3 === 1" [class.text-secondary]="idx % 3 === 1"
-                          [class.bg-accent/10]="idx % 3 === 2" [class.text-accent]="idx % 3 === 2"
-                        >
-                          @if (idx % 3 === 0) {
-                            <i class="fas fa-chart-line"></i>
-                          } @else if (idx % 3 === 1) {
-                            <i class="fas fa-calculator"></i>
-                          } @else {
-                            <i class="fas fa-gears"></i>
+            <section class="overflow-hidden rounded-3xl border border-border bg-surface shadow-sm">
+              <div class="flex flex-col gap-3 border-b border-border px-6 py-6 sm:flex-row sm:items-end sm:justify-between lg:px-8">
+                <div>
+                  <p class="text-[0.68rem] uppercase text-muted font-inter-bold tracking-[0.14em]">Trabajo destacado</p>
+                  <h3 class="mt-1.5 text-xl font-plus-jakarta-sans font-bold text-text">Resultados comprobados</h3>
+                  <p class="mt-1 text-sm text-muted">Una selección de proyectos con impacto concreto.</p>
+                </div>
+                <span class="w-fit rounded-full bg-background-50 px-3 py-1.5 text-xs font-inter-semibold text-muted">
+                  {{ caseStudies().length }} casos
+                </span>
+              </div>
+
+              <div class="px-6 lg:px-8">
+                @for (study of visibleCaseStudies(); track study.title; let idx = $index) {
+                  <article class="border-t border-border py-6 first:border-t-0">
+                    <div class="flex items-start gap-4">
+                      <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-xs font-inter-bold text-primary">
+                        {{ idx + 1 }}
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <h4 class="text-sm leading-6 font-inter-bold text-text sm:text-base">{{ study.title }}</h4>
+
+                        @if (study.result) {
+                          <div class="mt-3 flex items-start gap-2.5 rounded-2xl border border-primary/10 bg-primary-50 p-3.5">
+                            <i class="fas fa-arrow-trend-up mt-0.5 text-xs text-primary" aria-hidden="true"></i>
+                            <p class="text-xs leading-5 text-text-700">
+                              <strong class="font-inter-bold text-text">Impacto:</strong> {{ study.result }}
+                            </p>
+                          </div>
+                        }
+
+                        <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+                          @if (study.sector) {
+                            <span class="inline-flex items-center gap-1.5 text-xs text-muted">
+                              <i class="fas fa-building text-[0.65rem]" aria-hidden="true"></i>
+                              {{ study.sector }}
+                            </span>
+                          }
+                          @if (study.problem || study.action) {
+                            <button type="button" (click)="toggleCaseDetail(idx)"
+                              class="inline-flex items-center gap-2 text-xs font-inter-bold text-secondary transition hover:text-secondary-700 cursor-pointer"
+                              [attr.aria-expanded]="expandedCaseIndex() === idx">
+                              {{ expandedCaseIndex() === idx ? 'Ocultar detalle' : 'Ver cómo se logró' }}
+                              <i class="fas text-[0.65rem]" [class.fa-chevron-up]="expandedCaseIndex() === idx"
+                                [class.fa-chevron-down]="expandedCaseIndex() !== idx" aria-hidden="true"></i>
+                            </button>
                           }
                         </div>
-                        <h4 class="text-xs leading-snug font-inter-bold text-text">
-                          {{ study.title }}
-                        </h4>
-                      </div>
 
-                      <div class="space-y-2 text-[0.76rem] leading-relaxed">
-                        @if (study.problem) {
-                          <p class="text-muted">
-                            <strong class="text-text font-inter-semibold">Problema:</strong> {{ study.problem }}
-                          </p>
-                        }
-                        @if (study.action) {
-                          <p class="text-muted">
-                            <strong class="text-text font-inter-semibold">Acción realizada:</strong> {{ study.action }}
-                          </p>
-                        }
-                        @if (study.result) {
-                          <p class="text-success/90 font-inter-medium bg-success/5 px-2.5 py-1.5 rounded-lg border border-success/10 mt-1">
-                            <strong class="text-success font-inter-bold">Resultado:</strong> {{ study.result }}
-                          </p>
+                        @if (expandedCaseIndex() === idx) {
+                          <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                            @if (study.problem) {
+                              <div class="rounded-2xl bg-background-50 p-4">
+                                <p class="text-[0.68rem] uppercase tracking-wider text-muted font-inter-bold">Desafío</p>
+                                <p class="mt-2 text-xs leading-5 text-text-700">{{ study.problem }}</p>
+                              </div>
+                            }
+                            @if (study.action) {
+                              <div class="rounded-2xl bg-background-50 p-4">
+                                <p class="text-[0.68rem] uppercase tracking-wider text-muted font-inter-bold">Intervención</p>
+                                <p class="mt-2 text-xs leading-5 text-text-700">{{ study.action }}</p>
+                              </div>
+                            }
+                          </div>
                         }
                       </div>
                     </div>
-
-                    @if (study.sector) {
-                      <div class="mt-4 pt-3 border-t border-border flex items-center gap-1.5 text-[0.7rem] text-muted font-inter-semibold">
-                        <i class="fas fa-tag text-[0.65rem]"></i>
-                        Rubro: <span class="text-secondary">{{ study.sector }}</span>
-                      </div>
-                    }
-                  </div>
+                  </article>
                 }
               </div>
-            </div>
+
+              @if (caseStudies().length > 2) {
+                <div class="border-t border-border px-6 py-4 lg:px-8">
+                  <button type="button" (click)="toggleCaseStudies()"
+                    class="inline-flex items-center gap-2 text-xs font-inter-bold text-secondary transition hover:text-secondary-700 cursor-pointer">
+                    {{ showAllCaseStudies() ? 'Ver menos casos' : 'Ver todos los casos' }}
+                    <i class="fas text-[0.65rem]" [class.fa-arrow-up]="showAllCaseStudies()"
+                      [class.fa-arrow-down]="!showAllCaseStudies()" aria-hidden="true"></i>
+                  </button>
+                </div>
+              }
+            </section>
           }
         </div>
 
@@ -205,139 +233,206 @@
               <i class="fas fa-calendar-check"></i>
               Agendar reunión
             </button>
-            @if (c.linkedinUrl) {
+            @if (linkedinUrl(); as linkedInUrl) {
               <a
-                [href]="c.linkedinUrl"
+                [href]="linkedInUrl"
                 target="_blank"
+                rel="noopener noreferrer"
                 class="w-full inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-border bg-background text-xs text-muted font-inter-semibold transition hover:border-secondary hover:text-secondary shadow-sm"
               >
-                <i class="fab fa-linkedin text-base text-[#0a66c2]"></i>
+                <i class="fab fa-linkedin text-base text-secondary"></i>
                 Perfil de LinkedIn
               </a>
             }
           </div>
 
-          <!-- Clasificación Tags -->
-          <div class="rounded-3xl border border-border bg-surface p-6 shadow-sm space-y-5">
-            <!-- Especialidades -->
-            <div>
-              <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider mb-2">Especialidades</h3>
-              <div class="flex flex-wrap gap-1.5">
-                @for (tag of c.specialties; track tag) {
-                  <span class="rounded-full bg-secondary/10 px-2.5 py-1 text-[0.72rem] text-secondary font-inter-bold">
-                    {{ tag }}
-                  </span>
-                } @empty {
-                  <span class="text-xs text-muted italic font-inter-medium">Sin especialidades especificadas</span>
-                }
+          <!-- Áreas de experiencia -->
+          <section class="overflow-hidden rounded-3xl border border-border bg-surface shadow-sm">
+            <div class="px-6 pb-5 pt-6">
+              <p class="text-[0.68rem] uppercase tracking-[0.14em] text-muted font-inter-bold">Perfil profesional</p>
+              <h3 class="mt-1.5 text-lg font-plus-jakarta-sans font-bold text-text">Áreas de experiencia</h3>
+              <p class="mt-1 text-xs leading-5 text-muted">Las capacidades más relevantes para tu negocio.</p>
+            </div>
+
+            <div class="grid grid-cols-3 border-y border-border bg-background-50">
+              <div class="px-3 py-4 text-center">
+                <p class="text-lg font-plus-jakarta-sans font-bold text-text">{{ c.yearsExperience }}</p>
+                <p class="mt-0.5 text-[0.65rem] uppercase tracking-wider text-muted font-inter-bold">Años</p>
+              </div>
+              <div class="border-x border-border px-3 py-4 text-center">
+                <p class="text-lg font-plus-jakarta-sans font-bold text-text">{{ specialties().length }}</p>
+                <p class="mt-0.5 text-[0.65rem] uppercase tracking-wider text-muted font-inter-bold">Especialidades</p>
+              </div>
+              <div class="px-3 py-4 text-center">
+                <p class="text-lg font-plus-jakarta-sans font-bold text-text">{{ services().length }}</p>
+                <p class="mt-0.5 text-[0.65rem] uppercase tracking-wider text-muted font-inter-bold">Servicios</p>
               </div>
             </div>
 
-            <!-- Industrias -->
-            <div class="border-t border-border pt-4">
-              <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider mb-2">Industrias</h3>
-              <div class="flex flex-wrap gap-1.5">
-                @for (tag of c.industries; track tag) {
-                  <span class="rounded-full bg-text/5 px-2.5 py-1 text-[0.72rem] text-muted font-inter-semibold">
-                    {{ tag }}
-                  </span>
-                } @empty {
-                  <span class="text-xs text-muted italic font-inter-medium">Sin industrias especificadas</span>
-                }
-              </div>
-            </div>
-
-            <!-- Tipo de empresa -->
-            <div class="border-t border-border pt-4">
-              <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider mb-2">Empresas que atiende</h3>
-              <div class="flex flex-wrap gap-1.5">
-                @for (tag of c.companyTypes; track tag) {
-                  <span class="rounded-full bg-success/10 px-2.5 py-1 text-[0.72rem] text-success font-inter-semibold">
-                    {{ tag }}
-                  </span>
-                } @empty {
-                  <span class="text-xs text-muted italic font-inter-medium">Sin tipos especificados</span>
-                }
-              </div>
-            </div>
-
-            <!-- Servicios -->
-            <div class="border-t border-border pt-4">
-              <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider mb-2">Servicios</h3>
-              <div class="flex flex-wrap gap-1.5">
-                @for (tag of c.services; track tag) {
-                  <span class="rounded-full bg-accent/10 px-2.5 py-1 text-[0.72rem] text-accent font-inter-semibold">
-                    {{ tag }}
-                  </span>
-                } @empty {
-                  <span class="text-xs text-muted italic font-inter-medium">Sin servicios especificados</span>
-                }
-              </div>
-            </div>
-          </div>
-
-          <!-- Trayectoria / Detalles Técnicos -->
-          <div class="rounded-3xl border border-border bg-surface p-6 shadow-sm space-y-5">
-            <div class="flex items-center gap-3.5">
-              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary text-sm">
-                <i class="fas fa-briefcase"></i>
-              </div>
+            <div class="space-y-5 px-6 py-5">
               <div>
-                <p class="text-[10px] uppercase text-muted font-inter-bold">Experiencia</p>
-                <p class="text-sm font-plus-jakarta-sans font-bold text-text">
-                  {{ c.yearsExperience }} años de trayectoria
-                </p>
-              </div>
-            </div>
-
-            <!-- Formación académica -->
-            @if (c.education && c.education.length) {
-              <div class="border-t border-border pt-4">
-                <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider mb-2">Formación</h3>
-                <ul class="space-y-2.5 pl-0.5">
-                  @for (edu of c.education; track edu.degree) {
-                    <li class="flex items-start gap-2.5">
-                      <div class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-secondary"></div>
-                      <div class="text-[0.76rem] leading-relaxed">
-                        <strong class="font-inter-bold text-text">{{ edu.degree }}</strong>
-                        @if (edu.institution) {
-                          <span class="text-muted font-inter-medium"> — {{ edu.institution }}</span>
-                        }
-                        @if (edu.year) {
-                          <span class="text-muted font-inter-regular"> ({{ edu.year }})</span>
-                        }
-                      </div>
-                    </li>
-                  }
-                </ul>
-              </div>
-            }
-
-            <!-- Certificaciones -->
-            @if (c.certifications && c.certifications.length) {
-              <div class="border-t border-border pt-4">
-                <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider mb-2">Certificaciones</h3>
-                <div class="space-y-1.5">
-                  @for (cert of c.certifications; track cert) {
-                    <div class="flex items-start gap-2">
-                      <i class="fas fa-circle-check text-success mt-0.5 text-[10px]"></i>
-                      <span class="text-[0.76rem] text-muted font-inter-medium leading-relaxed">{{ cert }}</span>
-                    </div>
+                <h4 class="mb-2.5 text-[0.68rem] uppercase tracking-wider text-muted font-inter-bold">Especialidades clave</h4>
+                <div class="flex flex-wrap gap-2">
+                  @for (tag of visibleSpecialties(); track tag) {
+                    <span class="rounded-full bg-primary-50 px-3 py-1.5 text-[0.7rem] leading-4 text-secondary font-inter-bold">
+                      {{ tag }}
+                    </span>
+                  } @empty {
+                    <span class="text-xs italic text-muted font-inter-medium">Sin especialidades especificadas</span>
                   }
                 </div>
               </div>
-            }
 
-            <!-- Sectores -->
-            @if (c.workedSectors && c.workedSectors.length) {
-              <div class="border-t border-border pt-4">
-                <h3 class="text-xs uppercase text-muted font-inter-bold tracking-wider mb-1.5">Sectores de trayectoria</h3>
-                <p class="text-[0.76rem] text-muted leading-relaxed font-inter-medium">
-                  {{ c.workedSectors.join(', ') }}
-                </p>
+              @if (industries().length) {
+                <div class="border-t border-border pt-5">
+                  <h4 class="mb-2.5 text-[0.68rem] uppercase tracking-wider text-muted font-inter-bold">Industrias</h4>
+                  <div class="flex flex-wrap gap-2">
+                    @for (tag of visibleIndustries(); track tag) {
+                      <span class="rounded-full border border-border bg-background-50 px-3 py-1.5 text-[0.7rem] leading-4 text-muted font-inter-semibold">
+                        {{ tag }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (showAllExpertise()) {
+                @if (companyTypes().length) {
+                  <div class="border-t border-border pt-5">
+                    <h4 class="mb-2.5 text-[0.68rem] uppercase tracking-wider text-muted font-inter-bold">Empresas que atiende</h4>
+                    <div class="flex flex-wrap gap-2">
+                      @for (tag of visibleCompanyTypes(); track tag) {
+                        <span class="rounded-full border border-border bg-surface px-3 py-1.5 text-[0.7rem] leading-4 text-text-700 font-inter-semibold">
+                          {{ tag }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+                }
+
+                @if (services().length) {
+                  <div class="border-t border-border pt-5">
+                    <h4 class="mb-3 text-[0.68rem] uppercase tracking-wider text-muted font-inter-bold">Servicios</h4>
+                    <ul class="space-y-2.5">
+                      @for (tag of visibleServices(); track tag) {
+                        <li class="flex items-start gap-2.5 text-xs leading-5 text-text-700 font-inter-medium">
+                          <i class="fas fa-check mt-1 text-[0.65rem] text-secondary" aria-hidden="true"></i>
+                          <span>{{ tag }}</span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+              }
+
+              @if (hasHiddenExpertise()) {
+                <button type="button" (click)="toggleExpertise()"
+                  class="inline-flex items-center gap-2 text-xs font-inter-bold text-secondary transition hover:text-secondary-700 cursor-pointer"
+                  [attr.aria-expanded]="showAllExpertise()">
+                  {{ showAllExpertise() ? 'Mostrar resumen' : 'Ver experiencia completa' }}
+                  <i class="fas text-[0.65rem]" [class.fa-chevron-up]="showAllExpertise()"
+                    [class.fa-chevron-down]="!showAllExpertise()" aria-hidden="true"></i>
+                </button>
+              }
+            </div>
+          </section>
+
+          <!-- Trayectoria profesional -->
+          @if (c.education.length || c.certifications.length || c.workedSectors.length) {
+            <section class="overflow-hidden rounded-3xl border border-border bg-surface shadow-sm">
+              <div class="flex items-start gap-3.5 px-6 pb-5 pt-6">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-sm text-secondary">
+                  <i class="fas fa-briefcase" aria-hidden="true"></i>
+                </div>
+                <div>
+                  <h3 class="text-sm font-plus-jakarta-sans font-bold text-text">Trayectoria profesional</h3>
+                  <p class="mt-1 text-xs leading-5 text-muted">Formación y credenciales que respaldan su experiencia.</p>
+                </div>
               </div>
-            }
-          </div>
+
+              <div class="border-y border-border bg-background-50 px-6 py-1">
+                @if (c.education.length) {
+                  <div class="flex items-center justify-between border-b border-border py-3 last:border-b-0">
+                    <span class="text-xs text-muted font-inter-medium">Formación académica</span>
+                    <span class="text-xs text-text font-inter-bold">{{ c.education.length }}</span>
+                  </div>
+                }
+                @if (c.certifications.length) {
+                  <div class="flex items-center justify-between border-b border-border py-3 last:border-b-0">
+                    <span class="text-xs text-muted font-inter-medium">Certificaciones</span>
+                    <span class="text-xs text-text font-inter-bold">{{ c.certifications.length }}</span>
+                  </div>
+                }
+                @if (c.workedSectors.length) {
+                  <div class="flex items-center justify-between border-b border-border py-3 last:border-b-0">
+                    <span class="text-xs text-muted font-inter-medium">Sectores recorridos</span>
+                    <span class="text-xs text-text font-inter-bold">{{ c.workedSectors.length }}</span>
+                  </div>
+                }
+              </div>
+
+              @if (showProfessionalDetails()) {
+                <div class="space-y-5 px-6 py-5">
+                  @if (c.education.length) {
+                    <div>
+                      <h4 class="mb-3 text-[0.68rem] uppercase tracking-wider text-muted font-inter-bold">Formación</h4>
+                      <ul class="space-y-3">
+                        @for (edu of c.education; track edu.degree) {
+                          <li class="border-l-2 border-primary-50 pl-3 text-xs leading-5">
+                            <p class="text-text font-inter-bold">{{ edu.degree }}</p>
+                            @if (edu.institution || edu.year) {
+                              <p class="mt-0.5 text-muted font-inter-medium">
+                                @if (edu.institution) {
+                                  <span>{{ edu.institution }}</span>
+                                }
+                                @if (edu.institution && edu.year) {
+                                  <span> · </span>
+                                }
+                                @if (edu.year) {
+                                  <span>{{ edu.year }}</span>
+                                }
+                              </p>
+                            }
+                          </li>
+                        }
+                      </ul>
+                    </div>
+                  }
+
+                  @if (c.certifications.length) {
+                    <div class="border-t border-border pt-5">
+                      <h4 class="mb-3 text-[0.68rem] uppercase tracking-wider text-muted font-inter-bold">Certificaciones</h4>
+                      <ul class="space-y-2.5">
+                        @for (cert of c.certifications; track cert) {
+                          <li class="flex items-start gap-2.5 text-xs leading-5 text-text-700 font-inter-medium">
+                            <i class="fas fa-check mt-1 text-[0.65rem] text-secondary" aria-hidden="true"></i>
+                            <span>{{ cert }}</span>
+                          </li>
+                        }
+                      </ul>
+                    </div>
+                  }
+
+                  @if (c.workedSectors.length) {
+                    <div class="border-t border-border pt-5">
+                      <h4 class="mb-2 text-[0.68rem] uppercase tracking-wider text-muted font-inter-bold">Sectores de trayectoria</h4>
+                      <p class="text-xs leading-5 text-muted font-inter-medium">{{ c.workedSectors.join(' · ') }}</p>
+                    </div>
+                  }
+                </div>
+              }
+
+              <div class="border-t border-border px-6 py-4">
+                <button type="button" (click)="toggleProfessionalDetails()"
+                  class="inline-flex items-center gap-2 text-xs font-inter-bold text-secondary transition hover:text-secondary-700 cursor-pointer"
+                  [attr.aria-expanded]="showProfessionalDetails()">
+                  {{ showProfessionalDetails() ? 'Ocultar trayectoria' : 'Ver trayectoria completa' }}
+                  <i class="fas text-[0.65rem]" [class.fa-chevron-up]="showProfessionalDetails()"
+                    [class.fa-chevron-down]="!showProfessionalDetails()" aria-hidden="true"></i>
+                </button>
+              </div>
+            </section>
+          }
         </div>
       </div>
     } @else {

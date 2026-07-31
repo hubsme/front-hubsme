@@ -6,6 +6,7 @@ import { ConsultantService } from '@service/admin/consultant.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { PATH, buildPath } from '@route/path.route';
+import { normalizeLinkedInUrl } from '@function/url.function';
 
 type Consultant = ApiResponse<'consultant', 'findByUser'>;
 
@@ -24,8 +25,39 @@ export class ConsultantProfile implements OnInit {
   consultant = signal<Consultant | null>(null);
   loading = signal(false);
   videoOpen = signal(false);
+  showAllCaseStudies = signal(false);
+  expandedCaseIndex = signal<number | null>(null);
+  showAllExpertise = signal(false);
+  showProfessionalDetails = signal(false);
 
   consultantUserId = computed(() => Number(this.route.snapshot.paramMap.get('id') ?? 0));
+  linkedinUrl = computed(() => normalizeLinkedInUrl(this.consultant()?.linkedinUrl));
+  caseStudies = computed(() => this.consultant()?.caseStudies ?? []);
+  visibleCaseStudies = computed(() =>
+    this.showAllCaseStudies() ? this.caseStudies() : this.caseStudies().slice(0, 2)
+  );
+  specialties = computed(() => this.consultant()?.specialties ?? []);
+  industries = computed(() => this.consultant()?.industries ?? []);
+  companyTypes = computed(() => this.consultant()?.companyTypes ?? []);
+  services = computed(() => this.consultant()?.services ?? []);
+  visibleSpecialties = computed(() =>
+    this.showAllExpertise() ? this.specialties() : this.specialties().slice(0, 6)
+  );
+  visibleIndustries = computed(() =>
+    this.showAllExpertise() ? this.industries() : this.industries().slice(0, 4)
+  );
+  visibleCompanyTypes = computed(() =>
+    this.showAllExpertise() ? this.companyTypes() : this.companyTypes().slice(0, 3)
+  );
+  visibleServices = computed(() =>
+    this.showAllExpertise() ? this.services() : this.services().slice(0, 5)
+  );
+  hasHiddenExpertise = computed(() =>
+    this.specialties().length > 6 ||
+    this.industries().length > 4 ||
+    this.companyTypes().length > 0 ||
+    this.services().length > 0
+  );
 
   mockReviews = [
     {
@@ -84,6 +116,25 @@ export class ConsultantProfile implements OnInit {
     if (cons) {
       this.router.navigate([buildPath(PATH.admin.pyme.consultants.agendar), cons.userId]);
     }
+  }
+
+  toggleCaseDetail(index: number): void {
+    this.expandedCaseIndex.update((current) => current === index ? null : index);
+  }
+
+  toggleCaseStudies(): void {
+    this.showAllCaseStudies.update((current) => !current);
+    if (this.showAllCaseStudies() === false && (this.expandedCaseIndex() ?? 0) > 1) {
+      this.expandedCaseIndex.set(null);
+    }
+  }
+
+  toggleExpertise(): void {
+    this.showAllExpertise.update((current) => !current);
+  }
+
+  toggleProfessionalDetails(): void {
+    this.showProfessionalDetails.update((current) => !current);
   }
 
   consultantPhoto(consultant: Consultant): string {

@@ -97,52 +97,65 @@
       </div>
     </section>
 
-    <section class="bg-background-50 py-16">
+    <section id="confianza" data-testid="trust-section" class="bg-background-50 py-16 sm:py-20">
       <div class="mx-auto max-w-7xl px-6 lg:px-8">
-        <div class="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
-          <article class="rounded-3xl border border-border bg-surface p-6 shadow-sm lg:p-8">
-            <div
-              class="mb-5 inline-flex rounded-full bg-primary-100 px-4 py-2 text-sm font-inter-semibold text-primary-700">
-              Propósito de la aplicación
+        <div class="mb-10 sm:mb-12">
+          <p class="text-xs font-inter-bold uppercase tracking-[0.18em] text-text-500">HUBSME en claro</p>
+          <h2 class="mt-4 max-w-3xl text-3xl font-inter-bold leading-tight text-text sm:text-4xl lg:text-5xl">
+            Consultoría simple, <span class="text-primary">segura y conectada</span>
+          </h2>
+        </div>
+
+        <div class="grid gap-5 md:grid-cols-3">
+          <article class="flex min-h-full flex-col overflow-hidden rounded-[2rem] border border-border bg-surface">
+            <img src="/images/landing/teams-meeting.jpg"
+              alt="Reunión profesional de dos personas mediante Microsoft Teams"
+              class="h-48 w-full object-cover sm:h-52" loading="lazy" decoding="async" />
+            <div class="flex flex-1 flex-col p-6 sm:p-7">
+              <h3 class="text-xl font-inter-bold text-text">Propósito de la aplicación</h3>
+              <p class="mt-3 text-sm leading-6 text-text-600">
+                Coordinamos diagnóstico, especialistas, agenda y seguimiento en un mismo lugar.
+              </p>
+              <div class="mt-auto flex flex-wrap gap-2 pt-7">
+                <span class="rounded-full border border-border bg-background-50 px-3 py-1.5 text-xs text-text-600">Diagnóstico</span>
+                <span class="rounded-full border border-border bg-background-50 px-3 py-1.5 text-xs text-text-600">Consultores</span>
+              </div>
             </div>
-            <h2 class="text-3xl font-inter-bold leading-tight text-text">
-              HUBSME ayuda a coordinar consultoría empresarial de inicio a fin.
-            </h2>
-            <p class="mt-5 text-base leading-relaxed text-text-600">
-              La plataforma permite que una PYME registre información de su negocio, reciba un
-              diagnóstico asistido por IA, revise consultores disponibles, seleccione un horario,
-              pague la sesión y acceda a la reunión virtual. Los consultores pueden administrar su
-              perfil, calendario, disponibilidad, clientes, tareas y documentos generados durante la
-              consultoría.
-            </p>
           </article>
 
-          <div class="grid gap-6 md:grid-cols-2">
-            <article class="rounded-3xl border border-border bg-surface p-6 shadow-sm">
-              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-100 text-primary">
-                <i class="fab fa-google text-xl"></i>
-              </div>
-              <h3 class="mt-5 text-xl font-inter-bold text-text">Uso de Google</h3>
-              <p class="mt-3 text-sm leading-7 text-text-600">
-                HUBSME puede usar Google para iniciar sesión y, si el consultor lo autoriza,
-                conectar Google Calendar para leer horarios ocupados. Esta información se usa para
-                autenticar usuarios, evitar reservas en horas no disponibles y mejorar la
-                coordinación de reuniones dentro de la plataforma.
+          <article class="flex min-h-full flex-col overflow-hidden rounded-[2rem] border border-border bg-surface">
+            <img src="/images/landing/google-integration.jpg"
+              alt="Google Calendar e inicio de sesión de Google en dispositivos de trabajo"
+              class="h-48 w-full object-cover sm:h-52" loading="lazy" decoding="async" />
+            <div class="flex flex-1 flex-col p-6 sm:p-7">
+              <h3 class="text-xl font-inter-bold text-text">Uso de Google</h3>
+              <p class="mt-3 text-sm leading-6 text-text-600">
+                Conecta Google Calendar cuando tú decidas. Solo consultamos tu disponibilidad.
               </p>
-            </article>
+              <div class="mt-auto flex flex-wrap gap-2 pt-7">
+                <span class="rounded-full border border-border bg-background-50 px-3 py-1.5 text-xs text-text-600">Inicio de sesión</span>
+                <span class="rounded-full border border-border bg-background-50 px-3 py-1.5 text-xs text-text-600">Calendar</span>
+              </div>
+            </div>
+          </article>
 
-            <article class="rounded-3xl border border-border bg-surface p-6 shadow-sm">
-              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/10 text-secondary">
-                <i class="fas fa-shield-halved text-xl"></i>
-              </div>
-              <h3 class="mt-5 text-xl font-inter-bold text-text">Datos y seguridad</h3>
-              <p class="mt-3 text-sm leading-7 text-text-600">
-                Los datos se usan para operar funciones visibles de la plataforma: autenticación,
-                diagnósticos, agenda, disponibilidad, reuniones, documentos y pagos. HUBSME no vende
-                datos personales ni usa datos de Google para publicidad.
+          <article class="flex min-h-full flex-col overflow-hidden rounded-[2rem] border border-border bg-surface">
+            <img src="/images/landing/digital-security.jpg"
+              alt="Profesional supervisando la seguridad y protección de datos"
+              class="h-48 w-full object-cover sm:h-52" loading="lazy" decoding="async" />
+            <div class="flex flex-1 flex-col p-6 sm:p-7">
+              <h3 class="text-xl font-inter-bold text-text">Datos y seguridad</h3>
+              <p class="mt-3 text-sm leading-6 text-text-600">
+                Los usamos para operar HUBSME. No los vendemos ni usamos para publicidad.
               </p>
-            </article>
-          </div>
+              <div class="mt-auto flex flex-wrap items-center gap-2 pt-7">
+                <span class="rounded-full border border-border bg-background-50 px-3 py-1.5 text-xs text-text-600">Uso limitado</span>
+                <a href="/politicas-de-privacidad" class="text-xs font-inter-semibold text-primary hover:text-primary-700">
+                  Ver privacidad
+                </a>
+              </div>
+            </div>
+          </article>
         </div>
       </div>
     </section>
@@ -155,11 +168,10 @@
         </div>
 
         <div>
-          <div class="inline-flex rounded-full bg-primary-100 px-4 py-2 text-sm font-inter-semibold text-primary-700">
-            Nuestra historia
-          </div>
-          <h2 class="mt-6 max-w-xl text-3xl font-inter-bold leading-tight text-text sm:text-4xl">
-            Transformando el futuro de las PYMES con CONSULTORES REALES CALIFICADOS apoyados con IA
+          <h2 class="max-w-xl text-3xl font-inter-bold leading-tight text-text sm:text-4xl">
+            Transformando el futuro de las PYMES con
+            <span class="text-primary">CONSULTORES REALES CALIFICADOS</span>
+            apoyados con <span class="text-secondary">IA</span>
           </h2>
           <p class="mt-5 text-base leading-relaxed text-text-600">
             HUBSME nació para democratizar el acceso a consultoría de alto nivel para pequeñas y

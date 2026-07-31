@@ -33,12 +33,8 @@ export class SingIn implements OnInit, OnDestroy {
     // Si ya está logueado, redirigir al dashboard o diagnóstico
     const currentSession = this.session.session();
     if (currentSession) {
-      const diagnostic = this.route.snapshot.queryParamMap.get('diagnostic');
-      if (diagnostic === 'true' && currentSession.user.role === 'pyme') {
-        this.router.navigate([buildPath(PATH.diagnostic)]);
-      } else {
-        this.router.navigate([getDefaultRoute([currentSession.user.role])]);
-      }
+      this.redirectAfterAuthentication(currentSession.user.role);
+      return;
     }
 
     if (isPlatformBrowser(this.platformId)) {
@@ -82,12 +78,7 @@ export class SingIn implements OnInit, OnDestroy {
           return;
         }
         this.session.setSession(res.data);
-        const diagnostic = this.route.snapshot.queryParamMap.get('diagnostic');
-        if (diagnostic === 'true' && res.data.user.role === 'pyme') {
-          this.router.navigate([buildPath(PATH.diagnostic)]);
-        } else {
-          this.router.navigate([getDefaultRoute([res.data.user.role])]);
-        }
+        this.redirectAfterAuthentication(res.data.user.role);
         this.toastService.success('Bienvenido!');
       })
       .catch((error) => {
@@ -158,13 +149,36 @@ export class SingIn implements OnInit, OnDestroy {
     const session = event.data.session;
     if (!session) return;
     this.session.setSession(session);
-    const diagnostic = this.route.snapshot.queryParamMap.get('diagnostic');
-    if (diagnostic === 'true' && session.user.role === 'pyme') {
-      this.router.navigate([buildPath(PATH.diagnostic)]);
-    } else {
-      this.router.navigate([getDefaultRoute([session.user.role])]);
-    }
+    this.redirectAfterAuthentication(session.user.role);
     this.toastService.success('Bienvenido!');
+  }
+
+  private redirectAfterAuthentication(role: ApiResponse<'auth', 'login'>['user']['role']): void {
+    const returnUrl = this.safeReturnUrl();
+    if (returnUrl) {
+      this.router.navigateByUrl(returnUrl);
+      return;
+    }
+
+    const diagnostic = this.route.snapshot.queryParamMap.get('diagnostic');
+    if (diagnostic === 'true' && role === 'pyme') {
+      this.router.navigate([buildPath(PATH.diagnostic)]);
+      return;
+    }
+
+    this.router.navigate([getDefaultRoute([role])]);
+  }
+
+  private safeReturnUrl(): string | null {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl')?.trim();
+    if (!returnUrl || !returnUrl.startsWith('/') || returnUrl.startsWith('//')) return null;
+
+    try {
+      this.router.parseUrl(returnUrl);
+      return returnUrl;
+    } catch {
+      return null;
+    }
   }
 
   private isGoogleAuthMessage(value: unknown): value is { type: 'hubsme:google-auth'; session?: ApiResponse<'auth', 'login'>; error?: string } {

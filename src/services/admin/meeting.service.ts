@@ -19,6 +19,10 @@ export class MeetingService {
     return this.api.meeting.findOne({ id }).then((response) => response.data);
   }
 
+  access(id: number): Promise<ApiResponse<'meeting', 'access'>> {
+    return this.api.meeting.access({ id }).then((response) => response.data);
+  }
+
   create(data: ApiBody<'meeting', 'create'>): Promise<ApiResponse<'meeting', 'create'>> {
     return this.api.meeting.create(data).then((response) => response.data);
   }

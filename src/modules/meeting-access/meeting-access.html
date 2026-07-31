@@ -1,0 +1,437 @@
+<main
+  class="relative min-h-screen overflow-hidden bg-background px-3 py-3 font-inter-regular text-text sm:px-6 sm:py-6 lg:px-8"
+>
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute -left-32 top-1/4 h-96 w-96 rounded-full bg-primary/10 blur-3xl"
+  ></div>
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute -right-36 bottom-0 h-[28rem] w-[28rem] rounded-full bg-secondary/10 blur-3xl"
+  ></div>
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute left-1/2 top-0 h-64 w-64 -translate-x-1/2 rounded-full bg-accent/5 blur-3xl"
+  ></div>
+
+  <div
+    class="relative mx-auto flex min-h-[calc(100vh-1.5rem)] max-w-5xl items-center justify-center sm:min-h-[calc(100vh-3rem)]"
+  >
+    <section
+      class="grid w-full overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl shadow-secondary-900/10 lg:grid-cols-[0.82fr_1.18fr] lg:rounded-[2rem]"
+    >
+      <aside
+        class="relative isolate overflow-hidden bg-gradient-to-br from-fixed-secondary-800 via-fixed-secondary-600 to-fixed-primary-500 p-4 text-fixed-background-50 sm:p-5 lg:min-h-[38rem] lg:p-10"
+      >
+        <div
+          aria-hidden="true"
+          class="absolute -right-24 -top-24 -z-10 hidden h-72 w-72 rounded-full border-[3rem] border-fixed-background-50/10 lg:block"
+        ></div>
+        <div
+          aria-hidden="true"
+          class="absolute -bottom-28 -left-28 -z-10 hidden h-80 w-80 rounded-full bg-fixed-background-50/10 blur-2xl lg:block"
+        ></div>
+
+        <div class="flex items-center justify-between gap-4 lg:block">
+          <a
+            href="/"
+            aria-label="Ir al inicio de HUBSME"
+            class="inline-flex rounded-xl bg-fixed-background-50 px-4 py-2 shadow-lg shadow-fixed-secondary-950/15 lg:rounded-2xl lg:px-5 lg:py-3"
+          >
+            <img src="/avif/logo_completo.avif" alt="HUBSME" class="h-7 w-auto lg:h-9" />
+          </a>
+          <span
+            class="inline-flex items-center gap-2 rounded-full border border-fixed-background-50/20 bg-fixed-background-50/10 px-3 py-1.5 text-[0.62rem] uppercase tracking-[0.12em] font-inter-bold lg:hidden"
+          >
+            <i class="fas fa-shield-halved text-fixed-primary-200"></i>
+            Acceso seguro
+          </span>
+        </div>
+
+        <div class="hidden lg:mt-14 lg:block">
+          <span
+            class="inline-flex items-center gap-2 rounded-full border border-fixed-background-50/20 bg-fixed-background-50/10 px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.16em] font-inter-bold"
+          >
+            <i class="fas fa-shield-halved text-fixed-primary-200"></i>
+            Enlace protegido
+          </span>
+          <h2 class="mt-5 max-w-sm text-3xl leading-[1.08] font-inter-bold sm:text-4xl">
+            Tu reunión, disponible en el momento correcto.
+          </h2>
+          <p class="mt-4 max-w-sm text-sm leading-6 text-fixed-secondary-100">
+            HUBSME valida tu cuenta y habilita Microsoft Teams únicamente dentro del horario
+            permitido.
+          </p>
+        </div>
+
+        <div class="mt-9 hidden border-t border-fixed-background-50/15 pt-7 lg:block">
+          <div class="flex items-end gap-3">
+            <span class="text-5xl leading-none font-inter-bold">15</span>
+            <span class="pb-1 text-sm leading-5 text-fixed-secondary-100">
+              minutos antes<br />se habilita el acceso
+            </span>
+          </div>
+
+          <div class="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            <div
+              class="flex items-center gap-3 rounded-2xl border border-fixed-background-50/15 bg-fixed-background-50/10 p-3.5 backdrop-blur-sm"
+            >
+              <span
+                class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-fixed-background-50/15 text-fixed-primary-100"
+              >
+                <i class="far fa-user"></i>
+              </span>
+              <div>
+                <p class="text-xs font-inter-bold">Solo participantes</p>
+                <p class="mt-0.5 text-[0.68rem] text-fixed-secondary-100">
+                  PYME y consultor asignado
+                </p>
+              </div>
+            </div>
+
+            <div
+              class="flex items-center gap-3 rounded-2xl border border-fixed-background-50/15 bg-fixed-background-50/10 p-3.5 backdrop-blur-sm"
+            >
+              <span
+                class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-fixed-background-50/15 text-fixed-primary-100"
+              >
+                <i class="fab fa-microsoft"></i>
+              </span>
+              <div>
+                <p class="text-xs font-inter-bold">Redirección segura</p>
+                <p class="mt-0.5 text-[0.68rem] text-fixed-secondary-100">
+                  Directamente a Microsoft Teams
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="flex flex-col justify-center p-5 sm:p-8 lg:min-h-[34rem] lg:p-12">
+        @if (loading() || redirecting()) {
+          <div aria-live="polite">
+            <span
+              class="inline-flex items-center gap-2 rounded-full bg-secondary-50 px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.14em] text-secondary font-inter-bold"
+            >
+              <span class="h-1.5 w-1.5 rounded-full bg-secondary"></span>
+              Acceso seguro
+            </span>
+
+            <div
+              class="mt-6 grid h-12 w-12 place-items-center rounded-xl bg-secondary-50 text-secondary lg:mt-8 lg:h-16 lg:w-16 lg:rounded-2xl"
+            >
+              <i class="fas fa-circle-notch fa-spin text-xl lg:text-2xl"></i>
+            </div>
+            <h1
+              class="mt-4 text-2xl leading-tight text-text font-inter-bold sm:text-3xl lg:mt-6 lg:text-4xl"
+            >
+              {{ redirecting() ? 'Abriendo Microsoft Teams' : 'Validando tu acceso' }}
+            </h1>
+            <p class="mt-3 max-w-md text-sm leading-6 text-muted">
+              {{
+                redirecting()
+                  ? 'Todo está listo. Te llevaremos a tu reunión en un momento.'
+                  : 'Estamos comprobando tu sesión y la disponibilidad de la reunión.'
+              }}
+            </p>
+
+            <div class="mt-6 space-y-3 lg:mt-9" aria-hidden="true">
+              <div class="h-3 w-full animate-pulse rounded-full bg-secondary-50"></div>
+              <div class="h-3 w-3/4 animate-pulse rounded-full bg-secondary-50"></div>
+            </div>
+          </div>
+        } @else if (error() === 'forbidden') {
+          <div aria-live="polite">
+            <span
+              class="inline-flex items-center gap-2 rounded-full bg-danger/10 px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.14em] text-danger font-inter-bold"
+            >
+              <i class="fas fa-lock text-[0.62rem]"></i>
+              Acceso restringido
+            </span>
+            <div
+              class="mt-5 grid h-12 w-12 place-items-center rounded-xl bg-danger/10 text-danger lg:mt-7 lg:h-16 lg:w-16 lg:rounded-2xl"
+            >
+              <i class="fas fa-shield-halved text-xl lg:text-2xl"></i>
+            </div>
+            <h1
+              class="mt-4 text-2xl leading-tight text-text font-inter-bold sm:text-3xl lg:mt-6 lg:text-4xl"
+            >
+              No tienes acceso a esta reunión
+            </h1>
+            <p class="mt-3 max-w-lg text-sm leading-6 text-muted">
+              La cuenta con la que iniciaste sesión no pertenece a la PYME ni al consultor asignado
+              a esta sesión.
+            </p>
+            <div class="mt-6 border-t border-border pt-5 lg:mt-8 lg:pt-6">
+              <button
+                type="button"
+                (click)="openCalendar()"
+                class="inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm text-fixed-background-50 font-inter-bold shadow-lg shadow-secondary/20 transition-all hover:-translate-y-0.5 hover:bg-secondary-600 sm:w-auto"
+              >
+                <i class="far fa-calendar"></i>
+                Ir a mi calendario
+              </button>
+            </div>
+          </div>
+        } @else if (error() === 'not-found') {
+          <div>
+            <span
+              class="inline-flex items-center gap-2 rounded-full bg-warning/10 px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.14em] text-warning font-inter-bold"
+            >
+              <i class="fas fa-link-slash text-[0.62rem]"></i>
+              Enlace no disponible
+            </span>
+            <div
+              class="mt-5 grid h-12 w-12 place-items-center rounded-xl bg-warning/10 text-warning lg:mt-7 lg:h-16 lg:w-16 lg:rounded-2xl"
+            >
+              <i class="fas fa-link-slash text-xl lg:text-2xl"></i>
+            </div>
+            <h1
+              class="mt-4 text-2xl leading-tight text-text font-inter-bold sm:text-3xl lg:mt-6 lg:text-4xl"
+            >
+              No encontramos esta reunión
+            </h1>
+            <p class="mt-3 max-w-lg text-sm leading-6 text-muted">
+              El enlace podría estar incompleto o la reunión ya no se encuentra disponible.
+            </p>
+            <div class="mt-6 border-t border-border pt-5 lg:mt-8 lg:pt-6">
+              <button
+                type="button"
+                (click)="openCalendar()"
+                class="inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm text-fixed-background-50 font-inter-bold shadow-lg shadow-secondary/20 transition-all hover:-translate-y-0.5 hover:bg-secondary-600 sm:w-auto"
+              >
+                <i class="far fa-calendar"></i>
+                Volver a mi calendario
+              </button>
+            </div>
+          </div>
+        } @else if (error() === 'generic') {
+          <div>
+            <span
+              class="inline-flex items-center gap-2 rounded-full bg-warning/10 px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.14em] text-warning font-inter-bold"
+            >
+              <i class="fas fa-triangle-exclamation text-[0.62rem]"></i>
+              Validación pendiente
+            </span>
+            <div
+              class="mt-5 grid h-12 w-12 place-items-center rounded-xl bg-warning/10 text-warning lg:mt-7 lg:h-16 lg:w-16 lg:rounded-2xl"
+            >
+              <i class="fas fa-triangle-exclamation text-xl lg:text-2xl"></i>
+            </div>
+            <h1
+              class="mt-4 text-2xl leading-tight text-text font-inter-bold sm:text-3xl lg:mt-6 lg:text-4xl"
+            >
+              No pudimos validar el acceso
+            </h1>
+            <p class="mt-3 max-w-lg text-sm leading-6 text-muted">
+              Puede tratarse de una interrupción temporal. Inténtalo nuevamente en unos segundos.
+            </p>
+            <div
+              class="mt-6 flex flex-col gap-3 border-t border-border pt-5 sm:flex-row lg:mt-8 lg:pt-6"
+            >
+              <button
+                type="button"
+                (click)="retry()"
+                class="inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm text-fixed-background-50 font-inter-bold shadow-lg shadow-secondary/20 transition-all hover:-translate-y-0.5 hover:bg-secondary-600"
+              >
+                <i class="fas fa-rotate-right"></i>
+                Reintentar
+              </button>
+              <button
+                type="button"
+                (click)="openCalendar()"
+                class="inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-surface px-5 text-sm text-text font-inter-bold transition-all hover:border-secondary/40 hover:text-secondary"
+              >
+                Ir a mi calendario
+              </button>
+            </div>
+          </div>
+        } @else if (access(); as current) {
+          @if (current.status === 'upcoming') {
+            <div>
+              <span
+                class="inline-flex items-center gap-2 rounded-full bg-primary-50 px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.14em] text-primary font-inter-bold"
+              >
+                <span class="relative flex h-2 w-2">
+                  <span
+                    class="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-40"
+                  ></span>
+                  <span class="relative inline-flex h-2 w-2 rounded-full bg-primary"></span>
+                </span>
+                Reunión programada
+              </span>
+
+              <h1
+                class="mt-4 text-2xl leading-tight text-text font-inter-bold sm:text-3xl lg:mt-6 lg:text-4xl"
+              >
+                La reunión aún no comienza
+              </h1>
+              <p class="mt-2 max-w-lg text-xs leading-5 text-muted sm:text-sm sm:leading-6 lg:mt-3">
+                Todo está preparado. El acceso a Teams se activará automáticamente 15 minutos antes
+                de la hora programada.
+              </p>
+
+              <div class="mt-5 border-y border-border py-4 lg:mt-8 lg:py-6">
+                <p class="text-[0.68rem] uppercase tracking-[0.15em] text-muted font-inter-bold">
+                  {{ current.title }}
+                </p>
+                <div
+                  class="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between lg:mt-4 lg:gap-5"
+                >
+                  <div>
+                    <p class="text-4xl leading-none text-secondary font-inter-bold sm:text-5xl">
+                      {{ meetingTime() }}
+                    </p>
+                    <p
+                      class="mt-2 text-xs capitalize text-text font-inter-semibold sm:text-sm lg:mt-3"
+                    >
+                      {{ meetingDate() }}
+                    </p>
+                  </div>
+                  <span
+                    class="hidden w-fit items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-xs text-muted font-inter-semibold sm:inline-flex"
+                  >
+                    <i class="fab fa-microsoft text-secondary"></i>
+                    Microsoft Teams
+                  </span>
+                </div>
+              </div>
+
+              <div
+                class="mt-4 flex items-center gap-3 rounded-xl border border-secondary-100 bg-secondary-50/60 p-3 lg:mt-5 lg:gap-4 lg:rounded-2xl lg:p-4"
+              >
+                <span
+                  class="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-surface text-secondary shadow-sm lg:h-11 lg:w-11 lg:rounded-xl"
+                >
+                  <i class="far fa-clock"></i>
+                </span>
+                <div class="min-w-0">
+                  <p class="text-xs text-muted">El enlace se habilitará a las</p>
+                  <p class="mt-0.5 text-lg text-text font-inter-bold">{{ accessTime() }}</p>
+                </div>
+                <span
+                  class="ml-auto shrink-0 rounded-lg bg-secondary px-2.5 py-1.5 text-[0.65rem] text-fixed-background-50 font-inter-bold"
+                >
+                  −15 min
+                </span>
+              </div>
+
+              <div class="mt-5 grid grid-cols-[1fr_auto] gap-2 sm:flex sm:gap-3 lg:mt-7">
+                <button
+                  type="button"
+                  (click)="retry()"
+                  class="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm text-fixed-background-50 font-inter-bold shadow-lg shadow-secondary/20 transition-all hover:-translate-y-0.5 hover:bg-secondary-600 lg:min-h-12 lg:px-6"
+                >
+                  <i class="fas fa-rotate-right"></i>
+                  <span class="sm:hidden">Reintentar</span>
+                  <span class="hidden sm:inline">Reintentar acceso</span>
+                </button>
+                <button
+                  type="button"
+                  (click)="openCalendar()"
+                  aria-label="Ir a mi calendario"
+                  class="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm text-text font-inter-bold transition-all hover:border-secondary/40 hover:text-secondary lg:min-h-12 lg:px-5"
+                >
+                  <i class="far fa-calendar"></i>
+                  <span class="hidden sm:inline">Mi calendario</span>
+                </button>
+              </div>
+            </div>
+          } @else if (current.status === 'expired') {
+            <div>
+              <span
+                class="inline-flex items-center gap-2 rounded-full bg-text/5 px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.14em] text-muted font-inter-bold"
+              >
+                <i class="fas fa-hourglass-end text-[0.62rem]"></i>
+                Acceso finalizado
+              </span>
+              <div
+                class="mt-5 grid h-12 w-12 place-items-center rounded-xl bg-text/5 text-muted lg:mt-7 lg:h-16 lg:w-16 lg:rounded-2xl"
+              >
+                <i class="fas fa-hourglass-end text-xl lg:text-2xl"></i>
+              </div>
+              <h1
+                class="mt-4 text-2xl leading-tight text-text font-inter-bold sm:text-3xl lg:mt-6 lg:text-4xl"
+              >
+                La reunión ya expiró
+              </h1>
+              <p class="mt-3 max-w-lg text-sm leading-6 text-muted">
+                La ventana de acceso a Teams terminó 15 minutos después de la hora de finalización.
+                El contenido de la sesión permanece disponible en HUBSME.
+              </p>
+
+              <div class="mt-5 border-y border-border py-4 lg:mt-7 lg:py-5">
+                <p class="text-[0.68rem] uppercase tracking-[0.15em] text-muted font-inter-bold">
+                  {{ current.title }}
+                </p>
+                <p class="mt-2 text-lg capitalize text-text font-inter-bold">{{ meetingDate() }}</p>
+                <p class="mt-1 text-sm text-muted">Hora programada: {{ meetingTime() }}</p>
+              </div>
+
+              @if (!current.hasMinutes) {
+                <div
+                  class="mt-5 flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/10 p-4 text-warning"
+                >
+                  <i class="fas fa-circle-info mt-0.5"></i>
+                  <p class="text-xs leading-5">El acta todavía podría estar en preparación.</p>
+                </div>
+              }
+
+              <div class="mt-5 flex flex-col gap-3 sm:flex-row lg:mt-7">
+                <button
+                  type="button"
+                  (click)="openMinutes()"
+                  class="inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-secondary px-6 text-sm text-fixed-background-50 font-inter-bold shadow-lg shadow-secondary/20 transition-all hover:-translate-y-0.5 hover:bg-secondary-600"
+                >
+                  <i class="far fa-file-lines"></i>
+                  Mostrar el acta
+                </button>
+                <button
+                  type="button"
+                  (click)="openCalendar()"
+                  class="inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-surface px-5 text-sm text-text font-inter-bold transition-all hover:border-secondary/40 hover:text-secondary"
+                >
+                  Mi calendario
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div>
+              <span
+                class="inline-flex items-center gap-2 rounded-full bg-warning/10 px-3 py-1.5 text-[0.68rem] uppercase tracking-[0.14em] text-warning font-inter-bold"
+              >
+                <i class="fas fa-video-slash text-[0.62rem]"></i>
+                Reunión no disponible
+              </span>
+              <div
+                class="mt-5 grid h-12 w-12 place-items-center rounded-xl bg-warning/10 text-warning lg:mt-7 lg:h-16 lg:w-16 lg:rounded-2xl"
+              >
+                <i class="fas fa-video-slash text-xl lg:text-2xl"></i>
+              </div>
+              <h1
+                class="mt-4 text-2xl leading-tight text-text font-inter-bold sm:text-3xl lg:mt-6 lg:text-4xl"
+              >
+                El acceso aún no está disponible
+              </h1>
+              <p class="mt-3 max-w-lg text-sm leading-6 text-muted">
+                La sesión todavía no tiene un horario confirmado, fue cancelada o no cuenta con un
+                enlace de Microsoft Teams.
+              </p>
+              <div class="mt-6 border-t border-border pt-5 lg:mt-8 lg:pt-6">
+                <button
+                  type="button"
+                  (click)="openCalendar()"
+                  class="inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm text-fixed-background-50 font-inter-bold shadow-lg shadow-secondary/20 transition-all hover:-translate-y-0.5 hover:bg-secondary-600 sm:w-auto"
+                >
+                  <i class="far fa-calendar"></i>
+                  Ir a mi calendario
+                </button>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    </section>
+  </div>
+</main>

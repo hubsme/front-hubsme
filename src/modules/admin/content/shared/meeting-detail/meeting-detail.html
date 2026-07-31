@@ -102,7 +102,7 @@
                 class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-[0.68rem] text-muted font-inter-medium"
               >
                 <i class="fas fa-video text-[0.55rem] text-secondary/60"></i>
-                {{ meetingModeLabel(current.meetingUrl) }}
+                {{ meetingModeLabel(current.hasMeetingLink) }}
               </span>
               <span
                 class="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1 text-[0.68rem] text-muted font-inter-medium"
@@ -213,39 +213,6 @@
             </p>
           </div>
 
-          @if (current.meetingUrl) {
-            <div class="mt-5 rounded-xl border border-border p-4">
-              <div class="mb-2.5 flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <div
-                    class="grid h-7 w-7 place-items-center rounded-lg bg-secondary-50 text-secondary"
-                  >
-                    <i class="fas fa-link text-[0.65rem]"></i>
-                  </div>
-                  <p class="text-[0.62rem] uppercase tracking-[0.12em] text-muted font-inter-bold">
-                    Enlace de la Reunion
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  (click)="copyToClipboard(current.meetingUrl)"
-                  class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-border bg-background text-muted hover:text-secondary hover:bg-secondary-50 transition-colors"
-                  title="Copiar enlace"
-                >
-                  <i class="far fa-copy text-xs"></i>
-                </button>
-              </div>
-              <a
-                [href]="current.meetingUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="break-all text-[0.82rem] text-muted font-inter-medium hover:text-secondary hover:underline transition-colors line-clamp-2"
-              >
-                {{ current.meetingUrl }}
-              </a>
-            </div>
-          }
-
           <!-- Dashed divider before actions -->
           <div class="my-6 border-t border-dashed border-border"></div>
 
@@ -290,28 +257,14 @@
               <i class="far fa-file-lines text-[0.65rem]"></i>
               Ver Acta
             </button>
-          } @else if (current.meetingUrl) {
-            @if (canJoin()) {
-              <a
-                [href]="current.meetingUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-[0.78rem] text-fixed-background-50 font-inter-bold shadow-sm hover:bg-secondary/90 transition-all cursor-pointer"
-              >
-                <i class="fas fa-external-link-alt text-[0.65rem]"></i>
-                Unirse
-              </a>
-            } @else {
-              <button
-                type="button"
-                disabled
-                class="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2.5 text-[0.78rem] text-muted font-inter-bold cursor-not-allowed opacity-60"
-                title="Podrás unirte desde 10 minutos antes hasta 30 minutos después de la reunión"
-              >
-                <i class="fas fa-lock text-[0.65rem]"></i>
-                Unirse (Inactivo)
-              </button>
-            }
+          } @else if (canJoin()) {
+            <a
+              [routerLink]="['/' + buildPath(PATH.meetingAccess), current.id]"
+              class="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-[0.78rem] text-fixed-background-50 font-inter-bold shadow-sm hover:bg-secondary/90 transition-all cursor-pointer"
+            >
+              <i class="fas fa-shield-halved text-[0.65rem]"></i>
+              Acceder a la Reunion
+            </a>
           }
         </div>
       </section>

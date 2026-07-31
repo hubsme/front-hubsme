@@ -38,6 +38,12 @@ export const routes: Routes = [
       import('@module/data-deletion/data-deletion').then((m) => m.DataDeletion),
   },
   {
+    path: `${getPath(PATH.meetingAccess)}/:id`,
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('@module/meeting-access/meeting-access').then((m) => m.MeetingAccess),
+  },
+  {
     path: getPath(PATH.diagnostic),
     canActivate: [authGuard],
     loadComponent: () => import('@module/diagnostic/diagnostic').then((m) => m.Diagnostic),

@@ -700,8 +700,8 @@ export interface WhatsappAlertaReunionConsultorDto {
    */
   tiempo: string;
   /**
-   * Enlace de la reunión
-   * @example "https://teams.microsoft.com/l/meetup-join/example"
+   * Enlace protegido de la reunión en el frontend
+   * @example "https://www.hubsme.net/reuniones/42"
    */
   enlace: string;
 }
@@ -743,8 +743,8 @@ export interface WhatsappAlertaReunionDto {
    */
   tiempo: string;
   /**
-   * Enlace de la reunión
-   * @example "https://teams.microsoft.com/l/meetup-join/example"
+   * Enlace protegido de la reunión en el frontend
+   * @example "https://www.hubsme.net/reuniones/42"
    */
   enlace: string;
 }
@@ -820,8 +820,8 @@ export interface MeetingResultDto {
   startTime: string | null;
   proposedStartTimes: string[];
   durationMinutes: number;
-  meetingUrl: string | null;
-  teamsOnlineMeetingId: string | null;
+  /** Indica si la reunión tiene un acceso virtual configurado */
+  hasMeetingLink: boolean;
   status:
     | "solicitada"
     | "pago_pendiente"
@@ -857,7 +857,8 @@ export interface MeetingCalendarItemDto {
   startTime: string | null;
   proposedStartTimes: string[];
   durationMinutes: number;
-  meetingUrl: string | null;
+  /** Indica si la reunión tiene un acceso virtual configurado */
+  hasMeetingLink: boolean;
   status:
     | "solicitada"
     | "pago_pendiente"
@@ -874,6 +875,22 @@ export interface MeetingCalendarItemDto {
 export interface MeetingCalendarListDto {
   data: MeetingCalendarItemDto[];
   meta: PaginationMetaDto;
+}
+
+export interface MeetingAccessResultDto {
+  id: number;
+  title: string;
+  status: "available" | "upcoming" | "expired" | "unavailable";
+  /** @format date-time */
+  startTime: string | null;
+  /** @format date-time */
+  endTime: string | null;
+  /** @format date-time */
+  accessStartsAt: string | null;
+  /** @format date-time */
+  accessEndsAt: string | null;
+  redirectUrl: string | null;
+  hasMinutes: boolean;
 }
 
 export interface MeetingCreateDto {
@@ -2268,6 +2285,14 @@ export interface MeetingFindOneParams {
 export type MeetingFindOneData = MeetingResultDto;
 
 export type MeetingFindOneError = HttpErrorDto;
+
+export interface MeetingAccessParams {
+  id: number;
+}
+
+export type MeetingAccessData = MeetingAccessResultDto;
+
+export type MeetingAccessError = HttpErrorDto;
 
 export type MeetingCreateData = MeetingResultDto;
 
@@ -3873,6 +3898,27 @@ export namespace Meeting {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = MeetingFindOneData;
+  }
+
+  /**
+   * No description
+   * @tags meeting
+   * @name MeetingAccess
+   * @summary Resolve protected Teams access for an authenticated meeting participant
+   * @request GET:/admin/meeting/access/{id}
+   * @secure
+   * @response `200` `MeetingAccessData`
+   * @response `403` `HttpErrorDto`
+   * @response `404` `HttpErrorDto`
+   */
+  export namespace MeetingAccess {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingAccessData;
   }
 
   /**
@@ -6704,6 +6750,27 @@ export class Api<SecurityDataType extends unknown> {
     ) =>
       this.http.request<MeetingFindOneData, MeetingFindOneError>({
         path: `/admin/meeting/find-one/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meeting
+     * @name MeetingAccess
+     * @summary Resolve protected Teams access for an authenticated meeting participant
+     * @request GET:/admin/meeting/access/{id}
+     * @secure
+     * @response `200` `MeetingAccessData`
+     * @response `403` `HttpErrorDto`
+     * @response `404` `HttpErrorDto`
+     */
+    access: ({ id }: MeetingAccessParams, params: RequestParams = {}) =>
+      this.http.request<MeetingAccessData, MeetingAccessError>({
+        path: `/admin/meeting/access/${id}`,
         method: "GET",
         secure: true,
         format: "json",

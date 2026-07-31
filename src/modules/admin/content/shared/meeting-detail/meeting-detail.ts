@@ -24,6 +24,9 @@ export class MeetingDetail implements OnInit {
   private consultantService = inject(ConsultantService);
   private pymeService = inject(PymeService);
 
+  readonly PATH = PATH;
+  readonly buildPath = buildPath;
+
   meeting = signal<Meeting | null>(null);
   consultant = signal<Consultant | null>(null);
   pyme = signal<Pyme | null>(null);
@@ -60,18 +63,7 @@ export class MeetingDetail implements OnInit {
 
   canJoin = computed(() => {
     const meeting = this.meeting();
-    if (!meeting || meeting.status !== 'confirmada' || !meeting.meetingUrl) return false;
-
-    const now = new Date();
-    const start = this.meetingDisplayStart(meeting);
-    const end = new Date(start.getTime() + meeting.durationMinutes * 60 * 1000);
-
-    // 10 minutes before
-    const allowedStart = new Date(start.getTime() - 10 * 60 * 1000);
-    // 30 minutes after the end of the meeting
-    const allowedEnd = new Date(end.getTime() + 30 * 60 * 1000);
-
-    return now >= allowedStart && now <= allowedEnd;
+    return Boolean(meeting && meeting.status === 'confirmada' && meeting.hasMeetingLink);
   });
 
   consultantName = computed(() => {
@@ -194,14 +186,7 @@ export class MeetingDetail implements OnInit {
     return value === 'pyme' ? 'PYME' : 'Consultor';
   }
 
-  meetingModeLabel(meetingUrl: string | null) {
-    return meetingUrl ? 'Teams' : 'Virtual';
-  }
-
-  copyToClipboard(url: string) {
-    navigator.clipboard
-      .writeText(url)
-      .then(() => this.toastService.success('Enlace copiado al portapapeles'))
-      .catch(() => this.toastService.error('No se pudo copiar el enlace'));
+  meetingModeLabel(hasMeetingLink: boolean) {
+    return hasMeetingLink ? 'Teams' : 'Virtual';
   }
 }

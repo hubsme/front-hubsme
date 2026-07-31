@@ -44,6 +44,7 @@ export const PATH = {
   termsConditions: { _path: 'terminos-y-condiciones' },
   dataDeletion: { _path: 'eliminacion-de-datos' },
   diagnostic: { _path: 'diagnostico' },
+  meetingAccess: { _path: 'reuniones' },
   auth: {
     _path: 'auth',
     signIn: { _path: 'sign-in' },

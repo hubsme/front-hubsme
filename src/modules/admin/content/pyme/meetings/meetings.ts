@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   CalendarDatePipe,
   CalendarEvent,
@@ -70,6 +70,7 @@ export class Meetings implements OnInit {
   private hubsme = inject(HubsmeService);
   private meetingService = inject(MeetingService);
   private toastService = inject(ToastService);
+  private router = inject(Router);
   readonly CalendarView = CalendarView;
   readonly PATH = PATH;
   readonly buildPath = buildPath;
@@ -203,7 +204,7 @@ export class Meetings implements OnInit {
 
   joinMeeting(meeting: Meeting) {
     if (!this.canJoin(meeting)) return;
-    window.open(meeting.meetingUrl ?? '', '_blank', 'noopener,noreferrer');
+    this.router.navigate([`/${buildPath(PATH.meetingAccess)}`, meeting.id]);
   }
 
   create() {
@@ -411,18 +412,7 @@ export class Meetings implements OnInit {
   }
 
   canJoin(meeting: Meeting) {
-    if (meeting.status !== 'confirmada' || !meeting.meetingUrl || meeting.description) return false;
-
-    const now = new Date();
-    const start = this.meetingDisplayStart(meeting);
-    const end = new Date(start.getTime() + meeting.durationMinutes * 60 * 1000);
-
-    // 10 minutes before
-    const allowedStart = new Date(start.getTime() - 10 * 60 * 1000);
-    // 30 minutes after the end of the meeting
-    const allowedEnd = new Date(end.getTime() + 30 * 60 * 1000);
-
-    return now >= allowedStart && now <= allowedEnd;
+    return meeting.status === 'confirmada' && meeting.hasMeetingLink && !meeting.description;
   }
 
   meetingEnd(meeting: Meeting) {

@@ -238,25 +238,10 @@
                 </p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">URL de reunión</p>
-                @if (meeting.meetingUrl) {
-                  <a
-                    [href]="meeting.meetingUrl"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="inline-flex items-center gap-2 text-secondary font-inter-semibold mt-1.5 break-all hover:underline"
-                    (click)="$event.stopPropagation()"
-                  >
-                    <i class="fas fa-arrow-up-right-from-square text-xs"></i>
-                    Abrir reunión
-                  </a>
-                } @else {
-                  <p class="text-text mt-1.5">-</p>
-                }
-              </div>
-              <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Teams ID</p>
-                <p class="text-text mt-1.5 break-all">{{ meeting.teamsOnlineMeetingId || '-' }}</p>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Acceso virtual</p>
+                <p class="text-text mt-1.5">
+                  {{ meeting.hasMeetingLink ? 'Configurado mediante enlace protegido' : 'No configurado' }}
+                </p>
               </div>
               <div>
                 <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Última actualización</p>
@@ -319,4 +304,3 @@
     </div>
   </app-modal-form>
 }
-

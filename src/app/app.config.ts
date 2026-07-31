@@ -49,9 +49,15 @@ export const appConfig: ApplicationConfig = {
             const response = await fetch(input, init);
             if (response.status === 401) {
               if (isPlatformBrowser(platformId)) {
+                const returnUrl = router.url;
                 const sessionService = injector.get(SessionService);
                 sessionService.removeSession();
-                router.navigate([buildPath(PATH.auth.signIn)]);
+                const signInPath = `/${buildPath(PATH.auth.signIn)}`;
+                if (returnUrl.split('?')[0] !== signInPath) {
+                  router.navigate([buildPath(PATH.auth.signIn)], {
+                    queryParams: { returnUrl },
+                  });
+                }
               }
             }
             return response;

@@ -199,7 +199,7 @@
           <span class="inline-flex items-center gap-2"><i class="far fa-clock"></i>{{ time(meetingDisplayStart(meeting).toISOString()) }}</span>
           <span class="inline-flex items-center gap-2"><i class="fas fa-hourglass-half"></i>{{ meeting.durationMinutes
             }} min</span>
-          <span class="inline-flex items-center gap-2"><i class="fas fa-video"></i>{{ meeting.meetingUrl ? 'Teams' :
+          <span class="inline-flex items-center gap-2"><i class="fas fa-video"></i>{{ meeting.hasMeetingLink ? 'Teams' :
             'Sin enlace aun' }}</span>
         </div>
         @if (meeting.description) {

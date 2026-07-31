@@ -474,7 +474,7 @@ export class Meetings implements OnInit, OnDestroy {
 
   joinMeeting(meeting: Meeting) {
     if (!this.canJoinMeeting(meeting)) return;
-    window.open(meeting.meetingUrl ?? '', '_blank', 'noopener,noreferrer');
+    this.router.navigate([`/${buildPath(PATH.meetingAccess)}`, meeting.id]);
   }
 
   finishMeeting(meeting: Meeting) {
@@ -716,18 +716,7 @@ export class Meetings implements OnInit, OnDestroy {
   }
 
   canJoinMeeting(meeting: Meeting) {
-    if (meeting.status !== 'confirmada' || !meeting.meetingUrl || meeting.description) return false;
-
-    const now = new Date();
-    const start = this.meetingDisplayStart(meeting);
-    const end = new Date(start.getTime() + meeting.durationMinutes * 60 * 1000);
-
-    // 10 minutes before
-    const allowedStart = new Date(start.getTime() - 10 * 60 * 1000);
-    // 30 minutes after the end of the meeting
-    const allowedEnd = new Date(end.getTime() + 30 * 60 * 1000);
-
-    return now >= allowedStart && now <= allowedEnd;
+    return meeting.status === 'confirmada' && meeting.hasMeetingLink && !meeting.description;
   }
 
   canFinishMeeting(meeting: Meeting) {

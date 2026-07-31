@@ -163,6 +163,13 @@ export class Profile implements OnInit, OnDestroy {
   readonly visibleDiagnosticAreas = computed(() => this.form().diagnosticAreas.slice(0, 3));
   readonly primarySpecialty = computed(() => this.form().specialties[0] || 'Consultoría para PYMES');
   readonly previewDisplayName = computed(() => this.capitalizeName(this.form().fullName || 'Tu nombre'));
+  readonly formattedBirthDate = computed(() => {
+    const birthDate = this.consultant()?.birthDate;
+    if (!birthDate) return '';
+
+    const [year, month, day] = birthDate.split('-');
+    return year && month && day ? `${day}/${month}/${year}` : birthDate;
+  });
 
   ngOnInit(): void {
     this.load();

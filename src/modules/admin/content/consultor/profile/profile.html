@@ -343,6 +343,26 @@
               (ngModelChange)="updateForm('lastName', $event)"
               class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
           </label>
+          <label class="block text-[0.78rem] font-inter-semibold text-muted">
+            <span class="mb-2 flex items-center gap-1.5">
+              DNI
+              <i class="fas fa-lock text-[0.62rem] text-text-400" title="Dato privado verificado"></i>
+            </span>
+            <input [value]="consultant()?.dni ?? ''" readonly placeholder="No registrado"
+              class="h-11 w-full cursor-not-allowed rounded-xl border border-border bg-text/[0.03] px-3 text-sm text-text-500 outline-none placeholder:text-text-400" />
+          </label>
+          <label class="block text-[0.78rem] font-inter-semibold text-muted">
+            <span class="mb-2 flex items-center gap-1.5">
+              Fecha de nacimiento
+              <i class="fas fa-lock text-[0.62rem] text-text-400" title="Dato privado verificado"></i>
+            </span>
+            <input [value]="formattedBirthDate()" readonly placeholder="No registrada"
+              class="h-11 w-full cursor-not-allowed rounded-xl border border-border bg-text/[0.03] px-3 text-sm text-text-500 outline-none placeholder:text-text-400" />
+          </label>
+          <p class="-mt-2 flex items-center gap-1.5 text-[0.68rem] leading-5 text-text-400 md:col-span-2">
+            <i class="fas fa-shield-halved"></i>
+            Estos datos son privados, provienen de la validación de identidad y no aparecen en tu perfil público.
+          </p>
           <label class="block text-[0.78rem] font-inter-semibold text-muted md:col-span-2">
             <span class="mb-2 block">Titular profesional</span>
             <input [ngModel]="form().headline" name="headline" (ngModelChange)="updateForm('headline', $event)"
@@ -473,7 +493,7 @@
           </label>
           <label class="block text-[0.78rem] font-inter-semibold text-muted">
             <span class="mb-2 block">Teléfono</span>
-            <app-phone-input [ngModel]="form().ownerPhone" name="ownerPhone"
+            <app-phone-input class="relative z-0 block isolate" [ngModel]="form().ownerPhone" name="ownerPhone"
               (ngModelChange)="updateForm('ownerPhone', $event)" />
           </label>
           <label class="block text-[0.78rem] font-inter-semibold text-muted">

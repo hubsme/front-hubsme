@@ -1,0 +1,464 @@
+<main class="mx-auto max-w-7xl p-5 md:p-8">
+  <header class="mb-7 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div>
+      <p class="mb-2 text-xs font-inter-semibold uppercase tracking-[0.14em] text-secondary">
+        Administración
+      </p>
+      <h1 class="font-plus-jakarta-sans text-2xl font-bold text-text md:text-3xl">Soporte</h1>
+      <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
+        Revisa los comentarios enviados por PYMES y consultores, responde y actualiza su
+        seguimiento.
+      </p>
+    </div>
+    <div
+      class="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-surface px-3 py-2 text-xs text-muted"
+    >
+      <span class="size-2 rounded-full bg-success"></span>
+      Bandeja interna de HUBSME
+    </div>
+  </header>
+
+  <section class="mb-6 grid gap-3 sm:grid-cols-3">
+    <article
+      class="rounded-2xl border border-border bg-surface p-4 shadow-[0_10px_28px_rgba(15,23,42,0.04)]"
+    >
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-inter-semibold uppercase text-muted">Comentarios</p>
+        <span class="grid size-8 place-items-center rounded-xl bg-secondary/10 text-secondary"
+          ><i class="fas fa-inbox"></i
+        ></span>
+      </div>
+      <p class="mt-3 text-2xl font-inter-bold">{{ totalTickets() }}</p>
+    </article>
+    <article
+      class="rounded-2xl border border-border bg-surface p-4 shadow-[0_10px_28px_rgba(15,23,42,0.04)]"
+    >
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-inter-semibold uppercase text-muted">Nuevos en página</p>
+        <span class="grid size-8 place-items-center rounded-xl bg-info/10 text-info"
+          ><i class="fas fa-bell"></i
+        ></span>
+      </div>
+      <p class="mt-3 text-2xl font-inter-bold text-info">{{ newOnPage() }}</p>
+    </article>
+    <article
+      class="rounded-2xl border border-border bg-surface p-4 shadow-[0_10px_28px_rgba(15,23,42,0.04)]"
+    >
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-inter-semibold uppercase text-muted">Activos en página</p>
+        <span class="grid size-8 place-items-center rounded-xl bg-warning/10 text-warning"
+          ><i class="fas fa-list-check"></i
+        ></span>
+      </div>
+      <p class="mt-3 text-2xl font-inter-bold text-warning">{{ activeOnPage() }}</p>
+    </article>
+  </section>
+
+  <section
+    class="overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_16px_40px_rgba(15,23,42,0.05)]"
+  >
+    <div class="border-b border-border p-4 md:p-5">
+      <div class="grid gap-3 md:grid-cols-[minmax(240px,1fr)_190px_180px_auto] md:items-end">
+        <label class="block">
+          <span class="mb-2 block text-xs font-inter-semibold uppercase text-muted">Buscar</span>
+          <span class="relative block">
+            <i
+              class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted"
+            ></i>
+            <input
+              [ngModel]="search()"
+              (ngModelChange)="onSearchChange($event)"
+              placeholder="Título, descripción, usuario o correo"
+              class="h-10 w-full rounded-xl border border-border bg-background-50 pl-9 pr-3 text-sm outline-none focus:border-secondary"
+            />
+          </span>
+        </label>
+
+        <label class="block">
+          <span class="mb-2 block text-xs font-inter-semibold uppercase text-muted">Estado</span>
+          <span class="relative block">
+            <select
+              [value]="status()"
+              (change)="onStatusSelect($event)"
+              class="h-10 w-full appearance-none rounded-xl border border-border bg-background-50 pl-3 pr-9 text-sm outline-none focus:border-secondary"
+            >
+              <option value="">Todos</option>
+              <option value="new">Nuevo</option>
+              <option value="in_review">En revisión</option>
+              <option value="accepted">Aceptado</option>
+              <option value="resolved">Resuelto</option>
+              <option value="closed">Cerrado</option>
+            </select>
+            <i
+              class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[0.65rem] text-muted"
+            ></i>
+          </span>
+        </label>
+
+        <label class="block">
+          <span class="mb-2 block text-xs font-inter-semibold uppercase text-muted">Perfil</span>
+          <span class="relative block">
+            <select
+              [value]="userRole()"
+              (change)="onRoleSelect($event)"
+              class="h-10 w-full appearance-none rounded-xl border border-border bg-background-50 pl-3 pr-9 text-sm outline-none focus:border-secondary"
+            >
+              <option value="">Todos</option>
+              <option value="pyme">PYME</option>
+              <option value="consultor">Consultor</option>
+            </select>
+            <i
+              class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[0.65rem] text-muted"
+            ></i>
+          </span>
+        </label>
+
+        <button
+          type="button"
+          (click)="clearFilters()"
+          class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border px-3 text-sm text-muted hover:bg-background-50 hover:text-text"
+        >
+          <i class="fas fa-eraser"></i>
+          <span class="md:hidden xl:inline">Limpiar</span>
+        </button>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="grid min-h-72 place-items-center text-muted">
+        <span><i class="fas fa-circle-notch fa-spin mr-2"></i>Cargando comentarios...</span>
+      </div>
+    } @else if (!tickets().length) {
+      <div class="grid min-h-72 place-items-center p-7 text-center">
+        <div>
+          <span
+            class="mx-auto grid size-12 place-items-center rounded-2xl bg-secondary/10 text-secondary"
+            ><i class="fas fa-inbox"></i
+          ></span>
+          <h2 class="mt-4 font-inter-bold">No hay comentarios para mostrar</h2>
+          <p class="mt-1 text-sm text-muted">Prueba cambiando los filtros seleccionados.</p>
+        </div>
+      </div>
+    } @else {
+      <div class="hidden overflow-x-auto md:block">
+        <table class="w-full min-w-[940px] text-sm">
+          <thead class="border-b border-border bg-background-50">
+            <tr class="text-left text-xs font-inter-semibold uppercase text-muted">
+              <th class="px-5 py-3">Comentario</th>
+              <th class="px-5 py-3">Usuario</th>
+              <th class="px-5 py-3">Perfil</th>
+              <th class="px-5 py-3">Actividad</th>
+              <th class="px-5 py-3">Estado</th>
+              <th class="px-5 py-3 text-right">Actualizado</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            @for (ticket of tickets(); track ticket.id) {
+              <tr
+                (click)="openDetail(ticket)"
+                class="cursor-pointer transition hover:bg-secondary/5"
+              >
+                <td class="max-w-sm px-5 py-4">
+                  <p class="truncate font-inter-semibold text-text">{{ ticket.title }}</p>
+                  <p class="mt-1 text-xs text-muted">Ticket #{{ ticket.id }}</p>
+                </td>
+                <td class="px-5 py-4">
+                  <p class="font-inter-semibold">{{ ticket.userName }}</p>
+                  <p class="mt-1 text-xs text-muted">{{ ticket.userEmail }}</p>
+                </td>
+                <td class="px-5 py-4 text-muted">{{ roleLabel(ticket.userRole) }}</td>
+                <td class="px-5 py-4 text-muted">
+                  <span class="mr-3"
+                    ><i class="far fa-image mr-1"></i>{{ ticket.attachmentCount }}</span
+                  >
+                  <span><i class="far fa-comments mr-1"></i>{{ ticket.replyCount }}</span>
+                </td>
+                <td class="px-5 py-4">
+                  <span
+                    class="rounded-full px-2.5 py-1 text-xs font-inter-semibold"
+                    [class]="statusClass(ticket.status)"
+                  >
+                    {{ statusLabel(ticket.status) }}
+                  </span>
+                </td>
+                <td class="px-5 py-4 text-right text-xs text-muted">
+                  {{ ticket.updatedAt | date: 'dd/MM/yyyy HH:mm' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="divide-y divide-border md:hidden">
+        @for (ticket of tickets(); track ticket.id) {
+          <button
+            type="button"
+            (click)="openDetail(ticket)"
+            class="w-full p-4 text-left hover:bg-secondary/5"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                  Ticket #{{ ticket.id }}
+                </p>
+                <p class="mt-1 truncate font-inter-bold">{{ ticket.title }}</p>
+              </div>
+              <span
+                class="shrink-0 rounded-full px-2.5 py-1 text-[0.68rem] font-inter-semibold"
+                [class]="statusClass(ticket.status)"
+              >
+                {{ statusLabel(ticket.status) }}
+              </span>
+            </div>
+            <p class="mt-3 text-sm font-inter-semibold">{{ ticket.userName }}</p>
+            <div class="mt-2 flex items-center justify-between text-xs text-muted">
+              <span>{{ roleLabel(ticket.userRole) }} · {{ ticket.replyCount }} respuestas</span>
+              <span>{{ ticket.updatedAt | date: 'dd/MM HH:mm' }}</span>
+            </div>
+          </button>
+        }
+      </div>
+
+      @if (meta(); as paginationMeta) {
+        <app-pagination
+          [meta]="paginationMeta"
+          [currentPage]="page()"
+          [pageSize]="pageSize"
+          [showPageSizeSelector]="false"
+          (pageChange)="changePage($event)"
+        />
+      }
+    }
+  </section>
+</main>
+
+@if (showDetailModal()) {
+  <app-modal-form
+    title="Comentario de soporte"
+    maxWidth="5xl"
+    [showFooter]="false"
+    (onClose)="closeDetail()"
+  >
+    @if (detailLoading()) {
+      <div class="grid min-h-96 place-items-center text-muted">
+        <span><i class="fas fa-circle-notch fa-spin mr-2"></i>Cargando detalle...</span>
+      </div>
+    } @else if (selectedTicket(); as ticket) {
+      <div class="p-5 sm:p-7">
+        <div
+          class="flex flex-col gap-5 border-b border-border pb-6 lg:flex-row lg:items-start lg:justify-between"
+        >
+          <div class="min-w-0">
+            <div class="mb-2 flex flex-wrap items-center gap-2">
+              <span class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted"
+                >Ticket #{{ ticket.id }}</span
+              >
+              <span
+                class="rounded-full px-2.5 py-1 text-[0.68rem] font-inter-bold"
+                [class]="statusClass(ticket.status)"
+              >
+                {{ statusLabel(ticket.status) }}
+              </span>
+            </div>
+            <h2 class="font-plus-jakarta-sans text-xl font-bold text-text sm:text-2xl">
+              {{ ticket.title }}
+            </h2>
+            <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted">
+              <span><i class="far fa-user mr-1.5"></i>{{ ticket.userName }}</span>
+              <span><i class="far fa-envelope mr-1.5"></i>{{ ticket.userEmail }}</span>
+              <span
+                ><i class="far fa-calendar mr-1.5"></i
+                >{{ ticket.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span
+              >
+              <span class="rounded-full bg-secondary/10 px-2 py-1 font-inter-bold text-secondary">{{
+                roleLabel(ticket.userRole)
+              }}</span>
+            </div>
+          </div>
+
+          <div class="w-full rounded-2xl border border-border bg-background-50 p-3 lg:w-72">
+            <p class="mb-2 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+              Cambiar estado
+            </p>
+            <div class="flex gap-2">
+              <span class="relative min-w-0 flex-1">
+                <select
+                  [value]="statusDraft()"
+                  (change)="onStatusDraftSelect($event)"
+                  class="h-10 w-full appearance-none rounded-xl border border-border bg-surface pl-3 pr-8 text-xs font-inter-semibold outline-none focus:border-secondary"
+                >
+                  <option value="new">Nuevo</option>
+                  <option value="in_review">En revisión</option>
+                  <option value="accepted">Aceptado</option>
+                  <option value="resolved">Resuelto</option>
+                  <option value="closed">Cerrado</option>
+                </select>
+                <i
+                  class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[0.6rem] text-muted"
+                ></i>
+              </span>
+              <button
+                type="button"
+                (click)="updateStatus()"
+                [disabled]="ticket.status === statusDraft() || statusUpdating()"
+                class="grid size-10 shrink-0 place-items-center rounded-xl bg-secondary text-fixed-background-50 disabled:cursor-not-allowed disabled:opacity-40"
+                title="Guardar estado"
+              >
+                <i [class]="statusUpdating() ? 'fas fa-circle-notch fa-spin' : 'fas fa-check'"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(300px,0.72fr)]">
+          <div class="min-w-0 space-y-6">
+            <section>
+              <p class="mb-2 text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
+                Descripción
+              </p>
+              <div
+                class="whitespace-pre-line rounded-2xl border border-border bg-background-50 p-4 text-sm leading-7 text-text"
+              >
+                {{ ticket.description }}
+              </div>
+            </section>
+
+            @if (ticket.attachments.length) {
+              <section>
+                <div class="mb-3 flex items-center justify-between">
+                  <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
+                    Adjuntos
+                  </p>
+                  <span class="text-xs text-muted">{{ ticket.attachments.length }} imágenes</span>
+                </div>
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  @for (attachment of ticket.attachments; track attachment.id) {
+                    <a
+                      [href]="attachment.fileUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="group overflow-hidden rounded-2xl border border-border bg-background-50"
+                    >
+                      <div class="aspect-video overflow-hidden">
+                        @if (canPreviewImage(attachment.mimeType)) {
+                          <img
+                            [src]="attachment.fileUrl"
+                            [alt]="attachment.originalName"
+                            loading="lazy"
+                            class="size-full object-cover transition group-hover:scale-105"
+                          />
+                        } @else {
+                          <div class="grid size-full place-items-center text-muted">
+                            <i class="fas fa-image text-xl"></i>
+                          </div>
+                        }
+                      </div>
+                      <div class="p-2.5">
+                        <p class="truncate text-xs font-inter-semibold">
+                          {{ attachment.originalName }}
+                        </p>
+                        <p class="mt-0.5 text-[0.65rem] text-muted">
+                          {{ formatFileSize(attachment.sizeBytes) }}
+                        </p>
+                      </div>
+                    </a>
+                  }
+                </div>
+              </section>
+            }
+          </div>
+
+          <section
+            class="flex min-h-96 flex-col overflow-hidden rounded-2xl border border-border bg-background-50"
+          >
+            <div class="border-b border-border bg-surface px-4 py-3">
+              <h3 class="font-inter-bold">Conversación</h3>
+              <p class="mt-0.5 text-xs text-muted">{{ ticket.replyCount }} respuestas en el hilo</p>
+            </div>
+
+            <div class="max-h-[420px] flex-1 space-y-3 overflow-y-auto p-4">
+              <article
+                class="max-w-[90%] rounded-2xl rounded-tl-md border border-border bg-surface px-4 py-3 text-sm"
+              >
+                <div
+                  class="mb-1.5 flex items-center justify-between gap-3 text-[0.68rem] font-inter-bold"
+                >
+                  <span>{{ ticket.userName }}</span>
+                  <span class="text-muted">{{ ticket.createdAt | date: 'dd/MM, HH:mm' }}</span>
+                </div>
+                <p class="whitespace-pre-line leading-relaxed text-text">
+                  {{ ticket.description }}
+                </p>
+              </article>
+
+              @for (reply of ticket.replies; track reply.id) {
+                <div class="flex" [class.justify-end]="reply.authorType === 'admin'">
+                  <article
+                    class="max-w-[90%] rounded-2xl px-4 py-3 text-sm"
+                    [class.rounded-tr-md]="reply.authorType === 'admin'"
+                    [class.rounded-tl-md]="reply.authorType === 'user'"
+                    [class.bg-secondary]="reply.authorType === 'admin'"
+                    [class.text-fixed-background-50]="reply.authorType === 'admin'"
+                    [class.border]="reply.authorType === 'user'"
+                    [class.border-border]="reply.authorType === 'user'"
+                    [class.bg-surface]="reply.authorType === 'user'"
+                  >
+                    <div
+                      class="mb-1.5 flex items-center justify-between gap-3 text-[0.68rem] font-inter-bold"
+                    >
+                      <span>{{
+                        reply.authorType === 'admin' ? 'Equipo HUBSME' : reply.authorName
+                      }}</span>
+                      <span
+                        [class]="
+                          reply.authorType === 'admin'
+                            ? 'text-fixed-background-50/70'
+                            : 'text-muted'
+                        "
+                      >
+                        {{ reply.createdAt | date: 'dd/MM, HH:mm' }}
+                      </span>
+                    </div>
+                    <p class="whitespace-pre-line leading-relaxed">{{ reply.message }}</p>
+                  </article>
+                </div>
+              }
+            </div>
+
+            <div class="border-t border-border bg-surface p-3">
+              @if (ticket.status === 'closed') {
+                <div class="rounded-xl bg-text/5 px-3 py-3 text-xs leading-relaxed text-muted">
+                  <i class="fas fa-lock mr-1.5"></i>El hilo está cerrado. Cambia el estado para
+                  volver a responder.
+                </div>
+              } @else {
+                <form (ngSubmit)="sendReply()">
+                  <textarea
+                    name="adminSupportReply"
+                    [ngModel]="replyMessage()"
+                    (ngModelChange)="replyMessage.set($event)"
+                    maxlength="3000"
+                    rows="3"
+                    placeholder="Responder al usuario..."
+                    class="w-full resize-y rounded-xl border border-border bg-background-50 px-3 py-2.5 text-sm outline-none focus:border-secondary"
+                  ></textarea>
+                  <button
+                    type="submit"
+                    [disabled]="replyMessage().trim().length < 2 || replying()"
+                    class="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-xl bg-secondary px-4 text-sm font-inter-bold text-fixed-background-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <i
+                      [class]="replying() ? 'fas fa-circle-notch fa-spin' : 'fas fa-paper-plane'"
+                    ></i>
+                    Enviar respuesta
+                  </button>
+                </form>
+              }
+            </div>
+          </section>
+        </div>
+      </div>
+    }
+  </app-modal-form>
+}

@@ -59,6 +59,7 @@ export const PATH = {
     pymes: { _path: 'pymes' },
     consultants: { _path: 'consultores' },
     meetings: { _path: 'reuniones' },
+    support: { _path: 'soporte' },
   },
   admin: {
     _path: 'admin',
@@ -76,6 +77,7 @@ export const PATH = {
       meetings: { _path: 'meetings' },
       tasks: { _path: 'tasks' },
       documents: { _path: 'documents' },
+      support: { _path: 'support' },
     },
     consultor: {
       _path: 'consultor',
@@ -86,6 +88,7 @@ export const PATH = {
       tasks: { _path: 'tasks' },
       documents: { _path: 'documents' },
       subscription: { _path: 'subscription' },
+      support: { _path: 'support' },
     },
   },
 } as const;
@@ -109,6 +112,7 @@ export const ROUTE_CONFIG = {
     [buildPath(PATH.admin.pyme.meetings)]: ['pyme'],
     [buildPath(PATH.admin.pyme.tasks)]: ['pyme'],
     [buildPath(PATH.admin.pyme.documents)]: ['pyme'],
+    [buildPath(PATH.admin.pyme.support)]: ['pyme'],
     [buildPath(PATH.admin.consultor.dashboard)]: ['consultor'],
     [buildPath(PATH.admin.consultor.profile)]: ['consultor'],
     [buildPath(PATH.admin.consultor.pymes)]: ['consultor'],
@@ -116,6 +120,7 @@ export const ROUTE_CONFIG = {
     [buildPath(PATH.admin.consultor.tasks)]: ['consultor'],
     [buildPath(PATH.admin.consultor.documents)]: ['consultor'],
     [buildPath(PATH.admin.consultor.subscription)]: ['consultor'],
+    [buildPath(PATH.admin.consultor.support)]: ['consultor'],
   } as Record<string, Rol[]>,
 };
 

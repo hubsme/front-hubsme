@@ -12,7 +12,7 @@
           class="hidden sm:inline-flex items-center gap-2 px-3 h-9 rounded-lg text-sm font-inter-semibold text-muted hover:text-text"
         >
           <i class="fas fa-ticket"></i>
-          Códigos
+          <span class="hidden lg:inline">Códigos</span>
         </a>
         <a
           [routerLink]="pymesPath"
@@ -21,7 +21,7 @@
           class="hidden sm:inline-flex items-center gap-2 px-3 h-9 rounded-lg text-sm font-inter-semibold text-muted hover:text-text"
         >
           <i class="fas fa-building"></i>
-          PYMES
+          <span class="hidden lg:inline">PYMES</span>
         </a>
         <a
           [routerLink]="consultantsPath"
@@ -30,7 +30,7 @@
           class="hidden sm:inline-flex items-center gap-2 px-3 h-9 rounded-lg text-sm font-inter-semibold text-muted hover:text-text"
         >
           <i class="fas fa-user-tie"></i>
-          Consultores
+          <span class="hidden lg:inline">Consultores</span>
         </a>
         <a
           [routerLink]="meetingsPath"
@@ -39,7 +39,17 @@
           class="hidden sm:inline-flex items-center gap-2 px-3 h-9 rounded-lg text-sm font-inter-semibold text-muted hover:text-text"
         >
           <i class="fas fa-video"></i>
-          Reuniones
+          <span class="hidden lg:inline">Reuniones</span>
+        </a>
+        <a
+          [routerLink]="supportPath"
+          routerLinkActive="text-secondary bg-secondary/10"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="inline-flex items-center gap-2 px-3 h-9 rounded-lg text-sm font-inter-semibold text-muted hover:text-text"
+          title="Soporte"
+        >
+          <i class="fas fa-headset"></i>
+          <span class="hidden lg:inline">Soporte</span>
         </a>
         <span class="hidden md:block text-sm text-muted px-2">{{ username }}</span>
         <button

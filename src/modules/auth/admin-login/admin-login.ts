@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { buildPath, PATH } from '@route/path.route';
 import { AdminApiService } from '@service/admin-api.service';
 import { AdminSessionService } from '@service/admin-session.service';
@@ -14,6 +14,7 @@ export class AdminLogin {
   private readonly adminApi = inject(AdminApiService);
   private readonly adminSession = inject(AdminSessionService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   readonly username = signal('');
   readonly password = signal('');
@@ -23,7 +24,7 @@ export class AdminLogin {
 
   constructor() {
     if (this.adminSession.session()) {
-      void this.router.navigate([buildPath(PATH.backoffice.promotionCodes)]);
+      void this.router.navigateByUrl(this.destinationUrl());
     }
   }
 
@@ -47,11 +48,19 @@ export class AdminLogin {
       if (!this.adminSession.setSession(response.data)) {
         throw new Error('La sesión administrativa recibida no es válida');
       }
-      await this.router.navigate([buildPath(PATH.backoffice.promotionCodes)]);
+      await this.router.navigateByUrl(this.destinationUrl());
     } catch {
       this.errorMessage.set('Usuario o contraseña incorrectos.');
     } finally {
       this.loading.set(false);
     }
+  }
+
+  private destinationUrl() {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    const backofficeRoot = `/${buildPath(PATH.backoffice)}`;
+    if (returnUrl === backofficeRoot || returnUrl?.startsWith(`${backofficeRoot}/`))
+      return returnUrl;
+    return `/${buildPath(PATH.backoffice.promotionCodes)}`;
   }
 }

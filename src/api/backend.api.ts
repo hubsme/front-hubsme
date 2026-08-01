@@ -1664,6 +1664,13 @@ export interface DashboardStatsDto {
   billableHours: number;
 }
 
+export interface DashboardLatestDiagnosticDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  score: number;
+}
+
 export interface DashboardMeetingStatsDto {
   total: number;
   confirmed: number;
@@ -1704,6 +1711,7 @@ export interface DashboardAlertDto {
 
 export interface DashboardResponseDto {
   stats: DashboardStatsDto;
+  latestDiagnostic: DashboardLatestDiagnosticDto | null;
   meetingStats: DashboardMeetingStatsDto;
   taskStatus: DashboardTaskStatusDto;
   upcomingMeetings: DashboardMeetingDto[];
@@ -9173,7 +9181,6 @@ export class Api<SecurityDataType extends unknown> {
       }),
   };
 }
-
 /**
  * ==============================================================================
  *  UTILITARIOS DE TIPOS PARA FRONTEND

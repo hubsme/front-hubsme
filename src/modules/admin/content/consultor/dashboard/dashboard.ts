@@ -137,9 +137,7 @@ export class Dashboard implements OnInit {
   });
 
   healthScore = computed(() => {
-    const diagnostics = this.summary()?.stats.diagnostics ?? 0;
-    const pending = this.summary()?.taskStatus.pendiente ?? 0;
-    return Math.max(72, Math.min(96, 78 + diagnostics * 4 - Math.min(pending, 3)));
+    return this.summary()?.latestDiagnostic?.score ?? 0;
   });
 
   consultantHours = computed(() => {

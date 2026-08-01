@@ -79,6 +79,11 @@ export const routes: Routes = [
               import('@module/backoffice/components/reuniones/reuniones').then((m) => m.Reuniones),
           },
           {
+            path: getPath(PATH.backoffice.support),
+            loadComponent: () =>
+              import('@module/backoffice/components/soporte/soporte').then((m) => m.Soporte),
+          },
+          {
             path: '',
             redirectTo: getPath(PATH.backoffice.promotionCodes),
             pathMatch: 'full',
@@ -193,6 +198,11 @@ export const routes: Routes = [
             loadComponent: () =>
               import('@module/admin/content/pyme/documents/documents').then((m) => m.Documents),
           },
+          {
+            path: getPath(PATH.admin.pyme.support),
+            loadComponent: () =>
+              import('@module/admin/content/shared/support/support').then((m) => m.Support),
+          },
           { path: '**', redirectTo: getPath(PATH.admin.pyme.dashboard), pathMatch: 'full' },
         ],
       },
@@ -262,6 +272,11 @@ export const routes: Routes = [
               import('@module/admin/content/consultor/subscription/subscription').then(
                 (m) => m.Subscription,
               ),
+          },
+          {
+            path: getPath(PATH.admin.consultor.support),
+            loadComponent: () =>
+              import('@module/admin/content/shared/support/support').then((m) => m.Support),
           },
           { path: '**', redirectTo: getPath(PATH.admin.consultor.dashboard), pathMatch: 'full' },
         ],

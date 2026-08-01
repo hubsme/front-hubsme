@@ -22,8 +22,14 @@ export class AdminApiService {
       customFetch: async (input, init) => {
         const response = await fetch(input, init);
         if (response.status === 401 && isPlatformBrowser(this.platformId)) {
+          const returnUrl = this.router.url;
           this.adminSession.removeSession();
-          await this.router.navigate([buildPath(PATH.auth.adminLogin)]);
+          const backofficeRoot = `/${buildPath(PATH.backoffice)}`;
+          if (returnUrl === backofficeRoot || returnUrl.startsWith(`${backofficeRoot}/`)) {
+            await this.router.navigate([buildPath(PATH.auth.adminLogin)], {
+              queryParams: { returnUrl },
+            });
+          }
         }
         return response;
       },

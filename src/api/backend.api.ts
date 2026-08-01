@@ -1931,6 +1931,101 @@ export interface PromotionCodeRedeemResultDto {
   message: string;
 }
 
+export interface FeedbackListItemDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  userId: number;
+  userRole: "pyme" | "consultor";
+  userName: string;
+  userEmail: string;
+  title: string;
+  description: string;
+  status: "new" | "in_review" | "accepted" | "resolved" | "closed";
+  /** @format date-time */
+  statusUpdatedAt?: string | null;
+  statusUpdatedBy?: string | null;
+  attachmentCount: number;
+  replyCount: number;
+}
+
+export interface FeedbackListDto {
+  data: FeedbackListItemDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface FeedbackAttachmentResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  storagePath: string;
+  fileUrl: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
+export interface FeedbackReplyResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  authorType: "user" | "admin";
+  authorUserId?: number | null;
+  authorName: string;
+  message: string;
+}
+
+export interface FeedbackResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  userId: number;
+  userRole: "pyme" | "consultor";
+  userName: string;
+  userEmail: string;
+  title: string;
+  description: string;
+  status: "new" | "in_review" | "accepted" | "resolved" | "closed";
+  /** @format date-time */
+  statusUpdatedAt?: string | null;
+  statusUpdatedBy?: string | null;
+  attachmentCount: number;
+  replyCount: number;
+  attachments: FeedbackAttachmentResultDto[];
+  replies: FeedbackReplyResultDto[];
+}
+
+export interface FeedbackCreateMultipartDto {
+  /**
+   * @maxLength 160
+   * @example "No puedo visualizar el acta de mi reunión"
+   */
+  title: string;
+  /**
+   * @maxLength 5000
+   * @example "Al ingresar al detalle aparece una pantalla vacía."
+   */
+  description: string;
+  /** Hasta 5 imágenes JPG, PNG, WEBP, HEIC o HEIF de máximo 8 MB cada una */
+  images?: File[];
+}
+
+export interface FeedbackReplyCreateDto {
+  /**
+   * @maxLength 3000
+   * @example "Gracias por el reporte. Ya estamos revisándolo."
+   */
+  message: string;
+}
+
+export interface FeedbackStatusUpdateDto {
+  status: "new" | "in_review" | "accepted" | "resolved" | "closed";
+}
+
 export type AppGetHelloData = any;
 
 export type AuthLoginData = LoginResponseDto;
@@ -3012,6 +3107,85 @@ export type PromotioncodeadminUpdateError = HttpErrorDto;
 export type PromotioncodeRedeemData = PromotionCodeRedeemResultDto;
 
 export type PromotioncodeRedeemError = HttpErrorDto;
+
+export interface FeedbackFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  status?: "new" | "in_review" | "accepted" | "resolved" | "closed";
+}
+
+export type FeedbackFindAllData = FeedbackListDto;
+
+export interface FeedbackFindOneParams {
+  id: number;
+}
+
+export type FeedbackFindOneData = FeedbackResultDto;
+
+export type FeedbackFindOneError = HttpErrorDto;
+
+export type FeedbackCreateData = FeedbackResultDto;
+
+export type FeedbackCreateError = HttpErrorDto;
+
+export interface FeedbackReplyParams {
+  id: number;
+}
+
+export type FeedbackReplyData = FeedbackResultDto;
+
+export type FeedbackReplyError = HttpErrorDto;
+
+export interface FeedbackadminFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  status?: "new" | "in_review" | "accepted" | "resolved" | "closed";
+  /** Buscar por título, descripción, usuario o correo */
+  search?: string;
+  userRole?: "pyme" | "consultor";
+}
+
+export type FeedbackadminFindAllData = FeedbackListDto;
+
+export interface FeedbackadminFindOneParams {
+  id: number;
+}
+
+export type FeedbackadminFindOneData = FeedbackResultDto;
+
+export type FeedbackadminFindOneError = HttpErrorDto;
+
+export interface FeedbackadminUpdateStatusParams {
+  id: number;
+}
+
+export type FeedbackadminUpdateStatusData = FeedbackResultDto;
+
+export type FeedbackadminUpdateStatusError = HttpErrorDto;
+
+export interface FeedbackadminReplyParams {
+  id: number;
+}
+
+export type FeedbackadminReplyData = FeedbackResultDto;
+
+export type FeedbackadminReplyError = HttpErrorDto;
 
 export namespace App {
   /**
@@ -5575,6 +5749,189 @@ export namespace PromotionCode {
     export type RequestBody = PromotionCodeRedeemDto;
     export type RequestHeaders = {};
     export type ResponseBody = PromotioncodeRedeemData;
+  }
+}
+
+export namespace Feedback {
+  /**
+   * No description
+   * @tags feedback
+   * @name FeedbackFindAll
+   * @summary List the authenticated user support comments
+   * @request GET:/admin/feedback/find-all
+   * @secure
+   * @response `200` `FeedbackFindAllData`
+   */
+  export namespace FeedbackFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      status?: "new" | "in_review" | "accepted" | "resolved" | "closed";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = FeedbackFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags feedback
+   * @name FeedbackFindOne
+   * @summary Get an authenticated user support comment
+   * @request GET:/admin/feedback/find-one/{id}
+   * @secure
+   * @response `200` `FeedbackFindOneData`
+   * @response `404` `HttpErrorDto`
+   */
+  export namespace FeedbackFindOne {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = FeedbackFindOneData;
+  }
+
+  /**
+   * No description
+   * @tags feedback
+   * @name FeedbackCreate
+   * @summary Create a support comment with optional screenshots
+   * @request POST:/admin/feedback/create
+   * @secure
+   * @response `201` `FeedbackCreateData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace FeedbackCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = FeedbackCreateMultipartDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = FeedbackCreateData;
+  }
+
+  /**
+   * No description
+   * @tags feedback
+   * @name FeedbackReply
+   * @summary Reply to an authenticated user support comment
+   * @request POST:/admin/feedback/reply/{id}
+   * @secure
+   * @response `201` `FeedbackReplyData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace FeedbackReply {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = FeedbackReplyCreateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = FeedbackReplyData;
+  }
+}
+
+export namespace FeedbackAdmin {
+  /**
+   * No description
+   * @tags feedbackAdmin
+   * @name FeedbackadminFindAll
+   * @summary List support comments in the administrative panel
+   * @request GET:/admin/backoffice/feedback/find-all
+   * @secure
+   * @response `200` `FeedbackadminFindAllData`
+   */
+  export namespace FeedbackadminFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      status?: "new" | "in_review" | "accepted" | "resolved" | "closed";
+      /** Buscar por título, descripción, usuario o correo */
+      search?: string;
+      userRole?: "pyme" | "consultor";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = FeedbackadminFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags feedbackAdmin
+   * @name FeedbackadminFindOne
+   * @summary Get support comment details in the administrative panel
+   * @request GET:/admin/backoffice/feedback/find-one/{id}
+   * @secure
+   * @response `200` `FeedbackadminFindOneData`
+   * @response `404` `HttpErrorDto`
+   */
+  export namespace FeedbackadminFindOne {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = FeedbackadminFindOneData;
+  }
+
+  /**
+   * No description
+   * @tags feedbackAdmin
+   * @name FeedbackadminUpdateStatus
+   * @summary Update a support comment status
+   * @request PATCH:/admin/backoffice/feedback/status/{id}
+   * @secure
+   * @response `200` `FeedbackadminUpdateStatusData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace FeedbackadminUpdateStatus {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = FeedbackStatusUpdateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = FeedbackadminUpdateStatusData;
+  }
+
+  /**
+   * No description
+   * @tags feedbackAdmin
+   * @name FeedbackadminReply
+   * @summary Reply to a support comment as an administrator
+   * @request POST:/admin/backoffice/feedback/reply/{id}
+   * @secure
+   * @response `201` `FeedbackadminReplyData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace FeedbackadminReply {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = FeedbackReplyCreateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = FeedbackadminReplyData;
   }
 }
 
@@ -8607,6 +8964,206 @@ export class Api<SecurityDataType extends unknown> {
     ) =>
       this.http.request<PromotioncodeRedeemData, PromotioncodeRedeemError>({
         path: `/admin/promotion-code/redeem`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  feedback = {
+    /**
+     * No description
+     *
+     * @tags feedback
+     * @name FeedbackFindAll
+     * @summary List the authenticated user support comments
+     * @request GET:/admin/feedback/find-all
+     * @secure
+     * @response `200` `FeedbackFindAllData`
+     */
+    findAll: (
+      query: FeedbackFindAllParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<FeedbackFindAllData, any>({
+        path: `/admin/feedback/find-all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags feedback
+     * @name FeedbackFindOne
+     * @summary Get an authenticated user support comment
+     * @request GET:/admin/feedback/find-one/{id}
+     * @secure
+     * @response `200` `FeedbackFindOneData`
+     * @response `404` `HttpErrorDto`
+     */
+    findOne: (
+      { id }: FeedbackFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<FeedbackFindOneData, FeedbackFindOneError>({
+        path: `/admin/feedback/find-one/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags feedback
+     * @name FeedbackCreate
+     * @summary Create a support comment with optional screenshots
+     * @request POST:/admin/feedback/create
+     * @secure
+     * @response `201` `FeedbackCreateData`
+     * @response `400` `HttpErrorDto`
+     */
+    create: (
+      data: FeedbackCreateMultipartDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<FeedbackCreateData, FeedbackCreateError>({
+        path: `/admin/feedback/create`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags feedback
+     * @name FeedbackReply
+     * @summary Reply to an authenticated user support comment
+     * @request POST:/admin/feedback/reply/{id}
+     * @secure
+     * @response `201` `FeedbackReplyData`
+     * @response `400` `HttpErrorDto`
+     */
+    reply: (
+      { id }: FeedbackReplyParams,
+      data: FeedbackReplyCreateDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<FeedbackReplyData, FeedbackReplyError>({
+        path: `/admin/feedback/reply/${id}`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  feedbackAdmin = {
+    /**
+     * No description
+     *
+     * @tags feedbackAdmin
+     * @name FeedbackadminFindAll
+     * @summary List support comments in the administrative panel
+     * @request GET:/admin/backoffice/feedback/find-all
+     * @secure
+     * @response `200` `FeedbackadminFindAllData`
+     */
+    feedbackadminFindAll: (
+      query: FeedbackadminFindAllParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<FeedbackadminFindAllData, any>({
+        path: `/admin/backoffice/feedback/find-all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags feedbackAdmin
+     * @name FeedbackadminFindOne
+     * @summary Get support comment details in the administrative panel
+     * @request GET:/admin/backoffice/feedback/find-one/{id}
+     * @secure
+     * @response `200` `FeedbackadminFindOneData`
+     * @response `404` `HttpErrorDto`
+     */
+    feedbackadminFindOne: (
+      { id }: FeedbackadminFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<FeedbackadminFindOneData, FeedbackadminFindOneError>({
+        path: `/admin/backoffice/feedback/find-one/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags feedbackAdmin
+     * @name FeedbackadminUpdateStatus
+     * @summary Update a support comment status
+     * @request PATCH:/admin/backoffice/feedback/status/{id}
+     * @secure
+     * @response `200` `FeedbackadminUpdateStatusData`
+     * @response `400` `HttpErrorDto`
+     */
+    feedbackadminUpdateStatus: (
+      { id }: FeedbackadminUpdateStatusParams,
+      data: FeedbackStatusUpdateDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        FeedbackadminUpdateStatusData,
+        FeedbackadminUpdateStatusError
+      >({
+        path: `/admin/backoffice/feedback/status/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags feedbackAdmin
+     * @name FeedbackadminReply
+     * @summary Reply to a support comment as an administrator
+     * @request POST:/admin/backoffice/feedback/reply/{id}
+     * @secure
+     * @response `201` `FeedbackadminReplyData`
+     * @response `400` `HttpErrorDto`
+     */
+    feedbackadminReply: (
+      { id }: FeedbackadminReplyParams,
+      data: FeedbackReplyCreateDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<FeedbackadminReplyData, FeedbackadminReplyError>({
+        path: `/admin/backoffice/feedback/reply/${id}`,
         method: "POST",
         body: data,
         secure: true,

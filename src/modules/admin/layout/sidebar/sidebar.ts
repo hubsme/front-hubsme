@@ -47,6 +47,7 @@ export class Sidebar {
       { label: 'Reuniones', path: buildPath(pymePath.meetings), icon: 'fas fa-calendar' },
       { label: 'Tareas', path: buildPath(pymePath.tasks), icon: 'fas fa-square-check' },
       { label: 'Documentos', path: buildPath(pymePath.documents), icon: 'fas fa-file-lines' },
+      { label: 'Historial de pagos', path: buildPath(pymePath.payments), icon: 'fas fa-dollar-sign' },
       { label: 'Soporte', path: buildPath(pymePath.support), icon: 'fas fa-headset' },
     ];
 
@@ -58,6 +59,7 @@ export class Sidebar {
       { label: 'Tareas', path: buildPath(consultorPath.tasks), icon: 'fas fa-square-check' },
       { label: 'Documentos', path: buildPath(consultorPath.documents), icon: 'fas fa-file-lines' },
       { label: 'Suscripcion', path: buildPath(consultorPath.subscription), icon: 'fas fa-credit-card' },
+      { label: 'Ingresos', path: buildPath(consultorPath.income), icon: 'fas fa-dollar-sign' },
       { label: 'Soporte', path: buildPath(consultorPath.support), icon: 'fas fa-headset' },
     ];
 

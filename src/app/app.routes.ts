@@ -199,6 +199,13 @@ export const routes: Routes = [
               import('@module/admin/content/pyme/documents/documents').then((m) => m.Documents),
           },
           {
+            path: getPath(PATH.admin.pyme.payments),
+            loadComponent: () =>
+              import('@module/admin/content/pyme/payments/payment-history').then(
+                (m) => m.PaymentHistory,
+              ),
+          },
+          {
             path: getPath(PATH.admin.pyme.support),
             loadComponent: () =>
               import('@module/admin/content/shared/support/support').then((m) => m.Support),
@@ -271,6 +278,13 @@ export const routes: Routes = [
             loadComponent: () =>
               import('@module/admin/content/consultor/subscription/subscription').then(
                 (m) => m.Subscription,
+              ),
+          },
+          {
+            path: getPath(PATH.admin.consultor.income),
+            loadComponent: () =>
+              import('@module/admin/content/consultor/incomes/incomes').then(
+                (m) => m.Incomes,
               ),
           },
           {

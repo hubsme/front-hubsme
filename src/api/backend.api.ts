@@ -1795,6 +1795,37 @@ export interface MercadoPagoCheckoutDto {
   meetingDetails?: CheckoutMeetingDetailsDto | null;
 }
 
+export interface MercadoPagoPaymentHistoryItemDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  meetingId: number | null;
+  pymeId: number;
+  consultantId: number;
+  externalReference: string;
+  status:
+    | "created"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "expired";
+  amount: string;
+  marketplaceFee: string;
+  currency: string;
+  meetingDetails?: CheckoutMeetingDetailsDto | null;
+  mercadoPagoPaymentId: string | null;
+  pymeName: string | null;
+  consultantName: string | null;
+}
+
+export interface MercadoPagoPaymentHistoryResponseDto {
+  data: MercadoPagoPaymentHistoryItemDto[];
+  meta: PaginationMetaDto;
+}
+
 export interface PublicConsultantListItemDto {
   id: number;
   userId: number;
@@ -3017,6 +3048,42 @@ export type MercadopagoDisconnectError = HttpErrorDto;
 export type MercadopagoCreateCheckoutData = MercadoPagoCheckoutDto;
 
 export type MercadopagoCreateCheckoutError = HttpErrorDto;
+
+export interface MercadopagoFindPaymentsParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Maximum of 10 payments per page
+   * @max 10
+   * @default 10
+   */
+  limit?: number;
+  /**
+   * Year used to filter the payment date
+   * @default 2026
+   */
+  year?: number;
+  /**
+   * Month used to filter the payment date
+   * @default 8
+   */
+  month?: number;
+}
+
+export type MercadopagoFindPaymentsData = MercadoPagoPaymentHistoryResponseDto;
+
+export type MercadopagoFindPaymentsError = HttpErrorDto;
+
+export interface MercadopagoFindPaymentParams {
+  id: number;
+}
+
+export type MercadopagoFindPaymentData = MercadoPagoPaymentHistoryItemDto;
+
+export type MercadopagoFindPaymentError = HttpErrorDto;
 
 export interface MercadopagoFindCheckoutParams {
   id: number;
@@ -5540,6 +5607,66 @@ export namespace MercadoPago {
     export type RequestBody = MercadoPagoCreateCheckoutDto;
     export type RequestHeaders = {};
     export type ResponseBody = MercadopagoCreateCheckoutData;
+  }
+
+  /**
+   * No description
+   * @tags mercadoPago
+   * @name MercadopagoFindPayments
+   * @summary List Mercado Pago payments for the authenticated user
+   * @request GET:/admin/mercado-pago/payments
+   * @secure
+   * @response `200` `MercadopagoFindPaymentsData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MercadopagoFindPayments {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Maximum of 10 payments per page
+       * @max 10
+       * @default 10
+       */
+      limit?: number;
+      /**
+       * Year used to filter the payment date
+       * @default 2026
+       */
+      year?: number;
+      /**
+       * Month used to filter the payment date
+       * @default 8
+       */
+      month?: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MercadopagoFindPaymentsData;
+  }
+
+  /**
+   * No description
+   * @tags mercadoPago
+   * @name MercadopagoFindPayment
+   * @summary Get a Mercado Pago payment detail for the authenticated user
+   * @request GET:/admin/mercado-pago/payments/{id}
+   * @secure
+   * @response `200` `MercadopagoFindPaymentData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MercadopagoFindPayment {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MercadopagoFindPaymentData;
   }
 
   /**
@@ -8757,6 +8884,59 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags mercadoPago
+     * @name MercadopagoFindPayments
+     * @summary List Mercado Pago payments for the authenticated user
+     * @request GET:/admin/mercado-pago/payments
+     * @secure
+     * @response `200` `MercadopagoFindPaymentsData`
+     * @response `400` `HttpErrorDto`
+     */
+    mercadopagoFindPayments: (
+      query: MercadopagoFindPaymentsParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MercadopagoFindPaymentsData,
+        MercadopagoFindPaymentsError
+      >({
+        path: `/admin/mercado-pago/payments`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags mercadoPago
+     * @name MercadopagoFindPayment
+     * @summary Get a Mercado Pago payment detail for the authenticated user
+     * @request GET:/admin/mercado-pago/payments/{id}
+     * @secure
+     * @response `200` `MercadopagoFindPaymentData`
+     * @response `400` `HttpErrorDto`
+     */
+    mercadopagoFindPayment: (
+      { id }: MercadopagoFindPaymentParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MercadopagoFindPaymentData,
+        MercadopagoFindPaymentError
+      >({
+        path: `/admin/mercado-pago/payments/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags mercadoPago
      * @name MercadopagoFindCheckout
      * @summary Get a Mercado Pago checkout by ID
      * @request GET:/admin/mercado-pago/checkout/{id}
@@ -9181,6 +9361,7 @@ export class Api<SecurityDataType extends unknown> {
       }),
   };
 }
+
 /**
  * ==============================================================================
  *  UTILITARIOS DE TIPOS PARA FRONTEND

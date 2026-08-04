@@ -1,4 +1,12 @@
-import { Component, computed, inject, ChangeDetectionStrategy, input, output, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  inject,
+  ChangeDetectionStrategy,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router } from '@angular/router';
 import { PATH, buildPath } from '@route/path.route';
@@ -42,23 +50,53 @@ export class Sidebar {
     const pymeItems: MenuItem[] = [
       { label: 'Dashboard', path: buildPath(pymePath.dashboard), icon: 'fas fa-table-cells-large' },
       { label: 'Perfil', path: buildPath(pymePath.profile), icon: 'fas fa-user-gear' },
-      { label: 'Diagnósticos', path: buildPath(pymePath.diagnostics), icon: 'fas fa-clipboard-check' },
+      {
+        label: 'Diagnósticos',
+        path: buildPath(pymePath.diagnostics),
+        icon: 'fas fa-clipboard-check',
+      },
       { label: 'Consultores', path: buildPath(pymePath.consultants), icon: 'fas fa-user-group' },
+      {
+        label: 'Servicios',
+        path: buildPath(pymePath.services),
+        icon: 'fas fa-briefcase',
+      },
       { label: 'Reuniones', path: buildPath(pymePath.meetings), icon: 'fas fa-calendar' },
       { label: 'Tareas', path: buildPath(pymePath.tasks), icon: 'fas fa-square-check' },
       { label: 'Documentos', path: buildPath(pymePath.documents), icon: 'fas fa-file-lines' },
-      { label: 'Historial de pagos', path: buildPath(pymePath.payments), icon: 'fas fa-dollar-sign' },
+      {
+        label: 'Historial de pagos',
+        path: buildPath(pymePath.payments),
+        icon: 'fas fa-dollar-sign',
+      },
       { label: 'Soporte', path: buildPath(pymePath.support), icon: 'fas fa-headset' },
     ];
 
     const consultorItems: MenuItem[] = [
-      { label: 'Dashboard', path: buildPath(consultorPath.dashboard), icon: 'fas fa-table-cells-large' },
+      {
+        label: 'Dashboard',
+        path: buildPath(consultorPath.dashboard),
+        icon: 'fas fa-table-cells-large',
+      },
       { label: 'Perfil', path: buildPath(consultorPath.profile), icon: 'fas fa-user-gear' },
       { label: 'Mis Clientes', path: buildPath(consultorPath.pymes), icon: 'fas fa-user-group' },
-      { label: 'Calendario', path: buildPath(consultorPath.meetings), icon: 'fas fa-calendar-days' },
+      {
+        label: 'Servicios',
+        path: buildPath(consultorPath.services),
+        icon: 'fas fa-briefcase',
+      },
+      {
+        label: 'Calendario',
+        path: buildPath(consultorPath.meetings),
+        icon: 'fas fa-calendar-days',
+      },
       { label: 'Tareas', path: buildPath(consultorPath.tasks), icon: 'fas fa-square-check' },
       { label: 'Documentos', path: buildPath(consultorPath.documents), icon: 'fas fa-file-lines' },
-      { label: 'Suscripcion', path: buildPath(consultorPath.subscription), icon: 'fas fa-credit-card' },
+      {
+        label: 'Suscripcion',
+        path: buildPath(consultorPath.subscription),
+        icon: 'fas fa-credit-card',
+      },
       { label: 'Ingresos', path: buildPath(consultorPath.income), icon: 'fas fa-dollar-sign' },
       { label: 'Soporte', path: buildPath(consultorPath.support), icon: 'fas fa-headset' },
     ];

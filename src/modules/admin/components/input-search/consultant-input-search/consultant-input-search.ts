@@ -1,7 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  FormControl,
+  NG_VALUE_ACCESSOR,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { ConsultantService } from '@service/admin/consultant.service';
 import { ApiResponse } from 'api/backend.api';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
@@ -10,6 +15,8 @@ type ConsultantOption = ApiResponse<'consultant', 'findAll'>['data'][number];
 
 export type ConsultantInputSearchFilters = {
   source?: 'all';
+  active?: 'true' | 'false';
+  validated?: 'true' | 'false';
 };
 
 @Component({
@@ -124,8 +131,14 @@ export class ConsultantInputSearch implements ControlValueAccessor {
       return;
     }
 
+    const filters = this.filters();
     this.consultantService
-      .findAll({ search: cleanTerm || undefined, limit: 10, active: 'true' })
+      .findAll({
+        search: cleanTerm || undefined,
+        limit: 10,
+        active: filters?.active ?? 'true',
+        validated: filters?.validated,
+      })
       .then((response) => response.data)
       .then((items) => this.items.set(items))
       .catch(() => this.items.set([]))

@@ -1,0 +1,537 @@
+<div class="space-y-7 text-text">
+  <header>
+    <h1 class="font-plus-jakarta-sans text-2xl font-bold leading-tight sm:text-3xl">Servicios</h1>
+    <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
+      Revisa las solicitudes de trabajo que recibiste y envía una cotización clara a cada PYME.
+    </p>
+  </header>
+
+  <section class="overflow-hidden rounded-3xl border border-border bg-surface shadow-sm">
+    <nav class="grid grid-cols-2 border-b border-border" aria-label="Secciones de servicios">
+      <button
+        type="button"
+        (click)="changeTab('requests')"
+        class="relative flex items-center justify-center gap-2 px-4 py-4 text-sm font-inter-bold transition hover:bg-secondary/5"
+        [class.text-secondary]="activeTab() === 'requests'"
+        [class.text-muted]="activeTab() !== 'requests'"
+      >
+        <i class="fas fa-inbox"></i>
+        Solicitudes recibidas
+        @if (activeTab() === 'requests') {
+          <span class="absolute inset-x-0 bottom-0 h-0.5 bg-secondary"></span>
+        }
+      </button>
+      <button
+        type="button"
+        (click)="changeTab('proposals')"
+        class="relative flex items-center justify-center gap-2 border-l border-border px-4 py-4 text-sm font-inter-bold transition hover:bg-secondary/5"
+        [class.text-secondary]="activeTab() === 'proposals'"
+        [class.text-muted]="activeTab() !== 'proposals'"
+      >
+        <i class="fas fa-file-invoice-dollar"></i>
+        Cotizaciones enviadas
+        @if (activeTab() === 'proposals') {
+          <span class="absolute inset-x-0 bottom-0 h-0.5 bg-secondary"></span>
+        }
+      </button>
+    </nav>
+
+    <div class="flex flex-col gap-3 p-4 lg:flex-row lg:items-end lg:p-5">
+      <label class="flex-1">
+        <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Buscar servicio</span>
+        <span class="relative block">
+          <i
+            class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-muted"
+          ></i>
+          <input
+            type="search"
+            name="consultantServiceSearch"
+            [ngModel]="search()"
+            (ngModelChange)="search.set($event)"
+            (keyup.enter)="applyFilters()"
+            placeholder="Título, descripción o requerimientos"
+            class="h-11 w-full rounded-xl border border-border bg-background-50 pl-10 pr-4 text-sm outline-none transition placeholder:text-muted/70 focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+          />
+        </span>
+      </label>
+      <label class="lg:w-64">
+        <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Estado</span>
+        <select
+          [value]="statusFilter()"
+          (change)="changeStatus($event)"
+          class="h-11 w-full rounded-xl border border-border bg-background-50 px-3 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+        >
+          @for (status of statusOptions(); track status.value) {
+            <option [value]="status.value">{{ status.label }}</option>
+          }
+        </select>
+      </label>
+      <div class="flex gap-2">
+        <button
+          type="button"
+          (click)="applyFilters()"
+          class="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm font-inter-bold text-fixed-text-50 transition hover:bg-secondary/90 lg:flex-none"
+        >
+          <i class="fas fa-filter"></i>
+          Filtrar
+        </button>
+        @if (search() || statusFilter()) {
+          <button
+            type="button"
+            (click)="clearFilters()"
+            aria-label="Limpiar filtros"
+            title="Limpiar filtros"
+            class="grid size-11 place-items-center rounded-xl border border-border text-muted transition hover:text-secondary"
+          >
+            <i class="fas fa-rotate-left"></i>
+          </button>
+        }
+      </div>
+    </div>
+  </section>
+
+  @if (loading()) {
+    <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3" aria-label="Cargando servicios">
+      @for (skeleton of [1, 2, 3, 4, 5, 6]; track skeleton) {
+        <article class="min-h-64 animate-pulse rounded-3xl border border-border bg-surface p-5">
+          <div class="flex justify-between gap-3">
+            <div class="size-11 rounded-2xl bg-text/10"></div>
+            <div class="h-6 w-28 rounded-full bg-text/10"></div>
+          </div>
+          <div class="mt-6 h-5 w-4/5 rounded-full bg-text/10"></div>
+          <div class="mt-3 h-3 w-full rounded-full bg-text/10"></div>
+          <div class="mt-2 h-3 w-3/4 rounded-full bg-text/10"></div>
+          <div class="mt-8 h-10 rounded-xl bg-text/10"></div>
+        </article>
+      }
+    </div>
+  } @else if (services().length) {
+    <section>
+      <div class="mb-4 flex items-center justify-between gap-3">
+        <p class="text-sm text-muted">
+          {{
+            activeTab() === 'requests'
+              ? 'Trabajos que las PYMES desean cotizar contigo'
+              : 'Propuestas económicas que ya enviaste'
+          }}
+        </p>
+        @if (meta(); as serviceMeta) {
+          <span
+            class="rounded-full bg-secondary/10 px-3 py-1 text-xs font-inter-bold text-secondary"
+          >
+            {{ serviceMeta.total }} {{ serviceMeta.total === 1 ? 'resultado' : 'resultados' }}
+          </span>
+        }
+      </div>
+
+      <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+        @for (service of services(); track service.id) {
+          <button
+            type="button"
+            (click)="openDetail(service)"
+            class="group flex min-h-64 flex-col rounded-3xl border border-border bg-surface p-5 text-left shadow-[0_12px_30px_rgba(15,23,42,0.04)] transition hover:-translate-y-1 hover:border-secondary/40 hover:shadow-[0_18px_38px_rgba(15,23,42,0.1)] focus:outline-none focus:ring-4 focus:ring-secondary/15"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <span
+                class="grid size-11 shrink-0 place-items-center rounded-2xl bg-secondary/10 text-secondary transition group-hover:bg-secondary group-hover:text-fixed-text-50"
+              >
+                <i class="fas fa-briefcase"></i>
+              </span>
+              <span
+                class="rounded-full px-2.5 py-1 text-[0.68rem] font-inter-bold uppercase tracking-wide"
+                [class]="statusClass(service.status)"
+              >
+                {{ statusLabel(service.status) }}
+              </span>
+            </div>
+
+            <div class="mt-5 flex-1">
+              <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
+                {{ service.pymeName || 'PYME #' + service.pymeId }}
+              </p>
+              <h2 class="mt-2 line-clamp-2 font-plus-jakarta-sans text-lg font-bold leading-snug">
+                {{ service.title }}
+              </h2>
+              <p class="mt-2 line-clamp-2 text-sm leading-relaxed text-muted">
+                {{ service.description }}
+              </p>
+            </div>
+
+            <div class="mt-5 flex items-end justify-between gap-3 border-t border-border pt-4">
+              <div>
+                <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                  {{ activeTab() === 'proposals' ? 'Tu cotización' : 'Recibida' }}
+                </p>
+                <p class="mt-1 font-inter-bold" [class.text-secondary]="service.proposedPrice">
+                  @if (activeTab() === 'proposals' && service.proposedPrice) {
+                    {{ formatMoney(service.proposedPrice, service.currency) }}
+                  } @else {
+                    {{ service.createdAt | date: 'dd/MM/yyyy' }}
+                  }
+                </p>
+              </div>
+              <span
+                class="text-xs font-inter-semibold text-muted transition group-hover:text-secondary"
+              >
+                Ver detalle <i class="fas fa-arrow-right ml-1"></i>
+              </span>
+            </div>
+          </button>
+        }
+      </div>
+
+      <div class="mt-6 overflow-hidden rounded-2xl border border-border bg-surface">
+        <app-pagination
+          [meta]="meta()"
+          [currentPage]="page()"
+          [pageSize]="pageSize"
+          [showPageSizeSelector]="false"
+          (pageChange)="changePage($event)"
+        />
+      </div>
+    </section>
+  } @else {
+    <section
+      class="rounded-3xl border border-dashed border-border bg-surface px-6 py-16 text-center shadow-sm"
+    >
+      <span
+        class="mx-auto grid size-16 place-items-center rounded-3xl bg-secondary/10 text-2xl text-secondary"
+      >
+        <i
+          class="fas"
+          [class.fa-inbox]="activeTab() === 'requests'"
+          [class.fa-file-invoice-dollar]="activeTab() === 'proposals'"
+        ></i>
+      </span>
+      <h2 class="mt-5 font-plus-jakarta-sans text-xl font-bold">
+        {{
+          search() || statusFilter()
+            ? 'No encontramos resultados'
+            : activeTab() === 'requests'
+              ? 'Aún no recibes solicitudes'
+              : 'Aún no has enviado cotizaciones'
+        }}
+      </h2>
+      <p class="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
+        @if (search() || statusFilter()) {
+          Prueba con otros criterios para encontrar el servicio que buscas.
+        } @else if (activeTab() === 'requests') {
+          Las solicitudes que las PYMES te envíen aparecerán en esta sección.
+        } @else {
+          Cuando respondas una solicitud con precio, podrás seguirla desde aquí.
+        }
+      </p>
+    </section>
+  }
+</div>
+
+@if (showDetail() && selectedService(); as service) {
+  <app-modal-form
+    title="Detalle del servicio"
+    maxWidth="4xl"
+    [showFooter]="false"
+    (onClose)="closeDetail()"
+  >
+    <div class="space-y-6 p-5 sm:p-7">
+      <div
+        class="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-start sm:justify-between"
+      >
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <span
+              class="rounded-full px-2.5 py-1 text-[0.68rem] font-inter-bold uppercase tracking-wide"
+              [class]="statusClass(service.status)"
+            >
+              {{ statusLabel(service.status) }}
+            </span>
+            <span class="text-xs text-muted">
+              Solicitud #{{ service.id }} · {{ service.createdAt | date: 'dd/MM/yyyy' }}
+            </span>
+          </div>
+          <h2 class="mt-3 font-plus-jakarta-sans text-2xl font-bold leading-tight">
+            {{ service.title }}
+          </h2>
+          <p class="mt-2 text-sm text-muted">
+            Solicitada por {{ service.pymeName || 'PYME #' + service.pymeId }}
+          </p>
+        </div>
+        @if (service.proposedPrice) {
+          <div
+            class="shrink-0 rounded-2xl border border-secondary/20 bg-secondary/5 px-5 py-4 sm:text-right"
+          >
+            <p class="text-[0.68rem] font-inter-bold uppercase tracking-[0.12em] text-muted">
+              Precio enviado
+            </p>
+            <p class="mt-1 text-2xl font-inter-bold text-secondary">
+              {{ formatMoney(service.proposedPrice, service.currency) }}
+            </p>
+          </div>
+        }
+      </div>
+
+      @if (detailLoading()) {
+        <div class="space-y-3 animate-pulse">
+          <div class="h-4 w-2/3 rounded-full bg-text/10"></div>
+          <div class="h-20 rounded-2xl bg-text/10"></div>
+          <div class="h-20 rounded-2xl bg-text/10"></div>
+        </div>
+      } @else {
+        <div class="grid gap-4 lg:grid-cols-2">
+          <section class="rounded-2xl border border-border bg-background-50 p-5">
+            <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
+              <i class="fas fa-align-left mr-2 text-secondary"></i>
+              Descripción
+            </p>
+            <p class="mt-3 whitespace-pre-line text-sm leading-relaxed">
+              {{ service.description }}
+            </p>
+          </section>
+          <section class="rounded-2xl border border-border bg-background-50 p-5">
+            <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
+              <i class="fas fa-list-check mr-2 text-secondary"></i>
+              Requerimientos
+            </p>
+            <p class="mt-3 whitespace-pre-line text-sm leading-relaxed">
+              {{ service.requirements }}
+            </p>
+          </section>
+        </div>
+
+        @if (service.details) {
+          <section class="rounded-2xl border border-border p-5">
+            <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
+              Detalles adicionales
+            </p>
+            <p class="mt-3 whitespace-pre-line text-sm leading-relaxed">{{ service.details }}</p>
+          </section>
+        }
+
+        @if (service.status === 'requested') {
+          <section class="rounded-2xl border border-secondary/25 bg-secondary/5 p-5 sm:p-6">
+            <div class="flex items-start gap-3">
+              <span
+                class="grid size-11 shrink-0 place-items-center rounded-xl bg-secondary text-fixed-text-50 shadow-sm"
+              >
+                <i class="fas fa-file-invoice-dollar"></i>
+              </span>
+              <div>
+                <h3 class="font-inter-bold">Prepara tu cotización</h3>
+                <p class="mt-1 text-sm text-muted">
+                  Indica el precio total y explica qué incluye tu propuesta para este servicio.
+                </p>
+              </div>
+            </div>
+
+            <div class="mt-5 grid gap-4 md:grid-cols-2">
+              <label class="flex min-w-0 flex-col">
+                <span
+                  class="mb-2 block text-xs font-inter-bold uppercase tracking-wide text-muted"
+                >
+                  Precio total <span class="text-danger">*</span>
+                </span>
+                <span class="relative block h-24">
+                  <span
+                    class="absolute left-4 top-1/2 -translate-y-1/2 text-base font-inter-bold text-secondary"
+                  >
+                    S/
+                  </span>
+                  <input
+                    type="text"
+                    inputmode="decimal"
+                    name="serviceProposalPrice"
+                    [ngModel]="price()"
+                    (ngModelChange)="price.set($event)"
+                    placeholder="0.00"
+                    class="h-full w-full rounded-xl border border-border bg-surface pl-12 pr-4 text-xl font-inter-bold outline-none transition placeholder:text-muted/60 focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                  />
+                </span>
+              </label>
+              <label class="flex min-w-0 flex-col">
+                <span
+                  class="mb-2 block text-xs font-inter-bold uppercase tracking-wide text-muted"
+                >
+                  Mensaje para la PYME
+                  <span class="font-inter-regular normal-case">(opcional)</span>
+                </span>
+                <textarea
+                  rows="3"
+                  maxlength="3000"
+                  name="serviceProposalMessage"
+                  [ngModel]="proposalMessage()"
+                  (ngModelChange)="proposalMessage.set($event)"
+                  placeholder="Explica qué incluye el precio, los plazos o las condiciones..."
+                  class="h-24 w-full resize-none rounded-xl border border-border bg-surface px-4 py-3 text-sm leading-relaxed outline-none transition placeholder:text-muted/70 focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                ></textarea>
+              </label>
+            </div>
+
+            <div
+              class="mt-5 flex flex-col gap-3 border-t border-secondary/15 pt-4 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <p class="text-xs leading-relaxed text-muted">
+                La PYME recibirá el precio y el detalle de tu propuesta para revisarlos.
+              </p>
+              <button
+                type="button"
+                (click)="sendProposal()"
+                [disabled]="responding() || declining()"
+                class="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-secondary px-6 text-sm font-inter-bold text-fixed-text-50 shadow-md shadow-secondary/20 transition hover:bg-secondary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+              >
+                @if (responding()) {
+                  <i class="fas fa-spinner fa-spin"></i>
+                  Enviando...
+                } @else {
+                  <i class="fas fa-paper-plane"></i>
+                  Enviar cotización
+                }
+              </button>
+            </div>
+          </section>
+
+          @if (!showDeclineForm()) {
+            <section
+              class="flex flex-col gap-4 rounded-2xl border border-border bg-background-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5"
+            >
+              <div class="flex min-w-0 items-center gap-3">
+                <span
+                  class="grid size-10 shrink-0 place-items-center rounded-xl bg-text/5 text-muted"
+                >
+                  <i class="fas fa-circle-xmark"></i>
+                </span>
+                <div class="min-w-0">
+                  <p class="text-sm font-inter-bold">¿No puedes atender este servicio?</p>
+                  <p class="mt-1 text-xs leading-relaxed text-muted">
+                    Puedes informar el motivo a la PYME y cerrar la solicitud.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                (click)="openDeclineForm()"
+                [disabled]="responding()"
+                [attr.aria-expanded]="showDeclineForm()"
+                class="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-sm font-inter-bold text-muted transition hover:border-danger/30 hover:bg-danger/5 hover:text-danger disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <i class="fas fa-ban"></i>
+                No puedo realizarlo
+              </button>
+            </section>
+          } @else {
+            <section class="rounded-2xl border border-danger/25 bg-danger/5 p-5 sm:p-6">
+              <div class="flex items-start gap-3">
+                <span
+                  class="grid size-10 shrink-0 place-items-center rounded-xl bg-danger/10 text-danger"
+                >
+                  <i class="fas fa-ban"></i>
+                </span>
+                <div>
+                  <h3 class="font-inter-bold text-danger">No aceptar esta solicitud</h3>
+                  <p class="mt-1 text-sm leading-relaxed text-muted">
+                    La PYME será informada y esta solicitud se cerrará para ti.
+                  </p>
+                </div>
+              </div>
+
+              <label class="mt-5 block">
+                <span class="mb-2 block text-xs font-inter-bold uppercase tracking-wide text-muted">
+                  Motivo para la PYME
+                  <span class="font-inter-regular normal-case">(opcional)</span>
+                </span>
+                <textarea
+                  rows="3"
+                  maxlength="3000"
+                  name="consultantServiceDeclineMessage"
+                  [ngModel]="declineMessage()"
+                  (ngModelChange)="declineMessage.set($event)"
+                  placeholder="Ej. No tengo disponibilidad durante las fechas solicitadas..."
+                  class="h-24 w-full resize-none rounded-xl border border-danger/20 bg-surface px-4 py-3 text-sm leading-relaxed outline-none transition placeholder:text-muted/70 focus:border-danger focus:ring-4 focus:ring-danger/10"
+                ></textarea>
+              </label>
+
+              <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  (click)="cancelDecline()"
+                  [disabled]="declining()"
+                  class="inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-inter-bold text-muted transition hover:bg-text/5 hover:text-text disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  (click)="declineRequest()"
+                  [disabled]="declining() || responding()"
+                  class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-danger px-5 text-sm font-inter-bold text-fixed-text-50 shadow-md shadow-danger/15 transition hover:bg-danger/90 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  @if (declining()) {
+                    <i class="fas fa-spinner fa-spin"></i>
+                    Procesando...
+                  } @else {
+                    <i class="fas fa-xmark"></i>
+                    Confirmar rechazo
+                  }
+                </button>
+              </div>
+            </section>
+          }
+        } @else {
+          @if (service.proposalMessage) {
+            <section class="rounded-2xl border border-secondary/20 bg-secondary/5 p-5">
+              <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-secondary">
+                Tu propuesta
+              </p>
+              <p class="mt-3 whitespace-pre-line text-sm leading-relaxed">
+                {{ service.proposalMessage }}
+              </p>
+            </section>
+          }
+
+          @if (service.pymeDecisionMessage) {
+            <section class="rounded-2xl border border-danger/20 bg-danger/5 p-5">
+              <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-danger">
+                Respuesta de la PYME
+              </p>
+              <p class="mt-3 whitespace-pre-line text-sm leading-relaxed">
+                {{ service.pymeDecisionMessage }}
+              </p>
+            </section>
+          }
+
+          @if (service.status === 'proposal_sent' || service.status === 'payment_pending') {
+            <div class="flex items-start gap-3 rounded-2xl border border-info/20 bg-info/5 p-4">
+              <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-info/10 text-info">
+                <i class="fas fa-clock"></i>
+              </span>
+              <div>
+                <p class="font-inter-bold">Esperando decisión de la PYME</p>
+                <p class="mt-1 text-sm text-muted">
+                  La PYME recibió tu cotización y podrá aprobarla realizando el pago.
+                </p>
+              </div>
+            </div>
+          }
+
+          @if (service.status === 'paid') {
+            <div
+              class="flex items-start gap-3 rounded-2xl border border-success/20 bg-success/5 p-5"
+            >
+              <span
+                class="grid size-10 shrink-0 place-items-center rounded-xl bg-success text-fixed-text-50"
+              >
+                <i class="fas fa-check"></i>
+              </span>
+              <div>
+                <p class="font-inter-bold text-success">Servicio aprobado y pagado</p>
+                <p class="mt-1 text-sm text-muted">
+                  La PYME confirmó tu cotización{{
+                    service.paidAt ? ' el ' + (service.paidAt | date: 'dd/MM/yyyy, HH:mm') : ''
+                  }}.
+                </p>
+              </div>
+            </div>
+          }
+        }
+      }
+    </div>
+  </app-modal-form>
+}

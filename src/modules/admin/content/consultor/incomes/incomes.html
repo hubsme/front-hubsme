@@ -6,10 +6,14 @@
     </p>
   </header>
 
-  <section class="rounded-3xl border border-border bg-surface p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:p-6">
+  <section
+    class="rounded-3xl border border-border bg-surface p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:p-6"
+  >
     <div class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
       <div class="flex items-center gap-3">
-        <span class="grid size-12 place-items-center rounded-2xl bg-secondary/10 text-xl text-secondary">
+        <span
+          class="grid size-12 place-items-center rounded-2xl bg-secondary/10 text-xl text-secondary"
+        >
           <i class="fas fa-dollar-sign"></i>
         </span>
         <div>
@@ -32,18 +36,36 @@
   </section>
 
   @if (loading()) {
-    <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3" aria-label="Cargando ingresos">
-      @for (skeleton of [1, 2, 3, 4, 5, 6]; track skeleton) {
-        <article class="min-h-52 animate-pulse rounded-3xl border border-border bg-surface p-5">
-          <div class="flex items-start justify-between gap-4">
-            <div class="size-11 rounded-2xl bg-text/10"></div>
-            <div class="h-6 w-20 rounded-full bg-text/10"></div>
-          </div>
-          <div class="mt-6 h-4 w-2/3 rounded-full bg-text/10"></div>
-          <div class="mt-3 h-8 w-1/2 rounded-full bg-text/10"></div>
-          <div class="mt-6 h-3 w-5/6 rounded-full bg-text/10"></div>
-        </article>
-      }
+    <div
+      class="overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_12px_30px_rgba(15,23,42,0.04)]"
+      aria-label="Cargando ingresos"
+    >
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[860px] table-fixed">
+          <thead class="border-b border-border bg-surface">
+            <tr>
+              <th class="w-[31%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Concepto</th>
+              <th class="w-[18%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">PYME</th>
+              <th class="w-[15%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha</th>
+              <th class="w-[14%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Estado</th>
+              <th class="w-[13%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted">Ingreso</th>
+              <th class="w-[9%] px-5 py-3.5"><span class="sr-only">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            @for (skeleton of [1, 2, 3, 4, 5]; track skeleton) {
+              <tr class="animate-pulse">
+                <td class="px-5 py-4"><div class="h-10 w-4/5 rounded-xl bg-text/10"></div></td>
+                <td class="px-5 py-4"><div class="h-4 w-3/4 rounded-full bg-text/10"></div></td>
+                <td class="px-5 py-4"><div class="h-4 w-2/3 rounded-full bg-text/10"></div></td>
+                <td class="px-5 py-4"><div class="h-6 w-20 rounded-full bg-text/10"></div></td>
+                <td class="px-5 py-4"><div class="ml-auto h-5 w-24 rounded-full bg-text/10"></div></td>
+                <td class="px-5 py-4"><div class="ml-auto size-9 rounded-xl bg-text/10"></div></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
   } @else if (incomes().length) {
     <section>
@@ -52,64 +74,102 @@
           Ingresos de <span class="font-inter-semibold text-text">{{ periodLabel() }}</span>
         </p>
         @if (meta(); as incomeMeta) {
-          <span class="rounded-full bg-secondary/10 px-3 py-1 text-xs font-inter-bold text-secondary">
+          <span
+            class="rounded-full bg-secondary/10 px-3 py-1 text-xs font-inter-bold text-secondary"
+          >
             {{ incomeMeta.total }} ingresos
           </span>
         }
       </div>
 
-      <div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-        @for (income of incomes(); track income.id) {
-          <button
-            type="button"
-            (click)="openIncome(income)"
-            class="group flex min-h-56 flex-col rounded-3xl border border-border bg-surface p-5 text-left shadow-[0_12px_30px_rgba(15,23,42,0.04)] transition hover:-translate-y-1 hover:border-secondary/40 hover:shadow-[0_18px_35px_rgba(15,23,42,0.1)] focus:outline-none focus:ring-4 focus:ring-secondary/15"
-          >
-            <div class="flex items-start justify-between gap-4">
-              <span class="grid size-11 place-items-center rounded-2xl bg-secondary/10 text-secondary transition group-hover:bg-secondary group-hover:text-fixed-background-50">
-                <i class="fas fa-dollar-sign"></i>
-              </span>
-              <span class="rounded-full px-2.5 py-1 text-[0.68rem] font-inter-bold uppercase tracking-wide" [class]="paymentStatusClass(income.status)">
-                {{ paymentStatusLabel(income.status) }}
-              </span>
-            </div>
+      <div
+        class="overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_12px_30px_rgba(15,23,42,0.04)]"
+      >
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[860px] table-fixed">
+            <thead class="border-b border-border bg-surface">
+              <tr>
+                <th scope="col" class="w-[31%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Concepto</th>
+                <th scope="col" class="w-[18%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">PYME</th>
+                <th scope="col" class="w-[15%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha</th>
+                <th scope="col" class="w-[14%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Estado</th>
+                <th scope="col" class="w-[13%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted">Ingreso</th>
+                <th scope="col" class="w-[9%] px-5 py-3.5"><span class="sr-only">Acciones</span></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+              @for (income of incomes(); track income.id) {
+                <tr class="group transition-colors hover:bg-secondary/5">
+                  <td class="px-5 py-4 align-middle">
+                    <div class="flex min-w-0 items-center gap-3">
+                      <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary">
+                        <i class="fas fa-dollar-sign"></i>
+                      </span>
+                      <div class="min-w-0">
+                        <p class="truncate text-sm font-inter-bold text-text">
+                          {{ income.serviceTitle || income.meetingDetails?.title || 'Ingreso por consultoría' }}
+                        </p>
+                        <p class="mt-1 text-xs text-muted">
+                          #{{ income.id }} · {{ income.serviceRequestId ? 'Servicio' : 'Reunión' }}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-5 py-4 align-middle text-sm font-inter-semibold text-text">
+                    <span class="block truncate">{{ counterparty(income) }}</span>
+                  </td>
+                  <td class="px-5 py-4 align-middle">
+                    <p class="whitespace-nowrap text-sm font-inter-semibold">{{ income.createdAt | date: 'dd/MM/yyyy' }}</p>
+                    <p class="mt-1 whitespace-nowrap text-xs text-muted">{{ income.createdAt | date: 'HH:mm' }}</p>
+                  </td>
+                  <td class="px-5 py-4 align-middle">
+                    <span
+                      class="inline-flex rounded-full px-2.5 py-1 text-[0.68rem] font-inter-bold uppercase tracking-wide"
+                      [class]="paymentStatusClass(income.status)"
+                    >
+                      {{ paymentStatusLabel(income.status) }}
+                    </span>
+                  </td>
+                  <td class="px-5 py-4 text-right align-middle">
+                    <p class="whitespace-nowrap text-sm font-inter-bold text-secondary">
+                      {{ income.currency }} {{ income.amount }}
+                    </p>
+                  </td>
+                  <td class="px-5 py-4 text-right align-middle">
+                    <button
+                      type="button"
+                      (click)="openIncome(income)"
+                      [attr.aria-label]="'Ver detalle del ingreso ' + income.id"
+                      class="inline-flex size-9 items-center justify-center rounded-xl border border-border bg-surface text-muted transition hover:border-secondary/30 hover:bg-secondary/10 hover:text-secondary focus:outline-none focus:ring-4 focus:ring-secondary/15"
+                    >
+                      <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
 
-            <div class="mt-5 flex-1">
-              <p class="line-clamp-2 min-h-10 font-inter-bold text-text">
-                {{ income.meetingDetails?.title || 'Ingreso por sesión de consultoría' }}
-              </p>
-              <p class="mt-2 flex items-center gap-2 text-xs text-muted">
-                <i class="fas fa-building text-secondary"></i>
-                {{ income.pymeName || 'PYME #' + income.pymeId }}
-              </p>
-            </div>
-
-            <div class="mt-5 flex items-end justify-between gap-3 border-t border-border pt-4">
-              <div>
-                <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">Ingreso</p>
-                <p class="mt-1 text-xl font-inter-bold text-secondary">{{ income.currency }} {{ income.amount }}</p>
-              </div>
-              <span class="text-xs font-inter-semibold text-muted transition group-hover:text-secondary">
-                Ver detalle <i class="fas fa-arrow-right ml-1"></i>
-              </span>
-            </div>
-          </button>
-        }
-      </div>
-
-      <div class="mt-6 overflow-hidden rounded-2xl border border-border bg-surface">
-        <app-pagination
-          [meta]="meta()"
-          [currentPage]="page()"
-          [pageSize]="pageSize"
-          [showPageSizeSelector]="false"
-          (pageChange)="changePage($event)"
-        />
+        <div class="border-t border-border">
+          <app-pagination
+            class="block [&>div]:bg-surface"
+            [meta]="meta()"
+            [currentPage]="page()"
+            [pageSize]="pageSize"
+            [showPageSizeSelector]="false"
+            (pageChange)="changePage($event)"
+          />
+        </div>
       </div>
     </section>
   } @else {
-    <section class="rounded-3xl border border-dashed border-border bg-surface px-6 py-16 text-center shadow-sm">
-      <span class="mx-auto grid size-16 place-items-center rounded-3xl bg-secondary/10 text-2xl text-secondary">
+    <section
+      class="rounded-3xl border border-dashed border-border bg-surface px-6 py-16 text-center shadow-sm"
+    >
+      <span
+        class="mx-auto grid size-16 place-items-center rounded-3xl bg-secondary/10 text-2xl text-secondary"
+      >
         <i class="fas fa-dollar-sign"></i>
       </span>
       <h2 class="mt-5 font-plus-jakarta-sans text-xl font-bold">No hay ingresos en este periodo</h2>
@@ -122,21 +182,34 @@
 
 @if (showDetail()) {
   @if (selectedIncome(); as income) {
-    <app-modal-form title="Detalle del ingreso" maxWidth="lg" [showFooter]="false" (onClose)="closeDetail()">
+    <app-modal-form
+      title="Detalle del ingreso"
+      maxWidth="lg"
+      [showFooter]="false"
+      (onClose)="closeDetail()"
+    >
       <div class="space-y-6 p-6 sm:p-7">
-        <div class="flex flex-col gap-4 rounded-2xl bg-secondary/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div
+          class="flex flex-col gap-4 rounded-2xl bg-secondary/5 p-5 sm:flex-row sm:items-center sm:justify-between"
+        >
           <div class="flex items-center gap-3">
-            <span class="grid size-12 place-items-center rounded-2xl bg-secondary text-fixed-background-50">
+            <span
+              class="grid size-12 place-items-center rounded-2xl bg-secondary text-fixed-background-50"
+            >
               <i class="fas fa-check"></i>
             </span>
             <div>
-              <p class="text-xs font-inter-bold uppercase tracking-[0.14em] text-muted">Estado del ingreso</p>
+              <p class="text-xs font-inter-bold uppercase tracking-[0.14em] text-muted">
+                Estado del ingreso
+              </p>
               <p class="mt-1 text-lg font-inter-bold">{{ paymentStatusLabel(income.status) }}</p>
             </div>
           </div>
           <div class="sm:text-right">
             <p class="text-xs text-muted">Ingreso total</p>
-            <p class="mt-1 text-2xl font-inter-bold text-secondary">{{ income.currency }} {{ income.amount }}</p>
+            <p class="mt-1 text-2xl font-inter-bold text-secondary">
+              {{ income.currency }} {{ income.amount }}
+            </p>
           </div>
         </div>
 
@@ -148,33 +221,45 @@
           </div>
         } @else {
           <div>
-            <p class="text-xs font-inter-bold uppercase tracking-[0.14em] text-muted">Sesión asociada</p>
-            <h3 class="mt-2 font-plus-jakarta-sans text-xl font-bold">{{ income.meetingDetails?.title || 'Ingreso por sesión de consultoría' }}</h3>
+            <p class="text-xs font-inter-bold uppercase tracking-[0.14em] text-muted">
+              {{ income.serviceRequestId ? 'Servicio asociado' : 'Sesión asociada' }}
+            </p>
+            <h3 class="mt-2 font-plus-jakarta-sans text-xl font-bold">
+              {{ income.serviceTitle || income.meetingDetails?.title || 'Ingreso por consultoría' }}
+            </h3>
           </div>
 
           <div class="grid gap-3 sm:grid-cols-2">
             <div class="rounded-2xl border border-border bg-background-50 p-4">
               <p class="text-xs text-muted">Fecha de operación</p>
-              <p class="mt-1 font-inter-semibold">{{ income.createdAt | date: 'dd/MM/yyyy, HH:mm' }}</p>
+              <p class="mt-1 font-inter-semibold">
+                {{ income.createdAt | date: 'dd/MM/yyyy, HH:mm' }}
+              </p>
             </div>
             <div class="rounded-2xl border border-border bg-background-50 p-4">
               <p class="text-xs text-muted">PYME</p>
-              <p class="mt-1 font-inter-semibold">{{ income.pymeName || 'PYME #' + income.pymeId }}</p>
+              <p class="mt-1 font-inter-semibold">
+                {{ income.pymeName || 'PYME #' + income.pymeId }}
+              </p>
             </div>
             <div class="rounded-2xl border border-border bg-background-50 p-4">
               <p class="text-xs text-muted">Referencia</p>
               <p class="mt-1 break-all font-inter-semibold">{{ income.externalReference }}</p>
             </div>
             <div class="rounded-2xl border border-border bg-background-50 p-4">
-              <p class="text-xs text-muted">Código Mercado Pago</p>
-              <p class="mt-1 break-all font-inter-semibold">{{ income.mercadoPagoPaymentId || 'Pendiente de confirmación' }}</p>
+              <p class="text-xs text-muted">Código de operación</p>
+              <p class="mt-1 break-all font-inter-semibold">
+                {{ income.mercadoPagoPaymentId || 'Pendiente de confirmación' }}
+              </p>
             </div>
           </div>
 
-          @if (income.meetingDetails?.description) {
+          @if (income.serviceDescription || income.meetingDetails?.description) {
             <div class="rounded-2xl border border-border bg-background-50 p-4">
               <p class="text-xs font-inter-bold uppercase tracking-wide text-muted">Descripción</p>
-              <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-text-700">{{ income.meetingDetails?.description }}</p>
+              <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-text-700">
+                {{ income.serviceDescription || income.meetingDetails?.description }}
+              </p>
             </div>
           }
         }

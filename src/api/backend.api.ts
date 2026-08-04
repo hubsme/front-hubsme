@@ -841,6 +841,39 @@ export interface MeetingListDto {
   meta: PaginationMetaDto;
 }
 
+export interface MeetingAdminResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  pymeId: number;
+  consultantId: number;
+  title: string;
+  /** @format date-time */
+  startTime: string | null;
+  proposedStartTimes: string[];
+  durationMinutes: number;
+  /** Indica si la reunión tiene un acceso virtual configurado */
+  hasMeetingLink: boolean;
+  status:
+    | "solicitada"
+    | "pago_pendiente"
+    | "por_confirmar"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada";
+  requestedBy: "pyme" | "consultor";
+  description: string | null;
+  /** @format date-time */
+  completedAt: string | null;
+  tasks?: TaskResultDto[];
+  /** Enlace original de Microsoft Teams, disponible únicamente en el backoffice */
+  meetingUrl: string | null;
+}
+
 export interface MeetingCalendarItemDto {
   id: number;
   /** @format date-time */
@@ -2521,7 +2554,7 @@ export interface MeetingadminFindOneParams {
   id: number;
 }
 
-export type MeetingadminFindOneData = MeetingResultDto;
+export type MeetingadminFindOneData = MeetingAdminResultDto;
 
 export type MeetingadminFindOneError = HttpErrorDto;
 

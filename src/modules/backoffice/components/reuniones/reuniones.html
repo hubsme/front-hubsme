@@ -239,9 +239,37 @@
               </div>
               <div>
                 <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Acceso virtual</p>
-                <p class="text-text mt-1.5">
-                  {{ meeting.hasMeetingLink ? 'Configurado mediante enlace protegido' : 'No configurado' }}
-                </p>
+                @if (meeting.meetingUrl) {
+                  <a
+                    [href]="meeting.meetingUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="mt-2 block break-all text-xs leading-relaxed text-secondary underline decoration-secondary/30 underline-offset-4 hover:decoration-secondary"
+                  >
+                    {{ meeting.meetingUrl }}
+                  </a>
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    <a
+                      [href]="meeting.meetingUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-secondary px-3 text-xs font-inter-semibold text-fixed-background-50 transition hover:bg-secondary/90"
+                    >
+                      <i class="fas fa-arrow-up-right-from-square"></i>
+                      Abrir Teams
+                    </a>
+                    <button
+                      type="button"
+                      (click)="copyMeetingUrl(meeting.meetingUrl)"
+                      class="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-3 text-xs font-inter-semibold text-muted transition hover:border-secondary/30 hover:bg-secondary/5 hover:text-secondary"
+                    >
+                      <i class="fas fa-copy"></i>
+                      Copiar enlace
+                    </button>
+                  </div>
+                } @else {
+                  <p class="text-text mt-1.5">No configurado</p>
+                }
               </div>
               <div>
                 <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Última actualización</p>

@@ -11,6 +11,7 @@ import { ToastService } from '@service/toast.service';
 import {
   ApiResponse,
   ConsultantListItemDto,
+  MeetingAdminResultDto,
   MeetingResultDto,
   PaginationMetaDto,
   PymeListItemDto,
@@ -39,7 +40,7 @@ export class Reuniones {
   readonly loading = signal(false);
   readonly detailLoading = signal(false);
   readonly showDetailModal = signal(false);
-  readonly selectedMeeting = signal<MeetingResultDto | null>(null);
+  readonly selectedMeeting = signal<MeetingAdminResultDto | null>(null);
   readonly search = signal('');
   readonly page = signal(1);
   readonly pageSize = 10;
@@ -170,6 +171,11 @@ export class Reuniones {
   closeDetailModal() {
     this.showDetailModal.set(false);
     this.selectedMeeting.set(null);
+  }
+
+  async copyMeetingUrl(meetingUrl: string) {
+    await navigator.clipboard.writeText(meetingUrl);
+    this.toastService.success('Enlace de Teams copiado.');
   }
 
   statusLabel(status: MeetingStatus) {

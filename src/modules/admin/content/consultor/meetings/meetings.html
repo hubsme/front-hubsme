@@ -171,6 +171,24 @@
     </div>
     }
 
+    <ng-template #availabilityWeekHeader let-days="days">
+      <div class="sticky top-0 z-30 ml-[71px] mr-px flex bg-surface" role="row">
+        @for (day of days; track day.date) {
+        <div
+          class="min-w-0 flex-1 border-b border-r border-border px-2 py-1 text-center first:border-l"
+          [class.bg-secondary/10]="day.isToday" [class.bg-surface]="!day.isToday" role="columnheader">
+          <b class="text-base font-inter-regular text-text">
+            {{ day.date | calendarDate: 'weekViewColumnHeader' : 'es-PE' }}
+          </b>
+          <br />
+          <span class="text-base" [class.text-danger]="day.isWeekend" [class.text-text]="!day.isWeekend">
+            {{ day.date | calendarDate: 'weekViewColumnSubHeader' : 'es-PE' }}
+          </span>
+        </div>
+        }
+      </div>
+    </ng-template>
+
     <ng-template #availabilityHourSegment let-segment="segment" let-isTimeLabel="isTimeLabel">
       <div class="flex h-full w-full select-none items-start transition-colors"
         [style.background-color]="segmentBackgroundColor(segment.date, isTimeLabel)"
@@ -180,6 +198,30 @@
         (mouseup)="!isTimeLabel && finishSlotDrag(segment.date, $event)">
         @if (isTimeLabel && segment.isStart) {
         <div class="cal-time text-muted">{{ segment.date | calendarDate: 'weekViewHour' : 'es-PE' }}</div>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template #availabilityWeekHourSegment let-segment="segment" let-isTimeLabel="isTimeLabel">
+      <div class="relative flex h-full w-full select-none transition-colors"
+        [class.border-b]="!isTimeLabel" [class.border-dashed]="!isTimeLabel" [class.border-border]="!isTimeLabel"
+        [style.background-color]="segmentBackgroundColor(segment.date, isTimeLabel)"
+        [style.cursor]="isTimeLabel ? 'default' : brushCursor()"
+        (mousedown)="!isTimeLabel && startSlotDrag(segment.date, $event)"
+        (mouseenter)="!isTimeLabel && updateSlotDrag(segment.date)"
+        (mouseup)="!isTimeLabel && finishSlotDrag(segment.date, $event)">
+        @if (isTimeLabel && segment.isStart) {
+        <div
+          class="cal-time pointer-events-none absolute left-0 top-0 z-10 !w-full -translate-y-1/2 !p-0 text-muted">
+          <span class="bg-surface px-1">{{ segment.date | calendarDate: 'weekViewHour' : 'es-PE' }}</span>
+        </div>
+        }
+        @if (!isTimeLabel && availabilityRangeDisplay(segment.date); as range) {
+        <div
+          class="pointer-events-none absolute inset-x-0 top-0 z-[1] flex items-center justify-center px-2 text-center leading-tight text-success"
+          [style.height.px]="range.height">
+          <p class="text-sm font-inter-bold">{{ range.label }}</p>
+        </div>
         }
       </div>
     </ng-template>
@@ -265,13 +307,17 @@
         (eventClicked)="openEventDetail($event.event)" locale="es-PE"></mwl-calendar-month-view>
       }
       @case (CalendarView.Week) {
-      <mwl-calendar-week-view [viewDate]="viewDate()" [events]="events()" [hourSegments]="2" [dayStartHour]="6"
-        [dayEndHour]="22" [hourSegmentHeight]="46" [hourSegmentTemplate]="availabilityHourSegment"
+      <mwl-calendar-week-view
+        class="block [&_.cal-events-container]:z-20 [&_.cal-hour-segment]:!border-b-0"
+        [viewDate]="viewDate()" [events]="events()" [hourSegments]="2" [dayStartHour]="6"
+        [dayEndHour]="22" [hourSegmentHeight]="availabilityHourSegmentHeight"
+        [headerTemplate]="availabilityWeekHeader" [hourSegmentTemplate]="availabilityWeekHourSegment"
         (eventClicked)="openEventDetail($event.event)" locale="es-PE"></mwl-calendar-week-view>
       }
       @case (CalendarView.Day) {
       <mwl-calendar-day-view [viewDate]="viewDate()" [events]="events()" [hourSegments]="2" [dayStartHour]="6"
-        [dayEndHour]="22" [hourSegmentHeight]="46" [hourSegmentTemplate]="availabilityHourSegment"
+        [dayEndHour]="22" [hourSegmentHeight]="availabilityHourSegmentHeight"
+        [hourSegmentTemplate]="availabilityHourSegment"
         (eventClicked)="openEventDetail($event.event)" locale="es-PE"></mwl-calendar-day-view>
       }
       }

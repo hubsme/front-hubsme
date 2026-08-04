@@ -39,6 +39,8 @@ export class Codes {
   readonly maxRedemptions = signal(1);
   readonly startsAt = signal('');
   readonly expiresAt = signal('');
+  readonly allowedPymeIdsInput = signal('');
+  readonly allowedConsultantIdsInput = signal('');
   readonly activeCount = computed(() => this.codes().filter((code) => code.isActive).length);
   readonly totalCodes = computed(() => this.meta()?.total ?? 0);
   readonly totalUses = computed(() =>
@@ -95,6 +97,8 @@ export class Codes {
     this.code.set('');
     this.description.set('');
     this.maxRedemptions.set(1);
+    this.allowedPymeIdsInput.set('');
+    this.allowedConsultantIdsInput.set('');
 
     const today = new Date();
     const nextMonth = new Date(today);
@@ -133,12 +137,21 @@ export class Codes {
       return;
     }
 
+    const allowedPymeIds = this.parseAllowedIds(this.allowedPymeIdsInput());
+    const allowedConsultantIds = this.parseAllowedIds(this.allowedConsultantIdsInput());
+    if (allowedPymeIds === undefined || allowedConsultantIds === undefined) {
+      this.toastService.warning('Las restricciones deben contener IDs positivos separados por comas.');
+      return;
+    }
+
     const payload: PromotionCodeCreateDto = {
       code: this.code().trim() || undefined,
       description: this.description().trim() || undefined,
       maxRedemptions: this.maxRedemptions(),
       startsAt: this.toIsoDate(this.startsAt()),
       expiresAt: this.toIsoDate(this.expiresAt(), true),
+      allowedPymeIds,
+      allowedConsultantIds,
     };
 
     this.saving.set(true);
@@ -177,6 +190,24 @@ export class Codes {
 
   usagePercentage(code: PromotionCodeResultDto) {
     return Math.min(100, Math.round((code.redemptionCount / code.maxRedemptions) * 100));
+  }
+
+  restrictionLabel(ids: number[] | null | undefined, unrestrictedLabel: string) {
+    if (ids === null || ids === undefined) return unrestrictedLabel;
+    return ids.length ? ids.map((id) => `#${id}`).join(', ') : 'Ninguno';
+  }
+
+  isRestricted(code: PromotionCodeResultDto) {
+    return Array.isArray(code.allowedPymeIds) || Array.isArray(code.allowedConsultantIds);
+  }
+
+  private parseAllowedIds(value: string): number[] | null | undefined {
+    const normalized = value.trim();
+    if (!normalized) return null;
+
+    const ids = normalized.split(',').map((token) => Number(token.trim()));
+    if (ids.some((id) => !Number.isInteger(id) || id <= 0)) return undefined;
+    return [...new Set(ids)];
   }
 
   private toIsoDate(value: string, endOfDay = false) {

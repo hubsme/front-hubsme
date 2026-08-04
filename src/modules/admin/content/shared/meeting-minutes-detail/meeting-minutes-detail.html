@@ -8,7 +8,7 @@
         <div class="flex items-center gap-3">
           @if (isConsultant() && !isEditing() && meeting()) {
             <button
-              (click)="startEdit()"
+              (click)="handleMinutesAction()"
               class="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-secondary px-4 text-xs text-fixed-background-50 font-inter-semibold shadow-sm hover:bg-secondary/90 transition-colors"
             >
               <i class="fas fa-edit"></i>
@@ -574,3 +574,208 @@
     </div>
   }
 </div>
+
+@if (showRecordingCheckModal()) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-fixed-text-950/60 p-4 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]"
+    (click)="closeRecordingCheckModal()"
+  >
+    <section
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="recording-check-title"
+      class="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl bg-surface shadow-[0_28px_80px_rgba(15,23,42,0.28)] ring-1 ring-text/5 animate-[slideUp_0.25s_ease-out]"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="flex shrink-0 items-start justify-between gap-5 px-6 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-8">
+        <div class="min-w-0">
+          <h2
+            id="recording-check-title"
+            class="font-anton text-xl leading-tight text-text sm:text-[1.7rem]"
+          >
+            revisar grabaciones
+          </h2>
+          <p class="mt-3 max-w-2xl text-sm leading-6 text-muted">
+            Verifica que aparezcan todos los videos de la reunión. Hubsme utilizará automáticamente
+            todas las grabaciones disponibles para generar el acta.
+          </p>
+        </div>
+        <button
+          type="button"
+          (click)="closeRecordingCheckModal()"
+          class="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-muted transition hover:bg-text/5 hover:text-text"
+          aria-label="Cerrar verificación de grabaciones"
+        >
+          <i class="fas fa-times"></i>
+        </button>
+      </header>
+
+      <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-6 sm:px-8 sm:pb-8">
+        <div class="flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/10 px-4 py-3.5">
+          <span class="grid size-8 shrink-0 place-items-center rounded-full bg-warning/10 text-warning">
+            <i class="far fa-clock"></i>
+          </span>
+          <p class="pt-1 text-sm leading-6 text-text">
+            Las grabaciones pueden tardar entre 2 y 3 minutos en aparecer después de finalizar la
+            reunión. Si falta alguna, espera un momento y vuelve a buscar.
+          </p>
+        </div>
+
+        <section class="mt-6 overflow-hidden rounded-3xl border border-border bg-surface">
+          <div class="flex items-center justify-between gap-4 border-b border-border px-5 py-4 sm:px-6 sm:py-5">
+            <div class="min-w-0">
+              <h3 class="font-plus-jakarta-sans text-lg font-bold text-text">Grabaciones disponibles</h3>
+              <p class="mt-1 text-sm text-muted">Todas las grabaciones mostradas se incluirán en el acta.</p>
+            </div>
+            <div class="flex shrink-0 items-center gap-2">
+              @if (!recordingsLoading()) {
+                <span
+                  class="rounded-full bg-secondary/10 px-3 py-1.5 text-xs font-inter-bold text-secondary"
+                >
+                  {{ recordings().length }} encontradas
+                </span>
+              }
+              @if (recordings().length || recordingsError()) {
+                <button
+                  type="button"
+                  (click)="refreshRecordings()"
+                  [disabled]="recordingsLoading()"
+                  class="inline-flex size-9 items-center justify-center rounded-xl border border-border bg-surface text-muted transition hover:border-secondary/30 hover:bg-secondary/5 hover:text-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                  title="Buscar nuevamente"
+                  aria-label="Buscar grabaciones nuevamente"
+                >
+                  <i class="fas fa-rotate-right" [class.fa-spin]="recordingsLoading()"></i>
+                </button>
+              }
+            </div>
+          </div>
+
+          @if (recordingsLoading()) {
+            <div class="grid min-h-80 place-items-center px-6 py-12 text-center">
+              <div>
+                <span
+                  class="mx-auto grid size-20 place-items-center rounded-full bg-secondary/10 text-2xl text-secondary"
+                >
+                  <i class="fas fa-circle-notch fa-spin"></i>
+                </span>
+                <p class="mt-5 font-plus-jakarta-sans text-lg font-bold text-text">Buscando grabaciones</p>
+                <p class="mt-2 text-sm text-muted">Consultando Microsoft Teams y OneDrive...</p>
+              </div>
+            </div>
+          } @else if (recordingsError()) {
+            <div class="grid min-h-80 place-items-center px-6 py-12 text-center">
+              <div>
+                <span class="mx-auto grid size-20 place-items-center rounded-full bg-danger/10 text-2xl text-danger">
+                  <i class="fas fa-triangle-exclamation"></i>
+                </span>
+                <p class="mt-5 font-plus-jakarta-sans text-lg font-bold text-text">
+                  No pudimos consultar las grabaciones
+                </p>
+                <p class="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted">{{ recordingsError() }}</p>
+                <button
+                  type="button"
+                  (click)="refreshRecordings()"
+                  class="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-secondary bg-surface px-5 text-sm font-inter-bold text-secondary transition hover:bg-secondary/5"
+                >
+                  <i class="fas fa-rotate-right"></i>
+                  Buscar nuevamente
+                </button>
+              </div>
+            </div>
+          } @else if (recordings().length) {
+            <div class="max-h-80 divide-y divide-border overflow-y-auto">
+              @for (recording of recordings(); track recording.id ?? recording.callId ?? $index) {
+                <article
+                  class="flex flex-col gap-4 px-5 py-4 transition-colors hover:bg-secondary/5 sm:flex-row sm:items-center sm:justify-between sm:px-6"
+                >
+                  <div class="flex min-w-0 items-center gap-4">
+                    <span
+                      class="grid size-12 shrink-0 place-items-center rounded-2xl bg-secondary/10 text-lg text-secondary"
+                    >
+                      <i class="fas fa-video"></i>
+                    </span>
+                    <div class="min-w-0">
+                      <p class="truncate text-sm font-inter-bold text-text">
+                        {{ recording.fileName || 'Grabación ' + ($index + 1) }}
+                      </p>
+                      <p class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+                        <span>{{ recordingDate(recording.createdDateTime) }}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>{{ recordingDuration(recording) }}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="flex shrink-0 items-center gap-2 pl-16 sm:pl-0">
+                    @if (recordingUrl(recording); as url) {
+                      <span
+                        class="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1.5 text-xs font-inter-bold text-success"
+                      >
+                        <i class="fas fa-check-circle"></i>
+                        Disponible
+                      </span>
+                      <a
+                        [href]="url"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="inline-flex size-9 items-center justify-center rounded-xl border border-border bg-surface text-muted transition hover:border-secondary/30 hover:text-secondary"
+                        title="Ver grabación"
+                        aria-label="Abrir grabación"
+                      >
+                        <i class="fas fa-arrow-up-right-from-square text-xs"></i>
+                      </a>
+                    } @else {
+                      <span
+                        class="inline-flex items-center gap-1.5 rounded-full bg-warning/10 px-3 py-1.5 text-xs font-inter-bold text-warning"
+                      >
+                        <i class="far fa-clock"></i>
+                        Procesando en OneDrive
+                      </span>
+                    }
+                  </div>
+                </article>
+              }
+            </div>
+
+            <div class="flex items-start gap-2 border-t border-border bg-secondary/5 px-5 py-3.5 text-xs leading-5 text-muted sm:px-6">
+              <i class="fas fa-circle-info mt-0.5 text-secondary"></i>
+              <p>No necesitas seleccionar nada: se usarán automáticamente todas las grabaciones de esta lista.</p>
+            </div>
+          } @else {
+            <div class="grid min-h-80 place-items-center px-6 py-12 text-center">
+              <div>
+                <span class="mx-auto grid size-20 place-items-center rounded-full bg-background-50 text-2xl text-muted">
+                  <i class="fas fa-video"></i>
+                </span>
+                <p class="mt-5 font-plus-jakarta-sans text-lg font-bold text-text">Todavía no hay grabaciones</p>
+                <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
+                  Espera unos minutos y realiza una nueva búsqueda para verificar si ya están disponibles.
+                </p>
+                <button
+                  type="button"
+                  (click)="refreshRecordings()"
+                  class="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-secondary bg-surface px-5 text-sm font-inter-bold text-secondary transition hover:bg-secondary/5"
+                >
+                  <i class="fas fa-rotate-right"></i>
+                  Buscar nuevamente
+                </button>
+              </div>
+            </div>
+          }
+        </section>
+      </div>
+
+      <footer class="flex shrink-0 justify-end border-t border-border px-6 py-5 sm:px-8">
+        <button
+          type="button"
+          (click)="continueMinutesCreation()"
+          [disabled]="!canContinueMinutesCreation()"
+          class="inline-flex h-11 w-full items-center justify-center gap-3 rounded-xl bg-secondary px-6 text-sm font-inter-bold text-fixed-background-50 shadow-sm transition hover:bg-secondary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
+        >
+          Continuar
+          <i class="fas fa-arrow-right"></i>
+        </button>
+      </footer>
+    </section>
+  </div>
+}

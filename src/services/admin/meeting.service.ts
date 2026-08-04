@@ -42,6 +42,13 @@ export class MeetingService {
     return this.api.meeting.confirmOption({ id }, data).then((response) => response.data);
   }
 
+  cancelByConsultant(
+    id: number,
+    data: ApiBody<'meeting', 'cancelByConsultant'>,
+  ): Promise<ApiResponse<'meeting', 'cancelByConsultant'>> {
+    return this.api.meeting.cancelByConsultant({ id }, data).then((response) => response.data);
+  }
+
   delete(id: number): Promise<ApiResponse<'meeting', 'remove'>> {
     return this.api.meeting.remove({ id }).then((response) => response.data);
   }

@@ -84,6 +84,11 @@
                 >
                   {{ item.isActive ? 'Activo' : 'Inactivo' }}
                 </span>
+                @if (isRestricted(item)) {
+                  <span class="rounded-full bg-warning/10 px-2 py-1 text-xs text-warning font-inter-semibold">
+                    Uso restringido
+                  </span>
+                }
               </div>
               <p class="text-sm text-muted mt-1 truncate">
                 {{ item.description || 'Sin descripción' }}
@@ -179,6 +184,34 @@
           class="w-full h-11 px-4 rounded-xl bg-background-50 border border-border text-text outline-none transition-all duration-200 focus:border-secondary focus:ring-2 focus:ring-secondary/15"
         />
       </label>
+      <div class="rounded-xl border border-border bg-background-50 p-4">
+        <div class="mb-3">
+          <p class="text-sm font-inter-semibold text-text">Permisos de uso</p>
+          <p class="mt-1 text-xs leading-relaxed text-muted">
+            Separa las IDs con comas. Un campo vacío permite usar el código con cualquier usuario de ese tipo.
+          </p>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="block group">
+            <span class="mb-2 block text-sm text-text font-inter-semibold">IDs de PYMEs permitidas</span>
+            <input
+              [ngModel]="allowedPymeIdsInput()"
+              (ngModelChange)="allowedPymeIdsInput.set($event)"
+              placeholder="Ej. 12, 25"
+              class="h-11 w-full rounded-xl border border-border bg-surface px-4 text-text outline-none transition-all duration-200 focus:border-secondary focus:ring-2 focus:ring-secondary/15"
+            />
+          </label>
+          <label class="block group">
+            <span class="mb-2 block text-sm text-text font-inter-semibold">IDs de consultores permitidos</span>
+            <input
+              [ngModel]="allowedConsultantIdsInput()"
+              (ngModelChange)="allowedConsultantIdsInput.set($event)"
+              placeholder="Ej. 4, 9"
+              class="h-11 w-full rounded-xl border border-border bg-surface px-4 text-text outline-none transition-all duration-200 focus:border-secondary focus:ring-2 focus:ring-secondary/15"
+            />
+          </label>
+        </div>
+      </div>
       <div class="grid sm:grid-cols-2 gap-4">
         <label class="block group">
           <span class="block text-sm font-inter-semibold text-text mb-2">Disponible desde</span>
@@ -261,6 +294,27 @@
           </article>
         </section>
 
+        <section class="mb-6 rounded-xl border border-border bg-background-50 p-4">
+          <div class="mb-3 flex items-center gap-2">
+            <i class="fas fa-lock text-secondary/60 text-sm"></i>
+            <p class="font-inter-semibold text-text">Permisos de canje</p>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2">
+            <div class="rounded-lg border border-border bg-surface p-3">
+              <p class="text-xs uppercase tracking-wide text-muted font-inter-semibold">PYMEs permitidas</p>
+              <p class="mt-1 break-words text-sm text-text font-inter-semibold">
+                {{ restrictionLabel(detail.allowedPymeIds, 'Todas las PYMEs') }}
+              </p>
+            </div>
+            <div class="rounded-lg border border-border bg-surface p-3">
+              <p class="text-xs uppercase tracking-wide text-muted font-inter-semibold">Consultores permitidos</p>
+              <p class="mt-1 break-words text-sm text-text font-inter-semibold">
+                {{ restrictionLabel(detail.allowedConsultantIds, 'Todos los consultores') }}
+              </p>
+            </div>
+          </div>
+        </section>
+
         <div class="border border-border rounded-xl overflow-hidden">
           <div class="px-5 py-3.5 bg-background-50 border-b border-border flex items-center gap-2">
             <i class="fas fa-receipt text-secondary/60 text-sm"></i>
@@ -314,4 +368,3 @@
     </div>
   </app-modal-form>
 }
-

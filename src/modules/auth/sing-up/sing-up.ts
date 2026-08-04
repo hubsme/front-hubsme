@@ -10,6 +10,10 @@ import {
   CONSULTANT_DIAGNOSTIC_AREAS,
   ConsultantDiagnosticArea,
 } from '@enum/consultant-diagnostic-area.enum';
+import {
+  consultantWorkModalityLabel,
+  normalizeConsultantWorkModality,
+} from '@enum/consultant-work-modality.enum';
 
 type ConsultantCvProfile = ApiResponse<'ia', 'runConsultantCv'>;
 type DniVerificationResult = ApiResponse<'identityVerification', 'identityverificationVerifyDni'>;
@@ -93,6 +97,7 @@ export class SingUp implements OnInit, OnDestroy {
   cvUrl = signal('');
   consultantProfile = signal<ConsultantCvProfile | null>(null);
   readonly diagnosticAreaOptions = CONSULTANT_DIAGNOSTIC_AREAS;
+  readonly consultantWorkModalityLabel = consultantWorkModalityLabel;
   diagnosticAreas = signal<ConsultantDiagnosticArea[]>([]);
   profileComplete = computed(() => {
     const hasPerson = !!this.firstName().trim() && !!this.lastName().trim();
@@ -619,7 +624,7 @@ export class SingUp implements OnInit, OnDestroy {
     return {
       headline: profile?.headline || undefined,
       location: profile?.location || undefined,
-      workModality: profile?.workModality || undefined,
+      workModality: normalizeConsultantWorkModality(profile?.workModality),
       bio: profile?.bio || undefined,
       ownerPhone: profile?.ownerPhone || undefined,
       linkedinUrl: profile?.linkedinUrl || undefined,

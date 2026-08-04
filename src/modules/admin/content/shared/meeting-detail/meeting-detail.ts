@@ -1,11 +1,14 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { ConsultantService } from '@service/admin/consultant.service';
 import { PymeService } from '@service/admin/pyme.service';
+import { MeetingService } from '@service/admin/meeting.service';
+import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { PATH, buildPath } from '@route/path.route';
 
 type Meeting = ApiResponse<'meeting', 'findOne'>;
@@ -14,7 +17,7 @@ type Pyme = ApiResponse<'pyme', 'findByUser'>;
 
 @Component({
   selector: 'app-meeting-detail',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, ModalForm, RouterLink],
   templateUrl: './meeting-detail.html',
 })
 export class MeetingDetail implements OnInit {
@@ -23,6 +26,7 @@ export class MeetingDetail implements OnInit {
   private toastService = inject(ToastService);
   private consultantService = inject(ConsultantService);
   private pymeService = inject(PymeService);
+  private meetingService = inject(MeetingService);
 
   readonly PATH = PATH;
   readonly buildPath = buildPath;
@@ -32,6 +36,9 @@ export class MeetingDetail implements OnInit {
   pyme = signal<Pyme | null>(null);
   loading = signal(false);
   updatingStatus = signal(false);
+  showCancellationModal = signal(false);
+  cancellationReason = signal('');
+  cancelling = signal(false);
 
   currentUserName = computed(() => {
     try {
@@ -65,6 +72,18 @@ export class MeetingDetail implements OnInit {
     const meeting = this.meeting();
     return Boolean(meeting && meeting.status === 'confirmada' && meeting.hasMeetingLink);
   });
+
+  canCancelPaidMeeting() {
+    const meeting = this.meeting();
+    if (!meeting || this.hubsme.currentUser().role !== 'consultor') return false;
+    if (!['por_confirmar', 'confirmada'].includes(meeting.status)) return false;
+
+    const meetingStart = meeting.startTime ?? meeting.proposedStartTimes?.[0];
+    if (!meetingStart) return false;
+
+    const cancellationDeadline = new Date(meetingStart).getTime() + 24 * 60 * 60 * 1000;
+    return Date.now() <= cancellationDeadline;
+  }
 
   consultantName = computed(() => {
     const meeting = this.meeting();
@@ -125,6 +144,44 @@ export class MeetingDetail implements OnInit {
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.updatingStatus.set(false));
+  }
+
+  openPaidCancellation() {
+    if (!this.canCancelPaidMeeting()) return;
+    this.cancellationReason.set('');
+    this.showCancellationModal.set(true);
+  }
+
+  closePaidCancellation() {
+    if (this.cancelling()) return;
+    this.showCancellationModal.set(false);
+    this.cancellationReason.set('');
+  }
+
+  cancelPaidMeeting() {
+    const meeting = this.meeting();
+    const reason = this.cancellationReason().trim();
+    if (!meeting || !this.canCancelPaidMeeting()) return;
+    if (reason.length < 10) {
+      this.toastService.warning('Explica el motivo de la cancelación con al menos 10 caracteres');
+      return;
+    }
+    if (reason.length > 500) {
+      this.toastService.warning('El motivo no puede superar 500 caracteres');
+      return;
+    }
+
+    this.cancelling.set(true);
+    this.meetingService
+      .cancelByConsultant(meeting.id, { reason })
+      .then((result) => {
+        this.meeting.set(result.meeting);
+        this.showCancellationModal.set(false);
+        this.cancellationReason.set('');
+        this.toastService.success('Reunión cancelada. La PYME recibirá un cupón de reposición');
+      })
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.cancelling.set(false));
   }
 
   private loadProfiles(meeting: Meeting) {

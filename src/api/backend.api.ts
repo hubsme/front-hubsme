@@ -158,8 +158,11 @@ export interface RegisterDto {
   headline?: string;
   /** @example "Lima, Perú" */
   location?: string;
-  /** @example "Presencial en Lima y remoto a nivel nacional" */
-  workModality?: string;
+  /**
+   * @default "remote"
+   * @example "remote"
+   */
+  workModality?: "remote";
   /** @example "https://www.linkedin.com/in/carlos-mendoza" */
   linkedinUrl?: string;
   /** @example "Consultor en finanzas para PYMES." */
@@ -454,7 +457,7 @@ export interface ConsultantListItemDto {
   ownerPhone: string | null;
   headline: string | null;
   location: string | null;
-  workModality: string | null;
+  workModality: "remote";
   linkedinUrl: string | null;
   bio: string | null;
   diagnosticAreas: (
@@ -663,6 +666,25 @@ export interface WhatsappNotificacionConsultorDto {
   duracion: string;
 }
 
+export interface WhatsappNotificacionCancelacionPymeDto {
+  /** @example "51929073820" */
+  to: string;
+  /** @example "CyM Ingenieros SAC" */
+  nombre_pyme: string;
+  /** @example "Sesión con Miguel Salinas" */
+  tema_reunion: string;
+  /** @example "Miguel Salinas" */
+  nombre_consultor: string;
+  /** @example "15 de jul., 6:00 p. m." */
+  fecha_hora: string;
+  /** @example "60 min." */
+  duracion_reunion: string;
+  /** @example "El consultor presentó un inconveniente personal." */
+  motivo_cancelacion: string;
+  /** @example "REUNION-FREE-A1B2C3D4E5F6" */
+  codigo_cupon: string;
+}
+
 export interface WhatsappAlertaReunionConsultorDto {
   /**
    * Número de WhatsApp del destinatario (sin @s.whatsapp.net)
@@ -831,6 +853,7 @@ export interface MeetingResultDto {
     | "cancelada";
   requestedBy: "pyme" | "consultor";
   description: string | null;
+  cancellationReason: string | null;
   /** @format date-time */
   completedAt: string | null;
   tasks?: TaskResultDto[];
@@ -867,6 +890,7 @@ export interface MeetingAdminResultDto {
     | "cancelada";
   requestedBy: "pyme" | "consultor";
   description: string | null;
+  cancellationReason: string | null;
   /** @format date-time */
   completedAt: string | null;
   tasks?: TaskResultDto[];
@@ -901,6 +925,7 @@ export interface MeetingCalendarItemDto {
     | "cancelada";
   requestedBy: "pyme" | "consultor";
   description: string | null;
+  cancellationReason: string | null;
   /** @format date-time */
   completedAt: string | null;
 }
@@ -1034,6 +1059,21 @@ export interface MeetingUpdateDto {
     | "cancelada";
 }
 
+export interface MeetingConsultantCancelDto {
+  /**
+   * @minLength 10
+   * @maxLength 500
+   * @example "Se presentó un inconveniente personal y no podré asistir."
+   */
+  reason: string;
+}
+
+export interface MeetingConsultantCancelResultDto {
+  meeting: MeetingResultDto;
+  /** @example "REUNION-FREE-A1B2C3D4E5F6" */
+  promotionCode: string;
+}
+
 export interface MeetingFinalizeTaskDto {
   /** @example "Preparar propuesta de optimizacion" */
   title: string;
@@ -1101,8 +1141,8 @@ export interface ConsultantCvProfileResultDto {
   headline?: string;
   /** @example "Lima, Perú" */
   location?: string;
-  /** @example "Presencial en Lima y remoto a nivel nacional" */
-  workModality?: string;
+  /** @example "remote" */
+  workModality: "remote";
   /** @example "Consultor financiero con foco en orden tributario." */
   bio?: string;
   /** @example "51929073820" */
@@ -1341,7 +1381,7 @@ export interface ConsultantResultDto {
   ownerPhone: string | null;
   headline: string | null;
   location: string | null;
-  workModality: string | null;
+  workModality: "remote";
   linkedinUrl: string | null;
   bio: string | null;
   diagnosticAreas: (
@@ -1434,8 +1474,11 @@ export interface ConsultantCreateDto {
   headline?: string;
   /** @example "Lima, Perú" */
   location?: string;
-  /** @example "Presencial en Lima y remoto a nivel nacional" */
-  workModality?: string;
+  /**
+   * @default "remote"
+   * @example "remote"
+   */
+  workModality?: "remote";
   /** @example "https://www.linkedin.com/in/carlos-mendoza" */
   linkedinUrl?: string;
   /** @example "Consultor en transformacion digital para PYMES." */
@@ -1511,8 +1554,11 @@ export interface ConsultantUpdateDto {
   headline?: string;
   /** @example "Lima, Perú" */
   location?: string;
-  /** @example "Presencial en Lima y remoto a nivel nacional" */
-  workModality?: string;
+  /**
+   * @default "remote"
+   * @example "remote"
+   */
+  workModality?: "remote";
   /** @example "https://www.linkedin.com/in/carlos-mendoza" */
   linkedinUrl?: string;
   /** @example "Consultor en transformacion digital para PYMES." */
@@ -2081,6 +2127,8 @@ export interface PromotionCodeResultDto {
   startsAt?: string | null;
   /** @format date-time */
   expiresAt?: string | null;
+  allowedPymeIds?: number[] | null;
+  allowedConsultantIds?: number[] | null;
   isActive: boolean;
 }
 
@@ -2115,6 +2163,8 @@ export interface PromotionCodeDetailDto {
   startsAt?: string | null;
   /** @format date-time */
   expiresAt?: string | null;
+  allowedPymeIds?: number[] | null;
+  allowedConsultantIds?: number[] | null;
   isActive: boolean;
   redemptions: PromotionCodeRedemptionDetailDto[];
 }
@@ -2136,6 +2186,10 @@ export interface PromotionCodeCreateDto {
   startsAt?: string;
   /** @format date-time */
   expiresAt?: string;
+  /** IDs de PYMEs autorizadas. Null permite cualquier PYME. */
+  allowedPymeIds?: number[] | null;
+  /** IDs de consultores autorizados. Null permite cualquier consultor. */
+  allowedConsultantIds?: number[] | null;
 }
 
 export interface PromotionCodeUpdateDto {
@@ -2155,6 +2209,10 @@ export interface PromotionCodeUpdateDto {
   startsAt?: string;
   /** @format date-time */
   expiresAt?: string;
+  /** IDs de PYMEs autorizadas. Null permite cualquier PYME. */
+  allowedPymeIds?: number[] | null;
+  /** IDs de consultores autorizados. Null permite cualquier consultor. */
+  allowedConsultantIds?: number[] | null;
   isActive?: boolean;
 }
 
@@ -2495,6 +2553,10 @@ export type WhatsappSendNotificacionConsultorData = WhatsappSendResultDto;
 
 export type WhatsappSendNotificacionConsultorError = HttpErrorDto;
 
+export type WhatsappSendNotificacionCancelacionPymeData = WhatsappSendResultDto;
+
+export type WhatsappSendNotificacionCancelacionPymeError = HttpErrorDto;
+
 export type WhatsappSendAlertaReunionConsultorData = WhatsappSendResultDto;
 
 export type WhatsappSendAlertaReunionConsultorError = HttpErrorDto;
@@ -2674,6 +2736,14 @@ export interface MeetingUpdateParams {
 export type MeetingUpdateData = MeetingResultDto;
 
 export type MeetingUpdateError = HttpErrorDto;
+
+export interface MeetingCancelByConsultantParams {
+  id: number;
+}
+
+export type MeetingCancelByConsultantData = MeetingConsultantCancelResultDto;
+
+export type MeetingCancelByConsultantError = HttpErrorDto;
 
 export interface MeetingFinalizeParams {
   id: number;
@@ -4158,6 +4228,25 @@ export namespace Whatsapp {
   /**
    * No description
    * @tags whatsapp
+   * @name WhatsappSendNotificacionCancelacionPyme
+   * @summary Enviar plantilla notificacion_cancelacion_pyme
+   * @request POST:/admin/whatsapp/notificacion-cancelacion-pyme
+   * @secure
+   * @response `201` `WhatsappSendNotificacionCancelacionPymeData`
+   * @response `400` `HttpErrorDto`
+   * @response `500` `HttpErrorDto`
+   */
+  export namespace WhatsappSendNotificacionCancelacionPyme {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = WhatsappNotificacionCancelacionPymeDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = WhatsappSendNotificacionCancelacionPymeData;
+  }
+
+  /**
+   * No description
+   * @tags whatsapp
    * @name WhatsappSendAlertaReunionConsultor
    * @summary Enviar plantilla alerta_reunion_consultor
    * @request POST:/admin/whatsapp/alerta-reunion-consultor
@@ -4560,6 +4649,27 @@ export namespace Meeting {
     export type RequestBody = MeetingUpdateDto;
     export type RequestHeaders = {};
     export type ResponseBody = MeetingUpdateData;
+  }
+
+  /**
+   * No description
+   * @tags meeting
+   * @name MeetingCancelByConsultant
+   * @summary Cancel a paid meeting as its consultant and issue a restricted replacement code
+   * @request POST:/admin/meeting/cancel-by-consultant/{id}
+   * @secure
+   * @response `200` `MeetingCancelByConsultantData`
+   * @response `400` `HttpErrorDto`
+   * @response `403` `HttpErrorDto`
+   */
+  export namespace MeetingCancelByConsultant {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = MeetingConsultantCancelDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingCancelByConsultantData;
   }
 
   /**
@@ -7452,6 +7562,35 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags whatsapp
+     * @name WhatsappSendNotificacionCancelacionPyme
+     * @summary Enviar plantilla notificacion_cancelacion_pyme
+     * @request POST:/admin/whatsapp/notificacion-cancelacion-pyme
+     * @secure
+     * @response `201` `WhatsappSendNotificacionCancelacionPymeData`
+     * @response `400` `HttpErrorDto`
+     * @response `500` `HttpErrorDto`
+     */
+    sendNotificacionCancelacionPyme: (
+      data: WhatsappNotificacionCancelacionPymeDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        WhatsappSendNotificacionCancelacionPymeData,
+        WhatsappSendNotificacionCancelacionPymeError
+      >({
+        path: `/admin/whatsapp/notificacion-cancelacion-pyme`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags whatsapp
      * @name WhatsappSendAlertaReunionConsultor
      * @summary Enviar plantilla alerta_reunion_consultor
      * @request POST:/admin/whatsapp/alerta-reunion-consultor
@@ -7859,6 +7998,36 @@ export class Api<SecurityDataType extends unknown> {
       this.http.request<MeetingUpdateData, MeetingUpdateError>({
         path: `/admin/meeting/update/${id}`,
         method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meeting
+     * @name MeetingCancelByConsultant
+     * @summary Cancel a paid meeting as its consultant and issue a restricted replacement code
+     * @request POST:/admin/meeting/cancel-by-consultant/{id}
+     * @secure
+     * @response `200` `MeetingCancelByConsultantData`
+     * @response `400` `HttpErrorDto`
+     * @response `403` `HttpErrorDto`
+     */
+    cancelByConsultant: (
+      { id }: MeetingCancelByConsultantParams,
+      data: MeetingConsultantCancelDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MeetingCancelByConsultantData,
+        MeetingCancelByConsultantError
+      >({
+        path: `/admin/meeting/cancel-by-consultant/${id}`,
+        method: "POST",
         body: data,
         secure: true,
         type: ContentType.Json,

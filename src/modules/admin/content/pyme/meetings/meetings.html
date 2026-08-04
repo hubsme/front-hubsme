@@ -51,6 +51,37 @@
       </div>
     </div>
 
+    <ng-template #meetingsWeekHeader let-days="days">
+      <div class="sticky top-0 z-30 ml-[71px] mr-px flex bg-surface" role="row">
+        @for (day of days; track day.date) {
+        <div
+          class="min-w-0 flex-1 border-b border-r border-border px-2 py-1 text-center first:border-l"
+          [class.bg-secondary/10]="day.isToday" [class.bg-surface]="!day.isToday" role="columnheader">
+          <b class="text-base font-inter-regular text-text">
+            {{ day.date | calendarDate: 'weekViewColumnHeader' : 'es-PE' }}
+          </b>
+          <br />
+          <span class="text-base" [class.text-danger]="day.isWeekend" [class.text-text]="!day.isWeekend">
+            {{ day.date | calendarDate: 'weekViewColumnSubHeader' : 'es-PE' }}
+          </span>
+        </div>
+        }
+      </div>
+    </ng-template>
+
+    <ng-template #meetingsWeekHourSegment let-segment="segment" let-isTimeLabel="isTimeLabel">
+      <div class="relative flex h-full w-full"
+        [class.border-b]="!isTimeLabel" [class.border-dashed]="!isTimeLabel"
+        [class.border-border]="!isTimeLabel">
+        @if (isTimeLabel && segment.isStart) {
+        <div
+          class="cal-time pointer-events-none absolute left-0 top-0 z-10 !w-full -translate-y-1/2 !p-0 text-muted">
+          <span class="bg-surface px-1">{{ segment.date | calendarDate: 'weekViewHour' : 'es-PE' }}</span>
+        </div>
+        }
+      </div>
+    </ng-template>
+
     <ng-template #monthCellTemplate let-day="day">
       <div class="flex min-h-[7.5rem] w-full min-w-0 cursor-default flex-col overflow-hidden p-2" [class.opacity-40]="!day.inMonth">
         <div class="flex items-center justify-between gap-2">
@@ -132,8 +163,11 @@
         locale="es-PE"></mwl-calendar-month-view>
       }
       @case (CalendarView.Week) {
-      <mwl-calendar-week-view [viewDate]="viewDate()" [events]="calendarEvents()" [hourSegments]="2" [dayStartHour]="6"
-        [dayEndHour]="22" [hourSegmentHeight]="46" (eventClicked)="openCalendarMeeting($event.event)"
+      <mwl-calendar-week-view
+        class="block [&_.cal-events-container]:z-20 [&_.cal-hour-segment]:!border-b-0"
+        [viewDate]="viewDate()" [events]="calendarEvents()" [hourSegments]="2" [dayStartHour]="6"
+        [dayEndHour]="22" [hourSegmentHeight]="46" [headerTemplate]="meetingsWeekHeader"
+        [hourSegmentTemplate]="meetingsWeekHourSegment" (eventClicked)="openCalendarMeeting($event.event)"
         locale="es-PE"></mwl-calendar-week-view>
       }
       }

@@ -111,7 +111,7 @@
                   {{ consultant.headline || consultant.specialties[0] || '-' }}
                 </td>
                 <td class="px-4 py-4 text-muted">{{ consultant.location || '-' }}</td>
-                <td class="px-4 py-4 text-muted">{{ consultant.workModality || '-' }}</td>
+                <td class="px-4 py-4 text-muted">{{ consultantWorkModalityLabel(consultant.workModality) }}</td>
                 <td class="px-4 py-4 text-right text-muted">
                   {{ consultant.yearsExperience }} años
                 </td>
@@ -421,7 +421,7 @@
             <i class="fas fa-laptop absolute right-4 top-4 text-success/30"></i>
             <p class="text-xs font-inter-semibold uppercase tracking-wide text-muted">Modalidad</p>
             <p class="mt-2 text-base font-inter-semibold text-text">
-              {{ consultant.workModality || '-' }}
+              {{ consultantWorkModalityLabel(consultant.workModality) }}
             </p>
           </article>
         </section>

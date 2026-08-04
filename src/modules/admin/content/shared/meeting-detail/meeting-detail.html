@@ -213,6 +213,17 @@
             </p>
           </div>
 
+          @if (current.status === 'cancelada' && current.cancellationReason) {
+            <div class="mt-5 rounded-xl border border-danger/20 bg-danger/5 p-4">
+              <p class="text-[0.62rem] uppercase tracking-[0.12em] text-danger font-inter-bold">
+                Motivo de cancelación
+              </p>
+              <p class="mt-2 whitespace-pre-line text-[0.82rem] leading-6 text-text-700">
+                {{ current.cancellationReason }}
+              </p>
+            </div>
+          }
+
           <!-- Dashed divider before actions -->
           <div class="my-6 border-t border-dashed border-border"></div>
 
@@ -246,6 +257,17 @@
                 Cancelar
               </button>
             }
+
+            @if (canCancelPaidMeeting()) {
+              <button
+                type="button"
+                (click)="openPaidCancellation()"
+                class="inline-flex h-10 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl border border-danger/30 bg-surface px-4 text-[0.8rem] text-danger font-inter-bold transition-all hover:bg-danger/5"
+              >
+                <i class="fas fa-xmark text-[0.7rem]"></i>
+                Cancelar reunión
+              </button>
+            }
           </div>
 
           @if (current.status === 'finalizada') {
@@ -277,3 +299,44 @@
     </div>
   }
 </div>
+
+@if (showCancellationModal()) {
+  @if (meeting(); as current) {
+  <app-modal-form
+    title="cancelar reunión"
+    submitText="Confirmar cancelación"
+    cancelText="Volver"
+    maxWidth="lg"
+    submitVariant="danger"
+    [loading]="cancelling()"
+    (onSubmit)="cancelPaidMeeting()"
+    (onClose)="closePaidCancellation()"
+  >
+    <div class="space-y-5 p-6">
+      <div class="rounded-xl border border-danger/20 bg-danger/5 p-4">
+        <p class="font-inter-bold text-text">{{ current.title }}</p>
+        <p class="mt-1 text-sm leading-relaxed text-muted">
+          La PYME será notificada por correo y WhatsApp. Además, recibirá un cupón gratuito válido únicamente
+          para reservar otra reunión contigo.
+        </p>
+      </div>
+
+      <label class="block text-sm font-inter-semibold text-text">
+        <span class="mb-2 block">Motivo de la cancelación</span>
+        <textarea
+          [ngModel]="cancellationReason()"
+          name="detailCancellationReason"
+          (ngModelChange)="cancellationReason.set($event)"
+          maxlength="500"
+          placeholder="Explica brevemente por qué no podrás asistir..."
+          class="min-h-32 w-full rounded-xl border border-border bg-background px-4 py-3 text-sm text-text outline-none transition-colors focus:border-danger"
+        ></textarea>
+        <span class="mt-1 flex justify-between text-xs text-muted">
+          <span>Mínimo 10 caracteres</span>
+          <span>{{ cancellationReason().length }}/500</span>
+        </span>
+      </label>
+    </div>
+  </app-modal-form>
+  }
+}

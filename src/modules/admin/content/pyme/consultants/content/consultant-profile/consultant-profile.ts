@@ -7,6 +7,7 @@ import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { PATH, buildPath } from '@route/path.route';
 import { normalizeLinkedInUrl } from '@function/url.function';
+import { consultantWorkModalityLabel } from '@enum/consultant-work-modality.enum';
 
 type Consultant = ApiResponse<'consultant', 'findByUser'>;
 
@@ -23,6 +24,7 @@ export class ConsultantProfile implements OnInit {
   private toastService = inject(ToastService);
 
   consultant = signal<Consultant | null>(null);
+  readonly consultantWorkModalityLabel = consultantWorkModalityLabel;
   loading = signal(false);
   videoOpen = signal(false);
   showAllCaseStudies = signal(false);

@@ -13,8 +13,15 @@ import {
   CONSULTANT_DIAGNOSTIC_AREAS,
   ConsultantDiagnosticArea,
 } from '@enum/consultant-diagnostic-area.enum';
+import {
+  CONSULTANT_WORK_MODALITY_OPTIONS,
+  ConsultantWorkModality,
+  DEFAULT_CONSULTANT_WORK_MODALITY,
+  normalizeConsultantWorkModality,
+} from '@enum/consultant-work-modality.enum';
 
 type ConsultantProfileData = ApiResponse<'consultant', 'findByUser'>;
+type ConsultantCvProfileData = ApiResponse<'ia', 'runConsultantCv'>;
 type MercadoPagoStatus = ApiResponse<'mercadoPago', 'mercadopagoStatus'>;
 type MercadoPagoMessage = { type: 'hubsme:mercado-pago'; connected?: boolean; nickname?: string; email?: string; error?: string };
 
@@ -32,13 +39,23 @@ type ConsultantCaseStudy = {
   sector?: string;
 };
 
+type PdfTextItem = { str: string };
+type PdfTextContent = { items: unknown[] };
+type PdfPage = { getTextContent(): Promise<PdfTextContent> };
+type PdfDocument = { numPages: number; getPage(pageNumber: number): Promise<PdfPage> };
+type PdfLoadTask = { promise: Promise<PdfDocument> };
+type PdfJsModule = {
+  getDocument(source: { data: Uint8Array }): PdfLoadTask;
+  GlobalWorkerOptions: { workerSrc: string };
+};
+
 type ConsultantForm = {
   firstName: string;
   lastName: string;
   fullName: string;
   headline: string;
   location: string;
-  workModality: string;
+  workModality: ConsultantWorkModality;
   linkedinUrl: string;
   bio: string;
   diagnosticAreas: ConsultantDiagnosticArea[];
@@ -102,6 +119,7 @@ export class Profile implements OnInit, OnDestroy {
   draggedPreviewItem = signal<DraggedPreviewItem | null>(null);
   consultant = signal<ConsultantProfileData | null>(null);
   readonly diagnosticAreaOptions = CONSULTANT_DIAGNOSTIC_AREAS;
+  readonly workModalityOptions = CONSULTANT_WORK_MODALITY_OPTIONS;
   readonly chipFields: { field: ChipField; label: string; placeholder: string }[] = [
     { field: 'specialties', label: 'Especialidades', placeholder: 'Agregar especialidad...' },
     { field: 'industries', label: 'Industrias', placeholder: 'Agregar industria...' },
@@ -135,7 +153,7 @@ export class Profile implements OnInit, OnDestroy {
     fullName: '',
     headline: '',
     location: '',
-    workModality: '',
+    workModality: DEFAULT_CONSULTANT_WORK_MODALITY,
     linkedinUrl: '',
     bio: '',
     diagnosticAreas: [],
@@ -199,7 +217,7 @@ export class Profile implements OnInit, OnDestroy {
           fullName: data.fullName,
           headline: data.headline ?? '',
           location: data.location ?? '',
-          workModality: data.workModality ?? '',
+          workModality: normalizeConsultantWorkModality(data.workModality),
           linkedinUrl: data.linkedinUrl ?? '',
           bio: data.bio ?? '',
           diagnosticAreas: data.diagnosticAreas ?? [],
@@ -244,7 +262,7 @@ export class Profile implements OnInit, OnDestroy {
       fullName,
       headline: form.headline || undefined,
       location: form.location || undefined,
-      workModality: form.workModality || undefined,
+      workModality: form.workModality,
       linkedinUrl: form.linkedinUrl || undefined,
       bio: form.bio || undefined,
       diagnosticAreas: form.diagnosticAreas,
@@ -658,7 +676,7 @@ export class Profile implements OnInit, OnDestroy {
   }
 
   private async extractPdfText(file: File): Promise<string> {
-    const pdfjs = (await import('pdfjs-dist')) as unknown as any;
+    const pdfjs = (await import('pdfjs-dist')) as unknown as PdfJsModule;
     pdfjs.GlobalWorkerOptions.workerSrc = new URL(
       'pdfjs-dist/build/pdf.worker.mjs',
       import.meta.url,
@@ -672,7 +690,7 @@ export class Profile implements OnInit, OnDestroy {
       const page = await pdf.getPage(pageNumber);
       const content = await page.getTextContent();
       const pageText = content.items
-        .map((item: any) => item.str || '')
+        .map((item) => (this.isPdfTextItem(item) ? item.str : ''))
         .filter(Boolean)
         .join(' ');
       pages.push(pageText);
@@ -681,7 +699,12 @@ export class Profile implements OnInit, OnDestroy {
     return pages.join('\n').trim();
   }
 
-  private prefillFormFromCv(profile: any): void {
+  private isPdfTextItem(value: unknown): value is PdfTextItem {
+    if (!value || typeof value !== 'object') return false;
+    return typeof (value as { str?: unknown }).str === 'string';
+  }
+
+  private prefillFormFromCv(profile: ConsultantCvProfileData): void {
     const form = this.form();
     this.form.set({
       ...form,
@@ -690,7 +713,7 @@ export class Profile implements OnInit, OnDestroy {
       fullName: form.fullName.trim() ? form.fullName : (profile.fullName ?? ''),
       headline: form.headline.trim() ? form.headline : (profile.headline ?? ''),
       location: form.location.trim() ? form.location : (profile.location ?? ''),
-      workModality: form.workModality.trim() ? form.workModality : (profile.workModality ?? ''),
+      workModality: normalizeConsultantWorkModality(profile.workModality),
       bio: form.bio.trim() ? form.bio : (profile.bio ?? ''),
       ownerPhone: form.ownerPhone.trim() ? form.ownerPhone : (profile.ownerPhone ?? ''),
       linkedinUrl: form.linkedinUrl.trim() ? form.linkedinUrl : (profile.linkedinUrl ?? ''),

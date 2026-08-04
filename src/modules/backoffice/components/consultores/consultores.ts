@@ -8,6 +8,7 @@ import { AdminApiService } from '@service/admin-api.service';
 import { AlertService } from '@service/alert.service';
 import { ToastService } from '@service/toast.service';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { consultantWorkModalityLabel } from '@enum/consultant-work-modality.enum';
 import {
   ConsultantListItemDto,
   ConsultantMercadoPagoAdminDto,
@@ -26,6 +27,7 @@ export class Consultores {
   private readonly toastService = inject(ToastService);
 
   readonly consultants = signal<ConsultantListItemDto[]>([]);
+  readonly consultantWorkModalityLabel = consultantWorkModalityLabel;
   readonly loading = signal(false);
   readonly detailLoading = signal(false);
   readonly showDetailModal = signal(false);

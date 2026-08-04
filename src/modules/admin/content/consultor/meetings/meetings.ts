@@ -98,6 +98,7 @@ export class Meetings implements OnInit, OnDestroy {
   readonly CalendarView = CalendarView;
   readonly PATH = PATH;
   readonly buildPath = buildPath;
+  readonly availabilityHourSegmentHeight = 46;
 
   view = signal<CalendarView>(CalendarView.Week);
   viewDate = signal(new Date());
@@ -428,6 +429,29 @@ export class Meetings implements OnInit, OnDestroy {
     return null;
   }
 
+  availabilityRangeDisplay(date: Date) {
+    const dragSelection = this.dragSelection();
+    if (
+      this.activeBrush() === 'disponible' &&
+      dragSelection &&
+      date.getTime() === dragSelection.start.getTime()
+    ) {
+      return this.buildAvailabilityRangeDisplay(dragSelection.start, dragSelection.end);
+    }
+
+    const slot = this.slotAt(date);
+    if (
+      !slot ||
+      slot.id !== undefined ||
+      slot.status !== 'disponible' ||
+      date.getTime() !== slot.startTime.getTime()
+    ) {
+      return null;
+    }
+
+    return this.buildAvailabilityRangeDisplay(slot.startTime, slot.endTime);
+  }
+
   private eraseSlotsInRange(start: Date, end: Date) {
     this.slots.update((current) =>
       current.flatMap((slot) => {
@@ -738,6 +762,28 @@ export class Meetings implements OnInit, OnDestroy {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
+    });
+  }
+
+  private formatAvailabilityRange(startTime: Date, endTime: Date) {
+    return `${this.formatAvailabilityTime(startTime)} – ${this.formatAvailabilityTime(endTime)}`;
+  }
+
+  private buildAvailabilityRangeDisplay(startTime: Date, endTime: Date) {
+    const durationMinutes = (endTime.getTime() - startTime.getTime()) / 60_000;
+    const segmentCount = Math.max(1, durationMinutes / this.halfHourMinutes());
+
+    return {
+      label: this.formatAvailabilityRange(startTime, endTime),
+      height: segmentCount * this.availabilityHourSegmentHeight,
+    };
+  }
+
+  private formatAvailabilityTime(value: Date) {
+    return value.toLocaleTimeString('es-PE', {
+      hour: 'numeric',
+      ...(value.getMinutes() === 0 ? {} : { minute: '2-digit' as const }),
+      hour12: true,
     });
   }
 

@@ -377,9 +377,13 @@
           </label>
           <label class="block text-[0.78rem] font-inter-semibold text-muted">
             <span class="mb-2 block">Modalidad</span>
-            <input [ngModel]="form().workModality" name="workModality"
-              (ngModelChange)="updateForm('workModality', $event)" placeholder="Remoto a nivel nacional"
-              class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none transition placeholder:text-text-400 focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
+            <select [ngModel]="form().workModality" name="workModality"
+              (ngModelChange)="updateForm('workModality', $event)"
+              class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/10">
+              @for (option of workModalityOptions; track option.value) {
+              <option [ngValue]="option.value">{{ option.label }}</option>
+              }
+            </select>
           </label>
           <label class="block text-[0.78rem] font-inter-semibold text-muted md:col-span-2">
             <span class="mb-2 block">Bio</span>

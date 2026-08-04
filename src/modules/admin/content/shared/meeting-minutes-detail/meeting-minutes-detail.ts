@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
@@ -35,6 +35,17 @@ export class MeetingMinutesDetail implements OnInit {
   loading = signal(false);
   recordingsLoading = signal(false);
   recordingsError = signal('');
+  showRecordingCheckModal = signal(false);
+  readyRecordingCount = computed(
+    () => this.recordings().filter((recording) => Boolean(this.recordingUrl(recording))).length,
+  );
+  canContinueMinutesCreation = computed(
+    () =>
+      !this.recordingsLoading() &&
+      !this.recordingsError() &&
+      this.recordings().length > 0 &&
+      this.readyRecordingCount() === this.recordings().length,
+  );
 
   // Editing state signals
   isEditing = signal(false);
@@ -200,6 +211,40 @@ export class MeetingMinutesDetail implements OnInit {
 
   isConsultant() {
     return this.hubsme.currentUser()?.role === 'consultor';
+  }
+
+  handleMinutesAction() {
+    const current = this.meeting();
+    if (!current) return;
+
+    if (current.description?.trim()) {
+      this.startEdit();
+      return;
+    }
+
+    this.showRecordingCheckModal.set(true);
+    if (!this.recordingsLoading()) {
+      this.loadRecordings(current.id);
+    }
+  }
+
+  closeRecordingCheckModal() {
+    this.showRecordingCheckModal.set(false);
+  }
+
+  refreshRecordings() {
+    const current = this.meeting();
+    if (!current || this.recordingsLoading()) return;
+
+    this.loadRecordings(current.id);
+  }
+
+  continueMinutesCreation() {
+    if (!this.canContinueMinutesCreation()) return;
+
+    this.showRecordingCheckModal.set(false);
+    this.startEdit();
+    this.generateCopilotSummary();
   }
 
   startEdit() {

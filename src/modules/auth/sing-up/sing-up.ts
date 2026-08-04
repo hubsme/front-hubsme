@@ -74,6 +74,7 @@ export class SingUp implements OnInit, OnDestroy {
   identityLookupLoading = signal(false);
   identityVerified = signal<boolean | null>(null);
   identityLookupError = signal('');
+  identityLookupMismatch = signal(false);
   identityVerification = signal<DniVerificationResult['identity'] | null>(null);
   email = signal('');
   password = signal('');
@@ -232,6 +233,7 @@ export class SingUp implements OnInit, OnDestroy {
 
   verifyConsultantIdentity(): void {
     if (!this.consultantIdentityComplete()) {
+      this.identityLookupMismatch.set(false);
       this.identityLookupError.set('Completa nombres, apellidos, fecha de nacimiento y DNI');
       return;
     }
@@ -240,6 +242,7 @@ export class SingUp implements OnInit, OnDestroy {
     const lookupSequence = ++this.identityLookupSequence;
     this.identityLookupLoading.set(true);
     this.identityLookupError.set('');
+    this.identityLookupMismatch.set(false);
     this.identityLookupTimer = setTimeout(() => {
       this.identityLookupTimer = null;
       this.api.identityVerification
@@ -258,12 +261,14 @@ export class SingUp implements OnInit, OnDestroy {
             this.toastService.success('Identidad validada correctamente');
           } else {
             this.identityVerification.set(null);
-            this.identityLookupError.set('Los datos no coinciden con el registro de identidad');
+            this.identityLookupMismatch.set(true);
+            this.identityLookupError.set('Los datos no coinciden con tu DNI');
           }
         })
         .catch((error: unknown) => {
           if (lookupSequence !== this.identityLookupSequence) return;
           this.identityVerified.set(false);
+          this.identityLookupMismatch.set(false);
           this.identityLookupError.set(this.getErrorMessage(error, 'No se pudo validar tu identidad'));
         })
         .finally(() => {
@@ -542,6 +547,7 @@ export class SingUp implements OnInit, OnDestroy {
     this.identityVerified.set(null);
     this.identityVerification.set(null);
     this.identityLookupError.set('');
+    this.identityLookupMismatch.set(false);
   }
 
   private clearIdentityLookupTimer(): void {

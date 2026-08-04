@@ -1096,6 +1096,81 @@ export interface ConsultantCvProfileResultDto {
   caseStudies: ConsultantCaseStudyDto[];
 }
 
+export interface ServiceRequestChatMessageDto {
+  role: "assistant" | "user";
+  /** @maxLength 2000 */
+  content: string;
+}
+
+export interface ServiceRequestDraftDto {
+  /** @maxLength 160 */
+  title: string;
+  /** @maxLength 5000 */
+  description: string;
+  /** @maxLength 5000 */
+  requirements: string;
+  /** @maxLength 5000 */
+  details: string;
+}
+
+export interface ServiceRequestChatRunDto {
+  /**
+   * @maxItems 40
+   * @minItems 2
+   */
+  messages: ServiceRequestChatMessageDto[];
+  draft?: ServiceRequestDraftDto;
+}
+
+export interface ServiceRequestChatResultDto {
+  /** @maxLength 1500 */
+  message: string;
+  phase: "gathering" | "confirming" | "complete";
+  /** Indica si la PYME ya puede continuar a la revisión de la solicitud */
+  isComplete: boolean;
+  draft: ServiceRequestDraftDto;
+  /** @maxItems 6 */
+  missingInformation: string[];
+}
+
+export interface ServiceConsultantMatchRunDto {
+  draft: ServiceRequestDraftDto;
+}
+
+export interface ServiceConsultantMatchDto {
+  consultantId: number;
+  fullName: string;
+  headline: string | null;
+  photoUrl: string | null;
+  diagnosticAreas: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
+  specialties: string[];
+  services: string[];
+  yearsExperience: number;
+  rating: string;
+  /** @maxLength 400 */
+  reason: string;
+}
+
+export interface ServiceConsultantMatchesResultDto {
+  /**
+   * @maxItems 3
+   * @minItems 3
+   */
+  matches: ServiceConsultantMatchDto[];
+}
+
 export interface ConsultantAvailabilityResultDto {
   id: number;
   /** @format date-time */
@@ -1776,6 +1851,7 @@ export interface CheckoutMeetingDetailsDto {
 export interface MercadoPagoCheckoutDto {
   id: number;
   meetingId: number | null;
+  serviceRequestId: number | null;
   pymeId: number;
   consultantId: number;
   preferenceId: string | null;
@@ -1793,6 +1869,131 @@ export interface MercadoPagoCheckoutDto {
   marketplaceFee: string;
   currency: string;
   meetingDetails?: CheckoutMeetingDetailsDto | null;
+}
+
+export interface MercadoPagoPaymentHistoryItemDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  meetingId: number | null;
+  serviceRequestId: number | null;
+  pymeId: number;
+  consultantId: number;
+  externalReference: string;
+  status:
+    | "created"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "expired";
+  amount: string;
+  marketplaceFee: string;
+  currency: string;
+  meetingDetails?: CheckoutMeetingDetailsDto | null;
+  serviceTitle: string | null;
+  serviceDescription: string | null;
+  mercadoPagoPaymentId: string | null;
+  pymeName: string | null;
+  consultantName: string | null;
+}
+
+export interface MercadoPagoPaymentHistoryResponseDto {
+  data: MercadoPagoPaymentHistoryItemDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface ServiceRequestResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  pymeId: number;
+  consultantId: number;
+  pymeName: string | null;
+  consultantName: string | null;
+  consultantHeadline?: string | null;
+  consultantPhotoUrl?: string | null;
+  title: string;
+  description: string;
+  requirements: string;
+  details?: string | null;
+  status:
+    | "requested"
+    | "proposal_sent"
+    | "consultant_declined"
+    | "payment_pending"
+    | "paid"
+    | "pyme_declined"
+    | "cancelled";
+  proposedPrice?: string | null;
+  currency: string;
+  proposalMessage?: string | null;
+  pymeDecisionMessage?: string | null;
+  /** @format date-time */
+  respondedAt?: string | null;
+  /** @format date-time */
+  decidedAt?: string | null;
+  /** @format date-time */
+  paidAt?: string | null;
+}
+
+export interface ServiceRequestListDto {
+  data: ServiceRequestResultDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface ServiceRequestCreateDto {
+  /**
+   * @maxItems 3
+   * @minItems 1
+   * @example [8,12,19]
+   */
+  consultantIds: number[];
+  /**
+   * @maxLength 160
+   * @example "Capacitación de seguridad para el personal"
+   */
+  title: string;
+  /**
+   * @maxLength 5000
+   * @example "Necesitamos capacitar a 25 colaboradores de operaciones."
+   */
+  description: string;
+  /**
+   * @maxLength 5000
+   * @example "Dos sesiones presenciales, material digital y evaluación final."
+   */
+  requirements: string;
+  /**
+   * @maxLength 5000
+   * @example "Disponibilidad durante la segunda semana del mes."
+   */
+  details?: string;
+}
+
+export interface ServiceRequestProposalDto {
+  /**
+   * @min 1
+   * @example 1850.5
+   */
+  price: number;
+  /**
+   * @maxLength 3000
+   * @example "Incluye materiales y dos jornadas de capacitación."
+   */
+  message?: string;
+}
+
+export interface ServiceRequestDeclineDto {
+  /**
+   * @maxLength 3000
+   * @example "No podremos continuar con esta solicitud."
+   */
+  message?: string;
 }
 
 export interface PublicConsultantListItemDto {
@@ -2465,6 +2666,15 @@ export type IaRunConsultantCvData = ConsultantCvProfileResultDto;
 
 export type IaRunConsultantCvError = HttpErrorDto;
 
+export type IaRunServiceRequestChatData = ServiceRequestChatResultDto;
+
+export type IaRunServiceRequestChatError = HttpErrorDto;
+
+export type IaRunServiceConsultantMatchesData =
+  ServiceConsultantMatchesResultDto;
+
+export type IaRunServiceConsultantMatchesError = HttpErrorDto;
+
 export interface ConsultantAvailabilityFindAllParams {
   /**
    * Page number
@@ -3018,6 +3228,42 @@ export type MercadopagoCreateCheckoutData = MercadoPagoCheckoutDto;
 
 export type MercadopagoCreateCheckoutError = HttpErrorDto;
 
+export interface MercadopagoFindPaymentsParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Maximum of 10 payments per page
+   * @max 10
+   * @default 10
+   */
+  limit?: number;
+  /**
+   * Year used to filter the payment date
+   * @default 2026
+   */
+  year?: number;
+  /**
+   * Month used to filter the payment date
+   * @default 8
+   */
+  month?: number;
+}
+
+export type MercadopagoFindPaymentsData = MercadoPagoPaymentHistoryResponseDto;
+
+export type MercadopagoFindPaymentsError = HttpErrorDto;
+
+export interface MercadopagoFindPaymentParams {
+  id: number;
+}
+
+export type MercadopagoFindPaymentData = MercadoPagoPaymentHistoryItemDto;
+
+export type MercadopagoFindPaymentError = HttpErrorDto;
+
 export interface MercadopagoFindCheckoutParams {
   id: number;
 }
@@ -3033,6 +3279,14 @@ export interface MercadopagoPrepareCheckoutPaymentParams {
 export type MercadopagoPrepareCheckoutPaymentData = MercadoPagoCheckoutDto;
 
 export type MercadopagoPrepareCheckoutPaymentError = HttpErrorDto;
+
+export interface MercadopagoPrepareServicePaymentParams {
+  id: number;
+}
+
+export type MercadopagoPrepareServicePaymentData = MercadoPagoCheckoutDto;
+
+export type MercadopagoPrepareServicePaymentError = HttpErrorDto;
 
 export interface MercadopagoWebhookParams {
   /** @example "payment" */
@@ -3054,6 +3308,60 @@ export interface MercadopagoWebhookParams {
 }
 
 export type MercadopagoWebhookData = any;
+
+export interface ServiceFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  stage?: "requests" | "proposals";
+  status?:
+    | "requested"
+    | "proposal_sent"
+    | "consultant_declined"
+    | "payment_pending"
+    | "paid"
+    | "pyme_declined"
+    | "cancelled";
+  /** Buscar por título, descripción o requerimientos */
+  search?: string;
+}
+
+export type ServiceFindAllData = ServiceRequestListDto;
+
+export interface ServiceFindOneParams {
+  id: number;
+}
+
+export type ServiceFindOneData = ServiceRequestResultDto;
+
+export type ServiceFindOneError = HttpErrorDto;
+
+export type ServiceCreateData = ServiceRequestResultDto[];
+
+export type ServiceCreateError = HttpErrorDto;
+
+export interface ServiceSendProposalParams {
+  id: number;
+}
+
+export type ServiceSendProposalData = ServiceRequestResultDto;
+
+export type ServiceSendProposalError = HttpErrorDto;
+
+export interface ServiceDeclineParams {
+  id: number;
+}
+
+export type ServiceDeclineData = ServiceRequestResultDto;
+
+export type ServiceDeclineError = HttpErrorDto;
 
 export interface PublicconsultantFindAllParams {
   /**
@@ -4267,7 +4575,7 @@ export namespace Ia {
    * No description
    * @tags ia
    * @name IaRunHubsmeAi
-   * @summary Ejecutar flujo de IA con Groq para obtener resumen y tareas sugeridas
+   * @summary Ejecutar flujo de IA con Gemini para obtener resumen y tareas sugeridas
    * @request POST:/admin/ia/hubsme-ai
    * @secure
    * @response `201` `IaRunHubsmeAiData`
@@ -4285,7 +4593,7 @@ export namespace Ia {
    * No description
    * @tags ia
    * @name IaRunConsultantCv
-   * @summary Extraer perfil estructurado de consultor desde texto de CV usando Groq
+   * @summary Extraer perfil estructurado de consultor desde texto de CV usando Gemini
    * @request POST:/admin/ia/consultant-cv
    * @secure
    * @response `201` `IaRunConsultantCvData`
@@ -4297,6 +4605,44 @@ export namespace Ia {
     export type RequestBody = ConsultantCvRunDto;
     export type RequestHeaders = {};
     export type ResponseBody = IaRunConsultantCvData;
+  }
+
+  /**
+   * No description
+   * @tags ia
+   * @name IaRunServiceRequestChat
+   * @summary Continuar el asistente conversacional para definir un servicio
+   * @request POST:/admin/ia/service-request-chat
+   * @secure
+   * @response `201` `IaRunServiceRequestChatData`
+   * @response `400` `HttpErrorDto`
+   * @response `403` `HttpErrorDto`
+   */
+  export namespace IaRunServiceRequestChat {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ServiceRequestChatRunDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = IaRunServiceRequestChatData;
+  }
+
+  /**
+   * No description
+   * @tags ia
+   * @name IaRunServiceConsultantMatches
+   * @summary Recomendar exactamente 3 consultores para una solicitud de servicio
+   * @request POST:/admin/ia/service-consultant-matches
+   * @secure
+   * @response `201` `IaRunServiceConsultantMatchesData`
+   * @response `400` `HttpErrorDto`
+   * @response `403` `HttpErrorDto`
+   */
+  export namespace IaRunServiceConsultantMatches {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ServiceConsultantMatchRunDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = IaRunServiceConsultantMatchesData;
   }
 }
 
@@ -5545,6 +5891,66 @@ export namespace MercadoPago {
   /**
    * No description
    * @tags mercadoPago
+   * @name MercadopagoFindPayments
+   * @summary List Mercado Pago payments for the authenticated user
+   * @request GET:/admin/mercado-pago/payments
+   * @secure
+   * @response `200` `MercadopagoFindPaymentsData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MercadopagoFindPayments {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Maximum of 10 payments per page
+       * @max 10
+       * @default 10
+       */
+      limit?: number;
+      /**
+       * Year used to filter the payment date
+       * @default 2026
+       */
+      year?: number;
+      /**
+       * Month used to filter the payment date
+       * @default 8
+       */
+      month?: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MercadopagoFindPaymentsData;
+  }
+
+  /**
+   * No description
+   * @tags mercadoPago
+   * @name MercadopagoFindPayment
+   * @summary Get a Mercado Pago payment detail for the authenticated user
+   * @request GET:/admin/mercado-pago/payments/{id}
+   * @secure
+   * @response `200` `MercadopagoFindPaymentData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MercadopagoFindPayment {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MercadopagoFindPaymentData;
+  }
+
+  /**
+   * No description
+   * @tags mercadoPago
    * @name MercadopagoFindCheckout
    * @summary Get a Mercado Pago checkout by ID
    * @request GET:/admin/mercado-pago/checkout/{id}
@@ -5585,6 +5991,26 @@ export namespace MercadoPago {
   /**
    * No description
    * @tags mercadoPago
+   * @name MercadopagoPrepareServicePayment
+   * @summary Create the Mercado Pago preference for an accepted service proposal
+   * @request POST:/admin/mercado-pago/service/{id}/payment
+   * @secure
+   * @response `200` `MercadopagoPrepareServicePaymentData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MercadopagoPrepareServicePayment {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MercadopagoPrepareServicePaymentData;
+  }
+
+  /**
+   * No description
+   * @tags mercadoPago
    * @name MercadopagoWebhook
    * @summary Mercado Pago payment webhook
    * @request POST:/admin/mercado-pago/webhook
@@ -5613,6 +6039,125 @@ export namespace MercadoPago {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = MercadopagoWebhookData;
+  }
+}
+
+export namespace Service {
+  /**
+   * No description
+   * @tags service
+   * @name ServiceFindAll
+   * @summary List service requests or proposals for the authenticated participant
+   * @request GET:/admin/service/find-all
+   * @secure
+   * @response `200` `ServiceFindAllData`
+   */
+  export namespace ServiceFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      stage?: "requests" | "proposals";
+      status?:
+        | "requested"
+        | "proposal_sent"
+        | "consultant_declined"
+        | "payment_pending"
+        | "paid"
+        | "pyme_declined"
+        | "cancelled";
+      /** Buscar por título, descripción o requerimientos */
+      search?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags service
+   * @name ServiceFindOne
+   * @summary Get a service request for the authenticated participant
+   * @request GET:/admin/service/find-one/{id}
+   * @secure
+   * @response `200` `ServiceFindOneData`
+   * @response `404` `HttpErrorDto`
+   */
+  export namespace ServiceFindOne {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceFindOneData;
+  }
+
+  /**
+   * No description
+   * @tags service
+   * @name ServiceCreate
+   * @summary Create and send a service request to one to three consultants as a PYME
+   * @request POST:/admin/service/create
+   * @secure
+   * @response `201` `ServiceCreateData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ServiceCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ServiceRequestCreateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceCreateData;
+  }
+
+  /**
+   * No description
+   * @tags service
+   * @name ServiceSendProposal
+   * @summary Send a priced proposal as the assigned consultant
+   * @request POST:/admin/service/proposal/{id}
+   * @secure
+   * @response `201` `ServiceSendProposalData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ServiceSendProposal {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = ServiceRequestProposalDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceSendProposalData;
+  }
+
+  /**
+   * No description
+   * @tags service
+   * @name ServiceDecline
+   * @summary Decline a service request or its priced proposal
+   * @request POST:/admin/service/decline/{id}
+   * @secure
+   * @response `201` `ServiceDeclineData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ServiceDecline {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = ServiceRequestDeclineDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceDeclineData;
   }
 }
 
@@ -7340,7 +7885,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags ia
      * @name IaRunHubsmeAi
-     * @summary Ejecutar flujo de IA con Groq para obtener resumen y tareas sugeridas
+     * @summary Ejecutar flujo de IA con Gemini para obtener resumen y tareas sugeridas
      * @request POST:/admin/ia/hubsme-ai
      * @secure
      * @response `201` `IaRunHubsmeAiData`
@@ -7362,7 +7907,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags ia
      * @name IaRunConsultantCv
-     * @summary Extraer perfil estructurado de consultor desde texto de CV usando Groq
+     * @summary Extraer perfil estructurado de consultor desde texto de CV usando Gemini
      * @request POST:/admin/ia/consultant-cv
      * @secure
      * @response `201` `IaRunConsultantCvData`
@@ -7371,6 +7916,64 @@ export class Api<SecurityDataType extends unknown> {
     runConsultantCv: (data: ConsultantCvRunDto, params: RequestParams = {}) =>
       this.http.request<IaRunConsultantCvData, IaRunConsultantCvError>({
         path: `/admin/ia/consultant-cv`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags ia
+     * @name IaRunServiceRequestChat
+     * @summary Continuar el asistente conversacional para definir un servicio
+     * @request POST:/admin/ia/service-request-chat
+     * @secure
+     * @response `201` `IaRunServiceRequestChatData`
+     * @response `400` `HttpErrorDto`
+     * @response `403` `HttpErrorDto`
+     */
+    runServiceRequestChat: (
+      data: ServiceRequestChatRunDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        IaRunServiceRequestChatData,
+        IaRunServiceRequestChatError
+      >({
+        path: `/admin/ia/service-request-chat`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags ia
+     * @name IaRunServiceConsultantMatches
+     * @summary Recomendar exactamente 3 consultores para una solicitud de servicio
+     * @request POST:/admin/ia/service-consultant-matches
+     * @secure
+     * @response `201` `IaRunServiceConsultantMatchesData`
+     * @response `400` `HttpErrorDto`
+     * @response `403` `HttpErrorDto`
+     */
+    runServiceConsultantMatches: (
+      data: ServiceConsultantMatchRunDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        IaRunServiceConsultantMatchesData,
+        IaRunServiceConsultantMatchesError
+      >({
+        path: `/admin/ia/service-consultant-matches`,
         method: "POST",
         body: data,
         secure: true,
@@ -8757,6 +9360,59 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags mercadoPago
+     * @name MercadopagoFindPayments
+     * @summary List Mercado Pago payments for the authenticated user
+     * @request GET:/admin/mercado-pago/payments
+     * @secure
+     * @response `200` `MercadopagoFindPaymentsData`
+     * @response `400` `HttpErrorDto`
+     */
+    mercadopagoFindPayments: (
+      query: MercadopagoFindPaymentsParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MercadopagoFindPaymentsData,
+        MercadopagoFindPaymentsError
+      >({
+        path: `/admin/mercado-pago/payments`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags mercadoPago
+     * @name MercadopagoFindPayment
+     * @summary Get a Mercado Pago payment detail for the authenticated user
+     * @request GET:/admin/mercado-pago/payments/{id}
+     * @secure
+     * @response `200` `MercadopagoFindPaymentData`
+     * @response `400` `HttpErrorDto`
+     */
+    mercadopagoFindPayment: (
+      { id }: MercadopagoFindPaymentParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MercadopagoFindPaymentData,
+        MercadopagoFindPaymentError
+      >({
+        path: `/admin/mercado-pago/payments/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags mercadoPago
      * @name MercadopagoFindCheckout
      * @summary Get a Mercado Pago checkout by ID
      * @request GET:/admin/mercado-pago/checkout/{id}
@@ -8809,6 +9465,32 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags mercadoPago
+     * @name MercadopagoPrepareServicePayment
+     * @summary Create the Mercado Pago preference for an accepted service proposal
+     * @request POST:/admin/mercado-pago/service/{id}/payment
+     * @secure
+     * @response `200` `MercadopagoPrepareServicePaymentData`
+     * @response `400` `HttpErrorDto`
+     */
+    mercadopagoPrepareServicePayment: (
+      { id }: MercadopagoPrepareServicePaymentParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MercadopagoPrepareServicePaymentData,
+        MercadopagoPrepareServicePaymentError
+      >({
+        path: `/admin/mercado-pago/service/${id}/payment`,
+        method: "POST",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags mercadoPago
      * @name MercadopagoWebhook
      * @summary Mercado Pago payment webhook
      * @request POST:/admin/mercado-pago/webhook
@@ -8822,6 +9504,130 @@ export class Api<SecurityDataType extends unknown> {
         path: `/admin/mercado-pago/webhook`,
         method: "POST",
         query: query,
+        ...params,
+      }),
+  };
+  service = {
+    /**
+     * No description
+     *
+     * @tags service
+     * @name ServiceFindAll
+     * @summary List service requests or proposals for the authenticated participant
+     * @request GET:/admin/service/find-all
+     * @secure
+     * @response `200` `ServiceFindAllData`
+     */
+    findAll: (
+      query: ServiceFindAllParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ServiceFindAllData, any>({
+        path: `/admin/service/find-all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags service
+     * @name ServiceFindOne
+     * @summary Get a service request for the authenticated participant
+     * @request GET:/admin/service/find-one/{id}
+     * @secure
+     * @response `200` `ServiceFindOneData`
+     * @response `404` `HttpErrorDto`
+     */
+    findOne: (
+      { id }: ServiceFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ServiceFindOneData, ServiceFindOneError>({
+        path: `/admin/service/find-one/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags service
+     * @name ServiceCreate
+     * @summary Create and send a service request to one to three consultants as a PYME
+     * @request POST:/admin/service/create
+     * @secure
+     * @response `201` `ServiceCreateData`
+     * @response `400` `HttpErrorDto`
+     */
+    create: (
+      data: ServiceRequestCreateDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ServiceCreateData, ServiceCreateError>({
+        path: `/admin/service/create`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags service
+     * @name ServiceSendProposal
+     * @summary Send a priced proposal as the assigned consultant
+     * @request POST:/admin/service/proposal/{id}
+     * @secure
+     * @response `201` `ServiceSendProposalData`
+     * @response `400` `HttpErrorDto`
+     */
+    sendProposal: (
+      { id }: ServiceSendProposalParams,
+      data: ServiceRequestProposalDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ServiceSendProposalData, ServiceSendProposalError>({
+        path: `/admin/service/proposal/${id}`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags service
+     * @name ServiceDecline
+     * @summary Decline a service request or its priced proposal
+     * @request POST:/admin/service/decline/{id}
+     * @secure
+     * @response `201` `ServiceDeclineData`
+     * @response `400` `HttpErrorDto`
+     */
+    decline: (
+      { id }: ServiceDeclineParams,
+      data: ServiceRequestDeclineDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ServiceDeclineData, ServiceDeclineError>({
+        path: `/admin/service/decline/${id}`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
   };
@@ -9181,6 +9987,7 @@ export class Api<SecurityDataType extends unknown> {
       }),
   };
 }
+
 /**
  * ==============================================================================
  *  UTILITARIOS DE TIPOS PARA FRONTEND

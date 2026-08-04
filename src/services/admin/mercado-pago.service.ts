@@ -35,11 +35,29 @@ export class MercadoPagoService {
     return this.api.mercadoPago.mercadopagoFindCheckout({ id }).then((response) => response.data);
   }
 
+  findPayments(
+    query: ApiQuery<'mercadoPago', 'mercadopagoFindPayments'>,
+  ): Promise<ApiResponse<'mercadoPago', 'mercadopagoFindPayments'>> {
+    return this.api.mercadoPago.mercadopagoFindPayments(query).then((response) => response.data);
+  }
+
+  findPayment(id: number): Promise<ApiResponse<'mercadoPago', 'mercadopagoFindPayment'>> {
+    return this.api.mercadoPago.mercadopagoFindPayment({ id }).then((response) => response.data);
+  }
+
   prepareCheckoutPayment(
     id: number,
   ): Promise<ApiResponse<'mercadoPago', 'mercadopagoPrepareCheckoutPayment'>> {
     return this.api.mercadoPago
       .mercadopagoPrepareCheckoutPayment({ id })
+      .then((response) => response.data);
+  }
+
+  prepareServicePayment(
+    id: number,
+  ): Promise<ApiResponse<'mercadoPago', 'mercadopagoPrepareServicePayment'>> {
+    return this.api.mercadoPago
+      .mercadopagoPrepareServicePayment({ id })
       .then((response) => response.data);
   }
 }

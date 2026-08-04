@@ -571,9 +571,28 @@
                 </div>
 
                 @if (identityLookupError()) {
-                  <p class="rounded-xl border border-danger/10 bg-danger/[0.03] px-3.5 py-2.5 text-xs font-inter-semibold text-danger">
-                    {{ identityLookupError() }}
-                  </p>
+                  <div
+                    class="flex items-start gap-3 rounded-2xl border border-danger/15 bg-danger/[0.04] px-4 py-3.5 text-danger"
+                    role="alert"
+                  >
+                    <i class="fas fa-circle-exclamation mt-0.5 shrink-0 text-sm"></i>
+                    <div class="min-w-0 text-xs leading-relaxed">
+                      @if (identityLookupMismatch()) {
+                        <p class="font-inter-bold text-sm">
+                          Los datos colocados deben ser exactos a los de tu DNI para continuar.
+                        </p>
+                        <p class="mt-2 font-inter-semibold">Verifica lo siguiente:</p>
+                        <ul class="mt-1.5 list-disc space-y-1 pl-4 font-inter-regular">
+                          <li>Coloca todos tus nombres tal como aparecen en el DNI, aunque tengas dos o tres.</li>
+                          <li>Escribe tus apellidos completos, sin abreviaciones ni apodos.</li>
+                          <li>Confirma que tu fecha de nacimiento sea la correcta.</li>
+                          <li>Revisa que el número de DNI tenga 8 dígitos y sea el tuyo.</li>
+                        </ul>
+                      } @else {
+                        <p class="font-inter-semibold">{{ identityLookupError() }}</p>
+                      }
+                    </div>
+                  </div>
                 }
               </div>
             } @else {
@@ -583,7 +602,10 @@
 
                 <!-- CV Upload Container -->
                 <div class="space-y-2">
-                  <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Currículum Vitae (PDF)</label>
+                  <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">
+                    Currículum Vitae (Campo obligatorio
+                    <span class="text-danger" aria-hidden="true">*</span>)
+                  </label>
 
                   @if (cvProcessing()) {
                     <div class="flex min-h-[170px] flex-col items-center justify-center rounded-2xl border border-dashed border-secondary/40 bg-secondary/[0.02] p-6 text-center transition-all duration-300">

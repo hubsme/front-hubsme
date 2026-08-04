@@ -34,8 +34,7 @@ export const routes: Routes = [
   },
   {
     path: getPath(PATH.dataDeletion),
-    loadComponent: () =>
-      import('@module/data-deletion/data-deletion').then((m) => m.DataDeletion),
+    loadComponent: () => import('@module/data-deletion/data-deletion').then((m) => m.DataDeletion),
   },
   {
     path: `${getPath(PATH.meetingAccess)}/:id`,
@@ -168,6 +167,11 @@ export const routes: Routes = [
               import('@module/admin/content/pyme/meetings/meetings').then((m) => m.Meetings),
           },
           {
+            path: getPath(PATH.admin.pyme.services),
+            loadComponent: () =>
+              import('@module/admin/content/pyme/services/services').then((m) => m.PymeServices),
+          },
+          {
             path: `${getPath(PATH.admin.pyme.meetings)}/:id`,
             loadComponent: () =>
               import('@module/admin/content/shared/meeting-detail/meeting-detail').then(
@@ -197,6 +201,13 @@ export const routes: Routes = [
             path: getPath(PATH.admin.pyme.documents),
             loadComponent: () =>
               import('@module/admin/content/pyme/documents/documents').then((m) => m.Documents),
+          },
+          {
+            path: getPath(PATH.admin.pyme.payments),
+            loadComponent: () =>
+              import('@module/admin/content/pyme/payments/payment-history').then(
+                (m) => m.PaymentHistory,
+              ),
           },
           {
             path: getPath(PATH.admin.pyme.support),
@@ -232,6 +243,13 @@ export const routes: Routes = [
             path: getPath(PATH.admin.consultor.meetings),
             loadComponent: () =>
               import('@module/admin/content/consultor/meetings/meetings').then((m) => m.Meetings),
+          },
+          {
+            path: getPath(PATH.admin.consultor.services),
+            loadComponent: () =>
+              import('@module/admin/content/consultor/services/services').then(
+                (m) => m.ConsultantServices,
+              ),
           },
           {
             path: `${getPath(PATH.admin.consultor.meetings)}/:id`,
@@ -272,6 +290,11 @@ export const routes: Routes = [
               import('@module/admin/content/consultor/subscription/subscription').then(
                 (m) => m.Subscription,
               ),
+          },
+          {
+            path: getPath(PATH.admin.consultor.income),
+            loadComponent: () =>
+              import('@module/admin/content/consultor/incomes/incomes').then((m) => m.Incomes),
           },
           {
             path: getPath(PATH.admin.consultor.support),

@@ -4,7 +4,7 @@
       Historial de pagos
     </h1>
     <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-      Consulta tus pagos realizados y revisa el detalle de cada operación.
+      Consulta tus pagos y canjes con cupón, y revisa el detalle de cada operación.
     </p>
   </header>
 
@@ -19,8 +19,8 @@
           <i class="fas fa-receipt"></i>
         </span>
         <div>
-          <h2 class="font-inter-bold text-lg">Pagos realizados</h2>
-          <p class="text-xs text-muted">Máximo 10 operaciones por página.</p>
+          <h2 class="font-inter-bold text-lg">Operaciones registradas</h2>
+          <p class="text-xs text-muted">Pagos y cupones, máximo 10 por página.</p>
         </div>
       </div>
 
@@ -43,15 +43,16 @@
       aria-label="Cargando pagos"
     >
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[860px] table-fixed">
+        <table class="w-full min-w-[1080px] table-fixed">
           <thead class="border-b border-border bg-surface">
             <tr>
-              <th class="w-[31%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Operación</th>
-              <th class="w-[18%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Consultor</th>
-              <th class="w-[15%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha</th>
-              <th class="w-[14%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Estado</th>
-              <th class="w-[13%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted">Importe</th>
-              <th class="w-[9%] px-5 py-3.5"><span class="sr-only">Acciones</span></th>
+              <th class="w-[24%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Operación</th>
+              <th class="w-[15%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Consultor</th>
+              <th class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha</th>
+              <th class="w-[11%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Estado</th>
+              <th class="w-[18%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Medio</th>
+              <th class="w-[12%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted">Importe</th>
+              <th class="w-[7%] px-5 py-3.5"><span class="sr-only">Acciones</span></th>
             </tr>
           </thead>
           <tbody class="divide-y divide-border">
@@ -60,6 +61,7 @@
                 <td class="px-5 py-4"><div class="h-10 w-4/5 rounded-xl bg-text/10"></div></td>
                 <td class="px-5 py-4"><div class="h-4 w-3/4 rounded-full bg-text/10"></div></td>
                 <td class="px-5 py-4"><div class="h-4 w-2/3 rounded-full bg-text/10"></div></td>
+                <td class="px-5 py-4"><div class="h-6 w-20 rounded-full bg-text/10"></div></td>
                 <td class="px-5 py-4"><div class="h-6 w-20 rounded-full bg-text/10"></div></td>
                 <td class="px-5 py-4"><div class="ml-auto h-5 w-24 rounded-full bg-text/10"></div></td>
                 <td class="px-5 py-4"><div class="ml-auto size-9 rounded-xl bg-text/10"></div></td>
@@ -73,13 +75,13 @@
     <section>
       <div class="mb-4 flex items-center justify-between gap-3">
         <p class="text-sm text-muted">
-          Pagos de <span class="font-inter-semibold text-text">{{ periodLabel() }}</span>
+          Operaciones de <span class="font-inter-semibold text-text">{{ periodLabel() }}</span>
         </p>
         @if (meta(); as paymentMeta) {
           <span
             class="rounded-full bg-secondary/10 px-3 py-1 text-xs font-inter-bold text-secondary"
           >
-            {{ paymentMeta.total }} pagos
+            {{ paymentMeta.total }} operaciones
           </span>
         }
       </div>
@@ -88,15 +90,16 @@
         class="overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_12px_30px_rgba(15,23,42,0.04)]"
       >
         <div class="overflow-x-auto">
-          <table class="w-full min-w-[860px] table-fixed">
+          <table class="w-full min-w-[1080px] table-fixed">
             <thead class="border-b border-border bg-surface">
               <tr>
-                <th scope="col" class="w-[31%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Operación</th>
-                <th scope="col" class="w-[18%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Consultor</th>
-                <th scope="col" class="w-[15%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha</th>
-                <th scope="col" class="w-[14%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Estado</th>
-                <th scope="col" class="w-[13%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted">Importe</th>
-                <th scope="col" class="w-[9%] px-5 py-3.5"><span class="sr-only">Acciones</span></th>
+                <th scope="col" class="w-[24%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Operación</th>
+                <th scope="col" class="w-[15%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Consultor</th>
+                <th scope="col" class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha</th>
+                <th scope="col" class="w-[11%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Estado</th>
+                <th scope="col" class="w-[18%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Medio</th>
+                <th scope="col" class="w-[12%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted">Importe</th>
+                <th scope="col" class="w-[7%] px-5 py-3.5"><span class="sr-only">Acciones</span></th>
               </tr>
             </thead>
             <tbody class="divide-y divide-border">
@@ -104,8 +107,13 @@
                 <tr class="group transition-colors hover:bg-secondary/5">
                   <td class="px-5 py-4 align-middle">
                     <div class="flex min-w-0 items-center gap-3">
-                      <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary">
-                        <i class="fas fa-credit-card"></i>
+                      <span
+                        class="grid size-10 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary"
+                      >
+                        <i
+                          class="fas"
+                          [ngClass]="payment.serviceRequestId ? 'fa-briefcase' : 'fa-video'"
+                        ></i>
                       </span>
                       <div class="min-w-0">
                         <p class="truncate text-sm font-inter-bold text-text">
@@ -132,10 +140,28 @@
                       {{ paymentStatusLabel(payment.status) }}
                     </span>
                   </td>
+                  <td class="px-5 py-4 align-middle">
+                    @if (payment.paymentMethod === 'promotion_code') {
+                      <span class="inline-flex items-center gap-1.5 rounded-full bg-warning/15 px-2.5 py-1 text-[0.68rem] font-inter-bold uppercase tracking-wide text-warning">
+                        <i class="fas fa-ticket"></i>
+                        Cupón
+                      </span>
+                    } @else {
+                      <span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-secondary/10 px-2.5 py-1 text-[0.68rem] font-inter-bold text-secondary">
+                        <i class="fas" [ngClass]="paymentMethodIcon(payment)"></i>
+                        {{ paymentMethodLabel(payment) }}
+                      </span>
+                    }
+                  </td>
                   <td class="px-5 py-4 text-right align-middle">
-                    <p class="whitespace-nowrap text-sm font-inter-bold text-secondary">
-                      {{ payment.currency }} {{ payment.amount }}
-                    </p>
+                    @if (payment.paymentMethod === 'promotion_code') {
+                      <p class="whitespace-nowrap text-sm font-inter-bold text-warning">Sin pago</p>
+                      <p class="mt-1 whitespace-nowrap text-xs text-muted">Valor {{ payment.currency }} {{ payment.amount }}</p>
+                    } @else {
+                      <p class="whitespace-nowrap text-sm font-inter-bold text-secondary">
+                        {{ payment.currency }} {{ payment.amount }}
+                      </p>
+                    }
                   </td>
                   <td class="px-5 py-4 text-right align-middle">
                     <button
@@ -174,7 +200,7 @@
       >
         <i class="fas fa-receipt"></i>
       </span>
-      <h2 class="mt-5 font-plus-jakarta-sans text-xl font-bold">No hay pagos en este periodo</h2>
+      <h2 class="mt-5 font-plus-jakarta-sans text-xl font-bold">No hay operaciones en este periodo</h2>
       <p class="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
         Prueba con otro año o mes para consultar más operaciones.
       </p>
@@ -185,7 +211,7 @@
 @if (showDetail()) {
   @if (selectedPayment(); as payment) {
     <app-modal-form
-      title="Detalle del pago"
+      [title]="payment.paymentMethod === 'promotion_code' ? 'Detalle del cupón' : 'Detalle del pago'"
       maxWidth="lg"
       [showFooter]="false"
       (onClose)="closeDetail()"
@@ -196,22 +222,31 @@
         >
           <div class="flex items-center gap-3">
             <span
-              class="grid size-12 place-items-center rounded-2xl bg-secondary text-fixed-background-50"
+              class="grid size-12 place-items-center rounded-2xl text-fixed-background-50"
+              [ngClass]="payment.paymentMethod === 'promotion_code' ? 'bg-warning' : 'bg-secondary'"
             >
-              <i class="fas fa-check"></i>
+              <i class="fas" [class.fa-ticket]="payment.paymentMethod === 'promotion_code'" [class.fa-check]="payment.paymentMethod === 'payment'"></i>
             </span>
             <div>
               <p class="text-xs font-inter-bold uppercase tracking-[0.14em] text-muted">
-                Estado del pago
+                {{ payment.paymentMethod === 'promotion_code' ? 'Tipo de operación' : 'Estado del pago' }}
               </p>
-              <p class="mt-1 text-lg font-inter-bold">{{ paymentStatusLabel(payment.status) }}</p>
+              <p class="mt-1 text-lg font-inter-bold">
+                {{ payment.paymentMethod === 'promotion_code' ? 'Canje con cupón' : paymentStatusLabel(payment.status) }}
+              </p>
             </div>
           </div>
           <div class="sm:text-right">
-            <p class="text-xs text-muted">Importe total</p>
-            <p class="mt-1 text-2xl font-inter-bold text-secondary">
-              {{ payment.currency }} {{ payment.amount }}
-            </p>
+            @if (payment.paymentMethod === 'promotion_code') {
+              <p class="text-xs text-muted">Importe pagado</p>
+              <p class="mt-1 text-2xl font-inter-bold text-warning">{{ payment.currency }} 0.00</p>
+              <p class="mt-1 text-xs text-muted">Valor cubierto: {{ payment.currency }} {{ payment.amount }}</p>
+            } @else {
+              <p class="text-xs text-muted">Importe total</p>
+              <p class="mt-1 text-2xl font-inter-bold text-secondary">
+                {{ payment.currency }} {{ payment.amount }}
+              </p>
+            }
           </div>
         </div>
 
@@ -244,14 +279,25 @@
                 {{ payment.consultantName || 'Consultor #' + payment.consultantId }}
               </p>
             </div>
+            @if (payment.paymentMethod === 'payment') {
+              <div class="rounded-2xl border border-border bg-background-50 p-4">
+                <p class="text-xs text-muted">Método de pago</p>
+                <p class="mt-1 flex items-center gap-2 font-inter-semibold">
+                  <i class="fas text-secondary" [ngClass]="paymentMethodIcon(payment)"></i>
+                  {{ paymentMethodLabel(payment) }}
+                </p>
+              </div>
+            }
             <div class="rounded-2xl border border-border bg-background-50 p-4">
               <p class="text-xs text-muted">Referencia</p>
               <p class="mt-1 break-all font-inter-semibold">{{ payment.externalReference }}</p>
             </div>
             <div class="rounded-2xl border border-border bg-background-50 p-4">
-              <p class="text-xs text-muted">Código de operación</p>
+              <p class="text-xs text-muted">
+                {{ payment.paymentMethod === 'promotion_code' ? 'Cupón aplicado' : 'Código de operación' }}
+              </p>
               <p class="mt-1 break-all font-inter-semibold">
-                {{ payment.mercadoPagoPaymentId || 'Pendiente de confirmación' }}
+                {{ payment.paymentMethod === 'promotion_code' ? payment.promotionCode || 'Cupón promocional' : payment.mercadoPagoPaymentId || 'Pendiente de confirmación' }}
               </p>
             </div>
           </div>

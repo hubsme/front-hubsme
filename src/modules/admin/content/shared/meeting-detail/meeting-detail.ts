@@ -39,6 +39,8 @@ export class MeetingDetail implements OnInit {
   showCancellationModal = signal(false);
   cancellationReason = signal('');
   cancelling = signal(false);
+  selectedProposedStartTime = signal<string | null>(null);
+  confirmingProposedTime = signal(false);
 
   currentUserName = computed(() => {
     try {
@@ -71,6 +73,17 @@ export class MeetingDetail implements OnInit {
   canJoin = computed(() => {
     const meeting = this.meeting();
     return Boolean(meeting && meeting.status === 'confirmada' && meeting.hasMeetingLink);
+  });
+
+  canConfirmProposedTime = computed(() => {
+    const meeting = this.meeting();
+    if (!meeting || meeting.status !== 'por_confirmar') return false;
+
+    try {
+      return this.hubsme.currentUser().role === 'consultor';
+    } catch {
+      return false;
+    }
   });
 
   canCancelPaidMeeting() {
@@ -146,6 +159,32 @@ export class MeetingDetail implements OnInit {
       .finally(() => this.updatingStatus.set(false));
   }
 
+  selectProposedStartTime(startTime: string) {
+    if (!this.canConfirmProposedTime() || this.confirmingProposedTime()) return;
+    this.selectedProposedStartTime.set(startTime);
+  }
+
+  confirmProposedStartTime() {
+    const meeting = this.meeting();
+    const selectedStartTime = this.selectedProposedStartTime();
+    if (!meeting || !this.canConfirmProposedTime()) return;
+    if (!selectedStartTime) {
+      this.toastService.warning('Selecciona uno de los horarios propuestos');
+      return;
+    }
+
+    this.confirmingProposedTime.set(true);
+    this.meetingService
+      .confirmOption(meeting.id, { selectedStartTime })
+      .then((updatedMeeting) => {
+        this.meeting.set(updatedMeeting);
+        this.selectedProposedStartTime.set(null);
+        this.toastService.success('Horario confirmado y reunión creada correctamente');
+      })
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.confirmingProposedTime.set(false));
+  }
+
   openPaidCancellation() {
     if (!this.canCancelPaidMeeting()) return;
     this.cancellationReason.set('');
@@ -198,7 +237,8 @@ export class MeetingDetail implements OnInit {
   }
 
   meetingDisplayStart(meeting: Meeting) {
-    return new Date(meeting.startTime ?? meeting.proposedStartTimes?.[0] ?? meeting.createdAt);
+    const selectedOption = meeting.status === 'por_confirmar' ? this.selectedProposedStartTime() : null;
+    return new Date(meeting.startTime ?? selectedOption ?? meeting.proposedStartTimes?.[0] ?? meeting.createdAt);
   }
 
   proposedTimes(meeting: Meeting) {

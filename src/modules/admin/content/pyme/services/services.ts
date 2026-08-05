@@ -40,7 +40,7 @@ type ConsultantSelection = {
 };
 
 const INITIAL_ASSISTANT_MESSAGE =
-  '¡Hola! Cuéntame qué trabajo o servicio necesita tu empresa. Puede ser algo como llevar la contabilidad, capacitar a tu equipo o implementar un proceso.';
+  '¡Hola! Cuéntame qué trabajo o servicio necesita tu empresa. Puede ser algo como llevar la contabilidad, capacitar a tu equipo o implementar un proceso o servicio.';
 
 @Component({
   selector: 'app-pyme-services',

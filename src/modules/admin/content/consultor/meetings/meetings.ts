@@ -54,7 +54,9 @@ type SlotForm = {
 };
 
 type SaveAvailabilityMode = 'week' | 'month';
-type SlotEventMeta = { type: 'google-calendar'; id: string } | { type: 'meeting'; meetingId: number };
+type SlotEventMeta =
+  | { type: 'google-calendar'; id: string }
+  | { type: 'meeting'; meetingId: number; isProposedOption: boolean };
 type GoogleCalendarMessage = { type: 'hubsme:google-calendar'; connected?: boolean; googleEmail?: string; error?: string };
 type MonthDaySelection = {
   date: Date;
@@ -163,14 +165,7 @@ export class Meetings implements OnInit, OnDestroy {
     })),
     ...this.meetings()
       .filter((meeting) => meeting.status !== 'cancelada')
-      .map((meeting) => ({
-        id: meeting.id,
-        start: this.meetingDisplayStart(meeting),
-        end: this.meetingEnd(meeting),
-        title: `${this.calendarEventTime(this.meetingDisplayStart(meeting))} · ${this.pymeDisplayName(meeting)}`,
-        color: this.meetingColor(meeting),
-        meta: { type: 'meeting' as const, meetingId: meeting.id },
-      })),
+      .flatMap((meeting) => this.meetingCalendarEvents(meeting)),
   ]);
 
   ngOnInit(): void {
@@ -311,6 +306,10 @@ export class Meetings implements OnInit, OnDestroy {
   openExpandedMonthEvent(event: CalendarEvent<SlotEventMeta>) {
     this.closeMonthDay();
     this.openEventDetail(event);
+  }
+
+  isProposedMeetingEvent(event: CalendarEvent<SlotEventMeta>) {
+    return event.meta?.type === 'meeting' && event.meta.isProposedOption;
   }
 
   monthDayLabel(date: Date) {
@@ -747,8 +746,8 @@ export class Meetings implements OnInit, OnDestroy {
     return meeting.status === 'confirmada' && !meeting.description;
   }
 
-  meetingEnd(meeting: Meeting) {
-    const end = this.meetingDisplayStart(meeting);
+  meetingEnd(meeting: Meeting, start = this.meetingDisplayStart(meeting)) {
+    const end = new Date(start);
     end.setMinutes(end.getMinutes() + meeting.durationMinutes);
     return end;
   }
@@ -791,6 +790,26 @@ export class Meetings implements OnInit, OnDestroy {
     return (meeting.proposedStartTimes?.length ? meeting.proposedStartTimes : [meeting.startTime]).filter(
       (value): value is string => Boolean(value),
     );
+  }
+
+  private meetingCalendarEvents(meeting: Meeting): CalendarEvent<SlotEventMeta>[] {
+    const proposedStarts = meeting.status === 'por_confirmar'
+      ? this.proposedTimes(meeting)
+          .map((value) => new Date(value))
+          .filter((value) => !Number.isNaN(value.getTime()))
+      : [];
+    const isProposedOption = proposedStarts.length > 0;
+    const starts = isProposedOption ? proposedStarts : [this.meetingDisplayStart(meeting)];
+
+    return starts.map((start, index) => ({
+      id: isProposedOption ? `${meeting.id}-proposed-${index}` : meeting.id,
+      start,
+      end: this.meetingEnd(meeting, start),
+      title: `${this.calendarEventTime(start)} · ${this.pymeDisplayName(meeting)}`,
+      color: this.meetingColor(meeting),
+      cssClass: isProposedOption ? '!border-2 !border-dashed !border-warning' : undefined,
+      meta: { type: 'meeting', meetingId: meeting.id, isProposedOption },
+    }));
   }
 
   trackBySlot(index: number, slot: DraftSlot) {

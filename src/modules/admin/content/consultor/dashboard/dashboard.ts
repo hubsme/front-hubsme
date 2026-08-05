@@ -1,5 +1,6 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import {
   ApexAxisChartSeries,
   ApexChart,
@@ -23,8 +24,10 @@ import { HubsmeService } from '@service/hubsme.service';
 import { SessionService } from '@service/session.service';
 import { ToastService } from '@service/toast.service';
 import { ThemeService } from '@service/theme.service';
+import { PATH, buildPath } from '@route/path.route';
 
 type DashboardSummary = ApiResponse<'dashboard', 'summary'>;
+type UpcomingMeeting = DashboardSummary['upcomingMeetings'][number];
 type DashboardRole = 'admin' | 'pyme' | 'consultor';
 type KpiCardAction = 'upcomingMeetings';
 
@@ -91,18 +94,21 @@ type DonutChartOptions = {
 
 @Component({
   selector: 'app-dashboard',
-  imports: [CommonModule, NgApexchartsModule],
+  imports: [CommonModule, NgApexchartsModule, RouterLink],
   templateUrl: './dashboard.html',
 })
-export class Dashboard implements OnInit {
+export class Dashboard implements OnInit, OnDestroy {
   private hubsme = inject(HubsmeService);
   private sessionService = inject(SessionService);
   private toastService = inject(ToastService);
   private themeService = inject(ThemeService);
+  private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
+  private liveClock: ReturnType<typeof setInterval> | null = null;
 
   summary = signal<DashboardSummary | null>(null);
   loading = signal(false);
+  now = signal(Date.now());
 
   isBrowser = isPlatformBrowser(this.platformId);
   role = computed<DashboardRole>(
@@ -110,6 +116,7 @@ export class Dashboard implements OnInit {
   );
   userName = computed(() => this.sessionService.session()?.user.name ?? 'Hubsme');
   isConsultant = computed(() => this.role() === 'consultor');
+  meetingDetailsPath = buildPath(PATH.admin.consultor.meetings);
 
   headerTitle = computed(() => 'Panel de control');
 
@@ -616,26 +623,17 @@ export class Dashboard implements OnInit {
     responsive: [],
   }));
 
-  upcomingMeetings = computed(() => {
-    const meetings = this.summary()?.upcomingMeetings ?? [];
-    return meetings.map((meeting, index) => ({
-      ...meeting,
-      subtitle: this.isConsultant()
-        ? [
-            'Revision de estrategia',
-            'Workshop IA Marketing',
-            'Mesa de seguimiento',
-            'Planning trimestral',
-          ][index % 4]
-        : ['Sesion consultiva', 'Revision operativa', 'Seguimiento comercial', 'Orden financiero'][
-            index % 4
-          ],
-      mode: meeting.status === 'solicitada' ? 'Por confirmar' : 'Virtual',
-    }));
-  });
+  upcomingMeetings = computed(() => this.summary()?.upcomingMeetings ?? []);
 
   ngOnInit() {
     this.loadSummary();
+    if (this.isBrowser) {
+      this.liveClock = setInterval(() => this.now.set(Date.now()), 30_000);
+    }
+  }
+
+  ngOnDestroy(): void {
+    if (this.liveClock) clearInterval(this.liveClock);
   }
 
   loadSummary() {
@@ -645,6 +643,23 @@ export class Dashboard implements OnInit {
       .then((res) => this.summary.set(res.data))
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
+  }
+
+  isMeetingLive(meeting: UpcomingMeeting): boolean {
+    const startTime = new Date(meeting.startTime).getTime();
+    if (!Number.isFinite(startTime)) return false;
+
+    const endTime = startTime + meeting.durationMinutes * 60_000;
+    return this.now() >= startTime && this.now() <= endTime;
+  }
+
+  openMeetingInNewTab(meeting: UpcomingMeeting): void {
+    if (!this.isBrowser) return;
+
+    const url = this.router.serializeUrl(
+      this.router.createUrlTree([`/${buildPath(PATH.meetingAccess)}`, meeting.id]),
+    );
+    window.open(url, '_blank', 'noopener,noreferrer');
   }
 
   onKpiCardClick(card: KpiCard): void {

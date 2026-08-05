@@ -93,6 +93,96 @@
       }
     </div>
 
+    <section
+      id="upcoming-sessions"
+      class="scroll-mt-24 rounded-2xl border border-border bg-surface p-5"
+    >
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 class="text-xl leading-tight text-text font-anton lowercase">Próximas Sesiones</h2>
+          <p class="mt-1 text-[0.84rem] leading-relaxed text-muted">
+            Ingresa desde aquí cuando llegue el horario de tu reunión.
+          </p>
+        </div>
+        <span
+          class="inline-flex w-fit items-center rounded-full bg-secondary/8 px-3 py-1.5 text-[0.7rem] text-secondary font-inter-semibold"
+        >
+          {{ upcomingMeetings().length }}
+          {{ upcomingMeetings().length === 1 ? 'programada' : 'programadas' }}
+        </span>
+      </div>
+
+      <div class="mt-5 space-y-3">
+        @for (meeting of upcomingMeetings(); track meeting.id) {
+          <article
+            class="group flex w-full items-center justify-between gap-4 rounded-2xl border px-4 py-3.5 text-left transition-all"
+            [ngClass]="
+              isMeetingLive(meeting)
+                ? 'border-danger/25 bg-surface'
+                : 'border-border bg-surface hover:border-secondary/25'
+            "
+          >
+            <div class="flex min-w-0 items-center gap-3">
+              @if (isMeetingLive(meeting)) {
+                <div
+                  class="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-danger/10"
+                >
+                  <span class="absolute h-3 w-3 animate-ping rounded-full bg-danger/50"></span>
+                  <span class="relative h-3 w-3 rounded-full bg-danger"></span>
+                </div>
+              } @else {
+                <div
+                  class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary/8 text-secondary"
+                >
+                  <i class="fas fa-calendar-days text-sm"></i>
+                </div>
+              }
+
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <p class="truncate text-[0.9rem] text-text font-inter-bold">
+                    {{ meeting.title }}
+                  </p>
+                </div>
+                <p class="mt-1 truncate text-xs text-muted">
+                  {{ meeting.startTime | date: 'EEEE d MMM · hh:mm a': '': 'es-PE' }}
+                </p>
+              </div>
+            </div>
+
+            <div class="flex shrink-0 items-center gap-3">
+              <div class="hidden text-right sm:block">
+                <a
+                  [routerLink]="['/' + meetingDetailsPath, meeting.id]"
+                  class="text-[0.78rem] font-inter-semibold underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-secondary/25"
+                  [class.text-danger]="isMeetingLive(meeting)"
+                  [class.text-secondary]="!isMeetingLive(meeting)"
+                >
+                  Ver detalles
+                </a>
+                <p class="mt-0.5 text-[0.68rem] text-muted">Información de la sesión</p>
+              </div>
+              <button
+                type="button"
+                class="flex h-9 w-9 items-center justify-center rounded-xl border border-border bg-surface text-muted transition-all hover:border-secondary/30 hover:bg-secondary/5 hover:text-secondary focus:outline-none focus:ring-2 focus:ring-secondary/25"
+                [attr.aria-label]="'Abrir acceso a ' + meeting.title + ' en otra ventana'"
+                title="Abrir reunión en otra ventana"
+                (click)="openMeetingInNewTab(meeting)"
+              >
+                <i class="fas fa-arrow-up-right-from-square text-xs"></i>
+              </button>
+            </div>
+          </article>
+        } @empty {
+          <div
+            class="rounded-2xl border border-dashed border-border bg-background-50 py-10 text-center text-muted"
+          >
+            No hay sesiones próximas registradas.
+          </div>
+        }
+      </div>
+    </section>
+
     <div class="grid grid-cols-1 gap-6 xl:grid-cols-[1.9fr_0.95fr]">
       <section
         class="rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]"
@@ -217,47 +307,5 @@
       </section>
     </div>
 
-    <div class="grid grid-cols-1 gap-6">
-      <section
-        id="upcoming-sessions"
-        class="rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]"
-      >
-        <h2 class="text-xl leading-tight text-text font-anton lowercase">Proximas Sesiones</h2>
-
-        <div class="mt-6 space-y-4">
-          @for (meeting of upcomingMeetings(); track meeting.id) {
-            <article
-              class="flex items-center justify-between gap-4 rounded-2xl border border-border bg-background-50 px-4 py-3"
-            >
-              <div class="flex min-w-0 items-center gap-3">
-                <div
-                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-background-100 text-muted"
-                >
-                  <i class="fas fa-calendar text-sm"></i>
-                </div>
-                <div class="min-w-0">
-                  <p class="truncate text-[0.9rem] text-text font-inter-bold">
-                    {{ meeting.title }}
-                  </p>
-                  <p class="truncate text-xs text-muted">{{ meeting.subtitle }}</p>
-                </div>
-              </div>
-              <div class="shrink-0 text-right">
-                <p class="text-[0.86rem] text-text font-inter-bold">
-                  {{ meeting.startTime | date: 'EEE, HH:mm': '': 'es-PE' }}
-                </p>
-                <p class="text-xs text-muted">{{ meeting.mode }}</p>
-              </div>
-            </article>
-          } @empty {
-            <div
-              class="rounded-2xl border border-dashed border-border bg-background-50 py-14 text-center text-muted"
-            >
-              No hay sesiones proximas registradas.
-            </div>
-          }
-        </div>
-      </section>
-    </div>
   }
 </div>

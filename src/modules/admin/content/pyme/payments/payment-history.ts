@@ -155,6 +155,43 @@ export class PaymentHistory {
     return classes[status];
   }
 
+  paymentMethodLabel(payment: PaymentHistoryItem) {
+    if (payment.paymentMethod === 'promotion_code') return 'Cupón';
+
+    const methodId = payment.paymentMethodId?.toLowerCase();
+    const typeId = payment.paymentTypeId?.toLowerCase();
+
+    if (methodId === 'yape') return 'Yape';
+    if (methodId === 'account_money' || typeId === 'account_money') {
+      return 'Saldo de Mercado Pago';
+    }
+
+    const labels: Record<string, string> = {
+      credit_card: 'Tarjeta de crédito',
+      debit_card: 'Tarjeta de débito',
+      prepaid_card: 'Tarjeta prepago',
+      bank_transfer: 'Transferencia bancaria',
+      ticket: 'Pago en efectivo',
+      atm: 'Pago por cajero',
+      digital_currency: 'Billetera digital',
+    };
+
+    return (typeId && labels[typeId]) || 'Pago en línea';
+  }
+
+  paymentMethodIcon(payment: PaymentHistoryItem) {
+    if (payment.paymentMethod === 'promotion_code') return 'fa-ticket';
+
+    const methodId = payment.paymentMethodId?.toLowerCase();
+    const typeId = payment.paymentTypeId?.toLowerCase();
+
+    if (methodId === 'yape') return 'fa-mobile-screen-button';
+    if (methodId === 'account_money' || typeId === 'account_money') return 'fa-wallet';
+    if (typeId === 'bank_transfer') return 'fa-building-columns';
+    if (typeId === 'ticket' || typeId === 'atm') return 'fa-money-bill-wave';
+    return 'fa-credit-card';
+  }
+
   counterparty(payment: PaymentHistoryItem) {
     return payment.consultantName ?? `Consultor #${payment.consultantId}`;
   }

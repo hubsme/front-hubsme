@@ -1846,6 +1846,7 @@ export interface DashboardMeetingDto {
   title: string;
   /** @format date-time */
   startTime: string;
+  durationMinutes: number;
   status: string;
 }
 
@@ -1977,6 +1978,12 @@ export interface MercadoPagoPaymentHistoryItemDto {
   mercadoPagoPaymentId: string | null;
   pymeName: string | null;
   consultantName: string | null;
+  paymentMethod: "payment" | "promotion_code";
+  /** Payment method identifier reported by the payment provider, such as yape, visa or account_money */
+  paymentMethodId: string | null;
+  /** Payment type reported by the payment provider, such as credit_card, debit_card or account_money */
+  paymentTypeId: string | null;
+  promotionCode: string | null;
 }
 
 export interface MercadoPagoPaymentHistoryResponseDto {

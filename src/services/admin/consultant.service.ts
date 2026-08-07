@@ -15,6 +15,18 @@ export class ConsultantService {
     return this.api.consultant.meetingPymes(query).then((response) => response.data);
   }
 
+  meetingDocuments(
+    query: ApiQuery<'consultant', 'meetingDocuments'> = {},
+  ): Promise<ApiResponse<'consultant', 'meetingDocuments'>> {
+    return this.api.consultant.meetingDocuments(query).then((response) => response.data);
+  }
+
+  diagnosticDocuments(
+    query: ApiQuery<'consultant', 'diagnosticDocuments'> = {},
+  ): Promise<ApiResponse<'consultant', 'diagnosticDocuments'>> {
+    return this.api.consultant.diagnosticDocuments(query).then((response) => response.data);
+  }
+
   findOne(id: number): Promise<ApiResponse<'consultant', 'findOne'>> {
     return this.api.consultant.findOne({ id }).then((response) => response.data);
   }

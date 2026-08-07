@@ -252,6 +252,7 @@ export class MeetingDetail implements OnInit {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
+      timeZone: 'America/Lima',
     });
   }
 
@@ -259,6 +260,8 @@ export class MeetingDetail implements OnInit {
     return new Date(value).toLocaleTimeString('es-PE', {
       hour: '2-digit',
       minute: '2-digit',
+      hour12: true,
+      timeZone: 'America/Lima',
     });
   }
 
@@ -267,6 +270,7 @@ export class MeetingDetail implements OnInit {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
+      timeZone: 'America/Lima',
     });
   }
 

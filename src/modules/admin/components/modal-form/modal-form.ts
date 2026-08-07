@@ -13,6 +13,7 @@ export class ModalForm {
   submitText = input<string>('Guardar');
   cancelText = input<string>('Cancelar');
   loading = input<boolean>(false);
+  submitDisabled = input<boolean>(false);
   maxWidth = input<'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl'>('md');
   submitVariant = input<'primary' | 'danger'>('primary');
   showFooter = input<boolean>(true);
@@ -46,7 +47,7 @@ export class ModalForm {
   }
 
   handleSubmit() {
-    if (this.isSubmitting() || this.loading()) {
+    if (this.isSubmitting() || this.loading() || this.submitDisabled()) {
       return; // Evitar múltiples clicks
     }
     this.isSubmitting.set(true);

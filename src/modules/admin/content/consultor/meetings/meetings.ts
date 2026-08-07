@@ -33,6 +33,7 @@ type AvailabilitySchedule = Record<string, string[]>;
 type GoogleBusySlot = ApiResponse<'consultantGoogleCalendar', 'consultantgooglecalendarBusyMonth'>['data'][number];
 type GoogleCalendarStatus = ApiResponse<'consultantGoogleCalendar', 'consultantgooglecalendarStatus'>;
 type Meeting = ApiResponse<'meeting', 'calendar'>['data'][number];
+type MeetingRecording = ApiResponse<'meeting', 'getRecordings'>[number];
 type DraftSlotStatus = 'disponible' | 'bloqueado';
 
 type DraftSlot = {
@@ -114,6 +115,11 @@ export class Meetings implements OnInit, OnDestroy {
   showTutorial = signal(false);
   selectedSlotLocalId = signal<string | null>(null);
   selectedMeeting = signal<Meeting | null>(null);
+  finalizationRecordings = signal<MeetingRecording[]>([]);
+  finalizationRecordingsLoading = signal(false);
+  finalizationRecordingsError = signal('');
+  finalizingMeetingId = signal<number | null>(null);
+  generatingActaMeetingId = signal<number | null>(null);
   expandedMonthDay = signal<MonthDaySelection | null>(null);
   confirmingMeetingId = signal<number | null>(null);
   selectedProposedStartTime = signal<string | null>(null);
@@ -493,6 +499,9 @@ export class Meetings implements OnInit, OnDestroy {
   closeMeetingDetail() {
     this.selectedMeeting.set(null);
     this.selectedProposedStartTime.set(null);
+    this.finalizingMeetingId.set(null);
+    this.finalizationRecordings.set([]);
+    this.finalizationRecordingsError.set('');
   }
 
   joinMeeting(meeting: Meeting) {
@@ -501,8 +510,94 @@ export class Meetings implements OnInit, OnDestroy {
   }
 
   finishMeeting(meeting: Meeting) {
-    this.closeMeetingDetail();
-    this.router.navigate([buildPath(PATH.admin.consultor.documents), meeting.id]);
+    this.finalizingMeetingId.set(meeting.id);
+    this.loadFinalizationRecordings(meeting.id);
+  }
+
+  refreshFinalizationRecordings() {
+    const meetingId = this.finalizingMeetingId();
+    if (meetingId === null || this.finalizationRecordingsLoading()) return;
+    this.loadFinalizationRecordings(meetingId);
+  }
+
+  canGenerateActa() {
+    const recordings = this.finalizationRecordings();
+    return recordings.length > 0 && recordings.every((recording) => Boolean(this.recordingUrl(recording)));
+  }
+
+  generateActa(meeting: Meeting) {
+    if (this.finalizingMeetingId() !== meeting.id || !this.canGenerateActa()) return;
+
+    this.generatingActaMeetingId.set(meeting.id);
+    this.hubsme
+      .getCopilotSummary(meeting.id)
+      .then((response) => {
+        const summary = response.data.summary?.trim() || '.';
+        const tasks = (response.data.tasks ?? []).map((task) => ({
+          title: task.title.trim() || 'Pendiente de la reunión',
+          description: task.description?.trim() || '.',
+          assignedTo: task.assignedTo,
+          priority: task.priority,
+          dueDate: task.dueDate,
+        }));
+
+        return this.hubsme.finalizeMeeting(meeting.id, { description: summary, tasks });
+      })
+      .then(() => {
+        this.toastService.success('Acta generada y guardada automáticamente');
+        this.closeMeetingDetail();
+        this.router.navigate([buildPath(PATH.admin.consultor.documents), meeting.id]);
+      })
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.generatingActaMeetingId.set(null));
+  }
+
+  recordingUrl(recording: MeetingRecording) {
+    return recording.publicUrl || recording.downloadUrl || recording.webUrl || null;
+  }
+
+  recordingDate(value: string | null | undefined) {
+    if (!value) return 'Fecha no disponible';
+    return new Date(value).toLocaleDateString('es-PE', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      timeZone: 'America/Lima',
+    });
+  }
+
+  descriptionPreview(value: string | null | undefined) {
+    const plainText = (value ?? '')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/[#*_`~>-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return plainText.length > 220 ? `${plainText.slice(0, 220).trimEnd()}...` : plainText;
+  }
+
+  recordingDuration(recording: MeetingRecording) {
+    if (!recording.createdDateTime || !recording.endDateTime) return 'Duración no disponible';
+    const minutes = Math.max(
+      1,
+      Math.round((new Date(recording.endDateTime).getTime() - new Date(recording.createdDateTime).getTime()) / 60_000),
+    );
+    return `${minutes} min`;
+  }
+
+  private loadFinalizationRecordings(meetingId: number) {
+    this.finalizationRecordingsLoading.set(true);
+    this.finalizationRecordingsError.set('');
+    this.hubsme
+      .getMeetingRecordings(meetingId)
+      .then((response) => {
+        this.finalizationRecordings.set(Array.isArray(response.data) ? response.data : []);
+      })
+      .catch((error) => {
+        this.finalizationRecordings.set([]);
+        this.finalizationRecordingsError.set(this.hubsme.getErrorMessage(error));
+      })
+      .finally(() => this.finalizationRecordingsLoading.set(false));
   }
 
   selectProposedStartTime(startTime: string) {
@@ -706,6 +801,7 @@ export class Meetings implements OnInit, OnDestroy {
       weekday: 'short',
       day: '2-digit',
       month: 'short',
+      timeZone: 'America/Lima',
     });
   }
 
@@ -714,6 +810,8 @@ export class Meetings implements OnInit, OnDestroy {
     return date.toLocaleTimeString('es-PE', {
       hour: '2-digit',
       minute: '2-digit',
+      hour12: true,
+      timeZone: 'America/Lima',
     });
   }
 

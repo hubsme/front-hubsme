@@ -646,11 +646,17 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   isMeetingLive(meeting: UpcomingMeeting): boolean {
+    if (meeting.status !== 'confirmada') return false;
+
     const startTime = new Date(meeting.startTime).getTime();
     if (!Number.isFinite(startTime)) return false;
 
     const endTime = startTime + meeting.durationMinutes * 60_000;
     return this.now() >= startTime && this.now() <= endTime;
+  }
+
+  isMeetingPending(meeting: UpcomingMeeting): boolean {
+    return meeting.status === 'por_confirmar';
   }
 
   openMeetingInNewTab(meeting: UpcomingMeeting): void {

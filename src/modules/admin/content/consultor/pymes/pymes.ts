@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ApiResponse } from 'api/backend.api';
+import { ApiResponse, PaginationMetaDto } from 'api/backend.api';
+import { PaginationComponent } from '@module/admin/components/pagination/pagination';
 import { ConsultantService } from '@service/admin/consultant.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
@@ -10,7 +11,7 @@ type Pyme = ApiResponse<'consultant', 'meetingPymes'>['data'][number];
 
 @Component({
   selector: 'app-pymes',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaginationComponent],
   templateUrl: './pymes.html',
 })
 export class Pymes implements OnInit {
@@ -21,16 +22,11 @@ export class Pymes implements OnInit {
   pymes = signal<Pyme[]>([]);
   search = signal('');
   loading = signal(false);
+  meta = signal<PaginationMetaDto | null>(null);
+  page = signal(1);
+  readonly pageSize = 10;
 
-  visiblePymes = computed(() => {
-    const query = this.search().trim().toLowerCase();
-    if (!query) return this.pymes();
-    return this.pymes().filter((pyme) =>
-      [pyme.name, pyme.sector, pyme.ownerFirstName, pyme.ownerLastName, pyme.ownerEmail].some((value) =>
-        value?.toLowerCase().includes(query),
-      ),
-    );
-  });
+  visiblePymes = computed(() => this.pymes());
 
   ngOnInit() {
     this.load();
@@ -39,10 +35,25 @@ export class Pymes implements OnInit {
   load() {
     this.loading.set(true);
     this.consultantService
-      .meetingPymes({ page: 1, limit: 100 })
-      .then((res) => this.pymes.set(res.data))
+      .meetingPymes({ page: this.page(), limit: this.pageSize, search: this.search().trim() || undefined })
+      .then((res) => {
+        this.pymes.set(res.data);
+        this.meta.set(res.meta);
+      })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
+  }
+
+  updateSearch(value: string) {
+    this.search.set(value);
+    this.page.set(1);
+    this.load();
+  }
+
+  changePage(page: number) {
+    if (page === this.page()) return;
+    this.page.set(page);
+    this.load();
   }
 
   businessDescription(pyme: Pyme) {

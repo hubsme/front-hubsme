@@ -1,5 +1,11 @@
 import { Injectable, inject } from '@angular/core';
-import { Api, ApiBody, ApiQuery, ApiResponse } from 'api/backend.api';
+import {
+  Api,
+  ApiBody,
+  ApiQuery,
+  ApiResponse,
+  ServiceRequestCreateMultipartDto,
+} from 'api/backend.api';
 
 @Injectable({ providedIn: 'root' })
 export class ServiceRequestService {
@@ -13,8 +19,10 @@ export class ServiceRequestService {
     return this.api.service.findOne({ id }).then((response) => response.data);
   }
 
-  create(data: ApiBody<'service', 'create'>): Promise<ApiResponse<'service', 'create'>> {
-    return this.api.service.create(data).then((response) => response.data);
+  create(data: FormData): Promise<ApiResponse<'service', 'create'>> {
+    return this.api.service
+      .create(data as unknown as ServiceRequestCreateMultipartDto)
+      .then((response) => response.data);
   }
 
   sendProposal(
@@ -29,5 +37,12 @@ export class ServiceRequestService {
     data: ApiBody<'service', 'decline'>,
   ): Promise<ApiResponse<'service', 'decline'>> {
     return this.api.service.decline({ id }, data).then((response) => response.data);
+  }
+
+  scheduleMilestoneMeeting(
+    id: number,
+    data: ApiBody<'service', 'scheduleMilestoneMeeting'>,
+  ): Promise<ApiResponse<'service', 'scheduleMilestoneMeeting'>> {
+    return this.api.service.scheduleMilestoneMeeting({ id }, data).then((response) => response.data);
   }
 }

@@ -60,4 +60,12 @@ export class MercadoPagoService {
       .mercadopagoPrepareServicePayment({ id })
       .then((response) => response.data);
   }
+
+  syncServicePayment(
+    id: number,
+  ): Promise<ApiResponse<'mercadoPago', 'mercadopagoSyncServicePayment'>> {
+    return this.api.mercadoPago
+      .mercadopagoSyncServicePayment({ id })
+      .then((response) => response.data);
+  }
 }

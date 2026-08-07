@@ -26,8 +26,7 @@
       [class.border-transparent]="activeTab() !== 'meetings'" [class.text-muted]="activeTab() !== 'meetings'">
       <i class="far fa-file-lines text-xs"></i>
       Actas
-      <span class="rounded-full bg-background-100 px-2 py-0.5 text-[0.68rem] text-text-600">{{ meetingDocuments().length
-        }}</span>
+      <span class="rounded-full bg-background-100 px-2 py-0.5 text-[0.68rem] text-text-600">{{ meetingMeta().total }}</span>
     </button>
     <button type="button" (click)="selectTab('diagnostics')"
       class="inline-flex h-10 items-center gap-2 border-b-2 px-3 text-[0.85rem] font-inter-semibold transition-colors"
@@ -35,8 +34,7 @@
       [class.border-transparent]="activeTab() !== 'diagnostics'" [class.text-muted]="activeTab() !== 'diagnostics'">
       <i class="fas fa-chart-line text-xs"></i>
       Diagnósticos
-      <span class="rounded-full bg-background-100 px-2 py-0.5 text-[0.68rem] text-text-600">{{ diagnostics().length
-        }}</span>
+      <span class="rounded-full bg-background-100 px-2 py-0.5 text-[0.68rem] text-text-600">{{ diagnosticMeta().total }}</span>
     </button>
   </div>
 
@@ -60,7 +58,7 @@
   </div>
   } @else if (activeTab() === 'meetings') {
   <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
-    @for (document of filteredMeetingDocuments(); track document.id) {
+    @for (document of paginatedMeetingDocuments(); track document.id) {
     <article class="rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]">
       <div class="flex items-start justify-between gap-4">
         <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-text/8 text-text">
@@ -79,16 +77,15 @@
       <div class="mt-6 flex items-center gap-3 rounded-2xl border border-border bg-background-50 px-4 py-3">
         <div
           class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-surface text-muted">
-          @if (consultantPhotos()[document.consultantId]) {
-          <img [src]="consultantPhotos()[document.consultantId]" alt="Consultor" class="h-full w-full object-cover" />
+          @if (document.consultantPhotoUrl) {
+          <img [src]="document.consultantPhotoUrl" alt="Consultor" class="h-full w-full object-cover" />
           } @else {
           <i class="far fa-user text-xs"></i>
           }
         </div>
         <div>
-          <p class="text-[0.72rem] text-muted">Origen</p>
-          <p class="text-[0.82rem] font-inter-bold">{{ consultantNames()[document.consultantId] || 'Consultor asignado'
-            }}</p>
+          <p class="text-[0.72rem] text-muted">Consultor</p>
+          <p class="text-[0.82rem] font-inter-bold">{{ document.consultantName }}</p>
         </div>
       </div>
 
@@ -106,9 +103,21 @@
     </div>
     }
   </div>
+  @if (meetingMeta().total > 0) {
+  <div class="mt-5 overflow-hidden rounded-xl border border-border bg-surface">
+    <app-pagination
+      class="block [&>div]:bg-surface"
+      [meta]="meetingMeta()"
+      [currentPage]="meetingPage()"
+      [pageSize]="pageSize"
+      [showPageSizeSelector]="false"
+      (pageChange)="changeMeetingPage($event)"
+    />
+  </div>
+  }
   } @else {
   <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
-    @for (diagnostic of filteredDiagnosticDocuments(); track diagnostic.id) {
+    @for (diagnostic of paginatedDiagnosticDocuments(); track diagnostic.id) {
     <article class="rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]">
       <div class="flex items-start justify-between gap-4">
         <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary-50 text-secondary">
@@ -168,5 +177,17 @@
     </div>
     }
   </div>
+  @if (diagnosticMeta().total > 0) {
+  <div class="mt-5 overflow-hidden rounded-xl border border-border bg-surface">
+    <app-pagination
+      class="block [&>div]:bg-surface"
+      [meta]="diagnosticMeta()"
+      [currentPage]="diagnosticPage()"
+      [pageSize]="pageSize"
+      [showPageSizeSelector]="false"
+      (pageChange)="changeDiagnosticPage($event)"
+    />
+  </div>
+  }
   }
 </div>

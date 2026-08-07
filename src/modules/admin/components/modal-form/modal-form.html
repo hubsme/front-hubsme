@@ -8,7 +8,9 @@
     (click)="$event.stopPropagation()"
   >
     <!-- Header -->
-    <div class="flex items-center justify-between px-6 py-4 border-b border-border bg-background-50/50 shrink-0 rounded-t-2xl">
+    <div
+      class="flex items-center justify-between px-6 py-4 border-b border-border bg-background-50/50 shrink-0 rounded-t-2xl"
+    >
       <h2 class="text-xl font-anton lowercase text-text">{{ title() }}</h2>
       <button
         (click)="handleClose()"
@@ -18,14 +20,19 @@
       </button>
     </div>
 
+    <!-- Custom footer. It is projected before the default slot so it stays outside the scroll body. -->
+    <ng-content select="[modalFooter]"></ng-content>
+
     <!-- Body (Scrollable) -->
-    <div class="overflow-y-auto flex-1 bg-surface">
+    <div class="flex min-h-0 flex-1 flex-col overflow-y-auto bg-surface">
       <ng-content></ng-content>
     </div>
 
     <!-- Footer -->
     @if (showFooter()) {
-      <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-background-50/50 shrink-0 rounded-b-2xl">
+      <div
+        class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-background-50/50 shrink-0 rounded-b-2xl"
+      >
         <button
           type="button"
           (click)="handleClose()"
@@ -36,7 +43,7 @@
         <button
           type="button"
           (click)="handleSubmit()"
-          [disabled]="loading() || isSubmitting()"
+          [disabled]="loading() || isSubmitting() || submitDisabled()"
           class="px-4 py-2 text-sm rounded-lg font-inter-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
           [ngClass]="getSubmitButtonClass()"
         >

@@ -242,7 +242,7 @@
             'Sin enlace aun' }}</span>
         </div>
         @if (meeting.description) {
-        <p class="mt-4 text-sm leading-6 text-muted">{{ meeting.description }}</p>
+        <p class="mt-4 line-clamp-3 text-sm leading-6 text-muted">{{ descriptionPreview(meeting.description) }}</p>
         }
         @if (meeting.status === 'por_confirmar') {
         <div class="mt-4 rounded-xl border border-warning/20 bg-warning/5 p-3 text-sm text-muted">

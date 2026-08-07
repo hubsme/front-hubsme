@@ -1,12 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ApiResponse } from 'api/backend.api';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DestroyRef } from '@angular/core';
+import { ApiResponse, PaginationMetaDto } from 'api/backend.api';
+import { PaginationComponent } from '@module/admin/components/pagination/pagination';
+import { PymeService } from '@service/admin/pyme.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
-import { ConsultantService } from '@service/admin/consultant.service';
 import { PATH, buildPath } from '@route/path.route';
 import { downloadPdf } from '../../../functions/download-pdf';
 import { downloadWord } from '../../../functions/download-word';
@@ -15,56 +17,93 @@ type DocumentTab = 'meetings' | 'diagnostics';
 
 @Component({
   selector: 'app-documents',
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, PaginationComponent],
   templateUrl: './documents.html',
 })
-export class Documents implements OnInit {
+export class Documents implements OnDestroy, OnInit {
+  private pymeService = inject(PymeService);
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
-  private consultantService = inject(ConsultantService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
   readonly PATH = PATH;
   readonly buildPath = buildPath;
 
-  meetingDocuments = signal<ApiResponse<'meeting', 'findAll'>['data']>([]);
-  diagnostics = signal<ApiResponse<'diagnostic', 'findAll'>['data']>([]);
-  consultantPhotos = signal<Record<number, string | null>>({});
-  consultantNames = signal<Record<number, string>>({});
-  loading = signal(false);
+  meetingDocuments = signal<ApiResponse<'pyme', 'meetingDocuments'>['data']>([]);
+  diagnostics = signal<ApiResponse<'pyme', 'diagnosticDocuments'>['data']>([]);
+  meetingMeta = signal<PaginationMetaDto>(this.emptyMeta());
+  diagnosticMeta = signal<PaginationMetaDto>(this.emptyMeta());
+  meetingPage = signal(1);
+  diagnosticPage = signal(1);
   search = signal('');
+  loading = signal(false);
   activeTab = signal<DocumentTab>('meetings');
   downloadingPdfId = signal<number | null>(null);
   downloadingWordId = signal<number | null>(null);
+  readonly pageSize = 10;
+  private searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
-  isAnyDownloading() {
-    return this.downloadingPdfId() !== null || this.downloadingWordId() !== null;
-  }
+  filteredMeetingDocuments = computed(() => this.meetingDocuments());
+  filteredDiagnosticDocuments = computed(() => this.diagnostics());
+  paginatedMeetingDocuments = computed(() => this.meetingDocuments());
+  paginatedDiagnosticDocuments = computed(() => this.diagnostics());
 
-  filteredMeetingDocuments = computed(() => {
-    const term = this.search().toLowerCase().trim();
-    if (!term) return this.meetingDocuments();
-
-    return this.meetingDocuments().filter((document) =>
-      [document.title, document.description, document.status].some((value) => value?.toLowerCase().includes(term)),
-    );
-  });
-
-  filteredDiagnosticDocuments = computed(() => {
-    const term = this.search().toLowerCase().trim();
-    if (!term) return this.diagnostics();
-
-    return this.diagnostics().filter((diagnostic) =>
-      [diagnostic.summary, diagnostic.result.feedbackIa, String(diagnostic.score)].some((value) => value.toLowerCase().includes(term)),
-    );
-  });
-
-  ngOnInit() {
+  ngOnInit(): void {
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       this.activeTab.set(this.tabFromQuery(params.get('type')));
     });
     this.load();
+  }
+
+  ngOnDestroy(): void {
+    if (this.searchTimeout) clearTimeout(this.searchTimeout);
+  }
+
+  load(): void {
+    this.loading.set(true);
+    Promise.all([this.loadMeetings(), this.loadDiagnostics()])
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.loading.set(false));
+  }
+
+  private loadMeetings(): Promise<ApiResponse<'pyme', 'meetingDocuments'>> {
+    return this.pymeService
+      .meetingDocuments({
+        page: this.meetingPage(),
+        limit: this.pageSize,
+        search: this.search().trim() || undefined,
+      })
+      .then((response) => {
+        this.meetingDocuments.set(response.data);
+        this.meetingMeta.set(response.meta);
+        return response;
+      });
+  }
+
+  private loadDiagnostics(): Promise<ApiResponse<'pyme', 'diagnosticDocuments'>> {
+    return this.pymeService
+      .diagnosticDocuments({
+        page: this.diagnosticPage(),
+        limit: this.pageSize,
+        search: this.search().trim() || undefined,
+      })
+      .then((response) => {
+        this.diagnostics.set(response.data);
+        this.diagnosticMeta.set(response.meta);
+        return response;
+      });
+  }
+
+  updateSearch(value: string): void {
+    this.search.set(value);
+    this.meetingPage.set(1);
+    this.diagnosticPage.set(1);
+    if (this.searchTimeout) clearTimeout(this.searchTimeout);
+    this.searchTimeout = setTimeout(() => {
+      this.load();
+      this.searchTimeout = null;
+    }, 300);
   }
 
   selectTab(tab: DocumentTab): void {
@@ -76,127 +115,68 @@ export class Documents implements OnInit {
     });
   }
 
-  private tabFromQuery(type: string | null): DocumentTab {
-    return type === 'diagnosticos' ? 'diagnostics' : 'meetings';
-  }
-
-  load() {
+  changeMeetingPage(page: number): void {
+    this.meetingPage.set(page);
     this.loading.set(true);
-    Promise.all([this.hubsme.listMeetings(1, 100), this.hubsme.listDiagnostics(1, 100)])
-      .then(([meetingsRes, diagnosticsRes]) => {
-        const filteredMeetings = meetingsRes.data.data.filter((meeting) => meeting.status === 'finalizada' || meeting.description);
-        this.meetingDocuments.set(filteredMeetings);
-        this.diagnostics.set(diagnosticsRes.data.data);
-        this.loadConsultantDetails(filteredMeetings);
-      })
+    this.loadMeetings()
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
   }
 
-  private loadConsultantDetails(meetings: ApiResponse<'meeting', 'findAll'>['data']) {
-    const uniqueIds = [...new Set(meetings.map((m) => m.consultantId))];
-    uniqueIds.forEach((id) => {
-      this.consultantService
-        .findByUser(id)
-        .then((consultant) => {
-          this.consultantPhotos.update((current) => ({ ...current, [id]: consultant.photoUrl }));
-          this.consultantNames.update((current) => ({ ...current, [id]: consultant.fullName }));
-        })
-        .catch(() => {
-          this.consultantPhotos.update((current) => ({ ...current, [id]: null }));
-          this.consultantNames.update((current) => ({ ...current, [id]: 'Consultor asignado' }));
-        });
-    });
+  changeDiagnosticPage(page: number): void {
+    this.diagnosticPage.set(page);
+    this.loading.set(true);
+    this.loadDiagnostics()
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.loading.set(false));
   }
 
-  meetingTitle(document: ApiResponse<'meeting', 'findAll'>['data'][number]) {
+  private tabFromQuery(type: string | null): DocumentTab {
+    return type === 'diagnosticos' ? 'diagnostics' : 'meetings';
+  }
+
+  meetingTitle(document: ApiResponse<'pyme', 'meetingDocuments'>['data'][number]): string {
     return document.title || 'Acta de Reunion';
   }
 
-  consultantName() {
-    return 'Consultor asignado';
+  isAnyDownloading(): boolean {
+    return this.downloadingPdfId() !== null || this.downloadingWordId() !== null;
   }
 
-  downloadPdf(diagnostic: any) {
-    if (!diagnostic || this.isAnyDownloading()) return;
+  downloadPdf(diagnostic: ApiResponse<'pyme', 'diagnosticDocuments'>['data'][number]): void {
+    if (this.isAnyDownloading()) return;
     this.downloadingPdfId.set(diagnostic.id);
     try {
       downloadPdf(diagnostic);
-    } catch (err) {
-      console.error('Error generating PDF', err);
+    } catch (error) {
+      console.error('Error generating PDF', error);
       this.toastService.error('Ocurrió un error al generar el PDF.');
     } finally {
       this.downloadingPdfId.set(null);
     }
   }
 
-  downloadWord(diagnostic: any) {
-    if (!diagnostic || this.isAnyDownloading()) return;
+  downloadWord(diagnostic: ApiResponse<'pyme', 'diagnosticDocuments'>['data'][number]): void {
+    if (this.isAnyDownloading()) return;
     this.downloadingWordId.set(diagnostic.id);
     try {
       downloadWord(diagnostic);
-    } catch (err) {
-      console.error('Error generating Word', err);
+    } catch (error) {
+      console.error('Error generating Word', error);
       this.toastService.error('Ocurrió un error al generar el archivo Word.');
     } finally {
       this.downloadingWordId.set(null);
     }
   }
 
-  date(value: string | Date | null | undefined) {
-    if (!value) return 'Sin fecha';
-    return new Date(value).toLocaleDateString('es-PE', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  }
-
-  responseEntries(diagnostic: any) {
-    const RESPONSE_LABELS: Record<string, string> = {
-      q_gen_1: 'Antiguedad',
-      q_gen_2: 'Regimen tributario',
-      q_gen_3: 'Regimen laboral',
-      q_gen_4: 'Nivel de ventas',
-      q_gen_5: 'Modelo de negocio',
-      q_int_1: 'Objetivos',
-      q_int_2: 'Revision de resultados',
-      q_int_3: 'Control de ganancias',
-      q_int_4: 'Caja y cobranzas',
-      q_int_5: 'Dependencia comercial',
-      q_int_6: 'Proceso comercial',
-      q_int_7: 'Seguimiento comercial',
-      q_int_8: 'Marketing',
-      q_int_9: 'Satisfaccion del cliente',
-      q_int_10: 'Procesos',
-      q_int_11: 'Inventarios o produccion',
-      q_int_12: 'Errores o retrasos',
-      q_int_13: 'Funciones',
-      q_int_14: 'Dependencia del dueno',
-      q_int_15: 'Capacitacion',
-      q_int_16: 'Herramientas digitales',
-      q_int_17: 'Documentacion',
-      q_int_18: 'Cumplimiento laboral',
-      q_int_19: 'Cumplimiento tributario',
-      q_int_20: 'Preparacion para crecer',
-      q_int_21: 'Objetivo financiero',
-      q_int_22: 'Problema comercial',
-      q_int_23: 'Proceso critico',
-      q_int_24: 'Rol dependiente',
-      q_int_25: 'Riesgo prioritario',
+  private emptyMeta(): PaginationMetaDto {
+    return {
+      total: 0,
+      page: 1,
+      limit: this.pageSize,
+      totalPages: 1,
+      hasNextPage: false,
+      hasPreviousPage: false,
     };
-    return Object.entries(diagnostic.responses || {})
-      .map(([key, value]) => ({
-        label: RESPONSE_LABELS[key] ?? key,
-        value: this.responseValue(value),
-      }))
-      .filter((entry) => entry.value && entry.value !== 'No respondido');
-  }
-
-  private responseValue(value: unknown) {
-    if (value === null || value === undefined) return 'No respondido';
-    if (typeof value === 'string') return value.trim() || 'No respondido';
-    if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-    return JSON.stringify(value);
   }
 }

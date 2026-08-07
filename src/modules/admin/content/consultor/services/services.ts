@@ -53,6 +53,7 @@ export class ConsultantServices {
   readonly detailLoading = signal(false);
   readonly price = signal('');
   readonly proposalMessage = signal('');
+  readonly selectedInitialMeetingStartTime = signal('');
   readonly declineMessage = signal('');
   readonly showDeclineForm = signal(false);
   readonly responding = signal(false);
@@ -120,6 +121,7 @@ export class ConsultantServices {
     this.selectedService.set(service);
     this.price.set(service.proposedPrice ?? '');
     this.proposalMessage.set(service.proposalMessage ?? '');
+    this.selectedInitialMeetingStartTime.set(service.initialMeetingStartTime ?? '');
     this.declineMessage.set('');
     this.showDeclineForm.set(false);
     this.showDetail.set(true);
@@ -130,6 +132,7 @@ export class ConsultantServices {
         this.selectedService.set(detail);
         this.price.set(detail.proposedPrice ?? '');
         this.proposalMessage.set(detail.proposalMessage ?? '');
+        this.selectedInitialMeetingStartTime.set(detail.initialMeetingStartTime ?? '');
       }
     } catch (error) {
       if (requestId === this.detailSequence) {
@@ -159,13 +162,24 @@ export class ConsultantServices {
       this.toastService.warning('El precio puede tener como máximo dos decimales');
       return;
     }
+    if (
+      !this.selectedInitialMeetingStartTime() &&
+      service.initialMeetingProposedStartTimes.length
+    ) {
+      this.toastService.warning('Selecciona el horario de la reunión inicial');
+      return;
+    }
 
     this.responding.set(true);
     try {
-      const updated = await this.serviceRequestService.sendProposal(service.id, {
+      const proposal = {
         price: amount,
         message: this.proposalMessage().trim() || undefined,
-      });
+        ...(this.selectedInitialMeetingStartTime()
+          ? { selectedInitialMeetingStartTime: this.selectedInitialMeetingStartTime() }
+          : {}),
+      };
+      const updated = await this.serviceRequestService.sendProposal(service.id, proposal);
       this.selectedService.set(updated);
       this.toastService.success('Cotización enviada a la PYME');
       this.activeTab.set('proposals');
@@ -239,5 +253,39 @@ export class ConsultantServices {
     return new Intl.NumberFormat('es-PE', { style: 'currency', currency }).format(
       Number(value ?? 0),
     );
+  }
+
+  formatInitialMeetingOption(value: string) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Horario no válido';
+    return new Intl.DateTimeFormat('es-PE', {
+      timeZone: 'America/Lima',
+      weekday: 'short',
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    }).format(date);
+  }
+
+  serviceBudgetLabel(service: ServiceRequestResultDto) {
+    if (!service.budgetType || !service.budgetMin) return 'No registrado';
+    if (service.budgetType === 'fixed')
+      return this.formatMoney(service.budgetMin, service.currency);
+    if (!service.budgetMax) return `Desde ${this.formatMoney(service.budgetMin, service.currency)}`;
+    return `${this.formatMoney(service.budgetMin, service.currency)} – ${this.formatMoney(service.budgetMax, service.currency)}`;
+  }
+
+  meetingStatusLabel(status: ServiceRequestResultDto['meetings'][number]['status']) {
+    const labels: Record<ServiceRequestResultDto['meetings'][number]['status'], string> = {
+      solicitada: 'Solicitada',
+      pago_pendiente: 'Pendiente de pago',
+      por_confirmar: 'Esperando horario',
+      confirmada: 'Confirmada',
+      finalizada: 'Finalizada',
+      cancelada: 'Cancelada',
+    };
+    return labels[status];
   }
 }

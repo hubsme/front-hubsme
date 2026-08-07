@@ -414,6 +414,7 @@ export interface PymeListItemDto {
   ownerEmail: string | null;
   sector: string | null;
   numEmployees: number | null;
+  logoUrl: string | null;
   /** @format date-time */
   createdAt: string;
 }
@@ -497,6 +498,88 @@ export interface ConsultantListItemDto {
 
 export interface ConsultantListDto {
   data: ConsultantListItemDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface PymeMeetingDocumentDto {
+  id: number;
+  pymeId: number;
+  pymeName: string;
+  pymeLogoUrl: string | null;
+  consultantId: number;
+  consultantName: string;
+  consultantPhotoUrl: string | null;
+  title: string;
+  description: string | null;
+  status:
+    | "solicitada"
+    | "pago_pendiente"
+    | "por_confirmar"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada";
+  /** @format date-time */
+  startTime: string | null;
+  /** @format date-time */
+  completedAt: string | null;
+}
+
+export interface PymeMeetingDocumentsDto {
+  data: PymeMeetingDocumentDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface DiagnosticAreaDto {
+  area: string;
+  puntaje: number;
+  estado: string;
+  hallazgo: string;
+}
+
+export interface DiagnosticProblemDto {
+  problema: string;
+  impacto: string;
+  urgencia: "alta" | "media" | "baja";
+}
+
+export interface DiagnosticRecommendationDto {
+  accion: string;
+  beneficioEsperado: string;
+  plazo: string;
+  prioridad: "alta" | "media" | "baja";
+}
+
+export interface DiagnosticFodaDto {
+  fortalezas: string[];
+  oportunidades: string[];
+  debilidades: string[];
+  amenazas: string[];
+}
+
+export interface DiagnosticPayloadDto {
+  resumenEjecutivo: string;
+  puntajeGeneral: number;
+  feedbackIa: string;
+  areasEvaluadas: DiagnosticAreaDto[];
+  problemasCriticos: DiagnosticProblemDto[];
+  recomendaciones: DiagnosticRecommendationDto[];
+  foda?: DiagnosticFodaDto;
+}
+
+export interface PymeDiagnosticDocumentDto {
+  id: number;
+  pymeId: number;
+  pymeName: string;
+  pymeLogoUrl: string | null;
+  /** @format date-time */
+  createdAt: string;
+  summary: string;
+  result: DiagnosticPayloadDto;
+  score: number;
+}
+
+export interface PymeDiagnosticDocumentsDto {
+  data: PymeDiagnosticDocumentDto[];
   meta: PaginationMetaDto;
 }
 
@@ -837,6 +920,8 @@ export interface MeetingResultDto {
   deletedAt: string | null;
   pymeId: number;
   consultantId: number;
+  serviceRequestId: number | null;
+  serviceMilestoneIndex: number | null;
   title: string;
   /** @format date-time */
   startTime: string | null;
@@ -852,6 +937,7 @@ export interface MeetingResultDto {
     | "finalizada"
     | "cancelada";
   requestedBy: "pyme" | "consultor";
+  meetingType: "consultoria" | "servicio";
   description: string | null;
   cancellationReason: string | null;
   /** @format date-time */
@@ -874,6 +960,8 @@ export interface MeetingAdminResultDto {
   deletedAt: string | null;
   pymeId: number;
   consultantId: number;
+  serviceRequestId: number | null;
+  serviceMilestoneIndex: number | null;
   title: string;
   /** @format date-time */
   startTime: string | null;
@@ -889,6 +977,7 @@ export interface MeetingAdminResultDto {
     | "finalizada"
     | "cancelada";
   requestedBy: "pyme" | "consultor";
+  meetingType: "consultoria" | "servicio";
   description: string | null;
   cancellationReason: string | null;
   /** @format date-time */
@@ -905,6 +994,8 @@ export interface MeetingCalendarItemDto {
   pymeId: number;
   pymeName: string;
   consultantId: number;
+  serviceRequestId: number | null;
+  serviceMilestoneIndex: number | null;
   consultantName: string;
   consultantPhotoUrl: string | null;
   /** @example "150.00" */
@@ -924,6 +1015,7 @@ export interface MeetingCalendarItemDto {
     | "finalizada"
     | "cancelada";
   requestedBy: "pyme" | "consultor";
+  meetingType: "consultoria" | "servicio";
   description: string | null;
   cancellationReason: string | null;
   /** @format date-time */
@@ -971,6 +1063,15 @@ export interface MeetingCreateDto {
   description?: string;
   /** @default "pyme" */
   requestedBy?: "pyme" | "consultor";
+  /** @default "consultoria" */
+  meetingType?: "consultoria" | "servicio";
+  /** @example 42 */
+  serviceRequestId?: number;
+  /**
+   * @min 0
+   * @example 0
+   */
+  serviceMilestoneIndex?: number;
 }
 
 export interface MeetingConfirmOptionDto {
@@ -1032,7 +1133,7 @@ export interface TaskSuggestionDto {
 export interface MeetingCopilotSummaryDto {
   /** Acta de reunion estructurada en Markdown */
   summary: string;
-  /** Listado de compromisos sugeridos para la PYME */
+  /** Listado de compromisos sugeridos para la PYME y el consultor */
   tasks: TaskSuggestionDto[];
 }
 
@@ -1083,6 +1184,8 @@ export interface MeetingFinalizeTaskDto {
   assignedTo: "pyme" | "consultor";
   /** @example "media" */
   priority: "alta" | "media" | "baja";
+  /** @default "pendiente" */
+  status?: "pendiente" | "en_progreso" | "completada" | "bloqueada";
   /** @example "2026-05-23T00:00:00.000Z" */
   dueDate?: string;
 }
@@ -1115,7 +1218,7 @@ export interface HubsmeAiRunDto {
 export interface HubsmeAiResultDto {
   /** Acta de reunion estructurada en Markdown */
   summary: string;
-  /** Listado de compromisos sugeridos para la PYME */
+  /** Listado de compromisos sugeridos para la PYME y el consultor */
   tasks: TaskSuggestionDto[];
 }
 
@@ -1175,13 +1278,66 @@ export interface ServiceRequestChatMessageDto {
   content: string;
 }
 
+export interface ServiceRequestMilestoneDraftDto {
+  /** @maxLength 240 */
+  title: string;
+  /**
+   * @maxLength 10
+   * @example "2026-09-15"
+   */
+  dueDate: string;
+}
+
 export interface ServiceRequestDraftDto {
   /** @maxLength 160 */
   title: string;
+  category:
+    | ""
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable";
+  /** @maxLength 120 */
+  subcategory: string;
   /** @maxLength 5000 */
   description: string;
   /** @maxLength 5000 */
+  expectedOutcome: string;
+  /** @maxLength 5000 */
   requirements: string;
+  /** @maxItems 20 */
+  deliverables: string[];
+  /** @maxLength 5000 */
+  exclusions: string;
+  /** @maxItems 10 */
+  referenceUrls: string[];
+  budgetType: "" | "fixed" | "range";
+  /** @maxLength 20 */
+  budgetMin: string;
+  /** @maxLength 20 */
+  budgetMax: string;
+  /**
+   * @maxLength 10
+   * @example "2026-09-30"
+   */
+  deadline: string;
+  /**
+   * @maxLength 160
+   * @example "4 semanas"
+   */
+  estimatedDuration: string;
+  workModality: "remote";
+  /** @maxLength 5000 */
+  workMethod: string;
+  /** @maxItems 20 */
+  milestones: ServiceRequestMilestoneDraftDto[];
   /** @maxLength 5000 */
   details: string;
 }
@@ -1202,7 +1358,7 @@ export interface ServiceRequestChatResultDto {
   /** Indica si la PYME ya puede continuar a la revisión de la solicitud */
   isComplete: boolean;
   draft: ServiceRequestDraftDto;
-  /** @maxItems 6 */
+  /** @maxItems 12 */
   missingInformation: string[];
 }
 
@@ -1449,6 +1605,48 @@ export interface ConsultantActiveDto {
   active: "true" | "false";
 }
 
+export interface ConsultantMeetingDocumentDto {
+  id: number;
+  pymeId: number;
+  pymeName: string;
+  pymeLogoUrl: string | null;
+  title: string;
+  description: string | null;
+  status:
+    | "solicitada"
+    | "pago_pendiente"
+    | "por_confirmar"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada";
+  /** @format date-time */
+  startTime: string | null;
+  /** @format date-time */
+  completedAt: string | null;
+}
+
+export interface ConsultantMeetingDocumentsDto {
+  data: ConsultantMeetingDocumentDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface ConsultantDiagnosticDocumentDto {
+  id: number;
+  pymeId: number;
+  pymeName: string;
+  pymeLogoUrl: string | null;
+  /** @format date-time */
+  createdAt: string;
+  summary: string;
+  result: DiagnosticPayloadDto;
+  score: number;
+}
+
+export interface ConsultantDiagnosticDocumentsDto {
+  data: ConsultantDiagnosticDocumentDto[];
+  meta: PaginationMetaDto;
+}
+
 export interface ConsultantCreateDto {
   /** @example 3 */
   userId: number;
@@ -1664,43 +1862,6 @@ export interface TaskUpdateDto {
 
 export interface TaskStatusDto {
   status: "pendiente" | "en_progreso" | "completada" | "bloqueada";
-}
-
-export interface DiagnosticAreaDto {
-  area: string;
-  puntaje: number;
-  estado: string;
-  hallazgo: string;
-}
-
-export interface DiagnosticProblemDto {
-  problema: string;
-  impacto: string;
-  urgencia: "alta" | "media" | "baja";
-}
-
-export interface DiagnosticRecommendationDto {
-  accion: string;
-  beneficioEsperado: string;
-  plazo: string;
-  prioridad: "alta" | "media" | "baja";
-}
-
-export interface DiagnosticFodaDto {
-  fortalezas: string[];
-  oportunidades: string[];
-  debilidades: string[];
-  amenazas: string[];
-}
-
-export interface DiagnosticPayloadDto {
-  resumenEjecutivo: string;
-  puntajeGeneral: number;
-  feedbackIa: string;
-  areasEvaluadas: DiagnosticAreaDto[];
-  problemasCriticos: DiagnosticProblemDto[];
-  recomendaciones: DiagnosticRecommendationDto[];
-  foda?: DiagnosticFodaDto;
 }
 
 export interface DiagnosticResultDto {
@@ -1991,6 +2152,20 @@ export interface MercadoPagoPaymentHistoryResponseDto {
   meta: PaginationMetaDto;
 }
 
+export interface ServiceRequestReferenceAttachmentResultDto {
+  storagePath: string;
+  fileUrl: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
+export interface ServiceRequestMilestoneResultDto {
+  title: string;
+  /** @example "2026-09-15" */
+  dueDate: string;
+}
+
 export interface ServiceRequestResultDto {
   id: number;
   /** @format date-time */
@@ -1999,13 +2174,45 @@ export interface ServiceRequestResultDto {
   updatedAt: string;
   pymeId: number;
   consultantId: number;
+  initialMeetingProposedStartTimes: string[];
+  /** @format date-time */
+  initialMeetingStartTime?: string | null;
   pymeName: string | null;
   consultantName: string | null;
   consultantHeadline?: string | null;
   consultantPhotoUrl?: string | null;
   title: string;
+  category?:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+    | null;
+  subcategory?: string | null;
   description: string;
+  expectedOutcome?: string | null;
   requirements: string;
+  deliverables: string[];
+  exclusions?: string | null;
+  referenceUrls: string[];
+  referenceAttachments: ServiceRequestReferenceAttachmentResultDto[];
+  budgetType?: "fixed" | "range" | null;
+  budgetMin?: string | null;
+  budgetMax?: string | null;
+  /** @example "2026-09-30" */
+  deadline?: string | null;
+  estimatedDuration?: string | null;
+  workModality: "remote";
+  workMethod?: string | null;
+  milestones: ServiceRequestMilestoneResultDto[];
+  meetings: MeetingResultDto[];
   details?: string | null;
   status:
     | "requested"
@@ -2032,7 +2239,25 @@ export interface ServiceRequestListDto {
   meta: PaginationMetaDto;
 }
 
-export interface ServiceRequestCreateDto {
+export interface ServiceRequestInitialMeetingOptionDto {
+  /** @example 12 */
+  consultantId: number;
+  /**
+   * @maxItems 3
+   * @minItems 3
+   * @example ["2026-08-12T15:00:00.000Z","2026-08-13T15:00:00.000Z","2026-08-14T15:00:00.000Z"]
+   */
+  proposedStartTimes: string[];
+}
+
+export interface ServiceRequestMilestoneCreateDto {
+  /** @maxLength 240 */
+  title: string;
+  /** @example "2026-09-15" */
+  dueDate: string;
+}
+
+export interface ServiceRequestCreateMultipartDto {
   /**
    * @maxItems 3
    * @minItems 1
@@ -2040,25 +2265,88 @@ export interface ServiceRequestCreateDto {
    */
   consultantIds: number[];
   /**
+   * @maxItems 3
+   * @minItems 1
+   */
+  initialMeetingOptions: ServiceRequestInitialMeetingOptionDto[];
+  /**
    * @maxLength 160
    * @example "Capacitación de seguridad para el personal"
    */
   title: string;
+  /** @example "Marketing" */
+  category:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable";
+  /**
+   * @maxLength 120
+   * @example "Redes sociales"
+   */
+  subcategory: string;
   /**
    * @maxLength 5000
-   * @example "Necesitamos capacitar a 25 colaboradores de operaciones."
+   * @example "La marca publica sin una estrategia ni calendario definido."
    */
   description: string;
   /**
    * @maxLength 5000
-   * @example "Dos sesiones presenciales, material digital y evaluación final."
+   * @example "Contar con una estrategia y un calendario aplicable durante tres meses."
+   */
+  expectedOutcome: string;
+  /**
+   * @maxLength 5000
+   * @example "Diagnóstico, propuesta y acompañamiento durante la implementación."
    */
   requirements: string;
+  /** @example ["Estrategia documentada en PDF","Calendario editable de 3 meses"] */
+  deliverables: string[];
+  /** @maxLength 5000 */
+  exclusions?: string;
+  /** @maxItems 10 */
+  referenceUrls?: string[];
+  budgetType: "fixed" | "range";
+  /**
+   * @min 0.01
+   * @example 1500
+   */
+  budgetMin: number;
+  /**
+   * @min 0.01
+   * @example 2500
+   */
+  budgetMax?: number;
+  /** @example "2026-09-30" */
+  deadline: string;
+  /**
+   * @maxLength 160
+   * @example "4 semanas"
+   */
+  estimatedDuration: string;
+  /** @example "remote" */
+  workModality: "remote";
+  /**
+   * @maxLength 5000
+   * @example "Una reunión semanal y coordinación asíncrona por correo."
+   */
+  workMethod: string;
+  /** @maxItems 20 */
+  milestones?: ServiceRequestMilestoneCreateDto[];
   /**
    * @maxLength 5000
    * @example "Disponibilidad durante la segunda semana del mes."
    */
   details?: string;
+  /** Hasta 5 archivos de referencia de máximo 10 MB cada uno */
+  files?: File[];
 }
 
 export interface ServiceRequestProposalDto {
@@ -2067,6 +2355,8 @@ export interface ServiceRequestProposalDto {
    * @example 1850.5
    */
   price: number;
+  /** @example "2026-08-12T15:00:00.000Z" */
+  selectedInitialMeetingStartTime?: string;
   /**
    * @maxLength 3000
    * @example "Incluye materiales y dos jornadas de capacitación."
@@ -2080,6 +2370,17 @@ export interface ServiceRequestDeclineDto {
    * @example "No podremos continuar con esta solicitud."
    */
   message?: string;
+}
+
+export interface ServiceRequestMilestoneMeetingDto {
+  /**
+   * @min 0
+   * @max 19
+   * @example 0
+   */
+  milestoneIndex: number;
+  /** @example ["2026-08-19T15:00:00.000Z","2026-08-20T15:00:00.000Z","2026-08-21T15:00:00.000Z"] */
+  proposedStartTimes: string[];
 }
 
 export interface PublicConsultantListItemDto {
@@ -2507,6 +2808,44 @@ export interface PymeMeetingConsultantsParams {
 export type PymeMeetingConsultantsData = ConsultantListDto;
 
 export type PymeMeetingConsultantsError = HttpErrorDto;
+
+export interface PymeMeetingDocumentsParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by document title, content or consultant name */
+  search?: string;
+}
+
+export type PymeMeetingDocumentsData = PymeMeetingDocumentsDto;
+
+export type PymeMeetingDocumentsError = HttpErrorDto;
+
+export interface PymeDiagnosticDocumentsParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by document title, content or consultant name */
+  search?: string;
+}
+
+export type PymeDiagnosticDocumentsData = PymeDiagnosticDocumentsDto;
+
+export type PymeDiagnosticDocumentsError = HttpErrorDto;
 
 export interface PymeFindOneParams {
   id: number;
@@ -3034,6 +3373,45 @@ export type ConsultantMeetingPymesData = PymeListDto;
 
 export type ConsultantMeetingPymesError = HttpErrorDto;
 
+export interface ConsultantMeetingDocumentsParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by document title, content or PYME name */
+  search?: string;
+}
+
+export type ConsultantMeetingDocumentsData = ConsultantMeetingDocumentsDto;
+
+export type ConsultantMeetingDocumentsError = HttpErrorDto;
+
+export interface ConsultantDiagnosticDocumentsParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by document title, content or PYME name */
+  search?: string;
+}
+
+export type ConsultantDiagnosticDocumentsData =
+  ConsultantDiagnosticDocumentsDto;
+
+export type ConsultantDiagnosticDocumentsError = HttpErrorDto;
+
 export interface ConsultantFindOneParams {
   id: number;
 }
@@ -3398,6 +3776,14 @@ export type MercadopagoPrepareServicePaymentData = MercadoPagoCheckoutDto;
 
 export type MercadopagoPrepareServicePaymentError = HttpErrorDto;
 
+export interface MercadopagoSyncServicePaymentParams {
+  id: number;
+}
+
+export type MercadopagoSyncServicePaymentData = MercadoPagoCheckoutDto;
+
+export type MercadopagoSyncServicePaymentError = HttpErrorDto;
+
 export interface MercadopagoWebhookParams {
   /** @example "payment" */
   type?: string;
@@ -3472,6 +3858,14 @@ export interface ServiceDeclineParams {
 export type ServiceDeclineData = ServiceRequestResultDto;
 
 export type ServiceDeclineError = HttpErrorDto;
+
+export interface ServiceScheduleMilestoneMeetingParams {
+  id: number;
+}
+
+export type ServiceScheduleMilestoneMeetingData = ServiceRequestResultDto;
+
+export type ServiceScheduleMilestoneMeetingError = HttpErrorDto;
 
 export interface PublicconsultantFindAllParams {
   /**
@@ -4054,6 +4448,68 @@ export namespace Pyme {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = PymeMeetingConsultantsData;
+  }
+
+  /**
+   * No description
+   * @tags pyme
+   * @name PymeMeetingDocuments
+   * @summary Get the current PYME meeting acts with consultant data
+   * @request GET:/admin/pyme/documents/meetings
+   * @secure
+   * @response `200` `PymeMeetingDocumentsData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeMeetingDocuments {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by document title, content or consultant name */
+      search?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeMeetingDocumentsData;
+  }
+
+  /**
+   * No description
+   * @tags pyme
+   * @name PymeDiagnosticDocuments
+   * @summary Get the current PYME diagnostics with PYME data
+   * @request GET:/admin/pyme/documents/diagnostics
+   * @secure
+   * @response `200` `PymeDiagnosticDocumentsData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PymeDiagnosticDocuments {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by document title, content or consultant name */
+      search?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeDiagnosticDocumentsData;
   }
 
   /**
@@ -5304,6 +5760,68 @@ export namespace Consultant {
   /**
    * No description
    * @tags consultant
+   * @name ConsultantMeetingDocuments
+   * @summary Get the current consultant meeting acts with PYME data
+   * @request GET:/admin/consultant/documents/meetings
+   * @secure
+   * @response `200` `ConsultantMeetingDocumentsData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantMeetingDocuments {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by document title, content or PYME name */
+      search?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantMeetingDocumentsData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantDiagnosticDocuments
+   * @summary Get the current consultant diagnostics with PYME data
+   * @request GET:/admin/consultant/documents/diagnostics
+   * @secure
+   * @response `200` `ConsultantDiagnosticDocumentsData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantDiagnosticDocuments {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by document title, content or PYME name */
+      search?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantDiagnosticDocumentsData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
    * @name ConsultantFindOne
    * @summary Get a consultant profile by ID
    * @request GET:/admin/consultant/find-one/{id}
@@ -6161,6 +6679,26 @@ export namespace MercadoPago {
   /**
    * No description
    * @tags mercadoPago
+   * @name MercadopagoSyncServicePayment
+   * @summary Synchronize an accepted service payment with Mercado Pago
+   * @request POST:/admin/mercado-pago/service/{id}/payment/sync
+   * @secure
+   * @response `200` `MercadopagoSyncServicePaymentData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MercadopagoSyncServicePayment {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MercadopagoSyncServicePaymentData;
+  }
+
+  /**
+   * No description
+   * @tags mercadoPago
    * @name MercadopagoWebhook
    * @summary Mercado Pago payment webhook
    * @request POST:/admin/mercado-pago/webhook
@@ -6265,7 +6803,7 @@ export namespace Service {
   export namespace ServiceCreate {
     export type RequestParams = {};
     export type RequestQuery = {};
-    export type RequestBody = ServiceRequestCreateDto;
+    export type RequestBody = ServiceRequestCreateMultipartDto;
     export type RequestHeaders = {};
     export type ResponseBody = ServiceCreateData;
   }
@@ -6308,6 +6846,26 @@ export namespace Service {
     export type RequestBody = ServiceRequestDeclineDto;
     export type RequestHeaders = {};
     export type ResponseBody = ServiceDeclineData;
+  }
+
+  /**
+   * No description
+   * @tags service
+   * @name ServiceScheduleMilestoneMeeting
+   * @summary Propose three meeting times for a paid service milestone
+   * @request POST:/admin/service/{id}/milestone-meeting
+   * @secure
+   * @response `201` `ServiceScheduleMilestoneMeetingData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ServiceScheduleMilestoneMeeting {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = ServiceRequestMilestoneMeetingDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceScheduleMilestoneMeetingData;
   }
 }
 
@@ -7344,6 +7902,57 @@ export class Api<SecurityDataType extends unknown> {
         PymeMeetingConsultantsError
       >({
         path: `/admin/pyme/meeting-consultants`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pyme
+     * @name PymeMeetingDocuments
+     * @summary Get the current PYME meeting acts with consultant data
+     * @request GET:/admin/pyme/documents/meetings
+     * @secure
+     * @response `200` `PymeMeetingDocumentsData`
+     * @response `400` `HttpErrorDto`
+     */
+    meetingDocuments: (
+      query: PymeMeetingDocumentsParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PymeMeetingDocumentsData, PymeMeetingDocumentsError>({
+        path: `/admin/pyme/documents/meetings`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pyme
+     * @name PymeDiagnosticDocuments
+     * @summary Get the current PYME diagnostics with PYME data
+     * @request GET:/admin/pyme/documents/diagnostics
+     * @secure
+     * @response `200` `PymeDiagnosticDocumentsData`
+     * @response `400` `HttpErrorDto`
+     */
+    diagnosticDocuments: (
+      query: PymeDiagnosticDocumentsParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PymeDiagnosticDocumentsData,
+        PymeDiagnosticDocumentsError
+      >({
+        path: `/admin/pyme/documents/diagnostics`,
         method: "GET",
         query: query,
         secure: true,
@@ -8756,6 +9365,60 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags consultant
+     * @name ConsultantMeetingDocuments
+     * @summary Get the current consultant meeting acts with PYME data
+     * @request GET:/admin/consultant/documents/meetings
+     * @secure
+     * @response `200` `ConsultantMeetingDocumentsData`
+     * @response `400` `HttpErrorDto`
+     */
+    meetingDocuments: (
+      query: ConsultantMeetingDocumentsParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantMeetingDocumentsData,
+        ConsultantMeetingDocumentsError
+      >({
+        path: `/admin/consultant/documents/meetings`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantDiagnosticDocuments
+     * @summary Get the current consultant diagnostics with PYME data
+     * @request GET:/admin/consultant/documents/diagnostics
+     * @secure
+     * @response `200` `ConsultantDiagnosticDocumentsData`
+     * @response `400` `HttpErrorDto`
+     */
+    diagnosticDocuments: (
+      query: ConsultantDiagnosticDocumentsParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantDiagnosticDocumentsData,
+        ConsultantDiagnosticDocumentsError
+      >({
+        path: `/admin/consultant/documents/diagnostics`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
      * @name ConsultantFindOne
      * @summary Get a consultant profile by ID
      * @request GET:/admin/consultant/find-one/{id}
@@ -9700,6 +10363,32 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags mercadoPago
+     * @name MercadopagoSyncServicePayment
+     * @summary Synchronize an accepted service payment with Mercado Pago
+     * @request POST:/admin/mercado-pago/service/{id}/payment/sync
+     * @secure
+     * @response `200` `MercadopagoSyncServicePaymentData`
+     * @response `400` `HttpErrorDto`
+     */
+    mercadopagoSyncServicePayment: (
+      { id }: MercadopagoSyncServicePaymentParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MercadopagoSyncServicePaymentData,
+        MercadopagoSyncServicePaymentError
+      >({
+        path: `/admin/mercado-pago/service/${id}/payment/sync`,
+        method: "POST",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags mercadoPago
      * @name MercadopagoWebhook
      * @summary Mercado Pago payment webhook
      * @request POST:/admin/mercado-pago/webhook
@@ -9775,7 +10464,7 @@ export class Api<SecurityDataType extends unknown> {
      * @response `400` `HttpErrorDto`
      */
     create: (
-      data: ServiceRequestCreateDto,
+      data: ServiceRequestCreateMultipartDto,
       params: RequestParams = {},
     ) =>
       this.http.request<ServiceCreateData, ServiceCreateError>({
@@ -9783,7 +10472,7 @@ export class Api<SecurityDataType extends unknown> {
         method: "POST",
         body: data,
         secure: true,
-        type: ContentType.Json,
+        type: ContentType.FormData,
         format: "json",
         ...params,
       }),
@@ -9832,6 +10521,35 @@ export class Api<SecurityDataType extends unknown> {
     ) =>
       this.http.request<ServiceDeclineData, ServiceDeclineError>({
         path: `/admin/service/decline/${id}`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags service
+     * @name ServiceScheduleMilestoneMeeting
+     * @summary Propose three meeting times for a paid service milestone
+     * @request POST:/admin/service/{id}/milestone-meeting
+     * @secure
+     * @response `201` `ServiceScheduleMilestoneMeetingData`
+     * @response `400` `HttpErrorDto`
+     */
+    scheduleMilestoneMeeting: (
+      { id }: ServiceScheduleMilestoneMeetingParams,
+      data: ServiceRequestMilestoneMeetingDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ServiceScheduleMilestoneMeetingData,
+        ServiceScheduleMilestoneMeetingError
+      >({
+        path: `/admin/service/${id}/milestone-meeting`,
         method: "POST",
         body: data,
         secure: true,

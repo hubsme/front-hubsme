@@ -300,9 +300,9 @@
     </div>
 
     @if (wizardStep() === 1) {
-      <div class="grid min-h-[570px] lg:grid-cols-[minmax(0,1.55fr)_minmax(270px,0.75fr)]">
-        <section class="flex min-h-0 flex-col border-b border-border lg:border-b-0 lg:border-r">
-          <div class="border-b border-border px-5 py-4 sm:px-6">
+      <div class="grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1.55fr)_minmax(270px,0.75fr)]">
+        <section class="flex flex-col border-b border-border lg:min-h-0 lg:border-b-0 lg:border-r">
+          <div class="shrink-0 border-b border-border px-5 py-4 sm:px-6">
             <div class="flex items-center gap-3">
               <span
                 class="grid size-10 place-items-center rounded-2xl bg-secondary text-fixed-text-50 shadow-sm shadow-secondary/20"
@@ -318,7 +318,9 @@
             </div>
           </div>
 
-          <div class="h-[360px] space-y-4 overflow-y-auto bg-background-50/40 p-5 sm:p-6">
+          <div
+            class="h-80 flex-none space-y-4 overflow-y-auto bg-background-50/40 p-5 sm:h-[360px] sm:p-6 lg:h-auto lg:min-h-[260px] lg:flex-1"
+          >
             @for (message of chatMessages(); track $index) {
               <div class="flex gap-2.5" [class.justify-end]="message.role === 'user'">
                 @if (message.role === 'assistant') {
@@ -364,7 +366,7 @@
             }
           </div>
 
-          <div class="mt-auto border-t border-border bg-surface p-4 sm:p-5">
+          <div class="shrink-0 border-t border-border bg-surface p-4 sm:p-5">
             @if (chatComplete()) {
               <div
                 class="mb-3 flex items-center gap-2 rounded-xl border border-success/20 bg-success/5 px-3 py-2.5 text-xs text-success"
@@ -375,15 +377,16 @@
             }
             <div class="relative">
               <textarea
-                rows="2"
+                #serviceChatInput
+                rows="1"
                 maxlength="2000"
                 name="serviceChatMessage"
                 [ngModel]="chatInput()"
-                (ngModelChange)="chatInput.set($event)"
+                (ngModelChange)="updateChatInput($event)"
                 (keydown)="handleChatKeydown($event)"
                 [disabled]="chatLoading() || chatComplete()"
                 placeholder="Escribe tu respuesta..."
-                class="block w-full resize-none rounded-2xl border border-border bg-background-50 py-3 pl-4 pr-14 text-sm leading-relaxed outline-none transition placeholder:text-muted/70 focus:border-secondary focus:ring-4 focus:ring-secondary/10 disabled:opacity-60"
+                class="block min-h-20 max-h-36 w-full resize-none overflow-y-auto rounded-2xl border border-border bg-background-50 py-3 pl-4 pr-14 text-sm leading-relaxed outline-none transition [scrollbar-width:none] placeholder:text-muted/70 focus:border-secondary focus:ring-4 focus:ring-secondary/10 disabled:opacity-60 [&::-webkit-scrollbar]:hidden"
               ></textarea>
               <button
                 type="button"
@@ -401,11 +404,11 @@
           </div>
         </section>
 
-        <aside class="flex flex-col bg-surface p-5 sm:p-6">
+        <aside class="flex flex-col bg-surface p-5 sm:p-6 lg:min-h-0 lg:overflow-y-auto">
           <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
             Resumen en progreso
           </p>
-          @if (title() || description() || requirements()) {
+          @if (title() || description() || expectedOutcome() || requirements()) {
             <div class="mt-4 space-y-4">
               <div>
                 <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-secondary">
@@ -413,9 +416,19 @@
                 </p>
                 <p class="mt-1 text-sm font-inter-bold">{{ title() || 'Por definir' }}</p>
               </div>
+              @if (category()) {
+                <div>
+                  <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                    Clasificación
+                  </p>
+                  <p class="mt-1 text-xs leading-relaxed text-muted">
+                    {{ category() }} · {{ subcategory() || 'Por definir' }}
+                  </p>
+                </div>
+              }
               <div>
                 <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
-                  Objetivo
+                  Necesidad
                 </p>
                 <p class="mt-1 line-clamp-4 text-xs leading-relaxed text-muted">
                   {{ description() || 'Por definir' }}
@@ -423,12 +436,36 @@
               </div>
               <div>
                 <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
-                  Alcance
+                  Resultado esperado
                 </p>
                 <p class="mt-1 line-clamp-4 text-xs leading-relaxed text-muted">
-                  {{ requirements() || 'Por definir' }}
+                  {{ expectedOutcome() || 'Por definir' }}
                 </p>
               </div>
+              @if (budgetMin() || deadline()) {
+                <div class="grid grid-cols-2 gap-3 border-t border-border pt-3">
+                  <div>
+                    <p class="text-[0.65rem] font-inter-bold uppercase tracking-wide text-muted">
+                      Presupuesto
+                    </p>
+                    <p class="mt-1 text-xs font-inter-semibold">
+                      @if (budgetType() === 'range' && budgetMax()) {
+                        S/ {{ budgetMin() }} – {{ budgetMax() }}
+                      } @else {
+                        {{ budgetMin() ? 'S/ ' + budgetMin() : 'Por definir' }}
+                      }
+                    </p>
+                  </div>
+                  <div>
+                    <p class="text-[0.65rem] font-inter-bold uppercase tracking-wide text-muted">
+                      Fecha límite
+                    </p>
+                    <p class="mt-1 text-xs font-inter-semibold">
+                      {{ deadline() || 'Por definir' }}
+                    </p>
+                  </div>
+                </div>
+              }
             </div>
           } @else {
             <div class="mt-5 rounded-2xl border border-dashed border-border p-5 text-center">
@@ -481,63 +518,510 @@
           </div>
         </div>
 
-        <div class="mt-6 grid gap-5 lg:grid-cols-2">
-          <label class="block lg:col-span-2">
-            <span
-              class="mb-1.5 flex justify-between text-xs font-inter-bold uppercase tracking-wide text-muted"
+        <div class="mt-6 space-y-6">
+          <section class="rounded-2xl border border-border p-5">
+            <div class="mb-5 flex items-start gap-3 border-b border-border pb-4">
+              <span
+                class="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary"
+              >
+                <i class="fas fa-clipboard-list"></i>
+              </span>
+              <div>
+                <h3 class="text-sm font-inter-bold">Información esencial</h3>
+                <p class="mt-1 text-xs text-muted">
+                  Define la necesidad y el resultado que esperas obtener.
+                </p>
+              </div>
+            </div>
+            <div class="grid gap-5 lg:grid-cols-2">
+              <label class="block lg:col-span-2">
+                <span
+                  class="mb-1.5 flex justify-between text-xs font-inter-bold uppercase tracking-wide text-muted"
+                >
+                  <span>Título claro del servicio <span class="text-danger">*</span></span>
+                  <span class="font-inter-regular normal-case">{{ title().length }}/160</span>
+                </span>
+                <input
+                  type="text"
+                  maxlength="160"
+                  name="serviceTitle"
+                  [ngModel]="title()"
+                  (ngModelChange)="title.set($event)"
+                  placeholder="Ej. Diseño de logotipo para marca de alimentos"
+                  class="h-11 w-full rounded-xl border border-border bg-background-50 px-4 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                />
+              </label>
+              <label class="block">
+                <span
+                  class="mb-1.5 block text-xs font-inter-bold uppercase tracking-wide text-muted"
+                >
+                  Categoría <span class="text-danger">*</span>
+                </span>
+                <select
+                  name="serviceCategory"
+                  [ngModel]="category()"
+                  (ngModelChange)="changeCategory($event)"
+                  class="h-11 w-full rounded-xl border border-border bg-background-50 px-3 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                >
+                  <option value="">Selecciona una categoría</option>
+                  @for (option of categoryOptions; track option.category) {
+                    <option [value]="option.category">{{ option.category }}</option>
+                  }
+                </select>
+              </label>
+              <label class="block">
+                <span
+                  class="mb-1.5 block text-xs font-inter-bold uppercase tracking-wide text-muted"
+                >
+                  Subcategoría <span class="text-danger">*</span>
+                </span>
+                <select
+                  name="serviceSubcategory"
+                  [ngModel]="subcategory()"
+                  (ngModelChange)="subcategory.set($event)"
+                  [disabled]="!category()"
+                  class="h-11 w-full rounded-xl border border-border bg-background-50 px-3 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10 disabled:opacity-60"
+                >
+                  <option value="">Selecciona una subcategoría</option>
+                  @for (option of subcategoryOptions(); track option) {
+                    <option [value]="option">{{ option }}</option>
+                  }
+                </select>
+              </label>
+              <label class="block">
+                <span
+                  class="mb-1.5 flex justify-between text-xs font-inter-bold uppercase tracking-wide text-muted"
+                >
+                  <span>Problema o necesidad actual <span class="text-danger">*</span></span>
+                  <span class="font-inter-regular normal-case"
+                    >{{ description().length }}/5000</span
+                  >
+                </span>
+                <textarea
+                  rows="5"
+                  maxlength="5000"
+                  name="serviceDescription"
+                  [ngModel]="description()"
+                  (ngModelChange)="description.set($event)"
+                  placeholder="Explica qué sucede hoy y por qué necesitas apoyo."
+                  class="w-full resize-y rounded-xl border border-border bg-background-50 px-4 py-3 text-sm leading-relaxed outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                ></textarea>
+              </label>
+              <label class="block">
+                <span
+                  class="mb-1.5 flex justify-between text-xs font-inter-bold uppercase tracking-wide text-muted"
+                >
+                  <span>Resultado esperado <span class="text-danger">*</span></span>
+                  <span class="font-inter-regular normal-case"
+                    >{{ expectedOutcome().length }}/5000</span
+                  >
+                </span>
+                <textarea
+                  rows="5"
+                  maxlength="5000"
+                  name="serviceExpectedOutcome"
+                  [ngModel]="expectedOutcome()"
+                  (ngModelChange)="expectedOutcome.set($event)"
+                  placeholder="Describe la meta final o cómo sabrás que el trabajo fue exitoso."
+                  class="w-full resize-y rounded-xl border border-border bg-background-50 px-4 py-3 text-sm leading-relaxed outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                ></textarea>
+              </label>
+            </div>
+          </section>
+
+          <section class="rounded-2xl border border-border p-5">
+            <div class="mb-5 flex items-start gap-3 border-b border-border pb-4">
+              <span
+                class="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary"
+              >
+                <i class="fas fa-list-check"></i>
+              </span>
+              <div>
+                <h3 class="text-sm font-inter-bold">Alcance y entregables</h3>
+                <p class="mt-1 text-xs text-muted">
+                  Aclara qué debe hacer el consultor y qué recibirás.
+                </p>
+              </div>
+            </div>
+            <label class="block">
+              <span
+                class="mb-1.5 flex justify-between text-xs font-inter-bold uppercase tracking-wide text-muted"
+              >
+                <span>Alcance del trabajo <span class="text-danger">*</span></span>
+                <span class="font-inter-regular normal-case">{{ requirements().length }}/5000</span>
+              </span>
+              <textarea
+                rows="4"
+                maxlength="5000"
+                name="serviceRequirements"
+                [ngModel]="requirements()"
+                (ngModelChange)="requirements.set($event)"
+                placeholder="Actividades, volumen, áreas involucradas y límites del servicio."
+                class="w-full resize-y rounded-xl border border-border bg-background-50 px-4 py-3 text-sm leading-relaxed outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+              ></textarea>
+            </label>
+            <div class="mt-5">
+              <div class="mb-2 flex items-center justify-between gap-3">
+                <p class="text-xs font-inter-bold uppercase tracking-wide text-muted">
+                  Entregables específicos <span class="text-danger">*</span>
+                </p>
+                <button
+                  type="button"
+                  (click)="addDeliverable()"
+                  [disabled]="deliverables().length >= 20"
+                  class="text-xs font-inter-bold text-secondary disabled:opacity-40"
+                >
+                  <i class="fas fa-plus mr-1"></i>Agregar entregable
+                </button>
+              </div>
+              <div class="space-y-2">
+                @for (deliverable of deliverables(); track $index) {
+                  <div class="flex gap-2">
+                    <input
+                      type="text"
+                      maxlength="500"
+                      [name]="'serviceDeliverable' + $index"
+                      [ngModel]="deliverable"
+                      (ngModelChange)="updateDeliverable($index, $event)"
+                      placeholder="Ej. Manual de marca en PDF"
+                      class="h-11 min-w-0 flex-1 rounded-xl border border-border bg-background-50 px-4 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                    />
+                    <button
+                      type="button"
+                      (click)="removeDeliverable($index)"
+                      aria-label="Quitar entregable"
+                      class="grid size-11 shrink-0 place-items-center rounded-xl border border-border text-muted transition hover:border-danger/30 hover:text-danger"
+                    >
+                      <i class="fas fa-trash-can"></i>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+            <label class="mt-5 block">
+              <span
+                class="mb-1.5 flex justify-between text-xs font-inter-bold uppercase tracking-wide text-muted"
+              >
+                <span
+                  >Lo que no incluye
+                  <span class="font-inter-regular normal-case">(opcional)</span></span
+                >
+                <span class="font-inter-regular normal-case">{{ exclusions().length }}/5000</span>
+              </span>
+              <textarea
+                rows="3"
+                maxlength="5000"
+                name="serviceExclusions"
+                [ngModel]="exclusions()"
+                (ngModelChange)="exclusions.set($event)"
+                placeholder="Ej. No incluye impresión ni gestión de pauta publicitaria."
+                class="w-full resize-y rounded-xl border border-border bg-background-50 px-4 py-3 text-sm leading-relaxed outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+              ></textarea>
+            </label>
+          </section>
+
+          <section class="rounded-2xl border border-border p-5">
+            <div class="mb-5 flex items-start gap-3 border-b border-border pb-4">
+              <span
+                class="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary"
+              >
+                <i class="fas fa-paperclip"></i>
+              </span>
+              <div>
+                <h3 class="text-sm font-inter-bold">Insumos y referencias</h3>
+                <p class="mt-1 text-xs text-muted">
+                  Opcional: comparte ejemplos, documentos o enlaces de contexto.
+                </p>
+              </div>
+            </div>
+            <div class="space-y-2">
+              @for (url of referenceUrls(); track $index) {
+                <div class="flex gap-2">
+                  <input
+                    type="url"
+                    maxlength="1000"
+                    [name]="'serviceReferenceUrl' + $index"
+                    [ngModel]="url"
+                    (ngModelChange)="updateReferenceUrl($index, $event)"
+                    placeholder="https://drive.google.com/... o https://figma.com/..."
+                    class="h-11 min-w-0 flex-1 rounded-xl border border-border bg-background-50 px-4 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                  />
+                  <button
+                    type="button"
+                    (click)="removeReferenceUrl($index)"
+                    aria-label="Quitar enlace"
+                    class="grid size-11 shrink-0 place-items-center rounded-xl border border-border text-muted transition hover:border-danger/30 hover:text-danger"
+                  >
+                    <i class="fas fa-trash-can"></i>
+                  </button>
+                </div>
+              }
+            </div>
+            <button
+              type="button"
+              (click)="addReferenceUrl()"
+              [disabled]="referenceUrls().length >= 10"
+              class="mt-2 text-xs font-inter-bold text-secondary disabled:opacity-40"
             >
-              <span>Título <span class="text-danger">*</span></span
-              ><span class="font-inter-regular normal-case">{{ title().length }}/160</span>
-            </span>
-            <input
-              type="text"
-              maxlength="160"
-              name="serviceTitle"
-              [ngModel]="title()"
-              (ngModelChange)="title.set($event)"
-              class="h-11 w-full rounded-xl border border-border bg-background-50 px-4 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
-            />
-          </label>
-          <label class="block">
-            <span
-              class="mb-1.5 flex justify-between text-xs font-inter-bold uppercase tracking-wide text-muted"
-            >
-              <span>Descripción <span class="text-danger">*</span></span
-              ><span class="font-inter-regular normal-case">{{ description().length }}/5000</span>
-            </span>
-            <textarea
-              rows="7"
-              maxlength="5000"
-              name="serviceDescription"
-              [ngModel]="description()"
-              (ngModelChange)="description.set($event)"
-              class="w-full resize-y rounded-xl border border-border bg-background-50 px-4 py-3 text-sm leading-relaxed outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
-            ></textarea>
-          </label>
-          <label class="block">
-            <span
-              class="mb-1.5 flex justify-between text-xs font-inter-bold uppercase tracking-wide text-muted"
-            >
-              <span>Alcance y entregables <span class="text-danger">*</span></span
-              ><span class="font-inter-regular normal-case">{{ requirements().length }}/5000</span>
-            </span>
-            <textarea
-              rows="7"
-              maxlength="5000"
-              name="serviceRequirements"
-              [ngModel]="requirements()"
-              (ngModelChange)="requirements.set($event)"
-              class="w-full resize-y rounded-xl border border-border bg-background-50 px-4 py-3 text-sm leading-relaxed outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
-            ></textarea>
-          </label>
-          <label class="block lg:col-span-2">
+              <i class="fas fa-plus mr-1"></i>Agregar otro enlace
+            </button>
+
+            <div class="mt-5 rounded-2xl border border-dashed border-border bg-background-50 p-4">
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p class="text-sm font-inter-semibold">Archivos de referencia</p>
+                  <p class="mt-1 text-xs text-muted">
+                    PDF, imágenes u Office · máximo 5 archivos de 10 MB.
+                  </p>
+                </div>
+                <label
+                  class="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl border border-secondary/30 bg-surface px-4 text-xs font-inter-bold text-secondary transition hover:bg-secondary/5"
+                >
+                  <i class="fas fa-cloud-arrow-up"></i>Adjuntar archivos
+                  <input
+                    type="file"
+                    multiple
+                    accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
+                    class="hidden"
+                    (change)="selectReferenceFiles($event)"
+                  />
+                </label>
+              </div>
+              @if (referenceFiles().length) {
+                <div class="mt-4 space-y-2">
+                  @for (file of referenceFiles(); track file.name + file.size) {
+                    <div
+                      class="flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5"
+                    >
+                      <i class="fas fa-file text-secondary"></i>
+                      <div class="min-w-0 flex-1">
+                        <p class="truncate text-xs font-inter-semibold">{{ file.name }}</p>
+                        <p class="mt-0.5 text-[0.68rem] text-muted">
+                          {{ formatFileSize(file.size) }}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        (click)="removeReferenceFile($index)"
+                        aria-label="Quitar archivo"
+                        class="grid size-8 place-items-center rounded-lg text-muted transition hover:bg-danger/5 hover:text-danger"
+                      >
+                        <i class="fas fa-xmark"></i>
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </section>
+
+          <section class="rounded-2xl border border-border p-5">
+            <div class="mb-5 flex items-start gap-3 border-b border-border pb-4">
+              <span
+                class="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary"
+              >
+                <i class="fas fa-calendar-check"></i>
+              </span>
+              <div>
+                <h3 class="text-sm font-inter-bold">Condiciones operativas</h3>
+                <p class="mt-1 text-xs text-muted">
+                  Define presupuesto, tiempos y forma de colaboración.
+                </p>
+              </div>
+            </div>
+            <div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              <label class="block">
+                <span
+                  class="mb-1.5 block text-xs font-inter-bold uppercase tracking-wide text-muted"
+                >
+                  Presupuesto <span class="text-danger">*</span>
+                </span>
+                <select
+                  name="serviceBudgetType"
+                  [ngModel]="budgetType()"
+                  (ngModelChange)="changeBudgetType($event)"
+                  class="h-11 w-full rounded-xl border border-border bg-background-50 px-3 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                >
+                  <option value="">Selecciona</option>
+                  <option value="fixed">Monto fijo</option>
+                  <option value="range">Rango</option>
+                </select>
+              </label>
+              <label class="block">
+                <span
+                  class="mb-1.5 block text-xs font-inter-bold uppercase tracking-wide text-muted"
+                >
+                  {{ budgetType() === 'range' ? 'Desde' : 'Monto' }}
+                  <span class="text-danger">*</span>
+                </span>
+                <span class="relative block">
+                  <span
+                    class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-inter-semibold text-muted"
+                    >S/</span
+                  >
+                  <input
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    name="serviceBudgetMin"
+                    [ngModel]="budgetMin()"
+                    (ngModelChange)="changeBudgetMin($event)"
+                    class="h-11 w-full rounded-xl border border-border bg-background-50 pl-9 pr-3 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                  />
+                </span>
+              </label>
+              @if (budgetType() === 'range') {
+                <label class="block">
+                  <span
+                    class="mb-1.5 block text-xs font-inter-bold uppercase tracking-wide text-muted"
+                  >
+                    Hasta <span class="text-danger">*</span>
+                  </span>
+                  <span class="relative block">
+                    <span
+                      class="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-inter-semibold text-muted"
+                      >S/</span
+                    >
+                    <input
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      name="serviceBudgetMax"
+                      [ngModel]="budgetMax()"
+                      (ngModelChange)="changeBudgetMax($event)"
+                      class="h-11 w-full rounded-xl border border-border bg-background-50 pl-9 pr-3 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                    />
+                  </span>
+                </label>
+              }
+              <label class="block">
+                <span
+                  class="mb-1.5 block text-xs font-inter-bold uppercase tracking-wide text-muted"
+                >
+                  Fecha límite <span class="text-danger">*</span>
+                </span>
+                <input
+                  type="date"
+                  [min]="minimumDeadline"
+                  name="serviceDeadline"
+                  [ngModel]="deadline()"
+                  (ngModelChange)="deadline.set($event)"
+                  class="h-11 w-full rounded-xl border border-border bg-background-50 px-3 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                />
+              </label>
+              <label class="block lg:col-span-2">
+                <span
+                  class="mb-1.5 block text-xs font-inter-bold uppercase tracking-wide text-muted"
+                >
+                  Duración estimada <span class="text-danger">*</span>
+                </span>
+                <input
+                  type="text"
+                  maxlength="160"
+                  name="serviceEstimatedDuration"
+                  [ngModel]="estimatedDuration()"
+                  (ngModelChange)="estimatedDuration.set($event)"
+                  placeholder="Ej. 4 semanas o 24 horas de trabajo"
+                  class="h-11 w-full rounded-xl border border-border bg-background-50 px-4 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                />
+              </label>
+              <label class="block lg:col-span-2">
+                <span
+                  class="mb-1.5 block text-xs font-inter-bold uppercase tracking-wide text-muted"
+                >
+                  Modalidad <span class="text-danger">*</span>
+                </span>
+                <select
+                  disabled
+                  class="h-11 w-full rounded-xl border border-border bg-background-50 px-3 text-sm opacity-70"
+                >
+                  <option>Remoto</option>
+                </select>
+              </label>
+              <label class="block sm:col-span-2 lg:col-span-4">
+                <span
+                  class="mb-1.5 flex justify-between text-xs font-inter-bold uppercase tracking-wide text-muted"
+                >
+                  <span>Cómo se realizará el trabajo <span class="text-danger">*</span></span>
+                  <span class="font-inter-regular normal-case">{{ workMethod().length }}/5000</span>
+                </span>
+                <textarea
+                  rows="3"
+                  maxlength="5000"
+                  name="serviceWorkMethod"
+                  [ngModel]="workMethod()"
+                  (ngModelChange)="workMethod.set($event)"
+                  placeholder="Ej. Reunión semanal, coordinación por correo y revisión conjunta de cada entrega."
+                  class="w-full resize-y rounded-xl border border-border bg-background-50 px-4 py-3 text-sm leading-relaxed outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                ></textarea>
+              </label>
+            </div>
+
+            <div class="mt-5 border-t border-border pt-5">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <p class="text-xs font-inter-bold uppercase tracking-wide text-muted">
+                    Hitos intermedios
+                  </p>
+                  <p class="mt-1 text-xs text-muted">
+                    Opcional para proyectos con entregas parciales.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  (click)="addMilestone()"
+                  [disabled]="milestones().length >= 20"
+                  class="text-xs font-inter-bold text-secondary disabled:opacity-40"
+                >
+                  <i class="fas fa-plus mr-1"></i>Agregar hito
+                </button>
+              </div>
+              @if (milestones().length) {
+                <div class="mt-3 space-y-2">
+                  @for (milestone of milestones(); track $index) {
+                    <div class="grid gap-2 sm:grid-cols-[1fr_11rem_auto]">
+                      <input
+                        type="text"
+                        maxlength="240"
+                        [name]="'serviceMilestoneTitle' + $index"
+                        [ngModel]="milestone.title"
+                        (ngModelChange)="updateMilestone($index, 'title', $event)"
+                        placeholder="Nombre de la entrega parcial"
+                        class="h-11 rounded-xl border border-border bg-background-50 px-4 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                      />
+                      <input
+                        type="date"
+                        [min]="minimumDeadline"
+                        [max]="deadline() || undefined"
+                        [name]="'serviceMilestoneDate' + $index"
+                        [ngModel]="milestone.dueDate"
+                        (ngModelChange)="updateMilestone($index, 'dueDate', $event)"
+                        class="h-11 rounded-xl border border-border bg-background-50 px-3 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                      />
+                      <button
+                        type="button"
+                        (click)="removeMilestone($index)"
+                        aria-label="Quitar hito"
+                        class="grid size-11 place-items-center rounded-xl border border-border text-muted transition hover:border-danger/30 hover:text-danger"
+                      >
+                        <i class="fas fa-trash-can"></i>
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </section>
+
+          <label class="block rounded-2xl border border-border p-5">
             <span
               class="mb-1.5 flex justify-between text-xs font-inter-bold uppercase tracking-wide text-muted"
             >
               <span
                 >Detalles adicionales
                 <span class="font-inter-regular normal-case">(opcional)</span></span
-              ><span class="font-inter-regular normal-case">{{ details().length }}/5000</span>
+              >
+              <span class="font-inter-regular normal-case">{{ details().length }}/5000</span>
             </span>
             <textarea
               rows="3"
@@ -680,65 +1164,146 @@
           </section>
         }
 
-        <section class="mt-6 rounded-2xl border border-border p-5">
-          <div class="flex items-center justify-between gap-3">
-            <div>
-              <h3 class="font-inter-bold">Destinatarios</h3>
-              <p class="mt-1 text-xs text-muted">
-                La solicitud se enviará por separado a cada consultor.
-              </p>
+        <section class="mt-6 rounded-2xl border border-secondary/25 bg-secondary/5 p-5">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div class="flex items-start gap-3">
+              <span
+                class="grid size-10 shrink-0 place-items-center rounded-xl bg-secondary text-fixed-text-50"
+                ><i class="fas fa-calendar-plus"></i
+              ></span>
+              <div>
+                <h3 class="font-inter-bold">Destinatarios y reunión inicial</h3>
+                <p class="mt-1 max-w-3xl text-xs leading-relaxed text-muted">
+                  La solicitud se enviará por separado. Elige tres horarios disponibles de una hora,
+                  cada uno en un día diferente; uno será confirmado al cotizar y la reunión se
+                  creará después del pago.
+                </p>
+              </div>
             </div>
             <span
-              class="text-xs font-inter-bold"
+              class="shrink-0 text-xs font-inter-bold"
               [class.text-secondary]="selectedConsultants().length"
               [class.text-muted]="!selectedConsultants().length"
               >{{ selectedConsultants().length }} de 3</span
             >
           </div>
+
           @if (selectedConsultants().length) {
-            <div class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="mt-5 grid gap-4 lg:grid-cols-3">
               @for (consultant of selectedConsultants(); track consultant.userId) {
-                <div class="flex items-center gap-3 rounded-xl bg-background-50 p-3">
-                  @if (consultant.photoUrl) {
-                    <img
-                      [src]="consultant.photoUrl"
-                      [alt]="consultant.fullName"
-                      class="size-9 rounded-lg object-cover"
-                    />
-                  } @else {
-                    <span
-                      class="grid size-9 place-items-center rounded-lg bg-secondary/10 text-secondary"
-                      ><i class="fas fa-user-tie text-xs"></i
-                    ></span>
-                  }
-                  <div class="min-w-0 flex-1">
-                    <p class="truncate text-xs font-inter-bold">{{ consultant.fullName }}</p>
-                    <p class="mt-0.5 truncate text-[0.68rem] text-muted">
-                      {{ consultant.headline || consultant.specialties[0] || 'Consultor HUBSME' }}
-                    </p>
-                  </div>
+                <article
+                  class="relative flex min-w-0 flex-col rounded-2xl border border-border bg-surface p-4"
+                >
                   <button
                     type="button"
                     (click)="removeConsultant(consultant.userId)"
-                    aria-label="Quitar consultor"
-                    class="grid size-7 place-items-center rounded-lg text-muted transition hover:bg-danger/10 hover:text-danger"
+                    [attr.aria-label]="'Quitar a ' + consultant.fullName"
+                    class="absolute right-3 top-3 z-10 grid size-8 place-items-center rounded-lg text-muted transition hover:bg-danger/10 hover:text-danger"
                   >
                     <i class="fas fa-xmark"></i>
                   </button>
-                </div>
+
+                  <div class="flex items-center gap-3 pr-9">
+                    @if (consultant.photoUrl) {
+                      <img
+                        [src]="consultant.photoUrl"
+                        [alt]="consultant.fullName"
+                        class="size-11 shrink-0 rounded-xl object-cover"
+                      />
+                    } @else {
+                      <span
+                        class="grid size-11 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary"
+                        ><i class="fas fa-user-tie text-sm"></i
+                      ></span>
+                    }
+                    <div class="min-w-0">
+                      <p class="truncate text-sm font-inter-bold">{{ consultant.fullName }}</p>
+                      <p class="mt-0.5 truncate text-[0.68rem] text-muted">
+                        {{ consultant.headline || consultant.specialties[0] || 'Consultor HUBSME' }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="mt-4 border-t border-border pt-4">
+                    <div class="flex items-center justify-between gap-2">
+                      <p class="text-xs font-inter-bold">Horarios propuestos</p>
+                      @if (initialMeetingAvailabilityLoading()) {
+                        <i
+                          class="fas fa-spinner fa-spin text-secondary"
+                          aria-label="Cargando disponibilidad"
+                        ></i>
+                      } @else if (hasEnoughInitialMeetingDays(consultant.userId)) {
+                        <span class="inline-flex items-center gap-1 text-[0.65rem] text-success">
+                          <i class="fas fa-circle-check"></i> Disponible
+                        </span>
+                      }
+                    </div>
+
+                    @if (hasEnoughInitialMeetingDays(consultant.userId)) {
+                      <div class="mt-3 space-y-3">
+                        @for (time of initialMeetingTimesFor(consultant.userId); track $index) {
+                          <div class="block min-w-0">
+                            <span
+                              class="mb-1.5 block text-[0.65rem] font-inter-semibold text-muted"
+                            >
+                              Opción {{ $index + 1 }}
+                            </span>
+                            <app-time-slot-picker
+                              [value]="time"
+                              [options]="initialMeetingAvailabilityFor(consultant.userId)"
+                              [disabledValues]="
+                                initialMeetingDisabledValuesFor(consultant.userId, $index)
+                              "
+                              [ariaLabel]="
+                                'Seleccionar opción ' +
+                                ($index + 1) +
+                                ' para ' +
+                                consultant.fullName
+                              "
+                              [dropdownPosition]="$index === 2 ? 'up' : 'down'"
+                              (valueChange)="
+                                updateInitialMeetingTime(consultant.userId, $index, $event)
+                              "
+                            />
+                          </div>
+                        }
+                      </div>
+                      <p class="mt-4 text-[0.65rem] leading-relaxed text-muted">
+                        Elige una opción en tres días distintos, según su calendario conectado.
+                      </p>
+                    } @else if (initialMeetingAvailabilityLoading()) {
+                      <div
+                        class="mt-3 rounded-xl border border-dashed border-border px-3 py-5 text-center text-xs text-muted"
+                      >
+                        Buscando horarios libres...
+                      </div>
+                    } @else {
+                      <div
+                        class="mt-3 rounded-xl border border-warning/20 bg-warning/5 px-3 py-5 text-center text-xs leading-relaxed text-muted"
+                      >
+                        Este consultor no tiene horarios disponibles en tres días diferentes entre
+                        esta semana y la próxima.
+                      </div>
+                    }
+                  </div>
+                </article>
               }
             </div>
           } @else {
             <div
-              class="mt-4 rounded-xl border border-dashed border-border px-4 py-6 text-center text-xs text-muted"
+              class="mt-5 rounded-xl border border-dashed border-border px-4 py-7 text-center text-xs text-muted"
             >
-              Selecciona al menos un consultor para continuar.
+              Selecciona al menos un consultor para proponer los horarios de la reunión inicial.
             </div>
           }
         </section>
       </div>
+    }
+
+    @if (wizardStep() === 3) {
       <div
-        class="flex flex-col-reverse gap-3 border-t border-border bg-background-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7"
+        modalFooter
+        class="order-last flex shrink-0 flex-col-reverse gap-3 rounded-b-2xl border-t border-border bg-background-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7"
       >
         <button
           type="button"
@@ -815,10 +1380,26 @@
           <div class="h-20 rounded-2xl bg-text/10"></div>
         </div>
       } @else {
+        @if (service.category || service.subcategory) {
+          <div class="flex flex-wrap gap-2">
+            @if (service.category) {
+              <span
+                class="rounded-full bg-secondary/10 px-3 py-1 text-xs font-inter-bold text-secondary"
+              >
+                {{ service.category }}
+              </span>
+            }
+            @if (service.subcategory) {
+              <span class="rounded-full bg-text/5 px-3 py-1 text-xs font-inter-semibold text-muted">
+                {{ service.subcategory }}
+              </span>
+            }
+          </div>
+        }
         <div class="grid gap-4 lg:grid-cols-2">
           <section class="rounded-2xl border border-border bg-background-50 p-5">
             <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
-              <i class="fas fa-align-left mr-2 text-secondary"></i>Descripción
+              <i class="fas fa-circle-exclamation mr-2 text-secondary"></i>Problema o necesidad
             </p>
             <p class="mt-3 whitespace-pre-line text-sm leading-relaxed">
               {{ service.description }}
@@ -826,13 +1407,245 @@
           </section>
           <section class="rounded-2xl border border-border bg-background-50 p-5">
             <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
-              <i class="fas fa-list-check mr-2 text-secondary"></i>Alcance y entregables
+              <i class="fas fa-bullseye mr-2 text-secondary"></i>Resultado esperado
+            </p>
+            <p class="mt-3 whitespace-pre-line text-sm leading-relaxed">
+              {{ service.expectedOutcome || 'No registrado en esta solicitud.' }}
+            </p>
+          </section>
+        </div>
+
+        <div class="grid gap-4 lg:grid-cols-2">
+          <section class="rounded-2xl border border-border p-5">
+            <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
+              <i class="fas fa-list-check mr-2 text-secondary"></i>Alcance del trabajo
             </p>
             <p class="mt-3 whitespace-pre-line text-sm leading-relaxed">
               {{ service.requirements }}
             </p>
           </section>
+          <section class="rounded-2xl border border-border p-5">
+            <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
+              <i class="fas fa-box-open mr-2 text-secondary"></i>Entregables
+            </p>
+            @if (service.deliverables.length) {
+              <ul class="mt-3 space-y-2 text-sm leading-relaxed">
+                @for (deliverable of service.deliverables; track deliverable) {
+                  <li class="flex gap-2">
+                    <i class="fas fa-check mt-1 text-xs text-success"></i>{{ deliverable }}
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="mt-3 text-sm text-muted">
+                No se separaron entregables en esta solicitud histórica.
+              </p>
+            }
+          </section>
         </div>
+
+        @if (
+          service.budgetType || service.deadline || service.estimatedDuration || service.workMethod
+        ) {
+          <section class="rounded-2xl border border-border bg-background-50 p-5">
+            <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
+              <i class="fas fa-sliders mr-2 text-secondary"></i>Condiciones operativas
+            </p>
+            <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                  Presupuesto estimado
+                </p>
+                <p class="mt-1 text-sm font-inter-bold">{{ serviceBudgetLabel(service) }}</p>
+              </div>
+              <div>
+                <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                  Fecha límite
+                </p>
+                <p class="mt-1 text-sm font-inter-bold">
+                  {{
+                    service.deadline
+                      ? (service.deadline | date: 'dd/MM/yyyy' : 'UTC')
+                      : 'No registrada'
+                  }}
+                </p>
+              </div>
+              <div>
+                <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                  Duración
+                </p>
+                <p class="mt-1 text-sm font-inter-bold">
+                  {{ service.estimatedDuration || 'No registrada' }}
+                </p>
+              </div>
+              <div>
+                <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                  Modalidad
+                </p>
+                <p class="mt-1 text-sm font-inter-bold">Remoto</p>
+              </div>
+            </div>
+            @if (service.workMethod) {
+              <div class="mt-4 border-t border-border pt-4">
+                <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                  Forma de trabajo
+                </p>
+                <p class="mt-2 whitespace-pre-line text-sm leading-relaxed">
+                  {{ service.workMethod }}
+                </p>
+              </div>
+            }
+          </section>
+        }
+
+        @if (service.exclusions) {
+          <section class="rounded-2xl border border-warning/20 bg-warning/5 p-5">
+            <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
+              Lo que no incluye
+            </p>
+            <p class="mt-3 whitespace-pre-line text-sm leading-relaxed">{{ service.exclusions }}</p>
+          </section>
+        }
+
+        @if (service.milestones.length) {
+          <section class="rounded-2xl border border-border p-5">
+            <div class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
+                  Hitos y reuniones del servicio
+                </p>
+                <p class="mt-1 text-xs text-muted">
+                  La IA propuso estas etapas. Puedes programar una reunión de seguimiento para cada
+                  hito cuando el servicio esté pagado.
+                </p>
+              </div>
+              <i class="fas fa-route text-secondary"></i>
+            </div>
+            <div class="mt-3 divide-y divide-border">
+              @for (
+                milestone of service.milestones;
+                track milestone.title + milestone.dueDate;
+                let milestoneIndex = $index
+              ) {
+                <div class="py-4 first:pt-0 last:pb-0">
+                  <div class="flex items-center justify-between gap-4">
+                    <span class="text-sm font-inter-semibold">{{ milestone.title }}</span>
+                    <span class="shrink-0 text-xs text-muted">{{
+                      milestone.dueDate | date: 'dd/MM/yyyy' : 'UTC'
+                    }}</span>
+                  </div>
+                  @if (meetingForMilestone(service, milestoneIndex); as milestoneMeeting) {
+                    <div
+                      class="mt-3 flex items-center gap-2 rounded-xl bg-success/5 px-3 py-2 text-xs"
+                    >
+                      <i class="fas fa-calendar-check text-success"></i>
+                      <span class="font-inter-semibold">{{
+                        meetingStatusLabel(milestoneMeeting.status)
+                      }}</span>
+                      @if (milestoneMeeting.startTime) {
+                        <span class="text-muted">{{
+                          milestoneMeeting.startTime | date: 'dd/MM/yyyy HH:mm'
+                        }}</span>
+                      }
+                    </div>
+                  } @else if (service.status === 'paid') {
+                    <div class="mt-3 rounded-xl border border-border bg-background-50 p-3">
+                      <p class="text-xs text-muted">
+                        Propón tres horarios de una hora para este hito.
+                      </p>
+                      <div class="mt-2 grid gap-2 sm:grid-cols-3">
+                        @for (time of milestoneMeetingTimesFor(milestoneIndex); track $index) {
+                          <input
+                            type="datetime-local"
+                            [min]="minimumMeetingDateTime"
+                            [value]="time"
+                            (input)="
+                              updateMilestoneMeetingTime(
+                                milestoneIndex,
+                                $index,
+                                readInputValue($event)
+                              )
+                            "
+                            class="h-9 w-full rounded-lg border border-border bg-surface px-2 text-[0.68rem] outline-none focus:border-secondary"
+                          />
+                        }
+                      </div>
+                      <button
+                        type="button"
+                        (click)="scheduleMilestoneMeeting(milestoneIndex)"
+                        [disabled]="schedulingMilestone() !== null"
+                        class="mt-3 inline-flex h-9 items-center gap-2 rounded-lg bg-secondary px-3 text-xs font-inter-bold text-fixed-text-50 disabled:opacity-50"
+                      >
+                        @if (schedulingMilestone() === milestoneIndex) {
+                          <i class="fas fa-spinner fa-spin"></i> Guardando...
+                        } @else {
+                          <i class="fas fa-calendar-plus"></i> Proponer reunión
+                        }
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </section>
+        }
+
+        @if (service.meetings.length) {
+          <section class="rounded-2xl border border-border p-5">
+            <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
+              Reuniones del servicio
+            </p>
+            <div class="mt-3 grid gap-2 sm:grid-cols-2">
+              @for (meeting of service.meetings; track meeting.id) {
+                <div class="rounded-xl bg-background-50 p-3">
+                  <div class="flex items-start justify-between gap-3">
+                    <p class="text-sm font-inter-semibold">{{ meeting.title }}</p>
+                    <span class="shrink-0 text-[0.68rem] font-inter-bold text-secondary">
+                      {{ meetingStatusLabel(meeting.status) }}
+                    </span>
+                  </div>
+                  @if (meeting.startTime) {
+                    <p class="mt-1 text-xs text-muted">
+                      {{ meeting.startTime | date: 'dd/MM/yyyy HH:mm' }}
+                    </p>
+                  }
+                </div>
+              }
+            </div>
+          </section>
+        }
+
+        @if (service.referenceUrls.length || service.referenceAttachments.length) {
+          <section class="rounded-2xl border border-border p-5">
+            <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
+              Insumos y referencias
+            </p>
+            <div class="mt-3 flex flex-wrap gap-2">
+              @for (url of service.referenceUrls; track url) {
+                <a
+                  [href]="url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-inter-semibold text-secondary transition hover:bg-secondary/5"
+                >
+                  <i class="fas fa-link"></i>Abrir enlace
+                </a>
+              }
+              @for (attachment of service.referenceAttachments; track attachment.storagePath) {
+                <a
+                  [href]="attachment.fileUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex max-w-full items-center gap-2 rounded-xl border border-border px-3 py-2 text-xs font-inter-semibold text-secondary transition hover:bg-secondary/5"
+                >
+                  <i class="fas fa-file-arrow-down"></i
+                  ><span class="truncate">{{ attachment.originalName }}</span>
+                </a>
+              }
+            </div>
+          </section>
+        }
+
         @if (service.details) {
           <section class="rounded-2xl border border-border p-5">
             <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">

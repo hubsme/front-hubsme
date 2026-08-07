@@ -117,13 +117,21 @@
           <article
             class="group flex w-full items-center justify-between gap-4 rounded-2xl border px-4 py-3.5 text-left transition-all"
             [ngClass]="
-              isMeetingLive(meeting)
+              isMeetingPending(meeting)
+                ? 'border border-warning/45 bg-surface'
+                : isMeetingLive(meeting)
                 ? 'border-danger/25 bg-surface'
                 : 'border-border bg-surface hover:border-secondary/25'
             "
           >
             <div class="flex min-w-0 items-center gap-3">
-              @if (isMeetingLive(meeting)) {
+              @if (isMeetingPending(meeting)) {
+                <div
+                  class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-warning/10 text-warning"
+                >
+                  <i class="fas fa-clock text-sm"></i>
+                </div>
+              } @else if (isMeetingLive(meeting)) {
                 <div
                   class="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-danger/10"
                 >
@@ -144,9 +152,15 @@
                     {{ meeting.title }}
                   </p>
                 </div>
-                <p class="mt-1 truncate text-xs text-muted">
-                  {{ meeting.startTime | date: 'EEEE d MMM · hh:mm a': '': 'es-PE' }}
-                </p>
+                @if (isMeetingPending(meeting)) {
+                  <p class="mt-1 truncate text-xs text-warning font-inter-medium">
+                    Horario pendiente de confirmación
+                  </p>
+                } @else {
+                  <p class="mt-1 truncate text-xs text-muted">
+                    {{ meeting.startTime | date: 'EEEE d MMM · hh:mm a': '': 'es-PE' }}
+                  </p>
+                }
               </div>
             </div>
 
@@ -155,12 +169,15 @@
                 <a
                   [routerLink]="['/' + meetingDetailsPath, meeting.id]"
                   class="text-[0.78rem] font-inter-semibold underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-secondary/25"
-                  [class.text-danger]="isMeetingLive(meeting)"
-                  [class.text-secondary]="!isMeetingLive(meeting)"
+                  [class.text-warning]="isMeetingPending(meeting)"
+                  [class.text-danger]="!isMeetingPending(meeting) && isMeetingLive(meeting)"
+                  [class.text-secondary]="!isMeetingPending(meeting) && !isMeetingLive(meeting)"
                 >
-                  Ver detalles
+                  {{ isMeetingPending(meeting) ? 'Elegir horario' : 'Ver detalles' }}
                 </a>
-                <p class="mt-0.5 text-[0.68rem] text-muted">Información de la sesión</p>
+                <p class="mt-0.5 text-[0.68rem] text-muted">
+                  {{ isMeetingPending(meeting) ? 'Selecciona una opción' : 'Información de la sesión' }}
+                </p>
               </div>
               <button
                 type="button"

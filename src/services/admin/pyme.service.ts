@@ -19,6 +19,14 @@ export class PymeService {
     return this.api.pyme.findByUser({ userId }).then((response) => response.data);
   }
 
+  meetingDocuments(query: ApiQuery<'pyme', 'meetingDocuments'> = {}): Promise<ApiResponse<'pyme', 'meetingDocuments'>> {
+    return this.api.pyme.meetingDocuments(query).then((response) => response.data);
+  }
+
+  diagnosticDocuments(query: ApiQuery<'pyme', 'diagnosticDocuments'> = {}): Promise<ApiResponse<'pyme', 'diagnosticDocuments'>> {
+    return this.api.pyme.diagnosticDocuments(query).then((response) => response.data);
+  }
+
   meetingConsultants(
     query: ApiQuery<'pyme', 'meetingConsultants'> = {},
   ): Promise<ApiResponse<'pyme', 'meetingConsultants'>> {

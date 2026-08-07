@@ -11,7 +11,7 @@
       <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted"></i>
       <input
         [ngModel]="search()"
-        (ngModelChange)="search.set($event)"
+        (ngModelChange)="updateSearch($event)"
         class="h-10 w-full rounded-xl border border-border bg-background pl-11 pr-4 text-sm outline-none placeholder:text-text-400 focus:border-secondary"
         placeholder="Buscar cliente por nombre..."
       />
@@ -44,7 +44,11 @@
         <article class="rounded-xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]">
           <div class="flex items-start justify-between gap-4">
             <div class="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-border bg-background text-2xl text-text font-inter-bold shadow-sm">
-              {{ initials(pyme.name) }}
+              @if (pyme.logoUrl) {
+                <img [src]="pyme.logoUrl" [alt]="'Logo de ' + pyme.name" class="h-full w-full object-cover" />
+              } @else {
+                {{ initials(pyme.name) }}
+              }
             </div>
             <span class="rounded-full bg-success/10 px-3 py-1 text-xs text-success font-inter-semibold">
               Activa
@@ -77,5 +81,20 @@
         </div>
       }
     </div>
+  }
+
+  @if (meta(); as pageMeta) {
+    @if (pageMeta.total > 0) {
+      <div class="overflow-hidden rounded-xl border border-border bg-surface">
+        <app-pagination
+          class="block [&>div]:bg-surface"
+          [meta]="pageMeta"
+          [currentPage]="page()"
+          [pageSize]="pageSize"
+          [showPageSizeSelector]="false"
+          (pageChange)="changePage($event)"
+        />
+      </div>
+    }
   }
 </div>

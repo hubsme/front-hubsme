@@ -357,15 +357,36 @@ export class Meetings implements OnInit {
 
 
   month(startTime: string) {
-    return new Date(startTime).toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+    return new Date(startTime).toLocaleDateString('en-US', {
+      month: 'short',
+      timeZone: 'America/Lima',
+    }).toUpperCase();
   }
 
   day(startTime: string) {
-    return new Date(startTime).toLocaleDateString('en-US', { day: '2-digit' });
+    return new Date(startTime).toLocaleDateString('en-US', {
+      day: '2-digit',
+      timeZone: 'America/Lima',
+    });
   }
 
   time(startTime: string) {
-    return new Date(startTime).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+    return new Date(startTime).toLocaleTimeString('es-PE', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'America/Lima',
+    });
+  }
+
+  descriptionPreview(value: string | null | undefined) {
+    const plainText = (value ?? '')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/[#*_`~>-]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return plainText.length > 220 ? `${plainText.slice(0, 220).trimEnd()}...` : plainText;
   }
 
   statusLabel(status: Meeting['status']) {

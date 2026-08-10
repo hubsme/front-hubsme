@@ -4,7 +4,8 @@
     (click)="toggle()"
     [attr.aria-label]="ariaLabel()"
     [attr.aria-expanded]="isOpen()"
-    class="flex min-h-12 w-full items-center gap-3 rounded-xl border border-border bg-background-50 px-3 py-2 text-left outline-none transition hover:border-secondary/50 hover:bg-secondary/5 focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+    [disabled]="loading() || disabled()"
+    class="flex min-h-12 w-full items-center gap-3 rounded-xl border border-border bg-background-50 px-3 py-2 text-left outline-none transition hover:border-secondary/50 hover:bg-secondary/5 focus:border-secondary focus:ring-4 focus:ring-secondary/10 disabled:cursor-not-allowed disabled:opacity-60"
     [class.border-secondary]="isOpen()"
     [class.bg-secondary/5]="isOpen()"
   >
@@ -14,7 +15,10 @@
       <i class="far fa-calendar"></i>
     </span>
     <span class="min-w-0 flex-1">
-      @if (selectedOption(); as selected) {
+      @if (loading()) {
+        <span class="block text-xs font-inter-semibold text-muted">Buscando disponibilidad...</span>
+        <span class="mt-0.5 block text-[0.65rem] text-muted">Consultando el calendario</span>
+      } @else if (selectedOption(); as selected) {
         <span class="block truncate text-xs font-inter-semibold text-text">{{
           selected.dateLabel
         }}</span>
@@ -22,14 +26,18 @@
           selected.timeLabel
         }}</span>
       } @else {
-        <span class="block text-xs font-inter-semibold text-muted">Seleccionar horario</span>
-        <span class="mt-0.5 block text-[0.65rem] text-muted">Esta semana o la siguiente</span>
+        <span class="block text-xs font-inter-semibold text-muted">{{ placeholder() }}</span>
+        <span class="mt-0.5 block text-[0.65rem] text-muted">{{ helperText() }}</span>
       }
     </span>
-    <i
-      class="fas fa-chevron-down shrink-0 text-[0.65rem] text-muted transition-transform duration-200"
-      [class.rotate-180]="isOpen()"
-    ></i>
+    @if (loading()) {
+      <i class="fas fa-spinner fa-spin shrink-0 text-[0.65rem] text-secondary"></i>
+    } @else {
+      <i
+        class="fas fa-chevron-down shrink-0 text-[0.65rem] text-muted transition-transform duration-200"
+        [class.rotate-180]="isOpen()"
+      ></i>
+    }
   </button>
 
   @if (isOpen()) {
@@ -44,42 +52,85 @@
     >
       <div class="border-b border-border bg-background-50 px-3 py-2.5">
         <p class="text-xs font-inter-bold text-text">Horarios disponibles</p>
-        <p class="mt-0.5 text-[0.65rem] text-muted">Semana actual y próxima</p>
+        <p class="mt-0.5 text-[0.65rem] text-muted">{{ panelSubtitle() }}</p>
+        @if (availableMonths().length > 1) {
+          <div class="mt-2 flex items-center gap-1.5">
+            <button
+              type="button"
+              (click)="previousMonth()"
+              [disabled]="activeMonthIndex() <= 0 || loading()"
+              class="grid size-7 shrink-0 place-items-center rounded-lg border border-border bg-surface text-muted transition hover:border-secondary/30 hover:text-secondary disabled:cursor-not-allowed disabled:opacity-35"
+              aria-label="Mes anterior"
+            >
+              <i class="fas fa-chevron-left text-[0.6rem]"></i>
+            </button>
+            <span
+              class="min-w-0 flex-1 truncate text-center text-[0.68rem] font-inter-semibold capitalize text-secondary"
+            >
+              {{ activeMonthLabel() }}
+            </span>
+            <button
+              type="button"
+              (click)="nextMonth()"
+              [disabled]="
+                activeMonthIndex() < 0 ||
+                activeMonthIndex() >= availableMonths().length - 1 ||
+                loading()
+              "
+              class="grid size-7 shrink-0 place-items-center rounded-lg border border-border bg-surface text-muted transition hover:border-secondary/30 hover:text-secondary disabled:cursor-not-allowed disabled:opacity-35"
+              aria-label="Mes siguiente"
+            >
+              <i class="fas fa-chevron-right text-[0.6rem]"></i>
+            </button>
+          </div>
+        }
       </div>
       <div class="max-h-64 overflow-y-auto p-2">
-        @for (group of groups(); track group.key) {
-          <section class="mb-2 last:mb-0">
-            <p
-              class="px-2 py-1.5 text-[0.65rem] font-inter-bold uppercase tracking-wide text-muted"
-            >
-              {{ group.label }}
-            </p>
-            <div class="space-y-1">
-              @for (option of group.options; track option.value) {
-                <button
-                  type="button"
-                  (click)="select(option)"
-                  [disabled]="disabledValueSet().has(option.value)"
-                  role="option"
-                  [attr.aria-selected]="value() === option.value"
-                  class="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-xs transition hover:bg-secondary/10 disabled:cursor-not-allowed disabled:opacity-35"
-                  [class.bg-secondary/10]="value() === option.value"
-                  [class.text-secondary]="value() === option.value"
-                  [class.font-inter-semibold]="value() === option.value"
-                >
-                  <span
-                    class="grid size-7 shrink-0 place-items-center rounded-lg bg-secondary/10 text-[0.65rem] text-secondary"
+        @if (loading()) {
+          <div class="px-3 py-6 text-center text-xs leading-relaxed text-muted">
+            <i class="fas fa-spinner fa-spin mb-2 block text-lg text-secondary"></i>
+            Consultando disponibilidad...
+          </div>
+        } @else if (groups().length) {
+          @for (group of groups(); track group.key) {
+            <section class="mb-2 last:mb-0">
+              <p
+                class="px-2 py-1.5 text-[0.65rem] font-inter-bold uppercase tracking-wide text-muted"
+              >
+                {{ group.label }}
+              </p>
+              <div class="space-y-1">
+                @for (option of group.options; track option.value) {
+                  <button
+                    type="button"
+                    (click)="select(option)"
+                    [disabled]="disabledValueSet().has(option.value)"
+                    role="option"
+                    [attr.aria-selected]="value() === option.value"
+                    class="flex w-full items-center gap-2 rounded-xl px-2.5 py-2 text-left text-xs transition hover:bg-secondary/10 disabled:cursor-not-allowed disabled:opacity-35"
+                    [class.bg-secondary/10]="value() === option.value"
+                    [class.text-secondary]="value() === option.value"
+                    [class.font-inter-semibold]="value() === option.value"
                   >
-                    <i class="far fa-clock"></i>
-                  </span>
-                  <span class="min-w-0 flex-1 truncate">{{ option.timeLabel }}</span>
-                  @if (value() === option.value) {
-                    <i class="fas fa-check text-[0.65rem]"></i>
-                  }
-                </button>
-              }
-            </div>
-          </section>
+                    <span
+                      class="grid size-7 shrink-0 place-items-center rounded-lg bg-secondary/10 text-[0.65rem] text-secondary"
+                    >
+                      <i class="far fa-clock"></i>
+                    </span>
+                    <span class="min-w-0 flex-1 truncate">{{ option.timeLabel }}</span>
+                    @if (value() === option.value) {
+                      <i class="fas fa-check text-[0.65rem]"></i>
+                    }
+                  </button>
+                }
+              </div>
+            </section>
+          }
+        } @else {
+          <div class="px-3 py-6 text-center text-xs leading-relaxed text-muted">
+            <i class="far fa-calendar-xmark mb-2 block text-lg"></i>
+            {{ emptyText() }}
+          </div>
         }
       </div>
     </div>

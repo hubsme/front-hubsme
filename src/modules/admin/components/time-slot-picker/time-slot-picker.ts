@@ -16,6 +16,11 @@ export type TimeSlotPickerOption = {
   timeLabel: string;
 };
 
+export type TimeSlotPickerMonth = {
+  value: string;
+  label: string;
+};
+
 type TimeSlotGroup = {
   key: string;
   label: string;
@@ -34,7 +39,16 @@ export class TimeSlotPicker {
   readonly disabledValues = input<string[]>([]);
   readonly ariaLabel = input('Seleccionar horario');
   readonly dropdownPosition = input<'up' | 'down'>('down');
+  readonly loading = input(false);
+  readonly disabled = input(false);
+  readonly placeholder = input('Seleccionar horario');
+  readonly helperText = input('Esta semana o la siguiente');
+  readonly panelSubtitle = input('Semana actual y próxima');
+  readonly emptyText = input('No hay horarios disponibles en este periodo.');
+  readonly availableMonths = input<TimeSlotPickerMonth[]>([]);
+  readonly activeMonth = input('');
   readonly valueChange = output<string>();
+  readonly monthChange = output<string>();
 
   readonly isOpen = signal(false);
   readonly selectedOption = computed(
@@ -54,15 +68,34 @@ export class TimeSlotPicker {
     }
     return [...groups.values()];
   });
+  readonly activeMonthIndex = computed(() =>
+    this.availableMonths().findIndex((month) => month.value === this.activeMonth()),
+  );
+  readonly activeMonthLabel = computed(
+    () => this.availableMonths().find((month) => month.value === this.activeMonth())?.label ?? '',
+  );
 
   toggle() {
+    if (this.loading() || this.disabled()) return;
     this.isOpen.update((current) => !current);
   }
 
   select(option: TimeSlotPickerOption) {
-    if (this.disabledValueSet().has(option.value)) return;
+    if (this.loading() || this.disabled() || this.disabledValueSet().has(option.value)) return;
     this.valueChange.emit(option.value);
     this.isOpen.set(false);
+  }
+
+  previousMonth(): void {
+    const index = this.activeMonthIndex();
+    if (index <= 0 || this.loading()) return;
+    this.monthChange.emit(this.availableMonths()[index - 1].value);
+  }
+
+  nextMonth(): void {
+    const index = this.activeMonthIndex();
+    if (index < 0 || index >= this.availableMonths().length - 1 || this.loading()) return;
+    this.monthChange.emit(this.availableMonths()[index + 1].value);
   }
 
   @HostListener('document:click', ['$event'])

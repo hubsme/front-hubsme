@@ -2160,6 +2160,21 @@ export interface ServiceRequestReferenceAttachmentResultDto {
   sizeBytes: number;
 }
 
+export interface ServiceRequestEvidenceAttachmentResultDto {
+  storagePath: string;
+  fileUrl: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  id: string;
+  note?: string | null;
+  /** @min 0 */
+  milestoneIndex?: number | null;
+  uploadedAt: string;
+  uploadedBy: number;
+  uploadedByRole: "pyme" | "consultor";
+}
+
 export interface ServiceRequestMilestoneResultDto {
   title: string;
   /** @example "2026-09-15" */
@@ -2203,6 +2218,7 @@ export interface ServiceRequestResultDto {
   exclusions?: string | null;
   referenceUrls: string[];
   referenceAttachments: ServiceRequestReferenceAttachmentResultDto[];
+  evidenceAttachments: ServiceRequestEvidenceAttachmentResultDto[];
   budgetType?: "fixed" | "range" | null;
   budgetMin?: string | null;
   budgetMax?: string | null;
@@ -2220,6 +2236,7 @@ export interface ServiceRequestResultDto {
     | "consultant_declined"
     | "payment_pending"
     | "paid"
+    | "completed"
     | "pyme_declined"
     | "cancelled";
   proposedPrice?: string | null;
@@ -2232,6 +2249,8 @@ export interface ServiceRequestResultDto {
   decidedAt?: string | null;
   /** @format date-time */
   paidAt?: string | null;
+  /** @format date-time */
+  completedAt?: string | null;
 }
 
 export interface ServiceRequestListDto {
@@ -2381,6 +2400,42 @@ export interface ServiceRequestMilestoneMeetingDto {
   milestoneIndex: number;
   /** @example ["2026-08-19T15:00:00.000Z","2026-08-20T15:00:00.000Z","2026-08-21T15:00:00.000Z"] */
   proposedStartTimes: string[];
+}
+
+export interface ServiceRequestMilestoneUpdateDto {
+  /**
+   * @maxLength 160
+   * @example "Validación final con contabilidad"
+   */
+  title: string;
+  /** @example "2026-09-20" */
+  dueDate: string;
+}
+
+export interface ServiceRequestExtraMilestoneMeetingDto {
+  /**
+   * @min 1
+   * @max 19
+   * @example 2
+   */
+  insertAtIndex: number;
+  /** @example "Validación final con contabilidad" */
+  title: string;
+  /** @example "2026-09-20" */
+  dueDate: string;
+  /** @example ["2026-09-17T15:00:00.000Z","2026-09-18T15:00:00.000Z","2026-09-19T15:00:00.000Z"] */
+  proposedStartTimes: string[];
+}
+
+export interface ServiceRequestEvidenceMultipartDto {
+  /** @example "Constancia SUNAT correspondiente al primer entregable." */
+  note?: string;
+  /**
+   * @min 0
+   * @max 49
+   * @example 0
+   */
+  milestoneIndex?: number;
 }
 
 export interface PublicConsultantListItemDto {
@@ -3823,6 +3878,7 @@ export interface ServiceFindAllParams {
     | "consultant_declined"
     | "payment_pending"
     | "paid"
+    | "completed"
     | "pyme_declined"
     | "cancelled";
   /** Buscar por título, descripción o requerimientos */
@@ -3859,6 +3915,14 @@ export type ServiceDeclineData = ServiceRequestResultDto;
 
 export type ServiceDeclineError = HttpErrorDto;
 
+export interface ServiceCompleteServiceParams {
+  id: number;
+}
+
+export type ServiceCompleteServiceData = ServiceRequestResultDto;
+
+export type ServiceCompleteServiceError = HttpErrorDto;
+
 export interface ServiceScheduleMilestoneMeetingParams {
   id: number;
 }
@@ -3866,6 +3930,49 @@ export interface ServiceScheduleMilestoneMeetingParams {
 export type ServiceScheduleMilestoneMeetingData = ServiceRequestResultDto;
 
 export type ServiceScheduleMilestoneMeetingError = HttpErrorDto;
+
+export interface ServiceUpdateMilestoneParams {
+  id: number;
+  index: number;
+}
+
+export type ServiceUpdateMilestoneData = ServiceRequestResultDto;
+
+export type ServiceUpdateMilestoneError = HttpErrorDto;
+
+export interface ServiceRemoveMilestoneParams {
+  id: number;
+  index: number;
+}
+
+export type ServiceRemoveMilestoneData = ServiceRequestResultDto;
+
+export type ServiceRemoveMilestoneError = HttpErrorDto;
+
+export interface ServiceAddExtraMilestoneMeetingParams {
+  id: number;
+}
+
+export type ServiceAddExtraMilestoneMeetingData = ServiceRequestResultDto;
+
+export type ServiceAddExtraMilestoneMeetingError = HttpErrorDto;
+
+export interface ServiceUploadEvidenceParams {
+  id: number;
+}
+
+export type ServiceUploadEvidenceData = ServiceRequestResultDto;
+
+export type ServiceUploadEvidenceError = HttpErrorDto;
+
+export interface ServiceDeleteEvidenceParams {
+  id: number;
+  attachmentId: string;
+}
+
+export type ServiceDeleteEvidenceData = ServiceRequestResultDto;
+
+export type ServiceDeleteEvidenceError = HttpErrorDto;
 
 export interface PublicconsultantFindAllParams {
   /**
@@ -6760,6 +6867,7 @@ export namespace Service {
         | "consultant_declined"
         | "payment_pending"
         | "paid"
+        | "completed"
         | "pyme_declined"
         | "cancelled";
       /** Buscar por título, descripción o requerimientos */
@@ -6851,6 +6959,26 @@ export namespace Service {
   /**
    * No description
    * @tags service
+   * @name ServiceCompleteService
+   * @summary Mark a paid service as completed by its PYME
+   * @request POST:/admin/service/{id}/complete
+   * @secure
+   * @response `201` `ServiceCompleteServiceData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ServiceCompleteService {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceCompleteServiceData;
+  }
+
+  /**
+   * No description
+   * @tags service
    * @name ServiceScheduleMilestoneMeeting
    * @summary Propose three meeting times for a paid service milestone
    * @request POST:/admin/service/{id}/milestone-meeting
@@ -6866,6 +6994,109 @@ export namespace Service {
     export type RequestBody = ServiceRequestMilestoneMeetingDto;
     export type RequestHeaders = {};
     export type ResponseBody = ServiceScheduleMilestoneMeetingData;
+  }
+
+  /**
+   * No description
+   * @tags service
+   * @name ServiceUpdateMilestone
+   * @summary Edit a service milestone before it has a meeting
+   * @request PATCH:/admin/service/{id}/milestone/{index}
+   * @secure
+   * @response `200` `ServiceUpdateMilestoneData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ServiceUpdateMilestone {
+    export type RequestParams = {
+      id: number;
+      index: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = ServiceRequestMilestoneUpdateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceUpdateMilestoneData;
+  }
+
+  /**
+   * No description
+   * @tags service
+   * @name ServiceRemoveMilestone
+   * @summary Delete a service milestone before it has a meeting
+   * @request DELETE:/admin/service/{id}/milestone/{index}
+   * @secure
+   * @response `200` `ServiceRemoveMilestoneData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ServiceRemoveMilestone {
+    export type RequestParams = {
+      id: number;
+      index: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceRemoveMilestoneData;
+  }
+
+  /**
+   * No description
+   * @tags service
+   * @name ServiceAddExtraMilestoneMeeting
+   * @summary Add an extra milestone and propose three meeting times
+   * @request POST:/admin/service/{id}/extra-milestone-meeting
+   * @secure
+   * @response `201` `ServiceAddExtraMilestoneMeetingData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ServiceAddExtraMilestoneMeeting {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = ServiceRequestExtraMilestoneMeetingDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceAddExtraMilestoneMeetingData;
+  }
+
+  /**
+   * No description
+   * @tags service
+   * @name ServiceUploadEvidence
+   * @summary Attach evidence or a deliverable to a paid service
+   * @request POST:/admin/service/{id}/evidence
+   * @secure
+   * @response `201` `ServiceUploadEvidenceData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ServiceUploadEvidence {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = ServiceRequestEvidenceMultipartDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceUploadEvidenceData;
+  }
+
+  /**
+   * No description
+   * @tags service
+   * @name ServiceDeleteEvidence
+   * @summary Delete a service evidence before its milestone has a meeting
+   * @request DELETE:/admin/service/{id}/evidence/{attachmentId}
+   * @secure
+   * @response `200` `ServiceDeleteEvidenceData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ServiceDeleteEvidence {
+    export type RequestParams = {
+      id: number;
+      attachmentId: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceDeleteEvidenceData;
   }
 }
 
@@ -10533,6 +10764,32 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags service
+     * @name ServiceCompleteService
+     * @summary Mark a paid service as completed by its PYME
+     * @request POST:/admin/service/{id}/complete
+     * @secure
+     * @response `201` `ServiceCompleteServiceData`
+     * @response `400` `HttpErrorDto`
+     */
+    completeService: (
+      { id }: ServiceCompleteServiceParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ServiceCompleteServiceData,
+        ServiceCompleteServiceError
+      >({
+        path: `/admin/service/${id}/complete`,
+        method: "POST",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags service
      * @name ServiceScheduleMilestoneMeeting
      * @summary Propose three meeting times for a paid service milestone
      * @request POST:/admin/service/{id}/milestone-meeting
@@ -10554,6 +10811,139 @@ export class Api<SecurityDataType extends unknown> {
         body: data,
         secure: true,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags service
+     * @name ServiceUpdateMilestone
+     * @summary Edit a service milestone before it has a meeting
+     * @request PATCH:/admin/service/{id}/milestone/{index}
+     * @secure
+     * @response `200` `ServiceUpdateMilestoneData`
+     * @response `400` `HttpErrorDto`
+     */
+    updateMilestone: (
+      { id, index }: ServiceUpdateMilestoneParams,
+      data: ServiceRequestMilestoneUpdateDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ServiceUpdateMilestoneData,
+        ServiceUpdateMilestoneError
+      >({
+        path: `/admin/service/${id}/milestone/${index}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags service
+     * @name ServiceRemoveMilestone
+     * @summary Delete a service milestone before it has a meeting
+     * @request DELETE:/admin/service/{id}/milestone/{index}
+     * @secure
+     * @response `200` `ServiceRemoveMilestoneData`
+     * @response `400` `HttpErrorDto`
+     */
+    removeMilestone: (
+      { id, index }: ServiceRemoveMilestoneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ServiceRemoveMilestoneData,
+        ServiceRemoveMilestoneError
+      >({
+        path: `/admin/service/${id}/milestone/${index}`,
+        method: "DELETE",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags service
+     * @name ServiceAddExtraMilestoneMeeting
+     * @summary Add an extra milestone and propose three meeting times
+     * @request POST:/admin/service/{id}/extra-milestone-meeting
+     * @secure
+     * @response `201` `ServiceAddExtraMilestoneMeetingData`
+     * @response `400` `HttpErrorDto`
+     */
+    addExtraMilestoneMeeting: (
+      { id }: ServiceAddExtraMilestoneMeetingParams,
+      data: ServiceRequestExtraMilestoneMeetingDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ServiceAddExtraMilestoneMeetingData,
+        ServiceAddExtraMilestoneMeetingError
+      >({
+        path: `/admin/service/${id}/extra-milestone-meeting`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags service
+     * @name ServiceUploadEvidence
+     * @summary Attach evidence or a deliverable to a paid service
+     * @request POST:/admin/service/{id}/evidence
+     * @secure
+     * @response `201` `ServiceUploadEvidenceData`
+     * @response `400` `HttpErrorDto`
+     */
+    uploadEvidence: (
+      { id }: ServiceUploadEvidenceParams,
+      data: ServiceRequestEvidenceMultipartDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ServiceUploadEvidenceData, ServiceUploadEvidenceError>({
+        path: `/admin/service/${id}/evidence`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags service
+     * @name ServiceDeleteEvidence
+     * @summary Delete a service evidence before its milestone has a meeting
+     * @request DELETE:/admin/service/{id}/evidence/{attachmentId}
+     * @secure
+     * @response `200` `ServiceDeleteEvidenceData`
+     * @response `400` `HttpErrorDto`
+     */
+    deleteEvidence: (
+      { id, attachmentId }: ServiceDeleteEvidenceParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ServiceDeleteEvidenceData, ServiceDeleteEvidenceError>({
+        path: `/admin/service/${id}/evidence/${attachmentId}`,
+        method: "DELETE",
+        secure: true,
         format: "json",
         ...params,
       }),

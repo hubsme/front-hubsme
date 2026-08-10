@@ -738,6 +738,28 @@
               </div>
             </div>
           }
+
+          @if (service.status === 'completed') {
+            <div
+              class="flex items-start gap-3 rounded-2xl border border-secondary/20 bg-secondary/5 p-5"
+            >
+              <span
+                class="grid size-10 shrink-0 place-items-center rounded-xl bg-secondary text-fixed-text-50"
+              >
+                <i class="fas fa-check-double"></i>
+              </span>
+              <div>
+                <p class="font-inter-bold text-secondary">Servicio completado</p>
+                <p class="mt-1 text-sm text-muted">
+                  La PYME cerró el seguimiento{{
+                    service.completedAt
+                      ? ' el ' + (service.completedAt | date: 'dd/MM/yyyy, HH:mm')
+                      : ''
+                  }}.
+                </p>
+              </div>
+            </div>
+          }
         }
       }
     </div>

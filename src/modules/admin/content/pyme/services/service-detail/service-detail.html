@@ -1,0 +1,1319 @@
+<div class="space-y-6 text-text">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div class="min-w-0">
+      <p class="text-[0.68rem] font-inter-bold uppercase tracking-[0.14em] text-muted">
+        Seguimiento del servicio
+      </p>
+      <h1 class="mt-2 font-plus-jakarta-sans text-2xl font-bold leading-tight sm:text-3xl">
+        @if (service(); as current) {
+          {{ current.title }}
+        } @else {
+          Cargando servicio
+        }
+      </h1>
+      <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
+        Revisa reuniones, hitos y evidencias desde un solo espacio de trabajo.
+      </p>
+    </div>
+    @if (service(); as current) {
+      @if (current.status === 'paid') {
+        <button
+          type="button"
+          (click)="requestServiceCompletion()"
+          [disabled]="completingService()"
+          class="inline-flex h-10 shrink-0 items-center justify-center gap-2 self-start rounded-xl border border-secondary/25 bg-surface px-4 text-xs font-inter-bold text-secondary transition hover:bg-secondary/5 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          @if (completingService()) {
+            <i class="fas fa-spinner fa-spin"></i> Completando...
+          } @else {
+            <i class="far fa-circle-check"></i> Dar como completado
+          }
+        </button>
+      }
+    }
+  </header>
+
+  @if (loading()) {
+    <div class="grid animate-pulse gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <div class="space-y-6">
+        <div class="h-[32rem] rounded-3xl border border-border bg-surface"></div>
+        <div class="h-72 rounded-3xl border border-border bg-surface"></div>
+      </div>
+      <div class="h-[34rem] rounded-3xl border border-border bg-surface"></div>
+    </div>
+  } @else if (service(); as current) {
+    <div class="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <main class="min-w-0 space-y-6">
+        <section class="overflow-hidden rounded-3xl border border-border bg-surface shadow-sm">
+          <div
+            class="flex flex-col gap-4 border-b border-border px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6"
+          >
+            <div>
+              <div class="flex items-center gap-2">
+                <span
+                  class="grid size-9 place-items-center rounded-xl bg-secondary/10 text-secondary"
+                >
+                  <i class="far fa-calendar"></i>
+                </span>
+                <div>
+                  <h2 class="font-plus-jakarta-sans text-base font-bold">
+                    Calendario de seguimiento
+                  </h2>
+                  <p class="mt-0.5 text-xs text-muted">
+                    Historial y próximas reuniones del servicio.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                (click)="previousCalendarMonth()"
+                [disabled]="!canGoToPreviousCalendarMonth()"
+                class="grid size-9 place-items-center rounded-xl border border-border bg-surface text-muted transition hover:border-secondary/30 hover:text-secondary disabled:cursor-not-allowed disabled:opacity-35"
+                aria-label="Mes anterior"
+              >
+                <i class="fas fa-chevron-left text-xs"></i>
+              </button>
+              <button
+                type="button"
+                (click)="showCurrentCalendarMonth()"
+                [disabled]="!calendarRange()"
+                class="h-9 rounded-xl border border-border bg-surface px-3 text-xs font-inter-semibold text-muted transition hover:border-secondary/30 hover:text-secondary disabled:cursor-not-allowed disabled:opacity-35"
+              >
+                Hoy
+              </button>
+              <button
+                type="button"
+                (click)="nextCalendarMonth()"
+                [disabled]="!canGoToNextCalendarMonth()"
+                class="grid size-9 place-items-center rounded-xl border border-border bg-surface text-muted transition hover:border-secondary/30 hover:text-secondary disabled:cursor-not-allowed disabled:opacity-35"
+                aria-label="Mes siguiente"
+              >
+                <i class="fas fa-chevron-right text-xs"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 px-5 py-4 sm:px-6">
+            <div>
+              <p class="font-plus-jakarta-sans text-base font-bold capitalize">
+                {{ calendarMonthLabel() }}
+              </p>
+              <p class="mt-0.5 text-[0.65rem] text-muted">{{ calendarRangeLabel() }}</p>
+            </div>
+            <span
+              class="rounded-full bg-text/5 px-3 py-1 text-[0.68rem] font-inter-semibold text-muted"
+            >
+              {{ current.meetings.length }}
+              {{ current.meetings.length === 1 ? 'reunión' : 'reuniones' }}
+            </span>
+          </div>
+
+          <div class="overflow-x-auto px-3 pb-4 sm:px-6 sm:pb-6">
+            <div class="w-full min-w-[42rem] overflow-hidden rounded-2xl border border-border">
+              <div class="grid grid-cols-7 border-b border-border bg-surface">
+                @for (weekday of calendarWeekdays; track weekday) {
+                  <div
+                    class="px-2 py-2.5 text-center text-[0.65rem] font-inter-bold uppercase tracking-wide text-muted"
+                  >
+                    {{ weekday }}
+                  </div>
+                }
+              </div>
+              <div class="grid grid-cols-7 bg-surface">
+                @for (day of calendarDays(); track day.key; let dayIndex = $index) {
+                  <div
+                    class="min-h-24 border-b border-r border-border bg-surface p-2"
+                    [class.border-r-0]="(dayIndex + 1) % 7 === 0"
+                    [class.border-b-0]="dayIndex >= 35"
+                    [class.opacity-40]="!day.isWithinServiceRange"
+                    [class.ring-1]="day.isToday"
+                    [class.ring-inset]="day.isToday"
+                    [class.ring-secondary]="day.isToday"
+                  >
+                    <div class="flex flex-wrap items-center justify-between gap-1">
+                      <span
+                        class="grid size-6 place-items-center rounded-full text-[0.68rem] font-inter-semibold"
+                        [class.bg-secondary]="day.isToday"
+                        [class.text-fixed-text-50]="day.isToday"
+                        [class.text-muted]="!day.isWithinServiceRange && !day.isToday"
+                      >
+                        {{ day.day }}
+                      </span>
+                      <div class="flex flex-wrap justify-end gap-1">
+                        @for (milestoneLabel of day.milestoneLabels; track milestoneLabel) {
+                          <span
+                            class="rounded-full bg-secondary/10 px-1.5 py-0.5 text-[0.52rem] font-inter-bold uppercase tracking-wide text-secondary"
+                          >
+                            {{ milestoneLabel }}
+                          </span>
+                        }
+                        @if (day.isPaymentDate) {
+                          <span
+                            class="rounded-full bg-secondary/10 px-1.5 py-0.5 text-[0.52rem] font-inter-bold uppercase tracking-wide text-secondary"
+                          >
+                            Pago
+                          </span>
+                        }
+                        @if (day.isDeadline) {
+                          <span
+                            class="rounded-full bg-secondary/10 px-1.5 py-0.5 text-[0.52rem] font-inter-bold uppercase tracking-wide text-secondary"
+                          >
+                            Límite
+                          </span>
+                        }
+                      </div>
+                    </div>
+                    @if (day.meetings.length) {
+                      <div class="mt-1.5 space-y-1">
+                        @for (meeting of day.meetings; track meeting.id) {
+                          <a
+                            [routerLink]="meetingDetailPath(meeting.id)"
+                            class="block rounded-lg px-2 py-1.5 text-[0.63rem] leading-tight transition hover:opacity-80"
+                            [ngClass]="meetingStatusClass(meeting.status)"
+                            [title]="meeting.title"
+                          >
+                            <span class="font-inter-bold">
+                              {{ calendarMeetingTime(meeting.startTime!) }}
+                            </span>
+                            <span class="ml-1 line-clamp-1">{{ meeting.title }}</span>
+                          </a>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="rounded-3xl border border-border bg-surface p-5 shadow-sm sm:p-6">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div class="flex items-start gap-3">
+              <span
+                class="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary"
+              >
+                <i class="fas fa-route"></i>
+              </span>
+              <div>
+                <h2 class="font-plus-jakarta-sans text-base font-bold">
+                  Hitos, reuniones y entregables
+                </h2>
+                <p class="mt-1 text-xs leading-relaxed text-muted">
+                  Cada etapa concentra su reunión, sus archivos y la evidencia del avance.
+                </p>
+              </div>
+            </div>
+            @if (current.status === 'paid') {
+              <button
+                type="button"
+                (click)="openExtraMilestoneModal()"
+                class="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-secondary/25 px-3 text-xs font-inter-bold text-secondary transition hover:bg-secondary/5"
+              >
+                <i class="fas fa-plus"></i> Agregar hito intermedio
+              </button>
+            }
+          </div>
+
+          @if (current.deliverables.length) {
+            <div class="mt-5 rounded-2xl border border-border bg-background-50 p-4">
+              <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                Entregables acordados
+              </p>
+              <div class="mt-3 grid gap-2 sm:grid-cols-2">
+                @for (deliverable of current.deliverables; track deliverable) {
+                  <div class="flex items-start gap-2 text-xs leading-relaxed">
+                    <span
+                      class="mt-0.5 grid size-4 shrink-0 place-items-center rounded-full bg-success/10 text-[0.55rem] text-success"
+                    >
+                      <i class="fas fa-check"></i>
+                    </span>
+                    <span>{{ deliverable }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          @if (current.milestones.length) {
+            <div
+              class="relative mt-5 space-y-3 before:absolute before:bottom-5 before:left-[1.05rem] before:top-5 before:w-px before:bg-border"
+            >
+              @for (
+                milestone of current.milestones;
+                track milestone.title + milestone.dueDate;
+                let milestoneIndex = $index
+              ) {
+                <article class="relative rounded-2xl border border-border bg-surface p-4 pl-12">
+                  <span
+                    class="absolute left-3 top-4 z-10 flex size-5 items-center justify-center rounded-full bg-secondary pt-px text-[0.6rem] font-inter-bold leading-none text-fixed-text-50"
+                  >
+                    {{ milestoneIndex + 1 }}
+                  </span>
+                  <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <div class="flex flex-wrap items-center gap-2">
+                        <h3 class="text-sm font-inter-bold">{{ milestone.title }}</h3>
+                        @if (milestoneIndex === 0) {
+                          <span
+                            class="inline-flex items-center gap-1 rounded-full bg-info/10 px-2 py-1 text-[0.58rem] font-inter-bold uppercase tracking-wide text-info"
+                          >
+                            <i class="fas fa-lock"></i> Inicio fijo
+                          </span>
+                        } @else if (milestoneIndex === current.milestones.length - 1) {
+                          <span
+                            class="inline-flex items-center gap-1 rounded-full bg-info/10 px-2 py-1 text-[0.58rem] font-inter-bold uppercase tracking-wide text-info"
+                          >
+                            <i class="fas fa-lock"></i> Cierre fijo
+                          </span>
+                        } @else {
+                          <span
+                            class="rounded-full bg-secondary/10 px-2 py-1 text-[0.58rem] font-inter-bold uppercase tracking-wide text-secondary"
+                          >
+                            Intermedio
+                          </span>
+                        }
+                      </div>
+                      <p class="mt-1 text-[0.68rem] text-muted">
+                        Fecha objetivo {{ milestone.dueDate | date: 'dd MMM yyyy' : 'UTC' }}
+                      </p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                      @if (canEditMilestone(current, milestoneIndex)) {
+                        <button
+                          type="button"
+                          (click)="openMilestoneEditor(milestoneIndex)"
+                          class="inline-flex items-center gap-1.5 rounded-xl border border-secondary/25 px-3 py-2 text-xs font-inter-semibold text-secondary transition hover:bg-secondary/5"
+                        >
+                          <i class="far fa-pen-to-square"></i> Editar
+                        </button>
+                      }
+                      @if (meetingForMilestone(current, milestoneIndex); as meeting) {
+                        <a
+                          [routerLink]="meetingDetailPath(meeting.id)"
+                          class="inline-flex w-fit items-center gap-2 rounded-xl px-3 py-2 text-xs font-inter-semibold transition hover:opacity-80"
+                          [ngClass]="meetingStatusClass(meeting.status)"
+                        >
+                          <i class="far fa-calendar-check"></i>
+                          {{ meetingStatusLabel(meeting.status) }}
+                          @if (meeting.startTime) {
+                            · {{ meeting.startTime | date: 'dd/MM, HH:mm' : 'America/Lima' }}
+                          }
+                        </a>
+                      }
+                    </div>
+                  </div>
+
+                  @if (!meetingForMilestone(current, milestoneIndex) && current.status === 'paid') {
+                    <div class="mt-3 rounded-xl bg-background-50 p-3">
+                      <p class="text-[0.68rem] leading-relaxed text-muted">
+                        Elige tres bloques disponibles de una hora en días diferentes.
+                      </p>
+                      @let milestoneMonths = availabilityMonthsForDueDate(milestone.dueDate);
+                      @let milestoneMonth =
+                        availabilityMonthForMilestone(milestoneIndex, milestone.dueDate);
+                      @let milestoneSlots =
+                        availabilityOptionsForMonth(milestoneMonth, milestone.dueDate);
+                      <div class="mt-2 grid gap-2 lg:grid-cols-3">
+                        @for (
+                          value of milestoneMeetingTimesFor(milestoneIndex);
+                          track $index;
+                          let optionIndex = $index
+                        ) {
+                          <app-time-slot-picker
+                            [value]="value"
+                            [options]="milestoneSlots"
+                            [loading]="isAvailabilityMonthLoading(milestoneMonth)"
+                            [disabled]="!milestoneMonth"
+                            [availableMonths]="milestoneMonths"
+                            [activeMonth]="milestoneMonth"
+                            [disabledValues]="
+                              disabledSlotValues(
+                                milestoneMeetingTimesFor(milestoneIndex),
+                                optionIndex,
+                                milestoneSlots
+                              )
+                            "
+                            [ariaLabel]="
+                              'Seleccionar opción ' + (optionIndex + 1) + ' para ' + milestone.title
+                            "
+                            [helperText]="slotWindowLabel(milestone.dueDate)"
+                            [panelSubtitle]="slotWindowLabel(milestone.dueDate)"
+                            [dropdownPosition]="optionIndex === 2 ? 'up' : 'down'"
+                            (monthChange)="
+                              changeMilestoneAvailabilityMonth(
+                                milestoneIndex,
+                                $event,
+                                milestone.dueDate
+                              )
+                            "
+                            (valueChange)="
+                              updateMilestoneMeetingTime(milestoneIndex, optionIndex, $event)
+                            "
+                          />
+                        }
+                      </div>
+                      <button
+                        type="button"
+                        (click)="scheduleMilestoneMeeting(milestoneIndex)"
+                        [disabled]="schedulingMilestone() !== null"
+                        class="mt-3 inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-secondary px-3 text-[0.68rem] font-inter-bold text-fixed-text-50 transition hover:bg-secondary/90 disabled:opacity-50"
+                      >
+                        @if (schedulingMilestone() === milestoneIndex) {
+                          <i class="fas fa-spinner fa-spin"></i> Enviando...
+                        } @else {
+                          <i class="far fa-calendar-plus"></i> Proponer reunión
+                        }
+                      </button>
+                    </div>
+                  } @else if (!meetingForMilestone(current, milestoneIndex)) {
+                    <p class="mt-3 text-xs text-muted">
+                      La reunión podrá programarse cuando el servicio esté pagado.
+                    </p>
+                  }
+
+                  <div class="mt-4 border-t border-border pt-3">
+                    <div class="flex items-center justify-between gap-3">
+                      <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                        Evidencias y entregables
+                      </p>
+                      @if (current.status === 'paid') {
+                        <button
+                          type="button"
+                          (click)="openEvidenceUploader(milestoneIndex)"
+                          class="inline-flex items-center gap-1.5 text-[0.68rem] font-inter-bold text-secondary transition hover:opacity-75"
+                        >
+                          <i class="fas fa-paperclip"></i> Adjuntar
+                        </button>
+                      }
+                    </div>
+                    @if (evidenceForMilestone(current, milestoneIndex); as milestoneEvidence) {
+                      @if (milestoneEvidence.length) {
+                        <div class="mt-2 grid gap-2 sm:grid-cols-2">
+                          @for (attachment of milestoneEvidence; track attachment.id) {
+                            <div
+                              class="flex min-w-0 items-start gap-2 rounded-xl border border-border bg-background-50 p-3 transition hover:border-secondary/30"
+                            >
+                              <a
+                                [href]="attachment.fileUrl"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="group flex min-w-0 flex-1 items-start gap-2"
+                              >
+                                <span
+                                  class="grid size-7 shrink-0 place-items-center rounded-lg bg-secondary/10 text-xs text-secondary"
+                                >
+                                  <i class="far fa-file-lines"></i>
+                                </span>
+                                <span class="min-w-0 flex-1">
+                                  <span class="block truncate text-[0.68rem] font-inter-bold">
+                                    {{ attachment.originalName }}
+                                  </span>
+                                  <span class="mt-0.5 block text-[0.62rem] text-muted">
+                                    {{ formatFileSize(attachment.sizeBytes) }} ·
+                                    {{ evidenceUploaderLabel(attachment.uploadedByRole) }}
+                                  </span>
+                                  @if (attachment.note) {
+                                    <span class="mt-1 block line-clamp-1 text-[0.62rem] text-muted">
+                                      {{ attachment.note }}
+                                    </span>
+                                  }
+                                </span>
+                                <i
+                                  class="fas fa-arrow-up-right-from-square text-[0.58rem] text-muted transition group-hover:text-secondary"
+                                ></i>
+                              </a>
+                              @if (canDeleteEvidence(current, attachment)) {
+                                <button
+                                  type="button"
+                                  (click)="requestDeleteEvidence(attachment)"
+                                  [disabled]="deletingEvidenceId() === attachment.id"
+                                  class="grid size-7 shrink-0 place-items-center rounded-lg text-muted transition hover:bg-danger/10 hover:text-danger disabled:opacity-50"
+                                  [attr.aria-label]="'Eliminar ' + attachment.originalName"
+                                >
+                                  @if (deletingEvidenceId() === attachment.id) {
+                                    <i class="fas fa-spinner fa-spin text-[0.62rem]"></i>
+                                  } @else {
+                                    <i class="far fa-trash-can text-[0.62rem]"></i>
+                                  }
+                                </button>
+                              }
+                            </div>
+                          }
+                        </div>
+                      } @else {
+                        <p class="mt-2 text-[0.65rem] text-muted">
+                          Sin archivos adjuntos en este hito.
+                        </p>
+                      }
+                    }
+                  </div>
+                </article>
+              }
+            </div>
+          } @else {
+            <div class="mt-5 rounded-2xl border border-dashed border-border px-5 py-8 text-center">
+              <i class="fas fa-route text-xl text-muted"></i>
+              <p class="mt-3 text-sm font-inter-semibold">Todavía no hay hitos definidos</p>
+              <p class="mt-1 text-xs text-muted">
+                Agrega la primera etapa para ordenar el seguimiento.
+              </p>
+            </div>
+          }
+        </section>
+      </main>
+
+      <aside class="space-y-4 xl:sticky xl:top-0">
+        <section class="rounded-3xl border border-border bg-surface p-5 shadow-sm">
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-[0.65rem] font-inter-bold uppercase tracking-[0.12em] text-muted">
+              Solicitud #{{ current.id }}
+            </span>
+            <span
+              class="rounded-full px-2.5 py-1 text-[0.62rem] font-inter-bold"
+              [ngClass]="statusClass(current.status)"
+            >
+              {{ statusLabel(current.status) }}
+            </span>
+          </div>
+
+          @if (current.proposedPrice) {
+            <div class="mt-4 rounded-2xl border border-secondary/20 bg-secondary/5 p-4">
+              <p class="text-[0.65rem] font-inter-bold uppercase tracking-wide text-muted">
+                Precio acordado
+              </p>
+              <p class="mt-1 font-plus-jakarta-sans text-2xl font-bold text-secondary">
+                {{ formatMoney(current.proposedPrice, current.currency) }}
+              </p>
+            </div>
+          }
+
+          <div class="mt-4 flex items-center gap-3 border-b border-border pb-4">
+            <span
+              class="grid size-10 shrink-0 place-items-center overflow-hidden rounded-full bg-secondary/10 text-secondary"
+            >
+              @if (current.consultantPhotoUrl) {
+                <img
+                  [src]="current.consultantPhotoUrl"
+                  [alt]="current.consultantName || 'Consultor'"
+                  class="size-full object-cover"
+                />
+              } @else {
+                <i class="fas fa-user-tie"></i>
+              }
+            </span>
+            <div class="min-w-0">
+              <p class="text-[0.65rem] font-inter-semibold text-muted">Consultor asignado</p>
+              <p class="truncate text-sm font-inter-bold">
+                {{ current.consultantName || 'Consultor #' + current.consultantId }}
+              </p>
+              @if (current.consultantHeadline) {
+                <p class="mt-0.5 truncate text-[0.65rem] text-muted">
+                  {{ current.consultantHeadline }}
+                </p>
+              }
+            </div>
+          </div>
+
+          <dl class="mt-4 space-y-3">
+            <div class="flex items-start justify-between gap-3">
+              <dt class="text-[0.68rem] text-muted">Presupuesto inicial</dt>
+              <dd class="text-right text-[0.68rem] font-inter-bold">
+                {{ serviceBudgetLabel(current) }}
+              </dd>
+            </div>
+            <div class="flex items-start justify-between gap-3">
+              <dt class="text-[0.68rem] text-muted">Fecha límite</dt>
+              <dd class="text-right text-[0.68rem] font-inter-bold">
+                {{
+                  current.deadline
+                    ? (current.deadline | date: 'dd/MM/yyyy' : 'UTC')
+                    : 'No registrada'
+                }}
+              </dd>
+            </div>
+            <div class="flex items-start justify-between gap-3">
+              <dt class="text-[0.68rem] text-muted">Duración</dt>
+              <dd class="text-right text-[0.68rem] font-inter-bold">
+                {{ current.estimatedDuration || 'No registrada' }}
+              </dd>
+            </div>
+            <div class="flex items-start justify-between gap-3">
+              <dt class="text-[0.68rem] text-muted">Modalidad</dt>
+              <dd class="text-right text-[0.68rem] font-inter-bold">
+                {{ workModalityLabel(current.workModality) }}
+              </dd>
+            </div>
+            <div class="flex items-start justify-between gap-3">
+              <dt class="text-[0.68rem] text-muted">Creado</dt>
+              <dd class="text-right text-[0.68rem] font-inter-bold">
+                {{ current.createdAt | date: 'dd/MM/yyyy' : 'America/Lima' }}
+              </dd>
+            </div>
+            @if (current.paidAt) {
+              <div class="flex items-start justify-between gap-3">
+                <dt class="text-[0.68rem] text-muted">Pago confirmado</dt>
+                <dd class="text-right text-[0.68rem] font-inter-bold">
+                  {{ current.paidAt | date: 'dd/MM/yyyy, HH:mm' : 'America/Lima' }}
+                </dd>
+              </div>
+            }
+            @if (current.completedAt) {
+              <div class="flex items-start justify-between gap-3">
+                <dt class="text-[0.68rem] text-muted">Servicio completado</dt>
+                <dd class="text-right text-[0.68rem] font-inter-bold">
+                  {{ current.completedAt | date: 'dd/MM/yyyy, HH:mm' : 'America/Lima' }}
+                </dd>
+              </div>
+            }
+          </dl>
+
+          @if (current.category || current.subcategory) {
+            <div class="mt-4 flex flex-wrap gap-1.5 border-t border-border pt-4">
+              @if (current.category) {
+                <span
+                  class="rounded-full bg-secondary/10 px-2.5 py-1 text-[0.62rem] font-inter-bold text-secondary"
+                  >{{ current.category }}</span
+                >
+              }
+              @if (current.subcategory) {
+                <span
+                  class="rounded-full bg-text/5 px-2.5 py-1 text-[0.62rem] font-inter-semibold text-muted"
+                  >{{ current.subcategory }}</span
+                >
+              }
+            </div>
+          }
+        </section>
+
+        @if (current.status === 'proposal_sent' || current.status === 'payment_pending') {
+          <section class="rounded-3xl border border-secondary/25 bg-secondary/5 p-5">
+            <div class="flex items-start gap-3">
+              <span
+                class="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary text-fixed-text-50"
+              >
+                <i class="fas fa-shield-halved"></i>
+              </span>
+              <div>
+                <h2 class="text-sm font-inter-bold">Cotización lista</h2>
+                <p class="mt-1 text-xs leading-relaxed text-muted">
+                  Apruébala mediante la pasarela de pago segura.
+                </p>
+              </div>
+            </div>
+            @if (current.status === 'proposal_sent') {
+              <label class="mt-4 block">
+                <span class="mb-1.5 block text-[0.68rem] font-inter-semibold text-muted"
+                  >Motivo si no la aceptas</span
+                >
+                <textarea
+                  rows="2"
+                  maxlength="3000"
+                  name="serviceDeclineMessage"
+                  [ngModel]="declineMessage()"
+                  (ngModelChange)="declineMessage.set($event)"
+                  placeholder="Comentario opcional..."
+                  class="w-full resize-y rounded-xl border border-border bg-surface px-3 py-2.5 text-xs outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                ></textarea>
+              </label>
+            }
+            <div class="mt-3 grid gap-2">
+              <button
+                type="button"
+                (click)="payService()"
+                [disabled]="preparingPayment() || declining()"
+                class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-secondary px-4 text-xs font-inter-bold text-fixed-text-50 transition hover:bg-secondary/90 disabled:opacity-50"
+              >
+                @if (preparingPayment()) {
+                  <i class="fas fa-spinner fa-spin"></i> Preparando...
+                } @else {
+                  <i class="fas fa-wallet"></i>
+                  {{ current.status === 'payment_pending' ? 'Continuar pago' : 'Aprobar y pagar' }}
+                }
+              </button>
+              @if (current.status === 'proposal_sent') {
+                <button
+                  type="button"
+                  (click)="declineProposal()"
+                  [disabled]="declining() || preparingPayment()"
+                  class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-danger/25 bg-surface px-4 text-xs font-inter-bold text-danger transition hover:bg-danger/5 disabled:opacity-50"
+                >
+                  @if (declining()) {
+                    <i class="fas fa-spinner fa-spin"></i>
+                  } @else {
+                    <i class="fas fa-xmark"></i>
+                  }
+                  No aceptar
+                </button>
+              }
+            </div>
+          </section>
+        }
+
+        @if (current.status === 'requested') {
+          <section class="flex items-start gap-3 rounded-3xl border border-info/20 bg-info/5 p-4">
+            <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-info/10 text-info"
+              ><i class="fas fa-clock"></i
+            ></span>
+            <div>
+              <p class="text-xs font-inter-bold">Esperando al consultor</p>
+              <p class="mt-1 text-[0.68rem] leading-relaxed text-muted">
+                Te avisaremos cuando envíe su cotización.
+              </p>
+            </div>
+          </section>
+        }
+
+        @if (current.status === 'consultant_declined') {
+          <section
+            class="flex items-start gap-3 rounded-3xl border border-danger/20 bg-danger/5 p-4"
+          >
+            <span
+              class="grid size-9 shrink-0 place-items-center rounded-xl bg-danger/10 text-danger"
+              ><i class="fas fa-xmark"></i
+            ></span>
+            <div>
+              <p class="text-xs font-inter-bold">Solicitud no aceptada</p>
+              <p class="mt-1 text-[0.68rem] leading-relaxed text-muted">
+                El consultor decidió no continuar con este servicio.
+              </p>
+            </div>
+          </section>
+        }
+
+        <section class="overflow-hidden rounded-3xl border border-border bg-surface shadow-sm">
+          <details class="group border-b border-border" open>
+            <summary
+              class="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4"
+            >
+              <span class="text-xs font-inter-bold">Necesidad y resultado</span>
+              <i
+                class="fas fa-chevron-down text-[0.65rem] text-muted transition group-open:rotate-180"
+              ></i>
+            </summary>
+            <div class="space-y-4 px-5 pb-5 text-[0.7rem] leading-relaxed">
+              <div>
+                <p class="font-inter-bold uppercase tracking-wide text-muted">
+                  Problema o necesidad
+                </p>
+                <p class="mt-1.5 whitespace-pre-line">{{ current.description }}</p>
+              </div>
+              <div>
+                <p class="font-inter-bold uppercase tracking-wide text-muted">Resultado esperado</p>
+                <p class="mt-1.5 whitespace-pre-line">
+                  {{ current.expectedOutcome || 'No registrado.' }}
+                </p>
+              </div>
+            </div>
+          </details>
+
+          <details class="group border-b border-border">
+            <summary
+              class="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4"
+            >
+              <span class="flex min-w-0 items-center gap-2 text-xs font-inter-bold">
+                <span>Archivos generales</span>
+                <span
+                  class="rounded-full bg-text/5 px-2 py-0.5 text-[0.58rem] font-inter-semibold text-muted"
+                >
+                  {{ generalEvidence(current).length }}
+                </span>
+              </span>
+              <i
+                class="fas fa-chevron-down text-[0.65rem] text-muted transition group-open:rotate-180"
+              ></i>
+            </summary>
+            <div class="px-5 pb-5">
+              @if (current.status === 'paid') {
+                <button
+                  type="button"
+                  (click)="openEvidenceUploader(null)"
+                  class="inline-flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-secondary/25 text-[0.68rem] font-inter-bold text-secondary transition hover:bg-secondary/5"
+                >
+                  <i class="fas fa-paperclip"></i> Adjuntar archivo general
+                </button>
+              }
+              @if (generalEvidence(current); as serviceEvidence) {
+                @if (serviceEvidence.length) {
+                  <div class="mt-3 space-y-2">
+                    @for (attachment of serviceEvidence; track attachment.id) {
+                      <div
+                        class="flex min-w-0 items-start gap-2 rounded-xl border border-border p-3 transition hover:border-secondary/30"
+                      >
+                        <a
+                          [href]="attachment.fileUrl"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="group/file flex min-w-0 flex-1 items-start gap-2"
+                        >
+                          <span
+                            class="grid size-7 shrink-0 place-items-center rounded-lg bg-secondary/10 text-[0.68rem] text-secondary"
+                          >
+                            <i class="far fa-file-lines"></i>
+                          </span>
+                          <span class="min-w-0 flex-1">
+                            <span class="block truncate text-[0.68rem] font-inter-bold">
+                              {{ attachment.originalName }}
+                            </span>
+                            <span class="mt-0.5 block text-[0.6rem] text-muted">
+                              {{ formatFileSize(attachment.sizeBytes) }} ·
+                              {{ attachment.uploadedAt | date: 'dd/MM/yyyy, HH:mm' : 'America/Lima' }}
+                            </span>
+                            @if (attachment.note) {
+                              <span class="mt-1 block line-clamp-2 text-[0.62rem] text-muted">
+                                {{ attachment.note }}
+                              </span>
+                            }
+                          </span>
+                          <i
+                            class="fas fa-arrow-up-right-from-square text-[0.55rem] text-muted transition group-hover/file:text-secondary"
+                          ></i>
+                        </a>
+                        @if (canDeleteEvidence(current, attachment)) {
+                          <button
+                            type="button"
+                            (click)="requestDeleteEvidence(attachment)"
+                            [disabled]="deletingEvidenceId() === attachment.id"
+                            class="grid size-7 shrink-0 place-items-center rounded-lg text-muted transition hover:bg-danger/10 hover:text-danger disabled:opacity-50"
+                            [attr.aria-label]="'Eliminar ' + attachment.originalName"
+                          >
+                            @if (deletingEvidenceId() === attachment.id) {
+                              <i class="fas fa-spinner fa-spin text-[0.62rem]"></i>
+                            } @else {
+                              <i class="far fa-trash-can text-[0.62rem]"></i>
+                            }
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <p class="mt-3 text-[0.65rem] leading-relaxed text-muted">
+                    No hay archivos generales adjuntos.
+                  </p>
+                }
+              }
+            </div>
+          </details>
+
+          <details class="group border-b border-border">
+            <summary
+              class="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4"
+            >
+              <span class="text-xs font-inter-bold">Alcance del servicio</span>
+              <i
+                class="fas fa-chevron-down text-[0.65rem] text-muted transition group-open:rotate-180"
+              ></i>
+            </summary>
+            <div class="space-y-4 px-5 pb-5 text-[0.7rem] leading-relaxed">
+              <div>
+                <p class="font-inter-bold uppercase tracking-wide text-muted">Alcance</p>
+                <p class="mt-1.5 whitespace-pre-line">{{ current.requirements }}</p>
+              </div>
+              @if (current.exclusions) {
+                <div>
+                  <p class="font-inter-bold uppercase tracking-wide text-muted">No incluye</p>
+                  <p class="mt-1.5 whitespace-pre-line">{{ current.exclusions }}</p>
+                </div>
+              }
+            </div>
+          </details>
+
+          <details class="group border-b border-border">
+            <summary
+              class="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4"
+            >
+              <span class="text-xs font-inter-bold">Forma de trabajo</span>
+              <i
+                class="fas fa-chevron-down text-[0.65rem] text-muted transition group-open:rotate-180"
+              ></i>
+            </summary>
+            <div class="space-y-4 px-5 pb-5 text-[0.7rem] leading-relaxed">
+              <p class="whitespace-pre-line">{{ current.workMethod || 'No registrada.' }}</p>
+              @if (current.details) {
+                <div>
+                  <p class="font-inter-bold uppercase tracking-wide text-muted">
+                    Detalles adicionales
+                  </p>
+                  <p class="mt-1.5 whitespace-pre-line">{{ current.details }}</p>
+                </div>
+              }
+              @if (current.proposalMessage) {
+                <div>
+                  <p class="font-inter-bold uppercase tracking-wide text-muted">
+                    Mensaje del consultor
+                  </p>
+                  <p class="mt-1.5 whitespace-pre-line">{{ current.proposalMessage }}</p>
+                </div>
+              }
+            </div>
+          </details>
+
+          @if (current.referenceUrls.length || current.referenceAttachments.length) {
+            <details class="group">
+              <summary
+                class="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4"
+              >
+                <span class="text-xs font-inter-bold">Referencias originales</span>
+                <i
+                  class="fas fa-chevron-down text-[0.65rem] text-muted transition group-open:rotate-180"
+                ></i>
+              </summary>
+              <div class="flex flex-col gap-2 px-5 pb-5">
+                @for (url of current.referenceUrls; track url) {
+                  <a
+                    [href]="url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-[0.68rem] font-inter-semibold text-secondary transition hover:bg-secondary/5"
+                  >
+                    <i class="fas fa-link"></i><span class="truncate">Abrir enlace</span>
+                  </a>
+                }
+                @for (attachment of current.referenceAttachments; track attachment.storagePath) {
+                  <a
+                    [href]="attachment.fileUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-[0.68rem] font-inter-semibold text-secondary transition hover:bg-secondary/5"
+                  >
+                    <i class="fas fa-file-arrow-down"></i
+                    ><span class="truncate">{{ attachment.originalName }}</span>
+                  </a>
+                }
+              </div>
+            </details>
+          }
+        </section>
+      </aside>
+    </div>
+  } @else {
+    <section
+      class="rounded-3xl border border-dashed border-border bg-surface px-6 py-16 text-center"
+    >
+      <span
+        class="mx-auto grid size-16 place-items-center rounded-3xl bg-danger/10 text-2xl text-danger"
+      >
+        <i class="fas fa-triangle-exclamation"></i>
+      </span>
+      <h2 class="mt-5 font-plus-jakarta-sans text-xl font-bold">No encontramos este servicio</h2>
+      <p class="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
+        La solicitud puede haber sido eliminada o ya no está disponible para tu cuenta.
+      </p>
+    </section>
+  }
+</div>
+
+@if (showMilestoneEditor() && service(); as current) {
+  @let editingIndex = editingMilestoneIndex();
+  @if (editingIndex !== null) {
+    <app-modal-form
+      title="editar hito"
+      submitText="Guardar cambios"
+      cancelText="Cancelar"
+      maxWidth="lg"
+      [loading]="savingMilestone() || deletingMilestone()"
+      [submitDisabled]="!canSubmitMilestoneEdit()"
+      (onSubmit)="saveMilestone()"
+      (onClose)="closeMilestoneEditor()"
+    >
+      <div class="space-y-5 p-6">
+        <div class="flex items-start gap-3 rounded-2xl border border-secondary/20 bg-secondary/5 p-4">
+          <span
+            class="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary"
+          >
+            <i class="far fa-pen-to-square"></i>
+          </span>
+          <div>
+            <p class="text-xs font-inter-bold text-secondary">Editar Hito {{ editingIndex + 1 }}</p>
+            <p class="mt-1 text-[0.68rem] leading-relaxed text-muted">
+              Puedes modificar el nombre y la fecha mientras este hito todavía no tenga una reunión registrada.
+            </p>
+          </div>
+        </div>
+
+        <label class="block">
+          <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Nombre del hito</span>
+          <input
+            type="text"
+            maxlength="160"
+            name="editingMilestoneTitle"
+            [ngModel]="editingMilestoneTitle()"
+            (ngModelChange)="editingMilestoneTitle.set($event)"
+            class="h-11 w-full rounded-xl border border-border bg-surface px-3 text-xs outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+          />
+        </label>
+
+        <label class="block">
+          <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Fecha objetivo</span>
+          <input
+            type="date"
+            name="editingMilestoneDueDate"
+            [min]="current.milestones[editingIndex - 1]?.dueDate || minimumMilestoneDate"
+            [max]="current.milestones[editingIndex + 1]?.dueDate || current.deadline || ''"
+            [ngModel]="editingMilestoneDueDate()"
+            (ngModelChange)="editingMilestoneDueDate.set($event)"
+            class="h-11 w-full rounded-xl border border-border bg-surface px-3 text-xs outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+          />
+          <span class="mt-1.5 block text-[0.65rem] text-muted">
+            La fecha debe mantener el orden entre el hito anterior y el siguiente.
+          </span>
+        </label>
+
+        @if (canDeleteMilestone(current, editingIndex)) {
+          <div class="border-t border-border pt-4">
+            <button
+              type="button"
+              (click)="requestDeleteMilestone()"
+              [disabled]="savingMilestone() || deletingMilestone()"
+              class="inline-flex items-center gap-2 text-xs font-inter-bold text-danger transition hover:opacity-75 disabled:opacity-50"
+            >
+              @if (deletingMilestone()) {
+                <i class="fas fa-spinner fa-spin"></i> Eliminando...
+              } @else {
+                <i class="far fa-trash-can"></i> Eliminar hito intermedio
+              }
+            </button>
+          </div>
+        }
+      </div>
+    </app-modal-form>
+  }
+}
+
+@if (showEvidenceUploader() && service(); as current) {
+  <app-modal-form
+    title="adjuntar evidencia o entregable"
+    submitText="Adjuntar archivos"
+    cancelText="Cancelar"
+    maxWidth="3xl"
+    [loading]="uploadingEvidence()"
+    [submitDisabled]="!evidenceFiles().length"
+    (onSubmit)="uploadEvidence()"
+    (onClose)="closeEvidenceUploader()"
+  >
+    <div class="space-y-5 p-6">
+      <div class="flex items-start gap-3 rounded-2xl border border-secondary/20 bg-secondary/5 p-4">
+        <span
+          class="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary"
+        >
+          <i class="fas fa-paperclip"></i>
+        </span>
+        <div>
+          <p class="text-xs font-inter-bold text-secondary">
+            {{ evidenceMilestoneLabel(current, evidenceMilestoneIndex()) }}
+          </p>
+          <p class="mt-1 text-[0.68rem] leading-relaxed text-muted">
+            El archivo quedará visible dentro del seguimiento de la etapa seleccionada.
+          </p>
+        </div>
+      </div>
+
+      <label class="block">
+        <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Archivos</span>
+        <input
+          #evidenceFileInput
+          type="file"
+          multiple
+          accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
+          (change)="selectEvidenceFiles($event)"
+          class="block w-full rounded-xl border border-border bg-surface text-xs text-muted file:mr-3 file:border-0 file:bg-secondary/10 file:px-4 file:py-3 file:text-xs file:font-inter-bold file:text-secondary"
+        />
+        <span class="mt-1.5 block text-[0.65rem] text-muted">
+          PDF, imágenes, Word, Excel, PowerPoint, TXT o CSV. Máximo 5 archivos de 10 MB.
+        </span>
+      </label>
+
+      @if (evidenceFiles().length) {
+        <div class="flex flex-wrap gap-2">
+          @for (file of evidenceFiles(); track file.name + file.size; let fileIndex = $index) {
+            <span
+              class="inline-flex max-w-full items-center gap-2 rounded-xl border border-border bg-background-50 px-3 py-2 text-[0.68rem]"
+            >
+              <i class="far fa-file text-secondary"></i>
+              <span class="max-w-52 truncate">{{ file.name }}</span>
+              <span class="text-muted">{{ formatFileSize(file.size) }}</span>
+              <button
+                type="button"
+                (click)="removeEvidenceFile(fileIndex)"
+                class="text-muted transition hover:text-danger"
+                aria-label="Quitar archivo"
+              >
+                <i class="fas fa-xmark"></i>
+              </button>
+            </span>
+          }
+        </div>
+      }
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <label>
+          <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Vincular a</span>
+          <select
+            name="evidenceMilestone"
+            [ngModel]="evidenceMilestoneIndex() ?? ''"
+            (ngModelChange)="updateEvidenceMilestone($event)"
+            class="h-11 w-full rounded-xl border border-border bg-surface px-3 text-xs outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+          >
+            <option value="">Servicio general</option>
+            @for (
+              milestone of current.milestones;
+              track milestone.title + milestone.dueDate;
+              let milestoneIndex = $index
+            ) {
+              <option [value]="milestoneIndex">
+                Hito {{ milestoneIndex + 1 }} · {{ milestone.title }}
+              </option>
+            }
+          </select>
+        </label>
+        <label>
+          <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Nota opcional</span>
+          <textarea
+            rows="3"
+            maxlength="1000"
+            name="evidenceNote"
+            [ngModel]="evidenceNote()"
+            (ngModelChange)="evidenceNote.set($event)"
+            placeholder="Describe qué acredita o qué se está entregando..."
+            class="w-full resize-y rounded-xl border border-border bg-surface px-3 py-3 text-xs outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+          ></textarea>
+        </label>
+      </div>
+    </div>
+  </app-modal-form>
+}
+
+@if (showExtraMilestoneForm() && service(); as current) {
+  <app-modal-form
+    title="nuevo hito intermedio"
+    submitText="Crear hito y reunión"
+    cancelText="Cancelar"
+    maxWidth="5xl"
+    [loading]="addingExtraMilestone()"
+    [submitDisabled]="!canSubmitExtraMilestone()"
+    (onSubmit)="addExtraMilestone()"
+    (onClose)="closeExtraMilestoneModal()"
+  >
+    <div class="grid min-h-0 lg:grid-cols-[19rem_minmax(0,1fr)]">
+      <section class="border-b border-border bg-background-50 p-5 lg:border-b-0 lg:border-r">
+        <div class="flex items-start gap-3">
+          <span
+            class="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary"
+          >
+            <i class="fas fa-route"></i>
+          </span>
+          <div>
+            <h3 class="text-sm font-inter-bold">¿Dónde se creará?</h3>
+            <p class="mt-1 text-[0.68rem] leading-relaxed text-muted">
+              Elige el espacio exacto para el nuevo hito. El inicio y el cierre permanecen fijos.
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="relative mt-5 space-y-2 before:absolute before:bottom-5 before:left-4 before:top-5 before:w-px before:bg-border"
+        >
+          @for (
+            milestone of current.milestones;
+            track milestone.title + milestone.dueDate;
+            let milestoneIndex = $index;
+            let isLast = $last
+          ) {
+            <div
+              class="relative z-10 flex items-start gap-3 rounded-xl border border-border bg-surface p-3"
+            >
+              <span
+                class="grid size-8 shrink-0 place-items-center rounded-full text-xs font-inter-bold"
+                [ngClass]="
+                  milestoneIndex === 0 || isLast
+                    ? 'bg-secondary/10 text-secondary ring-1 ring-secondary/20'
+                    : 'bg-text/5 text-muted ring-1 ring-border'
+                "
+              >
+                @if (milestoneIndex === 0 || isLast) {
+                  <i class="fas fa-lock text-[0.62rem]"></i>
+                } @else {
+                  {{ milestoneIndex + 1 }}
+                }
+              </span>
+              <div class="min-w-0">
+                <p class="line-clamp-2 text-xs font-inter-bold">{{ milestone.title }}</p>
+                <p class="mt-1 text-[0.6rem] text-muted">
+                  {{ milestoneIndex === 0 ? 'Inicio fijo' : isLast ? 'Cierre fijo' : 'Intermedio' }}
+                  · {{ milestone.dueDate | date: 'dd/MM/yyyy' : 'UTC' }}
+                </p>
+              </div>
+            </div>
+
+            @if (!isLast && milestoneInsertionPositions()[milestoneIndex]; as position) {
+              <button
+                type="button"
+                (click)="selectMilestoneInsertion(position)"
+                [disabled]="!position.available"
+                class="group relative z-20 block h-11 w-full disabled:cursor-not-allowed disabled:opacity-30"
+                [attr.aria-label]="
+                  'Crear un hito después de ' +
+                  position.previousTitle +
+                  ' y antes de ' +
+                  position.nextTitle
+                "
+                [attr.title]="
+                  extraMilestoneInsertAtIndex() === position.insertAtIndex
+                    ? 'Posición seleccionada'
+                    : 'Agregar hito en esta posición'
+                "
+              >
+                @if (extraMilestoneInsertAtIndex() === position.insertAtIndex) {
+                  <span
+                    class="absolute left-4 right-3 top-1/2 h-px -translate-y-1/2 bg-secondary"
+                  ></span>
+                  <span
+                    class="absolute left-9 top-1/2 -translate-y-1/2 rounded-full border border-secondary/20 bg-surface px-2.5 py-1 text-[0.58rem] font-inter-bold text-secondary shadow-sm"
+                  >
+                    Nuevo hito aquí
+                  </span>
+                  <span
+                    class="absolute right-1 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-full border border-secondary bg-secondary text-[0.58rem] text-fixed-text-50 shadow-sm"
+                  >
+                    <i class="fas fa-check"></i>
+                  </span>
+                } @else {
+                  <span
+                    class="absolute left-4 right-3 top-1/2 h-px origin-left -translate-y-1/2 bg-secondary opacity-0 transition group-hover:opacity-100"
+                  ></span>
+                  <span
+                    class="absolute right-8 top-0 rounded-md border border-border bg-surface px-2 py-1 text-[0.56rem] font-inter-semibold text-secondary opacity-0 shadow-sm transition group-hover:opacity-100"
+                  >
+                    Agregar aquí
+                  </span>
+                  <span
+                    class="absolute right-1 top-1/2 grid size-6 -translate-y-1/2 scale-90 place-items-center rounded-full border border-secondary bg-surface text-[0.58rem] text-secondary opacity-0 shadow-sm transition group-hover:scale-100 group-hover:opacity-100"
+                  >
+                    <i class="fas fa-plus"></i>
+                  </span>
+                }
+              </button>
+            }
+          }
+        </div>
+      </section>
+
+      <section class="space-y-5 p-6">
+        <div class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_13rem]">
+          <label>
+            <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Nombre del hito</span>
+            <input
+              type="text"
+              maxlength="160"
+              name="extraMilestoneTitle"
+              [ngModel]="extraMilestoneTitle()"
+              (ngModelChange)="extraMilestoneTitle.set($event)"
+              placeholder="Ej. Validación de avances con contabilidad"
+              class="h-11 w-full rounded-xl border border-border bg-surface px-3 text-xs outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+            />
+          </label>
+          <label>
+            <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Fecha objetivo</span>
+            <input
+              type="date"
+              name="extraMilestoneDueDate"
+              [min]="selectedMilestoneInsertion()?.minimumDate || minimumMilestoneDate"
+              [max]="selectedMilestoneInsertion()?.maximumDate || current.deadline || ''"
+              [ngModel]="extraMilestoneDueDate()"
+              (ngModelChange)="updateExtraMilestoneDueDate($event)"
+              class="h-11 w-full rounded-xl border border-border bg-surface px-3 text-xs outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+            />
+          </label>
+        </div>
+
+        <div>
+          <div class="flex items-start gap-3">
+            <span
+              class="grid size-8 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary"
+            >
+              <i class="far fa-calendar"></i>
+            </span>
+            <div>
+              <h3 class="text-xs font-inter-bold">Reunión del nuevo hito</h3>
+              <p class="mt-1 text-[0.68rem] leading-relaxed text-muted">
+                Propón tres horarios de una hora en días diferentes para que el consultor elija uno.
+              </p>
+            </div>
+          </div>
+          @let extraMilestoneMonths = availabilityMonthsForDueDate(extraMilestoneDueDate());
+          @let extraMilestoneMonth = extraMilestoneAvailabilityMonth();
+          @let extraMilestoneSlots =
+            availabilityOptionsForMonth(extraMilestoneMonth, extraMilestoneDueDate());
+          <div class="mt-3 grid gap-3">
+            @for (value of extraMilestoneTimes(); track $index; let optionIndex = $index) {
+              <label class="grid items-center gap-2 sm:grid-cols-[5rem_minmax(0,1fr)]">
+                <span class="text-[0.68rem] font-inter-semibold text-muted">
+                  Opción {{ optionIndex + 1 }}
+                </span>
+                <app-time-slot-picker
+                  [value]="value"
+                  [options]="extraMilestoneSlots"
+                  [loading]="isAvailabilityMonthLoading(extraMilestoneMonth)"
+                  [disabled]="!extraMilestoneDueDate() || !extraMilestoneMonth"
+                  [availableMonths]="extraMilestoneMonths"
+                  [activeMonth]="extraMilestoneMonth"
+                  [disabledValues]="
+                    disabledSlotValues(extraMilestoneTimes(), optionIndex, extraMilestoneSlots)
+                  "
+                  [ariaLabel]="'Seleccionar opción ' + (optionIndex + 1) + ' del nuevo hito'"
+                  [helperText]="slotWindowLabel(extraMilestoneDueDate())"
+                  [panelSubtitle]="slotWindowLabel(extraMilestoneDueDate())"
+                  [dropdownPosition]="optionIndex === 2 ? 'up' : 'down'"
+                  (monthChange)="changeExtraMilestoneAvailabilityMonth($event)"
+                  (valueChange)="updateExtraMilestoneTime(optionIndex, $event)"
+                />
+              </label>
+            }
+          </div>
+        </div>
+      </section>
+    </div>
+  </app-modal-form>
+}
+
+@if (paymentModalOpen() && paymentFrameUrl(); as frameUrl) {
+  <app-modal-form
+    title="Pago del servicio"
+    maxWidth="6xl"
+    [showFooter]="false"
+    (onClose)="closePaymentModal()"
+  >
+    <div class="flex h-[78vh] flex-col bg-surface">
+      <iframe
+        [src]="frameUrl"
+        title="Pasarela de pago del servicio"
+        class="w-full flex-1 border-0 bg-surface"
+        referrerpolicy="no-referrer"
+        allow="payment *; clipboard-read; clipboard-write"
+      ></iframe>
+      <div
+        class="flex flex-col items-center justify-between gap-3 border-t border-border bg-surface px-5 py-4 sm:flex-row"
+      >
+        <div class="flex items-center gap-3 text-sm text-muted">
+          <span class="relative flex size-3.5">
+            <span
+              class="absolute inline-flex size-full animate-ping rounded-full bg-secondary opacity-75"
+            ></span>
+            <span class="relative inline-flex size-3.5 rounded-full bg-secondary"></span>
+          </span>
+          <span>Esperando la confirmación segura de tu pago...</span>
+        </div>
+        <button
+          type="button"
+          (click)="closePaymentModal()"
+          class="h-9 w-full rounded-lg bg-text/5 px-4 text-sm font-inter-semibold transition hover:bg-text/10 sm:w-auto"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </app-modal-form>
+}

@@ -38,6 +38,7 @@ export class ConsultantServices {
           { value: 'proposal_sent', label: 'Enviadas' },
           { value: 'payment_pending', label: 'Esperando pago' },
           { value: 'paid', label: 'Pagadas' },
+          { value: 'completed', label: 'Completadas' },
           { value: 'pyme_declined', label: 'No aceptadas por PYME' },
         ],
   );
@@ -230,6 +231,7 @@ export class ConsultantServices {
       consultant_declined: 'No aceptada por mí',
       payment_pending: 'Esperando pago',
       paid: 'Pagada',
+      completed: 'Completada',
       pyme_declined: 'No aceptada por PYME',
       cancelled: 'Cancelada',
     };
@@ -243,6 +245,7 @@ export class ConsultantServices {
       consultant_declined: 'bg-danger/10 text-danger',
       payment_pending: 'bg-info/10 text-info',
       paid: 'bg-success/10 text-success',
+      completed: 'bg-secondary/10 text-secondary',
       pyme_declined: 'bg-danger/10 text-danger',
       cancelled: 'bg-text/10 text-muted',
     };

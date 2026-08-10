@@ -172,6 +172,13 @@ export const routes: Routes = [
               import('@module/admin/content/pyme/services/services').then((m) => m.PymeServices),
           },
           {
+            path: `${getPath(PATH.admin.pyme.services)}/:id`,
+            loadComponent: () =>
+              import('@module/admin/content/pyme/services/service-detail/service-detail').then(
+                (m) => m.PymeServiceDetail,
+              ),
+          },
+          {
             path: `${getPath(PATH.admin.pyme.meetings)}/:id`,
             loadComponent: () =>
               import('@module/admin/content/shared/meeting-detail/meeting-detail').then(

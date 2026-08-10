@@ -1,15 +1,7 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import {
-  Component,
-  ElementRef,
-  OnDestroy,
-  computed,
-  inject,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { Router, RouterLink } from '@angular/router';
 import {
   SERVICE_REQUEST_CATEGORY_OPTIONS,
   ServiceRequestCategory,
@@ -25,14 +17,13 @@ import {
   TimeSlotPickerOption,
 } from '@module/admin/components/time-slot-picker/time-slot-picker';
 import { AiService } from '@service/admin/ai.service';
-import { ConsultantAvailabilityService } from '@service/admin/consultant-availability.service';
-import { MercadoPagoService } from '@service/admin/mercado-pago.service';
+import { ConsultantTimeSlotService } from '@service/admin/consultant-time-slot.service';
 import { ServiceRequestService } from '@service/admin/service-request.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
+import { PATH, buildPath } from '@route/path.route';
 import {
   ApiResponse,
-  MercadoPagoCheckoutDto,
   PaginationMetaDto,
   ServiceConsultantMatchDto,
   ServiceRequestChatMessageDto,
@@ -45,10 +36,6 @@ import {
 type ServiceStatus = ServiceRequestResultDto['status'];
 type ServiceStage = 'requests' | 'proposals';
 type ConsultantOption = ApiResponse<'consultant', 'findAll'>['data'][number];
-type AvailabilityMonth = ApiResponse<
-  'consultantAvailability',
-  'consultant-availabilityVisibleMonth'
->['data'][number];
 type WizardStep = 1 | 2 | 3;
 type InitialMeetingSlot = TimeSlotPickerOption;
 
@@ -77,19 +64,19 @@ const INITIAL_ASSISTANT_MESSAGE =
     ModalForm,
     PaginationComponent,
     TimeSlotPicker,
+    RouterLink,
   ],
   templateUrl: './services.html',
 })
-export class PymeServices implements OnDestroy {
+export class PymeServices {
   private readonly serviceChatInput =
     viewChild<ElementRef<HTMLTextAreaElement>>('serviceChatInput');
   private readonly serviceRequestService = inject(ServiceRequestService);
   private readonly aiService = inject(AiService);
-  private readonly consultantAvailabilityService = inject(ConsultantAvailabilityService);
-  private readonly mercadoPagoService = inject(MercadoPagoService);
+  private readonly consultantTimeSlotService = inject(ConsultantTimeSlotService);
   private readonly hubsme = inject(HubsmeService);
   private readonly toastService = inject(ToastService);
-  private readonly sanitizer = inject(DomSanitizer);
+  private readonly router = inject(Router);
   private readonly meetingDateFormatter = new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Lima',
     year: 'numeric',
@@ -97,12 +84,8 @@ export class PymeServices implements OnDestroy {
     day: '2-digit',
   });
   private requestSequence = 0;
-  private detailSequence = 0;
   private aiRequestSequence = 0;
   private availabilityRequestSequence = 0;
-  private paymentPolling: ReturnType<typeof setInterval> | null = null;
-  private pollingStartedAt = 0;
-  private paymentPollingInFlight = false;
 
   readonly pageSize = 9;
   readonly consultantSearchFilters: ConsultantInputSearchFilters = {
@@ -129,6 +112,7 @@ export class PymeServices implements OnDestroy {
           { value: 'proposal_sent', label: 'Precio recibido' },
           { value: 'payment_pending', label: 'Pago pendiente' },
           { value: 'paid', label: 'Aprobadas y pagadas' },
+          { value: 'completed', label: 'Completadas' },
           { value: 'pyme_declined', label: 'No aceptadas por mi empresa' },
         ],
   );
@@ -184,28 +168,11 @@ export class PymeServices implements OnDestroy {
       this.hasValidInitialMeetingOptions(),
   );
 
-  readonly selectedService = signal<ServiceRequestResultDto | null>(null);
-  readonly showDetail = signal(false);
-  readonly detailLoading = signal(false);
-  readonly declineMessage = signal('');
-  readonly declining = signal(false);
-  readonly preparingPayment = signal(false);
-  readonly paymentModalOpen = signal(false);
-  readonly paymentCheckout = signal<MercadoPagoCheckoutDto | null>(null);
-  readonly milestoneMeetingTimes = signal<Record<number, string[]>>({});
-  readonly schedulingMilestone = signal<number | null>(null);
-  readonly paymentFrameUrl = computed<SafeResourceUrl | null>(() => {
-    const checkout = this.paymentCheckout();
-    const url = checkout?.initPoint ?? checkout?.sandboxInitPoint ?? null;
-    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
-  });
+  readonly PATH = PATH;
+  readonly buildPath = buildPath;
 
   constructor() {
     void this.loadServices();
-  }
-
-  ngOnDestroy(): void {
-    this.stopPaymentPolling();
   }
 
   async loadServices() {
@@ -595,46 +562,28 @@ export class PymeServices implements OnDestroy {
     const requestId = this.availabilityRequestSequence;
     this.initialMeetingAvailabilityLoading.set(true);
     const meetingWindow = this.initialMeetingWindow();
-    const months = this.monthsWithinWindow(meetingWindow.start, meetingWindow.end);
 
     try {
-      const requests = uniqueConsultantIds.flatMap((consultantId) =>
-        months.map(async (month) => ({
+      const requests = uniqueConsultantIds.map(async (consultantId) => ({
+        consultantId,
+        slots: await this.consultantTimeSlotService.loadAvailableSlots(
           consultantId,
-          response: await this.consultantAvailabilityService.visibleMonth({
-            consultantId,
-            year: month.getFullYear(),
-            month: month.getMonth() + 1,
-          }),
-        })),
-      );
+          meetingWindow.start,
+          meetingWindow.end,
+        ),
+      }));
       const results = await Promise.allSettled(requests);
       if (requestId !== this.availabilityRequestSequence) return;
-
-      const monthsByConsultant = new Map<number, AvailabilityMonth[]>();
-      results.forEach((result) => {
-        if (result.status !== 'fulfilled') return;
-        const current = monthsByConsultant.get(result.value.consultantId) ?? [];
-        monthsByConsultant.set(result.value.consultantId, [
-          ...current,
-          ...result.value.response.data,
-        ]);
-      });
 
       const selectedConsultantIds = new Set(
         this.selectedConsultants().map((consultant) => consultant.userId),
       );
       const availability = Object.fromEntries(
-        uniqueConsultantIds
-          .filter((consultantId) => selectedConsultantIds.has(consultantId))
-          .map((consultantId) => [
-            consultantId,
-            this.buildInitialMeetingSlots(
-              monthsByConsultant.get(consultantId) ?? [],
-              meetingWindow.start,
-              meetingWindow.end,
-            ),
-          ]),
+        results.flatMap((result) =>
+          result.status === 'fulfilled' && selectedConsultantIds.has(result.value.consultantId)
+            ? [[result.value.consultantId, result.value.slots] as const]
+            : [],
+        ),
       );
       this.initialMeetingAvailability.update((current) => ({ ...current, ...availability }));
     } finally {
@@ -642,45 +591,6 @@ export class PymeServices implements OnDestroy {
         this.initialMeetingAvailabilityLoading.set(false);
       }
     }
-  }
-
-  private buildInitialMeetingSlots(
-    months: AvailabilityMonth[],
-    windowStart: Date,
-    windowEnd: Date,
-  ): InitialMeetingSlot[] {
-    const slots = new Map<string, InitialMeetingSlot>();
-
-    months.forEach((availability) => {
-      const [year, month] = availability.month.split('-').map(Number);
-      Object.entries(availability.availableSchedule ?? {}).forEach(([day, times]) => {
-        const availableTimes = new Set(times);
-        times.forEach((time) => {
-          const startTime = this.fromCalendarParts(year, month - 1, Number(day), time);
-          const nextHalfHour = this.addMinutes(startTime, 30);
-          const nextHalfHourValue = this.toTimeValue(nextHalfHour);
-          const endTime = this.addMinutes(startTime, 60);
-          if (
-            startTime < windowStart ||
-            endTime > windowEnd ||
-            !availableTimes.has(nextHalfHourValue) ||
-            !times.includes(nextHalfHourValue)
-          ) {
-            return;
-          }
-
-          const value = startTime.toISOString();
-          slots.set(value, {
-            value,
-            label: `${this.formatMeetingDate(startTime)} · ${this.formatMeetingTime(startTime)}–${this.formatMeetingTime(endTime)}`,
-            dateLabel: this.formatMeetingDate(startTime),
-            timeLabel: `${this.formatMeetingTime(startTime)} – ${this.formatMeetingTime(endTime)}`,
-          });
-        });
-      });
-    });
-
-    return [...slots.values()].sort((left, right) => left.value.localeCompare(right.value));
   }
 
   private initialMeetingWindow() {
@@ -701,39 +611,6 @@ export class PymeServices implements OnDestroy {
     return { start, end };
   }
 
-  private monthsWithinWindow(start: Date, end: Date) {
-    const months: Date[] = [];
-    const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
-    const lastMonth = new Date(end.getFullYear(), end.getMonth(), 1);
-
-    while (cursor <= lastMonth) {
-      months.push(new Date(cursor));
-      cursor.setMonth(cursor.getMonth() + 1);
-    }
-    return months;
-  }
-
-  private fromCalendarParts(year: number, monthIndex: number, day: number, time: string) {
-    const [hours, minutes] = time.split(':').map(Number);
-    return new Date(year, monthIndex, day, hours, minutes);
-  }
-
-  private toTimeValue(date: Date) {
-    return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-  }
-
-  private formatMeetingDate(date: Date) {
-    return date.toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: 'short' });
-  }
-
-  private formatMeetingTime(date: Date) {
-    return date.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
-  }
-
-  private addMinutes(date: Date, minutes: number) {
-    return new Date(date.getTime() + minutes * 60 * 1000);
-  }
-
   async createService() {
     if (!this.canSendService() || this.creating()) {
       this.toastService.warning('Selecciona al menos un consultor para enviar la solicitud');
@@ -752,7 +629,7 @@ export class PymeServices implements OnDestroy {
       this.statusFilter.set('');
       this.page.set(1);
       await this.loadServices();
-      if (created[0]) await this.openDetail(created[0]);
+      if (created[0]) await this.navigateToDetail(created[0]);
     } catch (error) {
       this.toastService.error(this.hubsme.getErrorMessage(error));
     } finally {
@@ -760,127 +637,8 @@ export class PymeServices implements OnDestroy {
     }
   }
 
-  async openDetail(service: ServiceRequestResultDto) {
-    const requestId = ++this.detailSequence;
-    this.selectedService.set(service);
-    this.declineMessage.set('');
-    this.showDetail.set(true);
-    this.detailLoading.set(true);
-    try {
-      const detail = await this.serviceRequestService.findOne(service.id);
-      if (requestId === this.detailSequence) this.selectedService.set(detail);
-    } catch (error) {
-      if (requestId === this.detailSequence) {
-        this.toastService.error(this.hubsme.getErrorMessage(error));
-      }
-    } finally {
-      if (requestId === this.detailSequence) this.detailLoading.set(false);
-    }
-  }
-
-  closeDetail() {
-    if (this.declining() || this.preparingPayment() || this.schedulingMilestone() !== null) return;
-    this.showDetail.set(false);
-    this.selectedService.set(null);
-    this.detailSequence += 1;
-  }
-
-  async declineProposal() {
-    const service = this.selectedService();
-    if (!service || service.status !== 'proposal_sent') return;
-
-    this.declining.set(true);
-    try {
-      const updated = await this.serviceRequestService.decline(service.id, {
-        message: this.declineMessage().trim() || undefined,
-      });
-      this.selectedService.set(updated);
-      this.toastService.success('Cotización marcada como no aceptada');
-      await this.loadServices();
-    } catch (error) {
-      this.toastService.error(this.hubsme.getErrorMessage(error));
-    } finally {
-      this.declining.set(false);
-    }
-  }
-
-  async payService() {
-    const service = this.selectedService();
-    if (!service || !['proposal_sent', 'payment_pending'].includes(service.status)) return;
-
-    this.preparingPayment.set(true);
-    try {
-      const checkout = await this.mercadoPagoService.prepareServicePayment(service.id);
-      if (!checkout.initPoint && !checkout.sandboxInitPoint) {
-        throw new Error('La pasarela de pago no devolvió un enlace válido');
-      }
-      this.paymentCheckout.set(checkout);
-      this.paymentModalOpen.set(true);
-      this.startPaymentPolling();
-    } catch (error) {
-      this.toastService.error(this.hubsme.getErrorMessage(error));
-    } finally {
-      this.preparingPayment.set(false);
-    }
-  }
-
-  milestoneMeetingTimesFor(index: number) {
-    return this.milestoneMeetingTimes()[index] ?? ['', '', ''];
-  }
-
-  updateMilestoneMeetingTime(index: number, optionIndex: number, value: string) {
-    this.milestoneMeetingTimes.update((current) => {
-      const values = [...(current[index] ?? ['', '', ''])];
-      values[optionIndex] = value;
-      return { ...current, [index]: values };
-    });
-  }
-
-  async scheduleMilestoneMeeting(index: number) {
-    const service = this.selectedService();
-    const values = this.milestoneMeetingTimesFor(index).filter(Boolean);
-    if (!service || service.status !== 'paid') return;
-    if (values.length !== 3 || new Set(values).size !== 3) {
-      this.toastService.warning('Selecciona tres horarios diferentes para el hito');
-      return;
-    }
-
-    this.schedulingMilestone.set(index);
-    try {
-      const updated = await this.serviceRequestService.scheduleMilestoneMeeting(service.id, {
-        milestoneIndex: index,
-        proposedStartTimes: values.map((value) => new Date(value).toISOString()),
-      });
-      this.selectedService.set(updated);
-      this.toastService.success('Reunión del hito propuesta al consultor');
-    } catch (error) {
-      this.toastService.error(this.hubsme.getErrorMessage(error));
-    } finally {
-      this.schedulingMilestone.set(null);
-    }
-  }
-
-  meetingStatusLabel(status: ServiceRequestResultDto['meetings'][number]['status']) {
-    const labels: Record<ServiceRequestResultDto['meetings'][number]['status'], string> = {
-      solicitada: 'Solicitada',
-      pago_pendiente: 'Pendiente de pago',
-      por_confirmar: 'Esperando horario del consultor',
-      confirmada: 'Confirmada',
-      finalizada: 'Finalizada',
-      cancelada: 'Cancelada',
-    };
-    return labels[status];
-  }
-
-  meetingForMilestone(service: ServiceRequestResultDto, index: number) {
-    return service.meetings.find((meeting) => meeting.serviceMilestoneIndex === index) ?? null;
-  }
-
-  closePaymentModal() {
-    this.stopPaymentPolling();
-    this.paymentModalOpen.set(false);
-    this.paymentCheckout.set(null);
-    void this.refreshSelectedService();
+  async navigateToDetail(service: ServiceRequestResultDto) {
+    await this.router.navigate([buildPath(PATH.admin.pyme.services), service.id]);
   }
 
   statusLabel(status: ServiceStatus) {
@@ -890,6 +648,7 @@ export class PymeServices implements OnDestroy {
       consultant_declined: 'No aceptada por consultor',
       payment_pending: 'Pago pendiente',
       paid: 'Aprobada y pagada',
+      completed: 'Completado',
       pyme_declined: 'No aceptada',
       cancelled: 'Cancelada',
     };
@@ -903,6 +662,7 @@ export class PymeServices implements OnDestroy {
       consultant_declined: 'bg-danger/10 text-danger',
       payment_pending: 'bg-warning/15 text-warning',
       paid: 'bg-success/10 text-success',
+      completed: 'bg-secondary/10 text-secondary',
       pyme_declined: 'bg-danger/10 text-danger',
       cancelled: 'bg-text/10 text-muted',
     };
@@ -1141,62 +901,5 @@ export class PymeServices implements OnDestroy {
   private toLocalDateTimeInput(date: Date) {
     const local = new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000);
     return local.toISOString().slice(0, 16);
-  }
-
-  private startPaymentPolling() {
-    this.stopPaymentPolling();
-    this.pollingStartedAt = Date.now();
-    void this.pollPaymentStatus();
-    this.paymentPolling = setInterval(() => void this.pollPaymentStatus(), 3000);
-  }
-
-  private stopPaymentPolling() {
-    if (!this.paymentPolling) return;
-    clearInterval(this.paymentPolling);
-    this.paymentPolling = null;
-  }
-
-  private async pollPaymentStatus() {
-    const service = this.selectedService();
-    if (!service || !this.paymentModalOpen() || this.paymentPollingInFlight) return;
-    if (Date.now() - this.pollingStartedAt > 600000) {
-      this.stopPaymentPolling();
-      this.toastService.warning(
-        'El pago sigue pendiente. Puedes cerrar esta ventana y reintentarlo luego.',
-      );
-      return;
-    }
-
-    this.paymentPollingInFlight = true;
-    try {
-      const checkout = await this.mercadoPagoService.syncServicePayment(service.id);
-      if (!this.paymentModalOpen() || this.selectedService()?.id !== service.id) return;
-      this.paymentCheckout.set(checkout);
-      const updated = await this.serviceRequestService.findOne(service.id);
-      if (!this.paymentModalOpen() || this.selectedService()?.id !== service.id) return;
-      this.selectedService.set(updated);
-      if (updated.status !== 'paid') return;
-      this.stopPaymentPolling();
-      this.paymentModalOpen.set(false);
-      this.paymentCheckout.set(null);
-      this.toastService.success('Pago confirmado. El servicio fue aprobado');
-      await this.loadServices();
-    } catch {
-      // El siguiente ciclo vuelve a consultar para tolerar fallas temporales.
-    } finally {
-      this.paymentPollingInFlight = false;
-    }
-  }
-
-  private async refreshSelectedService() {
-    const service = this.selectedService();
-    if (!service) return;
-    try {
-      const updated = await this.serviceRequestService.findOne(service.id);
-      this.selectedService.set(updated);
-      await this.loadServices();
-    } catch (error) {
-      this.toastService.error(this.hubsme.getErrorMessage(error));
-    }
   }
 }

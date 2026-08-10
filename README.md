@@ -1,16 +1,18 @@
 # Hubsme
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.10.
+This project uses Angular 20.3 with server-side rendering (SSR), Tailwind CSS and the generated API client from the backend.
 
 ## Development server
 
 To start a local development server, run:
 
 ```bash
-ng serve
+npm start
 ```
 
 Once the server is running, open your browser and navigate to `http://localhost:6200/`. The application will automatically reload whenever you modify any of the source files.
+
+The backend URL is configured with the `NG_APP_BASE_URL` environment variable, normally `http://localhost:6001` for local development.
 
 ## Code scaffolding
 
@@ -31,28 +33,28 @@ ng generate --help
 To build the project run:
 
 ```bash
-ng build
+npm run build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+This compiles the browser and server bundles, then creates the browser `index.html` expected by the SSR deployment in `dist/`.
 
 ## Running unit tests
 
 To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
 
 ```bash
-ng test
+npm test
 ```
 
-## Running end-to-end tests
+## Running the SSR server
 
-For end-to-end (e2e) testing, run:
+After building, start the SSR server with:
 
 ```bash
-ng e2e
+npm run serve:ssr:front-hubsme
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+The project does not currently define an end-to-end test script.
 
 ## Additional Resources
 

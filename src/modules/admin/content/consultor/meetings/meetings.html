@@ -599,7 +599,7 @@
         Finalizar
       </button>
       }
-      @if (meeting.status === 'finalizada' || meeting.description) {
+      @if (meeting.status === 'finalizada') {
       <button type="button" [routerLink]="['/' + buildPath(PATH.admin.consultor.documents), meeting.id]"
         (click)="closeMeetingDetail()"
         class="inline-flex h-9 items-center justify-center rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold transition-colors hover:border-secondary hover:text-secondary">

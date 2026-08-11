@@ -429,7 +429,7 @@ export class Meetings implements OnInit {
   }
 
   canJoin(meeting: Meeting) {
-    return meeting.status === 'confirmada' && meeting.hasMeetingLink && !meeting.description;
+    return meeting.status === 'confirmada' && meeting.hasMeetingLink;
   }
 
   meetingEnd(meeting: Meeting, start = this.meetingDisplayStart(meeting)) {

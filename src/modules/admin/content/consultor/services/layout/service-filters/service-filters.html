@@ -1,0 +1,82 @@
+<section class="overflow-hidden rounded-3xl border border-border bg-surface shadow-sm">
+  <nav class="grid grid-cols-2 border-b border-border" aria-label="Secciones de servicios">
+    <button
+      type="button"
+      (click)="store.changeTab('requests')"
+      class="relative flex items-center justify-center gap-2 px-4 py-4 text-sm font-inter-bold transition hover:bg-secondary/5"
+      [class.text-secondary]="store.activeTab() === 'requests'"
+      [class.text-muted]="store.activeTab() !== 'requests'"
+    >
+      <i class="fas fa-inbox"></i>
+      Solicitudes recibidas
+      @if (store.activeTab() === 'requests') {
+        <span class="absolute inset-x-0 bottom-0 h-0.5 bg-secondary"></span>
+      }
+    </button>
+    <button
+      type="button"
+      (click)="store.changeTab('proposals')"
+      class="relative flex items-center justify-center gap-2 border-l border-border px-4 py-4 text-sm font-inter-bold transition hover:bg-secondary/5"
+      [class.text-secondary]="store.activeTab() === 'proposals'"
+      [class.text-muted]="store.activeTab() !== 'proposals'"
+    >
+      <i class="fas fa-file-invoice-dollar"></i>
+      Cotizaciones enviadas
+      @if (store.activeTab() === 'proposals') {
+        <span class="absolute inset-x-0 bottom-0 h-0.5 bg-secondary"></span>
+      }
+    </button>
+  </nav>
+
+  <div class="flex flex-col gap-3 p-4 lg:flex-row lg:items-end lg:p-5">
+    <label class="flex-1">
+      <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Buscar servicio</span>
+      <span class="relative block">
+        <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-xs text-muted"></i>
+        <input
+          type="search"
+          name="consultantServiceSearch"
+          [ngModel]="store.search()"
+          (ngModelChange)="store.search.set($event)"
+          (keyup.enter)="store.applyFilters()"
+          placeholder="Título, descripción o requerimientos"
+          class="h-11 w-full rounded-xl border border-border bg-background-50 pl-10 pr-4 text-sm outline-none transition placeholder:text-muted/70 focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+        />
+      </span>
+    </label>
+    <label class="lg:w-64">
+      <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Estado</span>
+      <span class="relative block">
+        <select
+          [value]="store.statusFilter()"
+          (change)="store.changeStatus($event)"
+          class="h-11 w-full appearance-none rounded-xl border border-border bg-background-50 pl-3 pr-9 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+        >
+          @for (status of store.statusOptions(); track status.value) {
+            <option [value]="status.value">{{ status.label }}</option>
+          }
+        </select>
+        <i class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[0.65rem] text-muted"></i>
+      </span>
+    </label>
+    <div class="flex gap-2">
+      <button
+        type="button"
+        (click)="store.applyFilters()"
+        class="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm font-inter-bold text-fixed-text-50 transition hover:bg-secondary/90 lg:flex-none"
+      >
+        <i class="fas fa-filter"></i> Filtrar
+      </button>
+      @if (store.search() || store.statusFilter()) {
+        <button
+          type="button"
+          (click)="store.clearFilters()"
+          aria-label="Limpiar filtros"
+          class="grid size-11 place-items-center rounded-xl border border-border text-muted transition hover:text-secondary"
+        >
+          <i class="fas fa-rotate-left"></i>
+        </button>
+      }
+    </div>
+  </div>
+</section>

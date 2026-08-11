@@ -837,11 +837,11 @@ export class Meetings implements OnInit, OnDestroy {
   }
 
   canJoinMeeting(meeting: Meeting) {
-    return meeting.status === 'confirmada' && meeting.hasMeetingLink && !meeting.description;
+    return meeting.status === 'confirmada' && meeting.hasMeetingLink;
   }
 
   canFinishMeeting(meeting: Meeting) {
-    return meeting.status === 'confirmada' && !meeting.description;
+    return meeting.status === 'confirmada';
   }
 
   meetingEnd(meeting: Meeting, start = this.meetingDisplayStart(meeting)) {

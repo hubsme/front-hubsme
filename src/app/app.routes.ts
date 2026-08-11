@@ -174,8 +174,8 @@ export const routes: Routes = [
           {
             path: `${getPath(PATH.admin.pyme.services)}/:id`,
             loadComponent: () =>
-              import('@module/admin/content/pyme/services/service-detail/service-detail').then(
-                (m) => m.PymeServiceDetail,
+              import('@module/admin/content/shared/service-detail/service-detail').then(
+                (m) => m.ServiceDetail,
               ),
           },
           {
@@ -256,6 +256,13 @@ export const routes: Routes = [
             loadComponent: () =>
               import('@module/admin/content/consultor/services/services').then(
                 (m) => m.ConsultantServices,
+              ),
+          },
+          {
+            path: `${getPath(PATH.admin.consultor.services)}/:id`,
+            loadComponent: () =>
+              import('@module/admin/content/shared/service-detail/service-detail').then(
+                (m) => m.ServiceDetail,
               ),
           },
           {

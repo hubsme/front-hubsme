@@ -36,6 +36,7 @@ export class Documents implements OnDestroy, OnInit {
   paginatedDiagnosticDocuments = computed(() => this.diagnostics());
   meetingMeta = signal<PaginationMetaDto>(this.emptyMeta());
   diagnosticMeta = signal<PaginationMetaDto>(this.emptyMeta());
+  private readonly failedPymeImages = signal<ReadonlySet<string>>(new Set<string>());
   private searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit() {
@@ -116,6 +117,22 @@ export class Documents implements OnDestroy, OnInit {
 
   documentTitle(document: ApiResponse<'consultant', 'meetingDocuments'>['data'][number]) {
     return document.title || 'Acta de Reunion';
+  }
+
+  showPymeLogo(key: string, logoUrl: string | null | undefined): boolean {
+    return Boolean(logoUrl) && !this.failedPymeImages().has(key);
+  }
+
+  markPymeLogoAsFailed(key: string): void {
+    this.failedPymeImages.update((failedImages) => {
+      const updatedImages = new Set<string>(failedImages);
+      updatedImages.add(key);
+      return updatedImages;
+    });
+  }
+
+  pymeInitial(name: string): string {
+    return name.trim().charAt(0).toLocaleUpperCase('es-PE') || 'P';
   }
 
   consultantName() {

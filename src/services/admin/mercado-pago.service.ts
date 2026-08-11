@@ -55,17 +55,19 @@ export class MercadoPagoService {
 
   prepareServicePayment(
     id: number,
+    installmentIndex?: number,
   ): Promise<ApiResponse<'mercadoPago', 'mercadopagoPrepareServicePayment'>> {
     return this.api.mercadoPago
-      .mercadopagoPrepareServicePayment({ id })
+      .mercadopagoPrepareServicePayment({ id }, { installmentIndex })
       .then((response) => response.data);
   }
 
   syncServicePayment(
     id: number,
+    installmentIndex?: number | null,
   ): Promise<ApiResponse<'mercadoPago', 'mercadopagoSyncServicePayment'>> {
     return this.api.mercadoPago
-      .mercadopagoSyncServicePayment({ id })
+      .mercadopagoSyncServicePayment({ id }, { installmentIndex: installmentIndex ?? undefined })
       .then((response) => response.data);
   }
 }

@@ -3,6 +3,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
+import { ConsultantInputSearch } from '@module/admin/components/input-search/consultant-input-search/consultant-input-search';
+import { PymeInputSearch } from '@module/admin/components/input-search/pyme-input-search/pyme-input-search';
 import { PaginationComponent } from '@module/admin/components/pagination/pagination';
 import { AdminApiService } from '@service/admin-api.service';
 import { ToastService } from '@service/toast.service';
@@ -12,11 +14,22 @@ import {
   PromotionCodeCreateDto,
   PromotionCodeDetailDto,
   PromotionCodeResultDto,
+  ApiResponse,
 } from 'api/backend.api';
+
+type PymeOption = ApiResponse<'pyme', 'findAll'>['data'][number];
+type ConsultantOption = ApiResponse<'consultant', 'findAll'>['data'][number];
 
 @Component({
   selector: 'app-codes',
-  imports: [DatePipe, FormsModule, ModalForm, PaginationComponent],
+  imports: [
+    ConsultantInputSearch,
+    DatePipe,
+    FormsModule,
+    ModalForm,
+    PaginationComponent,
+    PymeInputSearch,
+  ],
   templateUrl: './codes.html',
 })
 export class Codes {
@@ -35,12 +48,13 @@ export class Codes {
   readonly pageSize = 10;
   readonly meta = signal<PaginationMetaDto | null>(null);
   readonly code = signal('');
+  readonly type = signal<PromotionCodeResultDto['type']>('consultation');
   readonly description = signal('');
   readonly maxRedemptions = signal(1);
   readonly startsAt = signal('');
   readonly expiresAt = signal('');
-  readonly allowedPymeIdsInput = signal('');
-  readonly allowedConsultantIdsInput = signal('');
+  readonly selectedPymes = signal<PymeOption[]>([]);
+  readonly selectedConsultants = signal<ConsultantOption[]>([]);
   readonly activeCount = computed(() => this.codes().filter((code) => code.isActive).length);
   readonly totalCodes = computed(() => this.meta()?.total ?? 0);
   readonly totalUses = computed(() =>
@@ -95,10 +109,11 @@ export class Codes {
 
   openCreateModal() {
     this.code.set('');
+    this.type.set('consultation');
     this.description.set('');
     this.maxRedemptions.set(1);
-    this.allowedPymeIdsInput.set('');
-    this.allowedConsultantIdsInput.set('');
+    this.selectedPymes.set([]);
+    this.selectedConsultants.set([]);
 
     const today = new Date();
     const nextMonth = new Date(today);
@@ -137,21 +152,19 @@ export class Codes {
       return;
     }
 
-    const allowedPymeIds = this.parseAllowedIds(this.allowedPymeIdsInput());
-    const allowedConsultantIds = this.parseAllowedIds(this.allowedConsultantIdsInput());
-    if (allowedPymeIds === undefined || allowedConsultantIds === undefined) {
-      this.toastService.warning('Las restricciones deben contener IDs positivos separados por comas.');
-      return;
-    }
-
     const payload: PromotionCodeCreateDto = {
       code: this.code().trim() || undefined,
+      type: this.type(),
       description: this.description().trim() || undefined,
       maxRedemptions: this.maxRedemptions(),
       startsAt: this.toIsoDate(this.startsAt()),
       expiresAt: this.toIsoDate(this.expiresAt(), true),
-      allowedPymeIds,
-      allowedConsultantIds,
+      allowedPymeIds: this.selectedPymes().length
+        ? this.selectedPymes().map((pyme) => pyme.userId)
+        : null,
+      allowedConsultantIds: this.selectedConsultants().length
+        ? this.selectedConsultants().map((consultant) => consultant.userId)
+        : null,
     };
 
     this.saving.set(true);
@@ -201,13 +214,40 @@ export class Codes {
     return Array.isArray(code.allowedPymeIds) || Array.isArray(code.allowedConsultantIds);
   }
 
-  private parseAllowedIds(value: string): number[] | null | undefined {
-    const normalized = value.trim();
-    if (!normalized) return null;
+  onTypeChange(type: string): void {
+    if (type === 'consultation' || type === 'service') {
+      this.type.set(type);
+    }
+  }
 
-    const ids = normalized.split(',').map((token) => Number(token.trim()));
-    if (ids.some((id) => !Number.isInteger(id) || id <= 0)) return undefined;
-    return [...new Set(ids)];
+  typeLabel(type: PromotionCodeResultDto['type']): string {
+    return type === 'service' ? 'Servicio' : 'Consultoría';
+  }
+
+  typeClass(type: PromotionCodeResultDto['type']): string {
+    return type === 'service' ? 'bg-secondary/10 text-secondary' : 'bg-info/10 text-info';
+  }
+
+  addPyme(pyme: PymeOption | null): void {
+    if (!pyme) return;
+    this.selectedPymes.update((items) =>
+      items.some((item) => item.userId === pyme.userId) ? items : [...items, pyme],
+    );
+  }
+
+  removePyme(userId: number): void {
+    this.selectedPymes.update((items) => items.filter((item) => item.userId !== userId));
+  }
+
+  addConsultant(consultant: ConsultantOption | null): void {
+    if (!consultant) return;
+    this.selectedConsultants.update((items) =>
+      items.some((item) => item.userId === consultant.userId) ? items : [...items, consultant],
+    );
+  }
+
+  removeConsultant(userId: number): void {
+    this.selectedConsultants.update((items) => items.filter((item) => item.userId !== userId));
   }
 
   private toIsoDate(value: string, endOfDay = false) {

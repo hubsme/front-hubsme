@@ -17,6 +17,7 @@ export class ModalForm {
   maxWidth = input<'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl'>('md');
   submitVariant = input<'primary' | 'danger'>('primary');
   showFooter = input<boolean>(true);
+  closeOnBackdrop = input<boolean>(true);
 
   // Outputs
   onSubmit = output<void>();
@@ -66,17 +67,22 @@ export class ModalForm {
     this.onClose.emit();
   }
 
+  handleBackdropClick(event: MouseEvent) {
+    if (!this.closeOnBackdrop() || event.target !== event.currentTarget) return;
+    this.handleClose();
+  }
+
   getMaxWidthClass(): string {
     const widthMap = {
-      'sm': 'max-w-sm',
-      'md': 'max-w-md',
-      'lg': 'max-w-lg',
-      'xl': 'max-w-xl',
+      sm: 'max-w-sm',
+      md: 'max-w-md',
+      lg: 'max-w-lg',
+      xl: 'max-w-xl',
       '2xl': 'max-w-2xl',
       '3xl': 'max-w-3xl',
       '4xl': 'max-w-4xl',
       '5xl': 'max-w-5xl',
-      '6xl': 'max-w-6xl'
+      '6xl': 'max-w-6xl',
     };
     return widthMap[this.maxWidth()];
   }

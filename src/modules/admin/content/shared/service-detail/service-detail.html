@@ -12,11 +12,16 @@
         }
       </h1>
       <p class="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-        Revisa reuniones, hitos y evidencias desde un solo espacio de trabajo.
+        @if (isConsultant()) {
+          Revisa la solicitud, prepara tu cotización y da seguimiento al servicio desde un solo
+          espacio.
+        } @else {
+          Revisa reuniones, hitos y evidencias desde un solo espacio de trabajo.
+        }
       </p>
     </div>
     @if (service(); as current) {
-      @if (current.status === 'paid') {
+      @if (!isConsultant() && canCompleteService(current)) {
         <button
           type="button"
           (click)="requestServiceCompletion()"
@@ -206,7 +211,7 @@
                 </p>
               </div>
             </div>
-            @if (current.status === 'paid') {
+            @if (current.status === 'paid' && !isConsultant()) {
               <button
                 type="button"
                 (click)="openExtraMilestoneModal()"
@@ -306,7 +311,11 @@
                     </div>
                   </div>
 
-                  @if (!meetingForMilestone(current, milestoneIndex) && current.status === 'paid') {
+                  @if (
+                    !isConsultant() &&
+                    !meetingForMilestone(current, milestoneIndex) &&
+                    current.status === 'paid'
+                  ) {
                     <div class="mt-3 rounded-xl bg-background-50 p-3">
                       <p class="text-[0.68rem] leading-relaxed text-muted">
                         Elige tres bloques disponibles de una hora en días diferentes.
@@ -368,7 +377,7 @@
                         }
                       </button>
                     </div>
-                  } @else if (!meetingForMilestone(current, milestoneIndex)) {
+                  } @else if (!isConsultant() && !meetingForMilestone(current, milestoneIndex)) {
                     <p class="mt-3 text-xs text-muted">
                       La reunión podrá programarse cuando el servicio esté pagado.
                     </p>
@@ -379,7 +388,7 @@
                       <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
                         Evidencias y entregables
                       </p>
-                      @if (current.status === 'paid') {
+                      @if (current.status === 'paid' && !isConsultant()) {
                         <button
                           type="button"
                           (click)="openEvidenceUploader(milestoneIndex)"
@@ -494,22 +503,32 @@
             <span
               class="grid size-10 shrink-0 place-items-center overflow-hidden rounded-full bg-secondary/10 text-secondary"
             >
-              @if (current.consultantPhotoUrl) {
+              @if (!isConsultant() && current.consultantPhotoUrl) {
                 <img
                   [src]="current.consultantPhotoUrl"
                   [alt]="current.consultantName || 'Consultor'"
                   class="size-full object-cover"
                 />
               } @else {
-                <i class="fas fa-user-tie"></i>
+                <i
+                  class="fas"
+                  [class.fa-user-tie]="!isConsultant()"
+                  [class.fa-building]="isConsultant()"
+                ></i>
               }
             </span>
             <div class="min-w-0">
-              <p class="text-[0.65rem] font-inter-semibold text-muted">Consultor asignado</p>
-              <p class="truncate text-sm font-inter-bold">
-                {{ current.consultantName || 'Consultor #' + current.consultantId }}
+              <p class="text-[0.65rem] font-inter-semibold text-muted">
+                {{ isConsultant() ? 'PYME solicitante' : 'Consultor asignado' }}
               </p>
-              @if (current.consultantHeadline) {
+              <p class="truncate text-sm font-inter-bold">
+                @if (isConsultant()) {
+                  {{ current.pymeName || 'PYME #' + current.pymeId }}
+                } @else {
+                  {{ current.consultantName || 'Consultor #' + current.consultantId }}
+                }
+              </p>
+              @if (!isConsultant() && current.consultantHeadline) {
                 <p class="mt-0.5 truncate text-[0.65rem] text-muted">
                   {{ current.consultantHeadline }}
                 </p>
@@ -588,71 +607,125 @@
           }
         </section>
 
-        @if (current.status === 'proposal_sent' || current.status === 'payment_pending') {
-          <section class="rounded-3xl border border-secondary/25 bg-secondary/5 p-5">
-            <div class="flex items-start gap-3">
-              <span
-                class="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary text-fixed-text-50"
-              >
-                <i class="fas fa-shield-halved"></i>
-              </span>
-              <div>
-                <h2 class="text-sm font-inter-bold">Cotización lista</h2>
-                <p class="mt-1 text-xs leading-relaxed text-muted">
-                  Apruébala mediante la pasarela de pago segura.
-                </p>
-              </div>
-            </div>
-            @if (current.status === 'proposal_sent') {
-              <label class="mt-4 block">
-                <span class="mb-1.5 block text-[0.68rem] font-inter-semibold text-muted"
-                  >Motivo si no la aceptas</span
-                >
-                <textarea
-                  rows="2"
-                  maxlength="3000"
-                  name="serviceDeclineMessage"
-                  [ngModel]="declineMessage()"
-                  (ngModelChange)="declineMessage.set($event)"
-                  placeholder="Comentario opcional..."
-                  class="w-full resize-y rounded-xl border border-border bg-surface px-3 py-2.5 text-xs outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
-                ></textarea>
-              </label>
-            }
-            <div class="mt-3 grid gap-2">
-              <button
-                type="button"
-                (click)="payService()"
-                [disabled]="preparingPayment() || declining()"
-                class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-secondary px-4 text-xs font-inter-bold text-fixed-text-50 transition hover:bg-secondary/90 disabled:opacity-50"
-              >
-                @if (preparingPayment()) {
-                  <i class="fas fa-spinner fa-spin"></i> Preparando...
-                } @else {
-                  <i class="fas fa-wallet"></i>
-                  {{ current.status === 'payment_pending' ? 'Continuar pago' : 'Aprobar y pagar' }}
+        @if (!isConsultant()) {
+          @if (nextPendingPayment(current); as nextPayment) {
+            @if (nextPayment.available) {
+              <section class="rounded-3xl border border-secondary/25 bg-secondary/5 p-5">
+                <div class="flex items-start gap-3">
+                  <span
+                    class="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary text-fixed-text-50"
+                  >
+                    <i class="fas fa-shield-halved"></i>
+                  </span>
+                  <div class="min-w-0 flex-1">
+                    <h2 class="text-sm font-inter-bold">
+                      {{
+                        current.status === 'proposal_sent'
+                          ? 'Cotización lista'
+                          : 'Siguiente cuota disponible'
+                      }}
+                    </h2>
+                    <p class="mt-1 text-xs leading-relaxed text-muted">{{ nextPayment.label }}</p>
+                    <p class="mt-2 text-sm font-inter-bold text-secondary">
+                      {{ formatMoney(nextPayment.amount, current.currency) }} ·
+                      {{ nextPayment.percentage }}%
+                    </p>
+                  </div>
+                </div>
+                @if (current.status === 'proposal_sent') {
+                  <label class="mt-4 block">
+                    <span class="mb-1.5 block text-[0.68rem] font-inter-semibold text-muted"
+                      >Motivo si no la aceptas</span
+                    >
+                    <textarea
+                      rows="2"
+                      maxlength="3000"
+                      name="serviceDeclineMessage"
+                      [ngModel]="declineMessage()"
+                      (ngModelChange)="declineMessage.set($event)"
+                      placeholder="Comentario opcional..."
+                      class="w-full resize-y rounded-xl border border-border bg-surface px-3 py-2.5 text-xs outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                    ></textarea>
+                  </label>
                 }
-              </button>
-              @if (current.status === 'proposal_sent') {
-                <button
-                  type="button"
-                  (click)="declineProposal()"
-                  [disabled]="declining() || preparingPayment()"
-                  class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-danger/25 bg-surface px-4 text-xs font-inter-bold text-danger transition hover:bg-danger/5 disabled:opacity-50"
-                >
-                  @if (declining()) {
-                    <i class="fas fa-spinner fa-spin"></i>
-                  } @else {
-                    <i class="fas fa-xmark"></i>
+                <div class="mt-4 rounded-xl border border-border bg-surface p-3">
+                  <label class="block">
+                    <span class="mb-1.5 block text-[0.68rem] font-inter-semibold text-muted">
+                      Cupón de servicio
+                    </span>
+                    <div class="flex gap-2">
+                      <input
+                        name="serviceCouponCode"
+                        [ngModel]="serviceCouponCode()"
+                        (ngModelChange)="serviceCouponCode.set($event)"
+                        (keyup.enter)="redeemServiceCoupon()"
+                        maxlength="40"
+                        placeholder="Ingresa tu cupón"
+                        class="min-w-0 flex-1 rounded-lg border border-border bg-background-50 px-3 py-2 text-xs uppercase outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+                      />
+                      <button
+                        type="button"
+                        (click)="redeemServiceCoupon()"
+                        [disabled]="
+                          !serviceCouponCode().trim() ||
+                          redeemingServiceCoupon() ||
+                          preparingPayment() ||
+                          declining()
+                        "
+                        class="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-secondary/25 px-3 text-xs font-inter-bold text-secondary transition hover:bg-secondary/5 disabled:opacity-50"
+                      >
+                        @if (redeemingServiceCoupon()) {
+                          <i class="fas fa-spinner fa-spin"></i>
+                        } @else {
+                          <i class="fas fa-ticket"></i>
+                        }
+                        Aplicar
+                      </button>
+                    </div>
+                  </label>
+                </div>
+                <div class="mt-3 grid gap-2">
+                  <button
+                    type="button"
+                    (click)="payService()"
+                    [disabled]="preparingPayment() || declining() || redeemingServiceCoupon()"
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-secondary px-4 text-xs font-inter-bold text-fixed-text-50 transition hover:bg-secondary/90 disabled:opacity-50"
+                  >
+                    @if (preparingPayment()) {
+                      <i class="fas fa-spinner fa-spin"></i> Preparando...
+                    } @else {
+                      <i class="fas fa-wallet"></i>
+                      {{
+                        nextPayment.status === 'created' || nextPayment.status === 'pending'
+                          ? 'Continuar pago'
+                          : current.status === 'proposal_sent'
+                            ? 'Aprobar y pagar'
+                            : 'Pagar cuota'
+                      }}
+                    }
+                  </button>
+                  @if (current.status === 'proposal_sent') {
+                    <button
+                    type="button"
+                    (click)="declineProposal()"
+                    [disabled]="declining() || preparingPayment() || redeemingServiceCoupon()"
+                      class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-danger/25 bg-surface px-4 text-xs font-inter-bold text-danger transition hover:bg-danger/5 disabled:opacity-50"
+                    >
+                      @if (declining()) {
+                        <i class="fas fa-spinner fa-spin"></i>
+                      } @else {
+                        <i class="fas fa-xmark"></i>
+                      }
+                      No aceptar
+                    </button>
                   }
-                  No aceptar
-                </button>
-              }
-            </div>
-          </section>
+                </div>
+              </section>
+            }
+          }
         }
 
-        @if (current.status === 'requested') {
+        @if (!isConsultant() && current.status === 'requested') {
           <section class="flex items-start gap-3 rounded-3xl border border-info/20 bg-info/5 p-4">
             <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-info/10 text-info"
               ><i class="fas fa-clock"></i
@@ -661,6 +734,125 @@
               <p class="text-xs font-inter-bold">Esperando al consultor</p>
               <p class="mt-1 text-[0.68rem] leading-relaxed text-muted">
                 Te avisaremos cuando envíe su cotización.
+              </p>
+            </div>
+          </section>
+        }
+
+        @if (isConsultant() && current.status === 'requested' && !showDeclineForm()) {
+          <app-consultant-quote-form
+            [service]="current"
+            (proposalSent)="handleProposalSent($event)"
+            (declineRequested)="openDeclineForm()"
+          />
+        }
+
+        @if (isConsultant() && current.status === 'requested' && showDeclineForm()) {
+          <section class="rounded-3xl border border-danger/25 bg-danger/5 p-5">
+            <div class="flex items-start gap-3">
+              <span
+                class="grid size-9 shrink-0 place-items-center rounded-xl bg-danger/10 text-danger"
+              >
+                <i class="fas fa-ban"></i>
+              </span>
+              <div>
+                <h2 class="text-sm font-inter-bold text-danger">No aceptar esta solicitud</h2>
+                <p class="mt-1 text-xs leading-relaxed text-muted">
+                  Puedes dejar un motivo para la PYME.
+                </p>
+              </div>
+            </div>
+            <textarea
+              rows="4"
+              maxlength="3000"
+              name="sharedConsultantDeclineMessage"
+              [ngModel]="declineMessage()"
+              (ngModelChange)="declineMessage.set($event)"
+              placeholder="Motivo opcional..."
+              class="mt-4 w-full resize-none rounded-xl border border-danger/20 bg-surface px-3 py-2.5 text-xs leading-relaxed outline-none transition placeholder:text-muted/70 focus:border-danger focus:ring-4 focus:ring-danger/10"
+            ></textarea>
+            <div class="mt-3 flex gap-2">
+              <button
+                type="button"
+                (click)="cancelDecline()"
+                [disabled]="declining()"
+                class="inline-flex h-10 flex-1 items-center justify-center rounded-xl px-3 text-xs font-inter-bold text-muted transition hover:bg-text/5 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                (click)="declineRequest()"
+                [disabled]="declining()"
+                class="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl bg-danger px-3 text-xs font-inter-bold text-fixed-text-50 transition hover:bg-danger/90 disabled:opacity-50"
+              >
+                @if (declining()) {
+                  <i class="fas fa-spinner fa-spin"></i>
+                } @else {
+                  <i class="fas fa-xmark"></i>
+                }
+                Confirmar
+              </button>
+            </div>
+          </section>
+        }
+
+        @if (
+          isConsultant() &&
+          (current.status === 'proposal_sent' || current.status === 'payment_pending')
+        ) {
+          <section class="flex items-start gap-3 rounded-3xl border border-info/20 bg-info/5 p-4">
+            <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-info/10 text-info">
+              <i class="fas fa-clock"></i>
+            </span>
+            <div>
+              <p class="text-xs font-inter-bold">Esperando decisión de la PYME</p>
+              <p class="mt-1 text-[0.68rem] leading-relaxed text-muted">
+                Tu cotización fue enviada y la PYME podrá aprobarla realizando el pago.
+              </p>
+            </div>
+          </section>
+        }
+
+        @if (isConsultant() && current.status === 'paid') {
+          <section
+            class="flex items-start gap-3 rounded-3xl border border-success/20 bg-success/5 p-4"
+          >
+            <span
+              class="grid size-9 shrink-0 place-items-center rounded-xl bg-success text-fixed-text-50"
+            >
+              <i class="fas fa-check"></i>
+            </span>
+            <div>
+              <p class="text-xs font-inter-bold text-success">Servicio activo</p>
+              <p class="mt-1 text-[0.68rem] leading-relaxed text-muted">
+                La PYME confirmó la primera cuota{{
+                  current.paidAt
+                    ? ' el ' + (current.paidAt | date: 'dd/MM/yyyy, HH:mm' : 'America/Lima')
+                    : ''
+                }}. Revisa el plan de pagos para seguir el avance.
+              </p>
+            </div>
+          </section>
+        }
+
+        @if (isConsultant() && current.status === 'completed') {
+          <section
+            class="flex items-start gap-3 rounded-3xl border border-secondary/20 bg-secondary/5 p-4"
+          >
+            <span
+              class="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary text-fixed-text-50"
+            >
+              <i class="fas fa-check-double"></i>
+            </span>
+            <div>
+              <p class="text-xs font-inter-bold text-secondary">Servicio completado</p>
+              <p class="mt-1 text-[0.68rem] leading-relaxed text-muted">
+                La PYME cerró el seguimiento{{
+                  current.completedAt
+                    ? ' el ' + (current.completedAt | date: 'dd/MM/yyyy, HH:mm' : 'America/Lima')
+                    : ''
+                }}.
               </p>
             </div>
           </section>
@@ -708,6 +900,12 @@
               </div>
             </div>
           </details>
+
+          <app-service-payment-plan-summary
+            [service]="current"
+            [showPaymentActions]="!isConsultant()"
+            (payInstallment)="payService($event)"
+          />
 
           <details class="group border-b border-border">
             <summary
@@ -759,7 +957,9 @@
                             </span>
                             <span class="mt-0.5 block text-[0.6rem] text-muted">
                               {{ formatFileSize(attachment.sizeBytes) }} ·
-                              {{ attachment.uploadedAt | date: 'dd/MM/yyyy, HH:mm' : 'America/Lima' }}
+                              {{
+                                attachment.uploadedAt | date: 'dd/MM/yyyy, HH:mm' : 'America/Lima'
+                              }}
                             </span>
                             @if (attachment.note) {
                               <span class="mt-1 block line-clamp-2 text-[0.62rem] text-muted">
@@ -920,7 +1120,9 @@
       (onClose)="closeMilestoneEditor()"
     >
       <div class="space-y-5 p-6">
-        <div class="flex items-start gap-3 rounded-2xl border border-secondary/20 bg-secondary/5 p-4">
+        <div
+          class="flex items-start gap-3 rounded-2xl border border-secondary/20 bg-secondary/5 p-4"
+        >
           <span
             class="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary"
           >
@@ -929,7 +1131,8 @@
           <div>
             <p class="text-xs font-inter-bold text-secondary">Editar Hito {{ editingIndex + 1 }}</p>
             <p class="mt-1 text-[0.68rem] leading-relaxed text-muted">
-              Puedes modificar el nombre y la fecha mientras este hito todavía no tenga una reunión registrada.
+              Puedes modificar el nombre y la fecha mientras este hito todavía no tenga una reunión
+              registrada.
             </p>
           </div>
         </div>

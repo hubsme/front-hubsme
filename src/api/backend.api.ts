@@ -1362,6 +1362,46 @@ export interface ServiceRequestChatResultDto {
   missingInformation: string[];
 }
 
+export interface ServicePaymentPlanRunDto {
+  draft: ServiceRequestDraftDto;
+}
+
+export interface ServiceRequestPaymentInstallmentDto {
+  /**
+   * @maxLength 180
+   * @example "Pago inicial para iniciar el servicio"
+   */
+  label: string;
+  /**
+   * @min 10
+   * @max 100
+   * @example 30
+   */
+  percentage: number;
+  trigger: "service_approval" | "milestone_completion" | "service_completion";
+  /**
+   * @min 0
+   * @example 0
+   */
+  milestoneIndex: number;
+}
+
+export interface ServicePaymentPlanResultDto {
+  strategy: "single" | "initial_final" | "milestone_installments";
+  /**
+   * @maxLength 240
+   * @example "30% inicial y 70% al finalizar"
+   */
+  summary: string;
+  /** @maxLength 1200 */
+  rationale: string;
+  /**
+   * @maxItems 6
+   * @minItems 1
+   */
+  installments: ServiceRequestPaymentInstallmentDto[];
+}
+
 export interface ServiceConsultantMatchRunDto {
   draft: ServiceRequestDraftDto;
 }
@@ -2093,6 +2133,7 @@ export interface MercadoPagoCheckoutDto {
   id: number;
   meetingId: number | null;
   serviceRequestId: number | null;
+  serviceInstallmentIndex: number | null;
   pymeId: number;
   consultantId: number;
   preferenceId: string | null;
@@ -2120,6 +2161,7 @@ export interface MercadoPagoPaymentHistoryItemDto {
   updatedAt: string;
   meetingId: number | null;
   serviceRequestId: number | null;
+  serviceInstallmentIndex: number | null;
   pymeId: number;
   consultantId: number;
   externalReference: string;
@@ -2152,6 +2194,15 @@ export interface MercadoPagoPaymentHistoryResponseDto {
   meta: PaginationMetaDto;
 }
 
+export interface MercadoPagoServicePaymentDto {
+  /**
+   * Índice de la cuota que se desea pagar. Si se omite, se usa la primera pendiente.
+   * @min 0
+   * @example 0
+   */
+  installmentIndex?: number;
+}
+
 export interface ServiceRequestReferenceAttachmentResultDto {
   storagePath: string;
   fileUrl: string;
@@ -2179,6 +2230,49 @@ export interface ServiceRequestMilestoneResultDto {
   title: string;
   /** @example "2026-09-15" */
   dueDate: string;
+}
+
+export interface ServiceRequestPaymentPlanDto {
+  strategy: "single" | "initial_final" | "milestone_installments";
+  /**
+   * @maxLength 240
+   * @example "30% inicial y 70% al finalizar"
+   */
+  summary: string;
+  /** @maxLength 1200 */
+  rationale: string;
+  /**
+   * @maxItems 6
+   * @minItems 1
+   */
+  installments: ServiceRequestPaymentInstallmentDto[];
+}
+
+export interface ServiceRequestPaymentScheduleItemDto {
+  /** @min 0 */
+  installmentIndex: number;
+  label: string;
+  /**
+   * @min 1
+   * @max 100
+   */
+  percentage: number;
+  trigger: "service_approval" | "milestone_completion" | "service_completion";
+  /** @min 0 */
+  milestoneIndex: number;
+  amount?: string | null;
+  status:
+    | "not_started"
+    | "created"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "expired";
+  available: boolean;
+  availabilityMessage?: string | null;
+  /** @format date-time */
+  paidAt?: string | null;
 }
 
 export interface ServiceRequestResultDto {
@@ -2228,6 +2322,8 @@ export interface ServiceRequestResultDto {
   workModality: "remote";
   workMethod?: string | null;
   milestones: ServiceRequestMilestoneResultDto[];
+  paymentPlan: ServiceRequestPaymentPlanDto;
+  paymentSchedule: ServiceRequestPaymentScheduleItemDto[];
   meetings: MeetingResultDto[];
   details?: string | null;
   status:
@@ -2359,6 +2455,7 @@ export interface ServiceRequestCreateMultipartDto {
   workMethod: string;
   /** @maxItems 20 */
   milestones?: ServiceRequestMilestoneCreateDto[];
+  paymentPlan: ServiceRequestPaymentPlanDto;
   /**
    * @maxLength 5000
    * @example "Disponibilidad durante la segunda semana del mes."
@@ -2483,6 +2580,7 @@ export interface PromotionCodeResultDto {
   /** @format date-time */
   updatedAt: string;
   code: string;
+  type: "consultation" | "service";
   description?: string | null;
   maxRedemptions: number;
   redemptionCount: number;
@@ -2503,6 +2601,8 @@ export interface PromotionCodeListDto {
 export interface PromotionCodeRedemptionDetailDto {
   id: number;
   checkoutId: number;
+  serviceRequestId: number | null;
+  serviceInstallmentIndex: number | null;
   pymeId: number;
   pymeName: string;
   consultantId: number;
@@ -2519,6 +2619,7 @@ export interface PromotionCodeDetailDto {
   /** @format date-time */
   updatedAt: string;
   code: string;
+  type: "consultation" | "service";
   description?: string | null;
   maxRedemptions: number;
   redemptionCount: number;
@@ -2538,6 +2639,11 @@ export interface PromotionCodeCreateDto {
    * @example "GRATIS-JULIO"
    */
   code?: string;
+  /**
+   * Contexto en el que puede canjearse el cupón
+   * @default "consultation"
+   */
+  type?: "consultation" | "service";
   /** @example "Campaña para primeras consultorias" */
   description?: string;
   /**
@@ -2561,6 +2667,11 @@ export interface PromotionCodeUpdateDto {
    * @example "GRATIS-JULIO"
    */
   code?: string;
+  /**
+   * Contexto en el que puede canjearse el cupón
+   * @default "consultation"
+   */
+  type?: "consultation" | "service";
   /** @example "Campaña para primeras consultorias" */
   description?: string;
   /**
@@ -2591,6 +2702,22 @@ export interface PromotionCodeRedeemResultDto {
   checkoutId: number;
   code: string;
   /** @example "Consultoria gratuita confirmada" */
+  message: string;
+}
+
+export interface PromotionCodeRedeemServiceDto {
+  /** @example 12 */
+  serviceRequestId: number;
+  /** @example "SERVICIO-GRATIS" */
+  code: string;
+}
+
+export interface PromotionCodeRedeemServiceResultDto {
+  serviceRequestId: number;
+  installmentIndex: number;
+  checkoutId: number;
+  code: string;
+  /** @example "Cuota de servicio confirmada con cupón" */
   message: string;
 }
 
@@ -3173,6 +3300,10 @@ export type IaRunConsultantCvError = HttpErrorDto;
 export type IaRunServiceRequestChatData = ServiceRequestChatResultDto;
 
 export type IaRunServiceRequestChatError = HttpErrorDto;
+
+export type IaRunServicePaymentPlanData = ServicePaymentPlanResultDto;
+
+export type IaRunServicePaymentPlanError = HttpErrorDto;
 
 export type IaRunServiceConsultantMatchesData =
   ServiceConsultantMatchesResultDto;
@@ -4034,6 +4165,11 @@ export type PromotioncodeadminUpdateError = HttpErrorDto;
 export type PromotioncodeRedeemData = PromotionCodeRedeemResultDto;
 
 export type PromotioncodeRedeemError = HttpErrorDto;
+
+export type PromotioncodeRedeemServiceData =
+  PromotionCodeRedeemServiceResultDto;
+
+export type PromotioncodeRedeemServiceError = HttpErrorDto;
 
 export interface FeedbackFindAllParams {
   /**
@@ -5337,6 +5473,25 @@ export namespace Ia {
     export type RequestBody = ServiceRequestChatRunDto;
     export type RequestHeaders = {};
     export type ResponseBody = IaRunServiceRequestChatData;
+  }
+
+  /**
+   * No description
+   * @tags ia
+   * @name IaRunServicePaymentPlan
+   * @summary Recomendar con IA la estructura de pagos de una solicitud de servicio
+   * @request POST:/admin/ia/service-payment-plan
+   * @secure
+   * @response `201` `IaRunServicePaymentPlanData`
+   * @response `400` `HttpErrorDto`
+   * @response `403` `HttpErrorDto`
+   */
+  export namespace IaRunServicePaymentPlan {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ServicePaymentPlanRunDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = IaRunServicePaymentPlanData;
   }
 
   /**
@@ -6767,7 +6922,7 @@ export namespace MercadoPago {
    * No description
    * @tags mercadoPago
    * @name MercadopagoPrepareServicePayment
-   * @summary Create the Mercado Pago preference for an accepted service proposal
+   * @summary Create the Mercado Pago preference for a service installment
    * @request POST:/admin/mercado-pago/service/{id}/payment
    * @secure
    * @response `200` `MercadopagoPrepareServicePaymentData`
@@ -6778,7 +6933,7 @@ export namespace MercadoPago {
       id: number;
     };
     export type RequestQuery = {};
-    export type RequestBody = never;
+    export type RequestBody = MercadoPagoServicePaymentDto;
     export type RequestHeaders = {};
     export type ResponseBody = MercadopagoPrepareServicePaymentData;
   }
@@ -6787,7 +6942,7 @@ export namespace MercadoPago {
    * No description
    * @tags mercadoPago
    * @name MercadopagoSyncServicePayment
-   * @summary Synchronize an accepted service payment with Mercado Pago
+   * @summary Synchronize a service installment payment with Mercado Pago
    * @request POST:/admin/mercado-pago/service/{id}/payment/sync
    * @secure
    * @response `200` `MercadopagoSyncServicePaymentData`
@@ -6798,7 +6953,7 @@ export namespace MercadoPago {
       id: number;
     };
     export type RequestQuery = {};
-    export type RequestBody = never;
+    export type RequestBody = MercadoPagoServicePaymentDto;
     export type RequestHeaders = {};
     export type ResponseBody = MercadopagoSyncServicePaymentData;
   }
@@ -7241,6 +7396,24 @@ export namespace PromotionCode {
     export type RequestBody = PromotionCodeRedeemDto;
     export type RequestHeaders = {};
     export type ResponseBody = PromotioncodeRedeemData;
+  }
+
+  /**
+   * No description
+   * @tags promotionCode
+   * @name PromotioncodeRedeemService
+   * @summary Redeem a service code for the next available installment
+   * @request POST:/admin/promotion-code/redeem-service
+   * @secure
+   * @response `201` `PromotioncodeRedeemServiceData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PromotioncodeRedeemService {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PromotionCodeRedeemServiceDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PromotioncodeRedeemServiceData;
   }
 }
 
@@ -9006,6 +9179,35 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags ia
+     * @name IaRunServicePaymentPlan
+     * @summary Recomendar con IA la estructura de pagos de una solicitud de servicio
+     * @request POST:/admin/ia/service-payment-plan
+     * @secure
+     * @response `201` `IaRunServicePaymentPlanData`
+     * @response `400` `HttpErrorDto`
+     * @response `403` `HttpErrorDto`
+     */
+    runServicePaymentPlan: (
+      data: ServicePaymentPlanRunDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        IaRunServicePaymentPlanData,
+        IaRunServicePaymentPlanError
+      >({
+        path: `/admin/ia/service-payment-plan`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags ia
      * @name IaRunServiceConsultantMatches
      * @summary Recomendar exactamente 3 consultores para una solicitud de servicio
      * @request POST:/admin/ia/service-consultant-matches
@@ -10569,7 +10771,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags mercadoPago
      * @name MercadopagoPrepareServicePayment
-     * @summary Create the Mercado Pago preference for an accepted service proposal
+     * @summary Create the Mercado Pago preference for a service installment
      * @request POST:/admin/mercado-pago/service/{id}/payment
      * @secure
      * @response `200` `MercadopagoPrepareServicePaymentData`
@@ -10577,6 +10779,7 @@ export class Api<SecurityDataType extends unknown> {
      */
     mercadopagoPrepareServicePayment: (
       { id }: MercadopagoPrepareServicePaymentParams,
+      data: MercadoPagoServicePaymentDto,
       params: RequestParams = {},
     ) =>
       this.http.request<
@@ -10585,7 +10788,9 @@ export class Api<SecurityDataType extends unknown> {
       >({
         path: `/admin/mercado-pago/service/${id}/payment`,
         method: "POST",
+        body: data,
         secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
@@ -10595,7 +10800,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags mercadoPago
      * @name MercadopagoSyncServicePayment
-     * @summary Synchronize an accepted service payment with Mercado Pago
+     * @summary Synchronize a service installment payment with Mercado Pago
      * @request POST:/admin/mercado-pago/service/{id}/payment/sync
      * @secure
      * @response `200` `MercadopagoSyncServicePaymentData`
@@ -10603,6 +10808,7 @@ export class Api<SecurityDataType extends unknown> {
      */
     mercadopagoSyncServicePayment: (
       { id }: MercadopagoSyncServicePaymentParams,
+      data: MercadoPagoServicePaymentDto,
       params: RequestParams = {},
     ) =>
       this.http.request<
@@ -10611,7 +10817,9 @@ export class Api<SecurityDataType extends unknown> {
       >({
         path: `/admin/mercado-pago/service/${id}/payment/sync`,
         method: "POST",
+        body: data,
         secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
@@ -11095,6 +11303,34 @@ export class Api<SecurityDataType extends unknown> {
     ) =>
       this.http.request<PromotioncodeRedeemData, PromotioncodeRedeemError>({
         path: `/admin/promotion-code/redeem`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags promotionCode
+     * @name PromotioncodeRedeemService
+     * @summary Redeem a service code for the next available installment
+     * @request POST:/admin/promotion-code/redeem-service
+     * @secure
+     * @response `201` `PromotioncodeRedeemServiceData`
+     * @response `400` `HttpErrorDto`
+     */
+    promotioncodeRedeemService: (
+      data: PromotionCodeRedeemServiceDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PromotioncodeRedeemServiceData,
+        PromotioncodeRedeemServiceError
+      >({
+        path: `/admin/promotion-code/redeem-service`,
         method: "POST",
         body: data,
         secure: true,

@@ -363,7 +363,7 @@ export class ServiceDetail implements OnInit, OnDestroy {
 
   canDeleteEvidence(current: ServiceRequestResultDto, attachment: ServiceEvidence): boolean {
     return (
-      !this.isConsultant() &&
+      this.isConsultant() &&
       current.status === 'paid' &&
       (attachment.milestoneIndex === null ||
         attachment.milestoneIndex === undefined ||
@@ -686,6 +686,9 @@ export class ServiceDetail implements OnInit, OnDestroy {
   }
 
   openEvidenceUploader(milestoneIndex: number | null): void {
+    const current = this.service();
+    if (!this.isConsultant() || current?.status !== 'paid') return;
+
     this.evidenceMilestoneIndex.set(milestoneIndex);
     this.showEvidenceUploader.set(true);
   }
@@ -705,7 +708,7 @@ export class ServiceDetail implements OnInit, OnDestroy {
   async uploadEvidence(): Promise<void> {
     const current = this.service();
     const files = this.evidenceFiles();
-    if (!current || current.status !== 'paid') return;
+    if (!current || current.status !== 'paid' || !this.isConsultant()) return;
     if (!files.length) {
       this.toastService.warning('Selecciona al menos un archivo');
       return;

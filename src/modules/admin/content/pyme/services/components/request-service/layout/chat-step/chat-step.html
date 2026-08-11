@@ -1,0 +1,156 @@
+<div class="grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1.55fr)_minmax(270px,0.75fr)]">
+  <section class="flex flex-col border-b border-border lg:min-h-0 lg:border-b-0 lg:border-r">
+    <div class="shrink-0 border-b border-border px-5 py-4 sm:px-6">
+      <div class="flex items-center gap-3">
+        <span class="grid size-10 place-items-center rounded-2xl bg-secondary text-fixed-text-50 shadow-sm shadow-secondary/20">
+          <i class="fas fa-wand-magic-sparkles"></i>
+        </span>
+        <div>
+          <h3 class="font-inter-bold">Asistente de servicios</h3>
+          <p class="mt-0.5 text-xs text-muted">Te hará preguntas cortas para entender el trabajo.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="h-80 flex-none space-y-4 overflow-y-auto bg-background-50/40 p-5 sm:h-[360px] sm:p-6 lg:h-auto lg:min-h-[260px] lg:flex-1">
+      @for (message of store.chatMessages(); track $index) {
+        <div class="flex gap-2.5" [class.justify-end]="message.role === 'user'">
+          @if (message.role === 'assistant') {
+            <span class="grid size-8 shrink-0 place-items-center rounded-xl bg-secondary/10 text-xs text-secondary">
+              <i class="fas fa-robot"></i>
+            </span>
+          }
+          <div
+            class="max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm"
+            [class.rounded-tl-md]="message.role === 'assistant'"
+            [class.border]="message.role === 'assistant'"
+            [class.border-border]="message.role === 'assistant'"
+            [class.bg-surface]="message.role === 'assistant'"
+            [class.rounded-tr-md]="message.role === 'user'"
+            [class.bg-secondary]="message.role === 'user'"
+            [class.text-fixed-text-50]="message.role === 'user'"
+          >
+            {{ message.content }}
+          </div>
+        </div>
+      }
+      @if (store.chatLoading()) {
+        <div class="flex items-center gap-2.5">
+          <span class="grid size-8 place-items-center rounded-xl bg-secondary/10 text-xs text-secondary">
+            <i class="fas fa-robot"></i>
+          </span>
+          <div class="flex gap-1 rounded-2xl rounded-tl-md border border-border bg-surface px-4 py-3">
+            @for (dot of [1, 2, 3]; track dot) {
+              <span
+                class="size-1.5 animate-pulse rounded-full bg-secondary"
+                [class.delay-150]="dot === 2"
+                [class.delay-300]="dot === 3"
+              ></span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="shrink-0 border-t border-border bg-surface p-4 sm:p-5">
+      @if (store.chatComplete()) {
+        <div class="mb-3 flex items-center gap-2 rounded-xl border border-success/20 bg-success/5 px-3 py-2.5 text-xs text-success">
+          <i class="fas fa-circle-check"></i>
+          La información está completa. Ya puedes revisar la solicitud.
+        </div>
+      }
+      <div class="relative">
+        <textarea
+          #chatTextarea
+          rows="1"
+          maxlength="2000"
+          name="serviceChatMessage"
+          [ngModel]="store.chatInput()"
+          (ngModelChange)="updateInput($event)"
+          (keydown)="handleKeydown($event)"
+          [disabled]="store.chatLoading() || store.chatComplete()"
+          placeholder="Escribe tu respuesta..."
+          class="block min-h-20 max-h-36 w-full resize-none overflow-y-auto rounded-2xl border border-border bg-background-50 py-3 pl-4 pr-14 text-sm leading-relaxed outline-none transition [scrollbar-width:none] placeholder:text-muted/70 focus:border-secondary focus:ring-4 focus:ring-secondary/10 disabled:opacity-60 [&::-webkit-scrollbar]:hidden"
+        ></textarea>
+        <button
+          type="button"
+          (click)="store.sendChatMessage()"
+          [disabled]="!canSend()"
+          aria-label="Enviar mensaje"
+          class="absolute bottom-3 right-3 grid size-9 place-items-center rounded-xl bg-secondary text-fixed-text-50 transition hover:bg-secondary/90 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <i class="fas fa-arrow-up"></i>
+        </button>
+      </div>
+      <p class="mt-2 text-[0.68rem] text-muted">Enter para enviar · Shift + Enter para nueva línea</p>
+    </div>
+  </section>
+
+  <aside class="flex flex-col bg-surface p-5 sm:p-6 lg:min-h-0 lg:overflow-y-auto">
+    <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">Resumen en progreso</p>
+    @if (store.title() || store.description() || store.expectedOutcome()) {
+      <div class="mt-4 space-y-4">
+        <div>
+          <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-secondary">Servicio</p>
+          <p class="mt-1 text-sm font-inter-bold">{{ store.title() || 'Por definir' }}</p>
+        </div>
+        @if (store.category()) {
+          <div>
+            <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">Clasificación</p>
+            <p class="mt-1 text-xs leading-relaxed text-muted">
+              {{ store.category() }} · {{ store.subcategory() || 'Por definir' }}
+            </p>
+          </div>
+        }
+        <div>
+          <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">Necesidad</p>
+          <p class="mt-1 line-clamp-4 text-xs leading-relaxed text-muted">
+            {{ store.description() || 'Por definir' }}
+          </p>
+        </div>
+        <div>
+          <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">Resultado</p>
+          <p class="mt-1 line-clamp-4 text-xs leading-relaxed text-muted">
+            {{ store.expectedOutcome() || 'Por definir' }}
+          </p>
+        </div>
+        @if (store.budgetMin() || store.deadline()) {
+          <div class="grid grid-cols-2 gap-3 border-t border-border pt-3">
+            <div>
+              <p class="text-[0.65rem] font-inter-bold uppercase tracking-wide text-muted">Presupuesto</p>
+              <p class="mt-1 text-xs font-inter-semibold">
+                @if (store.budgetType() === 'range' && store.budgetMax()) {
+                  S/ {{ store.budgetMin() }} – {{ store.budgetMax() }}
+                } @else {
+                  {{ store.budgetMin() ? 'S/ ' + store.budgetMin() : 'Por definir' }}
+                }
+              </p>
+            </div>
+            <div>
+              <p class="text-[0.65rem] font-inter-bold uppercase tracking-wide text-muted">Fecha límite</p>
+              <p class="mt-1 text-xs font-inter-semibold">{{ store.deadline() || 'Por definir' }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="mt-5 rounded-2xl border border-dashed border-border p-5 text-center">
+        <i class="fas fa-comments text-xl text-secondary"></i>
+        <p class="mt-2 text-xs leading-relaxed text-muted">El resumen aparecerá mientras conversas.</p>
+      </div>
+    }
+
+    @if (store.missingInformation().length) {
+      <div class="mt-5 rounded-2xl border border-warning/20 bg-warning/5 p-4">
+        <p class="text-xs font-inter-bold">
+          <i class="fas fa-circle-info mr-1.5 text-warning"></i>Por completar
+        </p>
+        <ul class="mt-2 space-y-1.5 text-xs text-muted">
+          @for (item of store.missingInformation(); track item) {
+            <li class="flex gap-2"><span class="text-warning">•</span>{{ item }}</li>
+          }
+        </ul>
+      </div>
+    }
+  </aside>
+</div>

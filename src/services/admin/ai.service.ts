@@ -16,4 +16,10 @@ export class AiService {
   ): Promise<ApiResponse<'ia', 'runServiceConsultantMatches'>> {
     return this.api.ia.runServiceConsultantMatches(data).then((response) => response.data);
   }
+
+  recommendServicePaymentPlan(
+    data: ApiBody<'ia', 'runServicePaymentPlan'>,
+  ): Promise<ApiResponse<'ia', 'runServicePaymentPlan'>> {
+    return this.api.ia.runServicePaymentPlan(data).then((response) => response.data);
+  }
 }

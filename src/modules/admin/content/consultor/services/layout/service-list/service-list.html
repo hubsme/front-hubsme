@@ -1,0 +1,166 @@
+@if (store.loading()) {
+  <div class="overflow-hidden rounded-3xl border border-border bg-surface shadow-sm" aria-label="Cargando servicios">
+    <div class="animate-pulse overflow-x-auto">
+      <div class="min-w-[900px]">
+        <div class="grid grid-cols-4 gap-4 border-b border-border bg-background-50 px-5 py-4">
+          @for (skeleton of [1, 2, 3, 4]; track skeleton) {
+            <div class="h-3 rounded-full bg-text/10"></div>
+          }
+        </div>
+        @for (skeleton of [1, 2, 3, 4, 5]; track skeleton) {
+          <div class="grid grid-cols-4 gap-4 border-b border-border px-5 py-5 last:border-b-0">
+            @for (cell of [1, 2, 3, 4]; track cell) {
+              <div class="h-4 rounded-full bg-text/10"></div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+} @else if (store.services().length) {
+<section>
+  <div class="mb-4 flex items-center justify-between gap-3">
+    <p class="text-sm text-muted">
+      {{
+        store.activeTab() === 'requests'
+          ? 'Trabajos que las PYMES desean cotizar contigo'
+          : 'Propuestas económicas que ya enviaste'
+      }}
+    </p>
+    @if (store.meta(); as serviceMeta) {
+      <span class="rounded-full bg-secondary/10 px-3 py-1 text-xs font-inter-bold text-secondary">
+        {{ serviceMeta.total }} {{ serviceMeta.total === 1 ? 'resultado' : 'resultados' }}
+      </span>
+    }
+  </div>
+
+  <div class="overflow-hidden rounded-3xl border border-border bg-surface shadow-sm">
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[900px] border-collapse text-left">
+        <caption class="sr-only">
+          {{ store.activeTab() === 'requests' ? 'Solicitudes recibidas' : 'Cotizaciones enviadas' }}
+        </caption>
+        <thead class="bg-background-50">
+          <tr class="border-b border-border">
+            <th scope="col" class="px-5 py-4 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+              Servicio
+            </th>
+            <th scope="col" class="px-5 py-4 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+              PYME
+            </th>
+            <th scope="col" class="px-5 py-4 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+              Estado
+            </th>
+            @if (store.activeTab() === 'proposals') {
+              <th scope="col" class="px-5 py-4 text-right text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                Tu cotización
+              </th>
+            }
+            <th scope="col" class="px-5 py-4 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+              Recibida
+            </th>
+            <th scope="col" class="px-5 py-4 text-right text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+              Acción
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (service of store.services(); track service.id) {
+            <tr class="border-b border-border transition last:border-b-0 hover:bg-background-50/60">
+              <td class="max-w-[24rem] px-5 py-4 align-middle">
+                <div class="flex min-w-0 items-center gap-3">
+                  <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-secondary/10 text-secondary">
+                    <i class="fas fa-briefcase"></i>
+                  </span>
+                  <div class="min-w-0">
+                    <a
+                      [routerLink]="['/' + buildPath(PATH.admin.consultor.services), service.id]"
+                      class="block truncate text-sm font-inter-bold transition hover:text-secondary focus:text-secondary focus:outline-none"
+                    >
+                      {{ service.title }}
+                    </a>
+                    <p class="mt-1 line-clamp-1 text-xs text-muted">{{ service.description }}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="px-5 py-4 align-middle">
+                <span class="block max-w-40 truncate text-xs font-inter-semibold">
+                  {{ service.pymeName || 'PYME #' + service.pymeId }}
+                </span>
+              </td>
+              <td class="px-5 py-4 align-middle">
+                <span
+                  class="inline-flex rounded-full px-2.5 py-1 text-[0.62rem] font-inter-bold uppercase tracking-wide"
+                  [class]="statusClass(service.status)"
+                >
+                  {{ statusLabel(service.status) }}
+                </span>
+              </td>
+              @if (store.activeTab() === 'proposals') {
+                <td class="px-5 py-4 text-right align-middle">
+                  @if (service.proposedPrice) {
+                    <span class="text-sm font-inter-bold text-secondary">
+                      {{ formatMoney(service.proposedPrice, service.currency) }}
+                    </span>
+                  } @else {
+                    <span class="text-xs text-muted">Sin precio</span>
+                  }
+                </td>
+              }
+              <td class="whitespace-nowrap px-5 py-4 align-middle text-xs text-muted">
+                {{ service.createdAt | date: 'dd/MM/yyyy' : 'America/Lima' }}
+              </td>
+              <td class="px-5 py-4 text-right align-middle">
+                <a
+                  [routerLink]="['/' + buildPath(PATH.admin.consultor.services), service.id]"
+                  class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-inter-bold text-secondary transition hover:bg-secondary/10 focus:outline-none focus:ring-4 focus:ring-secondary/10"
+                >
+                  Ver detalle <i class="fas fa-arrow-right"></i>
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="mt-6 overflow-hidden rounded-2xl border border-border bg-surface">
+    <app-pagination
+      [meta]="store.meta()"
+      [currentPage]="store.page()"
+      [pageSize]="store.pageSize"
+      [showPageSizeSelector]="false"
+      (pageChange)="store.changePage($event)"
+    />
+  </div>
+</section>
+} @else {
+  <section class="rounded-3xl border border-dashed border-border bg-surface px-6 py-16 text-center shadow-sm">
+    <span class="mx-auto grid size-16 place-items-center rounded-3xl bg-secondary/10 text-2xl text-secondary">
+      <i
+        class="fas"
+        [class.fa-inbox]="store.activeTab() === 'requests'"
+        [class.fa-file-invoice-dollar]="store.activeTab() === 'proposals'"
+      ></i>
+    </span>
+    <h2 class="mt-5 font-plus-jakarta-sans text-xl font-bold">
+      {{
+        store.search() || store.statusFilter()
+          ? 'No encontramos resultados'
+          : store.activeTab() === 'requests'
+            ? 'Aún no recibes solicitudes'
+            : 'Aún no has enviado cotizaciones'
+      }}
+    </h2>
+    <p class="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
+      @if (store.search() || store.statusFilter()) {
+        Prueba con otros criterios.
+      } @else if (store.activeTab() === 'requests') {
+        Las solicitudes de las PYMES aparecerán aquí.
+      } @else {
+        Las cotizaciones enviadas aparecerán aquí.
+      }
+    </p>
+  </section>
+}

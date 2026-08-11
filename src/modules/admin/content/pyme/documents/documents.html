@@ -8,7 +8,7 @@
     <div class="flex w-full items-center gap-2 xl:w-auto">
       <div class="relative w-full xl:w-80">
         <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted"></i>
-        <input [ngModel]="search()" (ngModelChange)="search.set($event)"
+        <input [ngModel]="search()" (ngModelChange)="updateSearch($event)"
           class="h-10 w-full rounded-xl border border-border bg-surface pl-9 pr-3 text-[0.82rem] outline-none focus:border-text placeholder:text-text-400"
           placeholder="Buscar documentos..." />
       </div>
@@ -39,69 +39,119 @@
   </div>
 
   @if (loading()) {
-  <div class="grid grid-cols-1 gap-5 xl:grid-cols-2" aria-label="Cargando documentos">
-    @for (card of [1, 2, 3, 4]; track card) {
-    <article class="animate-pulse rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]">
-      <div class="flex items-start justify-between gap-4">
-        <div class="h-12 w-12 rounded-2xl bg-text/5"></div>
-        <div class="h-7 w-28 rounded-full bg-text/5"></div>
+    @if (activeTab() === 'meetings') {
+      <div class="overflow-hidden rounded-2xl border border-border bg-surface" aria-label="Cargando actas">
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[760px] text-left">
+            <thead class="bg-background-50 text-[0.72rem] text-muted font-inter-semibold">
+              <tr>
+                <th class="px-5 py-4">Acta</th>
+                <th class="px-5 py-4">Fecha</th>
+                <th class="px-5 py-4">Consultor</th>
+                <th class="px-5 py-4">Estado</th>
+                <th class="px-5 py-4 text-right">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of [1, 2, 3, 4]; track row) {
+                <tr class="animate-pulse border-t border-border">
+                  <td class="px-5 py-4"><div class="h-4 w-52 rounded bg-text/10"></div></td>
+                  <td class="px-5 py-4"><div class="h-4 w-28 rounded bg-text/5"></div></td>
+                  <td class="px-5 py-4"><div class="h-9 w-40 rounded-full bg-text/5"></div></td>
+                  <td class="px-5 py-4"><div class="h-7 w-20 rounded-full bg-text/5"></div></td>
+                  <td class="px-5 py-4"><div class="ml-auto h-9 w-24 rounded-xl bg-text/5"></div></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div class="mt-6 h-5 w-44 rounded bg-text/10"></div>
-      <div class="mt-4 h-3 w-36 rounded bg-text/5"></div>
-      <div class="mt-6 h-16 rounded-2xl border border-border bg-text/5"></div>
-      <div class="mt-5 flex gap-3">
-        <div class="h-9 flex-1 rounded-full bg-text/5"></div>
-        <div class="h-9 flex-1 rounded-full bg-text/5"></div>
+    } @else {
+      <div class="overflow-hidden rounded-2xl border border-border bg-surface" aria-label="Cargando diagnósticos">
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[820px] text-left">
+            <thead class="bg-background-50 text-[0.72rem] text-muted font-inter-semibold">
+              <tr>
+                <th class="px-5 py-4">Diagnóstico</th>
+                <th class="px-5 py-4">Fecha</th>
+                <th class="px-5 py-4">Puntaje</th>
+                <th class="px-5 py-4 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of [1, 2, 3, 4]; track row) {
+                <tr class="animate-pulse border-t border-border">
+                  <td class="px-5 py-4"><div class="h-4 w-52 rounded bg-text/10"></div></td>
+                  <td class="px-5 py-4"><div class="h-4 w-28 rounded bg-text/5"></div></td>
+                  <td class="px-5 py-4"><div class="h-7 w-20 rounded-full bg-text/5"></div></td>
+                  <td class="px-5 py-4"><div class="ml-auto h-9 w-80 rounded-xl bg-text/5"></div></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
-    </article>
     }
-  </div>
   } @else if (activeTab() === 'meetings') {
-  <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
-    @for (document of paginatedMeetingDocuments(); track document.id) {
-    <article class="rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]">
-      <div class="flex items-start justify-between gap-4">
-        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-text/8 text-text">
-          <i class="far fa-file-lines text-lg"></i>
-        </div>
-        <span class="rounded-full bg-background-100 px-3 py-1 text-[0.72rem] text-text-600 font-inter-semibold">Acta de
-          Reunion</span>
-      </div>
-
-      <h2 class="mt-6 text-xl leading-tight font-anton lowercase text-text">{{ meetingTitle(document) }}</h2>
-      <p class="mt-4 inline-flex items-center gap-2 text-[0.82rem] text-text-600">
-        <i class="far fa-calendar"></i>
-        {{ document.completedAt || document.startTime | date : 'd MMMM y' }}
-      </p>
-
-      <div class="mt-6 flex items-center gap-3 rounded-2xl border border-border bg-background-50 px-4 py-3">
-        <div
-          class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-surface text-muted">
-          @if (document.consultantPhotoUrl) {
-          <img [src]="document.consultantPhotoUrl" alt="Consultor" class="h-full w-full object-cover" />
-          } @else {
-          <i class="far fa-user text-xs"></i>
+  <div class="overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_14px_32px_rgba(15,23,42,0.04)]">
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[760px] text-left">
+        <thead class="bg-background-50 text-[0.72rem] text-muted font-inter-semibold">
+          <tr>
+            <th class="px-5 py-4">Acta</th>
+            <th class="px-5 py-4">Fecha</th>
+            <th class="px-5 py-4">Consultor</th>
+            <th class="px-5 py-4">Estado</th>
+            <th class="px-5 py-4 text-right">Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (document of paginatedMeetingDocuments(); track document.id) {
+            <tr class="border-t border-border transition-colors hover:bg-background-50/70">
+              <td class="px-5 py-4">
+                <div class="flex min-w-64 items-center gap-3">
+                  <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-background-100 text-text">
+                    <i class="far fa-file-lines"></i>
+                  </span>
+                  <p class="line-clamp-2 text-[0.82rem] font-inter-bold">{{ meetingTitle(document) }}</p>
+                </div>
+              </td>
+              <td class="whitespace-nowrap px-5 py-4 text-[0.8rem] text-text-600">
+                {{ document.completedAt || document.startTime | date : 'd MMM y' }}
+              </td>
+              <td class="px-5 py-4">
+                <div class="flex min-w-40 items-center gap-3">
+                  <span class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-surface text-muted">
+                    @if (document.consultantPhotoUrl) {
+                      <img [src]="document.consultantPhotoUrl" [alt]="document.consultantName" class="h-full w-full object-cover" />
+                    } @else {
+                      <i class="far fa-user text-xs"></i>
+                    }
+                  </span>
+                  <span class="text-[0.8rem] font-inter-semibold">{{ document.consultantName }}</span>
+                </div>
+              </td>
+              <td class="px-5 py-4">
+                <span class="inline-flex rounded-full bg-secondary/10 px-3 py-1 text-[0.72rem] text-secondary font-inter-semibold">
+                  Finalizada
+                </span>
+              </td>
+              <td class="px-5 py-4 text-right">
+                <button type="button" [routerLink]="['/' + buildPath(PATH.admin.pyme.documents), document.id]"
+                  class="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-secondary px-4 text-[0.78rem] text-background font-inter-bold transition-colors hover:bg-secondary/90">
+                  <i class="far fa-file-lines text-xs"></i>
+                  Ver Acta
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="px-6 py-14 text-center text-sm text-muted">No hay actas disponibles todavía.</td>
+            </tr>
           }
-        </div>
-        <div>
-          <p class="text-[0.72rem] text-muted">Consultor</p>
-          <p class="text-[0.82rem] font-inter-bold">{{ document.consultantName }}</p>
-        </div>
-      </div>
-
-      <div class="mt-5 flex items-center gap-3">
-        <button [routerLink]="['/' + buildPath(PATH.admin.pyme.documents), document.id]"
-          class="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full bg-secondary px-4 text-[0.82rem] text-background font-inter-bold hover:bg-secondary/90 transition-colors">
-          <i class="far fa-file-lines text-xs"></i>
-          Ver Acta
-        </button>
-      </div>
-    </article>
-    } @empty {
-    <div class="xl:col-span-2 rounded-2xl border border-dashed border-border bg-surface py-14 text-center text-muted">
-      No hay actas disponibles todavia.
+        </tbody>
+      </table>
     </div>
-    }
   </div>
   @if (meetingMeta().total > 0) {
   <div class="mt-5 overflow-hidden rounded-xl border border-border bg-surface">
@@ -116,66 +166,76 @@
   </div>
   }
   } @else {
-  <div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
-    @for (diagnostic of paginatedDiagnosticDocuments(); track diagnostic.id) {
-    <article class="rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]">
-      <div class="flex items-start justify-between gap-4">
-        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary-50 text-secondary">
-          <i class="fas fa-chart-line text-lg"></i>
-        </div>
-        <span
-          class="rounded-full bg-background-100 px-3 py-1 text-[0.72rem] text-text-600 font-inter-semibold">Diagnóstico
-          IA</span>
-      </div>
-
-      <div class="mt-6 flex items-start justify-between gap-4">
-        <div>
-          <h2 class="text-xl leading-tight font-anton lowercase text-text">diagnostico realizado</h2>
-          <p class="mt-2 inline-flex items-center gap-2 text-[0.82rem] text-text-600">
-            <i class="far fa-calendar"></i>
-            {{ diagnostic.createdAt | date : 'd MMMM y' }}
-          </p>
-        </div>
-        <div class="flex items-center gap-3.5 rounded-xl border border-border bg-background-50 px-5 py-2.5 shrink-0">
-          <i class="fas fa-gauge-high text-[0.85rem] text-muted"></i>
-          <div>
-            <p class="text-[0.72rem] leading-tight text-muted font-inter-semibold">Puntaje</p>
-            <p class="text-[0.9rem] font-inter-bold text-text">{{ diagnostic.score }}/100</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center">
-        <button [routerLink]="['/' + buildPath(PATH.admin.pyme.diagnostics), diagnostic.id]"
-          class="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full bg-secondary px-4 text-[0.82rem] text-background font-inter-bold hover:bg-secondary/90 transition-colors">
-          <i class="far fa-file-lines text-xs"></i>
-          Ver Diagnóstico
-        </button>
-        <button (click)="downloadPdf(diagnostic)" [disabled]="isAnyDownloading()"
-          class="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold hover:bg-background-50 transition-colors disabled:opacity-55 disabled:cursor-not-allowed">
-          @if (downloadingPdfId() === diagnostic.id) {
-            <i class="fas fa-spinner fa-spin text-xs text-secondary"></i>
-          } @else {
-            <i class="far fa-file-pdf text-xs text-danger"></i>
+  <div class="overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_14px_32px_rgba(15,23,42,0.04)]">
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-[820px] text-left">
+        <thead class="bg-background-50 text-[0.72rem] text-muted font-inter-semibold">
+          <tr>
+            <th class="px-5 py-4">Diagnóstico</th>
+            <th class="px-5 py-4">Fecha</th>
+            <th class="px-5 py-4">Puntaje</th>
+            <th class="px-5 py-4 text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (diagnostic of paginatedDiagnosticDocuments(); track diagnostic.id) {
+            <tr class="border-t border-border transition-colors hover:bg-background-50/70">
+              <td class="px-5 py-4">
+                <div class="flex min-w-56 items-center gap-3">
+                  <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                    <i class="fas fa-chart-line"></i>
+                  </span>
+                  <div>
+                    <p class="text-[0.82rem] font-inter-bold">Diagnóstico realizado</p>
+                    <p class="mt-0.5 text-[0.7rem] text-muted">Diagnóstico IA</p>
+                  </div>
+                </div>
+              </td>
+              <td class="whitespace-nowrap px-5 py-4 text-[0.8rem] text-text-600">
+                {{ diagnostic.createdAt | date : 'd MMM y' }}
+              </td>
+              <td class="px-5 py-4">
+                <span class="inline-flex items-center gap-2 rounded-full bg-background-100 px-3 py-1.5 text-[0.78rem] font-inter-bold">
+                  <i class="fas fa-gauge-high text-xs text-muted"></i>
+                  {{ diagnostic.score }}/100
+                </span>
+              </td>
+              <td class="px-5 py-4">
+                <div class="flex items-center justify-end gap-2 whitespace-nowrap">
+                  <button type="button" (click)="downloadPdf(diagnostic)" [disabled]="isAnyDownloading()"
+                    class="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 text-[0.78rem] text-text font-inter-bold transition-colors hover:bg-background-50 disabled:cursor-not-allowed disabled:opacity-55">
+                    @if (downloadingPdfId() === diagnostic.id) {
+                      <i class="fas fa-spinner fa-spin text-xs text-secondary"></i>
+                    } @else {
+                      <i class="far fa-file-pdf text-xs text-danger"></i>
+                    }
+                    PDF
+                  </button>
+                  <button type="button" (click)="downloadWord(diagnostic)" [disabled]="isAnyDownloading()"
+                    class="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 text-[0.78rem] text-text font-inter-bold transition-colors hover:bg-background-50 disabled:cursor-not-allowed disabled:opacity-55">
+                    @if (downloadingWordId() === diagnostic.id) {
+                      <i class="fas fa-spinner fa-spin text-xs text-secondary"></i>
+                    } @else {
+                      <i class="far fa-file-word text-xs text-secondary"></i>
+                    }
+                    Word
+                  </button>
+                  <button type="button" [routerLink]="['/' + buildPath(PATH.admin.pyme.diagnostics), diagnostic.id]"
+                    class="inline-flex h-9 items-center justify-center gap-2 rounded-xl bg-secondary px-4 text-[0.78rem] text-background font-inter-bold transition-colors hover:bg-secondary/90">
+                    <i class="far fa-file-lines text-xs"></i>
+                    Ver Diagnóstico
+                  </button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="px-6 py-14 text-center text-sm text-muted">No hay diagnósticos disponibles todavía.</td>
+            </tr>
           }
-          Descargar PDF
-        </button>
-        <button (click)="downloadWord(diagnostic)" [disabled]="isAnyDownloading()"
-          class="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-full border border-border bg-surface px-4 text-[0.82rem] text-text font-inter-bold hover:bg-background-50 transition-colors disabled:opacity-55 disabled:cursor-not-allowed">
-          @if (downloadingWordId() === diagnostic.id) {
-            <i class="fas fa-spinner fa-spin text-xs text-secondary"></i>
-          } @else {
-            <i class="far fa-file-word text-xs text-secondary"></i>
-          }
-          Descargar Word
-        </button>
-      </div>
-    </article>
-    } @empty {
-    <div class="xl:col-span-2 rounded-2xl border border-dashed border-border bg-surface py-14 text-center text-muted">
-      No hay diagnósticos disponibles todavia.
+        </tbody>
+      </table>
     </div>
-    }
   </div>
   @if (diagnosticMeta().total > 0) {
   <div class="mt-5 overflow-hidden rounded-xl border border-border bg-surface">

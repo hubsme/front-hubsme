@@ -21,15 +21,19 @@ import {
 import { buildPath, PATH } from '@route/path.route';
 import { MercadoPagoService } from '@service/admin/mercado-pago.service';
 import { ConsultantTimeSlotService } from '@service/admin/consultant-time-slot.service';
+import { PromotionCodeService } from '@service/admin/promotion-code.service';
 import { ServiceRequestService } from '@service/admin/service-request.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { AlertService } from '@service/alert.service';
 import { ToastService } from '@service/toast.service';
 import { MercadoPagoCheckoutDto, ServiceRequestResultDto } from 'api/backend.api';
+import { ConsultantQuoteForm } from './components/consultant-quote-form/consultant-quote-form';
+import { ServicePaymentPlanSummary } from './layout/payment-plan-summary/payment-plan-summary';
 
 type ServiceStatus = ServiceRequestResultDto['status'];
 type ServiceMeeting = ServiceRequestResultDto['meetings'][number];
 type ServiceEvidence = ServiceRequestResultDto['evidenceAttachments'][number];
+type ServicePaymentScheduleItem = ServiceRequestResultDto['paymentSchedule'][number];
 
 type CalendarDay = {
   key: string;
@@ -60,15 +64,25 @@ type MilestoneInsertionPosition = {
 };
 
 @Component({
-  selector: 'app-pyme-service-detail',
-  imports: [CommonModule, DatePipe, FormsModule, ModalForm, RouterLink, TimeSlotPicker],
+  selector: 'app-service-detail',
+  imports: [
+    CommonModule,
+    ConsultantQuoteForm,
+    DatePipe,
+    FormsModule,
+    ModalForm,
+    RouterLink,
+    ServicePaymentPlanSummary,
+    TimeSlotPicker,
+  ],
   templateUrl: './service-detail.html',
 })
-export class PymeServiceDetail implements OnInit, OnDestroy {
+export class ServiceDetail implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly serviceRequestService = inject(ServiceRequestService);
   private readonly consultantTimeSlotService = inject(ConsultantTimeSlotService);
   private readonly mercadoPagoService = inject(MercadoPagoService);
+  private readonly promotionCodeService = inject(PromotionCodeService);
   private readonly hubsme = inject(HubsmeService);
   private readonly alertService = inject(AlertService);
   private readonly toastService = inject(ToastService);
@@ -85,6 +99,8 @@ export class PymeServiceDetail implements OnInit, OnDestroy {
   readonly declineMessage = signal('');
   readonly declining = signal(false);
   readonly preparingPayment = signal(false);
+  readonly serviceCouponCode = signal('');
+  readonly redeemingServiceCoupon = signal(false);
   readonly paymentModalOpen = signal(false);
   readonly paymentCheckout = signal<MercadoPagoCheckoutDto | null>(null);
   readonly milestoneMeetingTimes = signal<Record<number, string[]>>({});
@@ -115,6 +131,8 @@ export class PymeServiceDetail implements OnInit, OnDestroy {
   readonly deletingEvidenceId = signal<string | null>(null);
   readonly completingService = signal(false);
   readonly minimumMilestoneDate = this.dateKeyInTimeZone(new Date());
+  readonly isConsultant = computed(() => this.hubsme.currentUser().role === 'consultor');
+  readonly showDeclineForm = signal(false);
 
   readonly milestoneInsertionPositions = computed<MilestoneInsertionPosition[]>(() => {
     const milestones = this.service()?.milestones ?? [];
@@ -299,12 +317,22 @@ export class PymeServiceDetail implements OnInit, OnDestroy {
   }
 
   meetingDetailPath(meetingId: number): string {
-    return `/${buildPath(PATH.admin.pyme.meetings)}/${meetingId}`;
+    const meetingsPath = this.isConsultant()
+      ? PATH.admin.consultor.meetings
+      : PATH.admin.pyme.meetings;
+    return `/${buildPath(meetingsPath)}/${meetingId}`;
   }
 
   requestServiceCompletion(): void {
     const current = this.service();
-    if (!current || current.status !== 'paid' || this.completingService()) return;
+    if (
+      this.isConsultant() ||
+      !current ||
+      !this.canCompleteService(current) ||
+      this.completingService()
+    ) {
+      return;
+    }
 
     this.alertService.confirm(
       'Dar servicio como completado',
@@ -315,6 +343,7 @@ export class PymeServiceDetail implements OnInit, OnDestroy {
 
   canEditMilestone(current: ServiceRequestResultDto, index: number): boolean {
     return (
+      !this.isConsultant() &&
       current.status === 'paid' &&
       index > 0 &&
       index < current.milestones.length - 1 &&
@@ -324,11 +353,17 @@ export class PymeServiceDetail implements OnInit, OnDestroy {
   }
 
   canDeleteMilestone(current: ServiceRequestResultDto, index: number): boolean {
-    return this.canEditMilestone(current, index) && index > 0 && index < current.milestones.length - 1;
+    return (
+      this.canEditMilestone(current, index) &&
+      index > 0 &&
+      index < current.milestones.length - 1 &&
+      !current.paymentPlan.installments.some((installment) => installment.milestoneIndex === index)
+    );
   }
 
   canDeleteEvidence(current: ServiceRequestResultDto, attachment: ServiceEvidence): boolean {
     return (
+      !this.isConsultant() &&
       current.status === 'paid' &&
       (attachment.milestoneIndex === null ||
         attachment.milestoneIndex === undefined ||
@@ -485,7 +520,7 @@ export class PymeServiceDetail implements OnInit, OnDestroy {
     const targetMonth = this.monthKeyForDate(value);
     const activeMonth = months.some((month) => month.value === targetMonth)
       ? targetMonth
-      : months[months.length - 1]?.value ?? '';
+      : (months[months.length - 1]?.value ?? '');
     this.extraMilestoneAvailabilityMonth.set(activeMonth);
     if (activeMonth) void this.loadServiceAvailabilityMonth(activeMonth);
 
@@ -564,9 +599,7 @@ export class PymeServiceDetail implements OnInit, OnDestroy {
     }
     this.extraMilestoneAvailabilityMonth.set(monthKey);
     this.extraMilestoneTimes.update((current) =>
-      current.map((value) =>
-        value && this.monthKeyForDate(value) !== monthKey ? '' : value,
-      ),
+      current.map((value) => (value && this.monthKeyForDate(value) !== monthKey ? '' : value)),
     );
     void this.loadServiceAvailabilityMonth(monthKey);
   }
@@ -743,13 +776,47 @@ export class PymeServiceDetail implements OnInit, OnDestroy {
     }
   }
 
-  async payService(): Promise<void> {
+  handleProposalSent(updated: ServiceRequestResultDto): void {
+    this.service.set(updated);
+  }
+
+  async declineRequest(): Promise<void> {
     const current = this.service();
-    if (!current || !['proposal_sent', 'payment_pending'].includes(current.status)) return;
+    if (!this.isConsultant() || !current || current.status !== 'requested') return;
+
+    this.declining.set(true);
+    try {
+      const updated = await this.serviceRequestService.decline(current.id, {
+        message: this.declineMessage().trim() || undefined,
+      });
+      this.service.set(updated);
+      this.showDeclineForm.set(false);
+      this.toastService.success('Solicitud marcada como no aceptada');
+    } catch (error) {
+      this.toastService.error(this.hubsme.getErrorMessage(error));
+    } finally {
+      this.declining.set(false);
+    }
+  }
+
+  openDeclineForm(): void {
+    if (this.isConsultant()) this.showDeclineForm.set(true);
+  }
+
+  cancelDecline(): void {
+    if (this.declining()) return;
+    this.declineMessage.set('');
+    this.showDeclineForm.set(false);
+  }
+
+  async payService(selectedInstallment?: ServicePaymentScheduleItem): Promise<void> {
+    const current = this.service();
+    const installment = selectedInstallment ?? (current ? this.nextPendingPayment(current) : null);
+    if (!current || !installment?.available) return;
 
     this.preparingPayment.set(true);
     try {
-      const checkout = await this.mercadoPagoService.prepareServicePayment(current.id);
+      const checkout = await this.mercadoPagoService.prepareServicePayment(current.id, installment.installmentIndex);
       if (!checkout.initPoint && !checkout.sandboxInitPoint) {
         throw new Error('La pasarela de pago no devolvió un enlace válido');
       }
@@ -760,6 +827,37 @@ export class PymeServiceDetail implements OnInit, OnDestroy {
       this.toastService.error(this.hubsme.getErrorMessage(error));
     } finally {
       this.preparingPayment.set(false);
+    }
+  }
+
+  async redeemServiceCoupon(): Promise<void> {
+    const current = this.service();
+    const installment = current ? this.nextPendingPayment(current) : null;
+    const code = this.serviceCouponCode().trim();
+    if (!current || !installment?.available || !code || this.redeemingServiceCoupon()) return;
+
+    this.redeemingServiceCoupon.set(true);
+    try {
+      const result = await this.promotionCodeService.redeemService({
+        serviceRequestId: current.id,
+        code,
+      });
+      const updated = await this.serviceRequestService.findOne(current.id);
+      this.service.set(updated);
+      this.initializeServiceAvailability(updated);
+      this.serviceCouponCode.set('');
+      const hasPendingInstallments = updated.paymentSchedule.some(
+        (payment) => payment.status !== 'approved',
+      );
+      this.toastService.success(
+        hasPendingInstallments
+          ? `Cupón ${result.code} aplicado a la cuota`
+          : `Cupón ${result.code} aplicado. El servicio quedó completamente pagado`,
+      );
+    } catch (error) {
+      this.toastService.error(this.hubsme.getErrorMessage(error));
+    } finally {
+      this.redeemingServiceCoupon.set(false);
     }
   }
 
@@ -827,16 +925,27 @@ export class PymeServiceDetail implements OnInit, OnDestroy {
   }
 
   statusLabel(status: ServiceStatus): string {
-    const labels: Record<ServiceStatus, string> = {
-      requested: 'Esperando respuesta',
-      proposal_sent: 'Precio recibido',
-      consultant_declined: 'No aceptada por consultor',
-      payment_pending: 'Pago pendiente',
-      paid: 'Aprobada y pagada',
-      completed: 'Completado',
-      pyme_declined: 'No aceptada',
-      cancelled: 'Cancelada',
-    };
+    const labels: Record<ServiceStatus, string> = this.isConsultant()
+      ? {
+          requested: 'Por responder',
+          proposal_sent: 'Cotización enviada',
+          consultant_declined: 'No aceptada por mí',
+          payment_pending: 'Esperando pago',
+          paid: 'Servicio activo',
+          completed: 'Completada',
+          pyme_declined: 'No aceptada por PYME',
+          cancelled: 'Cancelada',
+        }
+      : {
+          requested: 'Esperando respuesta',
+          proposal_sent: 'Precio recibido',
+          consultant_declined: 'No aceptada por consultor',
+          payment_pending: 'Pago pendiente',
+          paid: 'Servicio activo',
+          completed: 'Completado',
+          pyme_declined: 'No aceptada',
+          cancelled: 'Cancelada',
+        };
     return labels[status];
   }
 
@@ -858,6 +967,18 @@ export class PymeServiceDetail implements OnInit, OnDestroy {
     return new Intl.NumberFormat('es-PE', { style: 'currency', currency }).format(
       Number(value ?? 0),
     );
+  }
+
+  canCompleteService(current: ServiceRequestResultDto): boolean {
+    return (
+      current.status === 'paid' &&
+      current.paymentSchedule.length > 0 &&
+      current.paymentSchedule.every((installment) => installment.status === 'approved')
+    );
+  }
+
+  nextPendingPayment(current: ServiceRequestResultDto): ServicePaymentScheduleItem | null {
+    return current.paymentSchedule.find((installment) => installment.status !== 'approved') ?? null;
   }
 
   serviceBudgetLabel(current: ServiceRequestResultDto): string {
@@ -955,12 +1076,9 @@ export class PymeServiceDetail implements OnInit, OnDestroy {
     this.calendarCursor.set(this.clampCalendarMonth(new Date(Date.UTC(year, month - 1, 1))));
   }
 
-  private initializeServiceAvailability(
-    current: ServiceRequestResultDto,
-    resetCache = true,
-  ): void {
+  private initializeServiceAvailability(current: ServiceRequestResultDto, resetCache = true): void {
     if (resetCache) this.resetServiceAvailability();
-    if (current.status !== 'paid') return;
+    if (current.status !== 'paid' || this.isConsultant()) return;
 
     const initialMonths = new Set<string>();
     const activeMonths: Record<number, string> = {};
@@ -970,7 +1088,7 @@ export class PymeServiceDetail implements OnInit, OnDestroy {
       const targetMonth = this.monthKeyForDate(milestone.dueDate);
       const activeMonth = months.some((month) => month.value === targetMonth)
         ? targetMonth
-        : months[months.length - 1]?.value ?? '';
+        : (months[months.length - 1]?.value ?? '');
       if (!activeMonth) continue;
       activeMonths[index] = activeMonth;
       initialMonths.add(activeMonth);
@@ -1073,18 +1191,28 @@ export class PymeServiceDetail implements OnInit, OnDestroy {
 
     this.paymentPollingInFlight = true;
     try {
-      const checkout = await this.mercadoPagoService.syncServicePayment(current.id);
+      await this.mercadoPagoService.syncServicePayment(current.id, this.paymentCheckout()?.serviceInstallmentIndex);
       if (!this.paymentModalOpen() || this.service()?.id !== current.id) return;
-      this.paymentCheckout.set(checkout);
       const updated = await this.serviceRequestService.findOne(current.id);
       if (!this.paymentModalOpen() || this.service()?.id !== current.id) return;
       this.service.set(updated);
       this.initializeServiceAvailability(updated);
-      if (updated.status !== 'paid') return;
+      const paidInstallmentIndex = this.paymentCheckout()?.serviceInstallmentIndex;
+      const paidInstallment = updated.paymentSchedule.find(
+        (installment) => installment.installmentIndex === paidInstallmentIndex,
+      );
+      if (paidInstallment?.status !== 'approved') return;
       this.stopPaymentPolling();
       this.paymentModalOpen.set(false);
       this.paymentCheckout.set(null);
-      this.toastService.success('Pago confirmado. El servicio fue aprobado');
+      const hasPendingInstallments = updated.paymentSchedule.some(
+        (installment) => installment.status !== 'approved',
+      );
+      this.toastService.success(
+        hasPendingInstallments
+          ? 'Cuota confirmada correctamente'
+          : 'Pago confirmado. El servicio quedó completamente pagado',
+      );
     } catch {
       // El siguiente ciclo vuelve a consultar para tolerar fallas temporales.
     } finally {

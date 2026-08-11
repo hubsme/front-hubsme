@@ -12,4 +12,12 @@ export class PromotionCodeService {
       .promotioncodeRedeem(data)
       .then((response) => response.data);
   }
+
+  redeemService(
+    data: ApiBody<'promotionCode', 'promotioncodeRedeemService'>,
+  ): Promise<ApiResponse<'promotionCode', 'promotioncodeRedeemService'>> {
+    return this.api.promotionCode
+      .promotioncodeRedeemService(data)
+      .then((response) => response.data);
+  }
 }

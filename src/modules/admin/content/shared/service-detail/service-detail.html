@@ -388,7 +388,7 @@
                       <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
                         Evidencias y entregables
                       </p>
-                      @if (current.status === 'paid' && !isConsultant()) {
+                      @if (current.status === 'paid' && isConsultant()) {
                         <button
                           type="button"
                           (click)="openEvidenceUploader(milestoneIndex)"
@@ -924,7 +924,7 @@
               ></i>
             </summary>
             <div class="px-5 pb-5">
-              @if (current.status === 'paid') {
+              @if (current.status === 'paid' && isConsultant()) {
                 <button
                   type="button"
                   (click)="openEvidenceUploader(null)"

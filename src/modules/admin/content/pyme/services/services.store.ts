@@ -21,6 +21,7 @@ import {
   ServiceConsultantMatchDto,
   ServicePaymentPlanResultDto,
   ServiceRequestChatMessageDto,
+  ServiceRequestChatResultDto,
   ServiceRequestDraftDto,
   ServiceRequestMilestoneDraftDto,
   ServiceRequestInitialMeetingOptionDto,
@@ -88,6 +89,8 @@ export class PymeServicesStore {
 
   readonly showCreate = signal(false);
   readonly creating = signal(false);
+  readonly sourceMeetingId = signal<number | null>(null);
+  readonly sourceMeetingLoading = signal(false);
   readonly wizardStep = signal<WizardStep>(1);
   readonly chatMessages = signal<ServiceRequestChatMessageDto[]>([]);
   readonly chatInput = signal('');
@@ -202,6 +205,58 @@ export class PymeServicesStore {
     this.showCreate.set(true);
   }
 
+  async openCreateFromMeeting(meetingId: number) {
+    if (!Number.isInteger(meetingId) || meetingId <= 0) {
+      this.toastService.error('El acta seleccionada no es válida');
+      return;
+    }
+
+    this.resetCreateFlow();
+    this.sourceMeetingId.set(meetingId);
+    this.showCreate.set(true);
+    this.sourceMeetingLoading.set(true);
+    this.chatLoading.set(true);
+
+    const messages: ServiceRequestChatMessageDto[] = [
+      {
+        role: 'assistant',
+        content: `Voy a usar el acta #${meetingId} para preparar el servicio y preguntarte solo lo que falte.`,
+      },
+      {
+        role: 'user',
+        content: 'Prepara mi solicitud de servicio usando esta acta como base.',
+      },
+    ];
+    const requestId = ++this.aiRequestSequence;
+    this.chatMessages.set(messages);
+
+    try {
+      const result = await this.aiService.continueServiceRequestChat({
+        messages,
+        draft: this.currentDraft(),
+        sourceMeetingId: meetingId,
+      });
+      if (requestId !== this.aiRequestSequence) return;
+
+      this.applyChatResult(result);
+      if (!result.missingInformation.length && this.hasValidDraft()) {
+        this.chatComplete.set(true);
+        this.wizardStep.set(2);
+      }
+    } catch (error) {
+      if (requestId !== this.aiRequestSequence) return;
+
+      this.resetCreateFlow();
+      this.showCreate.set(true);
+      this.toastService.error(this.hubsme.getErrorMessage(error));
+    } finally {
+      if (requestId === this.aiRequestSequence) {
+        this.sourceMeetingLoading.set(false);
+        this.chatLoading.set(false);
+      }
+    }
+  }
+
   closeCreate() {
     if (
       this.creating() ||
@@ -227,15 +282,10 @@ export class PymeServicesStore {
       const result = await this.aiService.continueServiceRequestChat({
         messages,
         draft: this.currentDraft(),
+        sourceMeetingId: this.sourceMeetingId() ?? undefined,
       });
       if (requestId !== this.aiRequestSequence) return;
-      this.chatMessages.update((current) => [
-        ...current,
-        { role: 'assistant', content: result.message },
-      ]);
-      this.chatComplete.set(result.isComplete);
-      this.missingInformation.set(result.missingInformation);
-      this.applyDraft(result.draft);
+      this.applyChatResult(result);
     } catch (error) {
       if (requestId === this.aiRequestSequence) {
         this.toastService.error(this.hubsme.getErrorMessage(error));
@@ -809,8 +859,20 @@ export class PymeServicesStore {
     this.details.set(draft.details);
   }
 
+  private applyChatResult(result: ServiceRequestChatResultDto) {
+    this.chatMessages.update((current) => [
+      ...current,
+      { role: 'assistant', content: result.message },
+    ]);
+    this.chatComplete.set(result.isComplete);
+    this.missingInformation.set(result.missingInformation);
+    this.applyDraft(result.draft);
+  }
+
   private resetCreateFlow() {
     this.aiRequestSequence += 1;
+    this.sourceMeetingId.set(null);
+    this.sourceMeetingLoading.set(false);
     this.wizardStep.set(1);
     this.chatMessages.set([{ role: 'assistant', content: INITIAL_ASSISTANT_MESSAGE }]);
     this.chatInput.set('');

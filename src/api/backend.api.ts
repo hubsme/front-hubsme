@@ -1349,6 +1349,11 @@ export interface ServiceRequestChatRunDto {
    */
   messages: ServiceRequestChatMessageDto[];
   draft?: ServiceRequestDraftDto;
+  /**
+   * Acta finalizada de consultoría que se usará como contexto inicial de la solicitud
+   * @min 1
+   */
+  sourceMeetingId?: number;
 }
 
 export interface ServiceRequestChatResultDto {
@@ -7217,7 +7222,7 @@ export namespace Service {
    * No description
    * @tags service
    * @name ServiceUploadEvidence
-   * @summary Attach evidence or a deliverable to a paid service
+   * @summary Attach evidence or a deliverable to a paid service as its consultant
    * @request POST:/admin/service/{id}/evidence
    * @secure
    * @response `201` `ServiceUploadEvidenceData`
@@ -7237,7 +7242,7 @@ export namespace Service {
    * No description
    * @tags service
    * @name ServiceDeleteEvidence
-   * @summary Delete a service evidence before its milestone has a meeting
+   * @summary Delete a service evidence as its consultant before its milestone has a meeting
    * @request DELETE:/admin/service/{id}/evidence/{attachmentId}
    * @secure
    * @response `200` `ServiceDeleteEvidenceData`
@@ -11112,7 +11117,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags service
      * @name ServiceUploadEvidence
-     * @summary Attach evidence or a deliverable to a paid service
+     * @summary Attach evidence or a deliverable to a paid service as its consultant
      * @request POST:/admin/service/{id}/evidence
      * @secure
      * @response `201` `ServiceUploadEvidenceData`
@@ -11138,7 +11143,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags service
      * @name ServiceDeleteEvidence
-     * @summary Delete a service evidence before its milestone has a meeting
+     * @summary Delete a service evidence as its consultant before its milestone has a meeting
      * @request DELETE:/admin/service/{id}/evidence/{attachmentId}
      * @secure
      * @response `200` `ServiceDeleteEvidenceData`

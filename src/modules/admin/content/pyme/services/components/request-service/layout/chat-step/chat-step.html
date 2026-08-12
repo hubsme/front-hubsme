@@ -1,27 +1,45 @@
-<div class="grid lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1.55fr)_minmax(270px,0.75fr)]">
-  <section class="flex flex-col border-b border-border lg:min-h-0 lg:border-b-0 lg:border-r">
-    <div class="shrink-0 border-b border-border px-5 py-4 sm:px-6">
-      <div class="flex items-center gap-3">
-        <span class="grid size-10 place-items-center rounded-2xl bg-secondary text-fixed-text-50 shadow-sm shadow-secondary/20">
+<div
+  class="grid min-h-0 min-w-0 flex-1 grid-rows-[auto_minmax(0,1fr)] overflow-hidden md:grid-cols-[minmax(0,1.55fr)_minmax(240px,0.75fr)] md:grid-rows-1"
+>
+  <section
+    class="flex min-h-0 min-w-0 flex-col overflow-hidden border-b border-border md:border-b-0 md:border-r"
+  >
+    <div class="shrink-0 border-b border-border px-3 py-3 sm:px-6 sm:py-4">
+      <div class="flex min-w-0 items-center gap-2.5 sm:gap-3">
+        <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-secondary text-fixed-text-50 shadow-sm shadow-secondary/20 sm:size-10 sm:rounded-2xl">
           <i class="fas fa-wand-magic-sparkles"></i>
         </span>
-        <div>
-          <h3 class="font-inter-bold">Asistente de servicios</h3>
-          <p class="mt-0.5 text-xs text-muted">Te hará preguntas cortas para entender el trabajo.</p>
+        <div class="min-w-0">
+          <h3 class="text-sm font-inter-bold sm:text-base">Asistente de servicios</h3>
+          <p class="mt-0.5 text-xs text-muted">
+            @if (store.sourceMeetingId(); as meetingId) {
+              @if (store.sourceMeetingLoading()) {
+                Analizando el acta #{{ meetingId }}...
+              } @else {
+                Basado en el acta #{{ meetingId }} · Solo preguntará lo pendiente.
+              }
+            } @else {
+              Te hará preguntas cortas para entender el trabajo.
+            }
+          </p>
         </div>
       </div>
     </div>
 
-    <div class="h-80 flex-none space-y-4 overflow-y-auto bg-background-50/40 p-5 sm:h-[360px] sm:p-6 lg:h-auto lg:min-h-[260px] lg:flex-1">
+    <div
+      #chatScroll
+      aria-live="polite"
+      class="min-h-32 flex-1 space-y-3 overflow-x-hidden overflow-y-auto bg-background-50/40 p-3 sm:min-h-[260px] sm:space-y-4 sm:p-6"
+    >
       @for (message of store.chatMessages(); track $index) {
-        <div class="flex gap-2.5" [class.justify-end]="message.role === 'user'">
+        <div class="flex min-w-0 gap-2 sm:gap-2.5" [class.justify-end]="message.role === 'user'">
           @if (message.role === 'assistant') {
-            <span class="grid size-8 shrink-0 place-items-center rounded-xl bg-secondary/10 text-xs text-secondary">
+            <span class="grid size-7 shrink-0 place-items-center rounded-lg bg-secondary/10 text-[0.68rem] text-secondary sm:size-8 sm:rounded-xl sm:text-xs">
               <i class="fas fa-robot"></i>
             </span>
           }
           <div
-            class="max-w-[82%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm"
+            class="min-w-0 max-w-[calc(100%_-_2.25rem)] break-words rounded-2xl px-3 py-2.5 text-sm leading-relaxed shadow-sm sm:max-w-[82%] sm:px-4 sm:py-3"
             [class.rounded-tl-md]="message.role === 'assistant'"
             [class.border]="message.role === 'assistant'"
             [class.border-border]="message.role === 'assistant'"
@@ -35,8 +53,8 @@
         </div>
       }
       @if (store.chatLoading()) {
-        <div class="flex items-center gap-2.5">
-          <span class="grid size-8 place-items-center rounded-xl bg-secondary/10 text-xs text-secondary">
+        <div class="flex min-w-0 items-center gap-2 sm:gap-2.5">
+          <span class="grid size-7 shrink-0 place-items-center rounded-lg bg-secondary/10 text-[0.68rem] text-secondary sm:size-8 sm:rounded-xl sm:text-xs">
             <i class="fas fa-robot"></i>
           </span>
           <div class="flex gap-1 rounded-2xl rounded-tl-md border border-border bg-surface px-4 py-3">
@@ -52,7 +70,7 @@
       }
     </div>
 
-    <div class="shrink-0 border-t border-border bg-surface p-4 sm:p-5">
+    <div class="shrink-0 border-t border-border bg-surface p-3 sm:p-5">
       @if (store.chatComplete()) {
         <div class="mb-3 flex items-center gap-2 rounded-xl border border-success/20 bg-success/5 px-3 py-2.5 text-xs text-success">
           <i class="fas fa-circle-check"></i>
@@ -68,89 +86,126 @@
           [ngModel]="store.chatInput()"
           (ngModelChange)="updateInput($event)"
           (keydown)="handleKeydown($event)"
-          [disabled]="store.chatLoading() || store.chatComplete()"
+          [readOnly]="store.chatLoading() || store.chatComplete()"
+          [class.opacity-60]="store.chatLoading() || store.chatComplete()"
           placeholder="Escribe tu respuesta..."
-          class="block min-h-20 max-h-36 w-full resize-none overflow-y-auto rounded-2xl border border-border bg-background-50 py-3 pl-4 pr-14 text-sm leading-relaxed outline-none transition [scrollbar-width:none] placeholder:text-muted/70 focus:border-secondary focus:ring-4 focus:ring-secondary/10 disabled:opacity-60 [&::-webkit-scrollbar]:hidden"
+          class="block min-h-16 max-h-28 w-full resize-none overflow-y-auto rounded-2xl border border-border bg-background-50 py-3 pl-3 pr-12 text-sm leading-relaxed outline-none transition [scrollbar-width:none] placeholder:text-muted/70 focus:border-secondary focus:ring-4 focus:ring-secondary/10 sm:min-h-20 sm:max-h-36 sm:pl-4 sm:pr-14 [&::-webkit-scrollbar]:hidden"
         ></textarea>
         <button
           type="button"
           (click)="store.sendChatMessage()"
           [disabled]="!canSend()"
           aria-label="Enviar mensaje"
-          class="absolute bottom-3 right-3 grid size-9 place-items-center rounded-xl bg-secondary text-fixed-text-50 transition hover:bg-secondary/90 disabled:cursor-not-allowed disabled:opacity-40"
+          class="absolute bottom-2.5 right-2.5 grid size-9 place-items-center rounded-xl bg-secondary text-fixed-text-50 transition hover:bg-secondary/90 disabled:cursor-not-allowed disabled:opacity-40 sm:bottom-3 sm:right-3"
         >
           <i class="fas fa-arrow-up"></i>
         </button>
       </div>
-      <p class="mt-2 text-[0.68rem] text-muted">Enter para enviar · Shift + Enter para nueva línea</p>
+      <p class="mt-2 hidden text-[0.68rem] text-muted sm:block">
+        Enter para enviar · Shift + Enter para nueva línea
+      </p>
     </div>
   </section>
 
-  <aside class="flex flex-col bg-surface p-5 sm:p-6 lg:min-h-0 lg:overflow-y-auto">
-    <p class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">Resumen en progreso</p>
-    @if (store.title() || store.description() || store.expectedOutcome()) {
-      <div class="mt-4 space-y-4">
-        <div>
-          <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-secondary">Servicio</p>
-          <p class="mt-1 text-sm font-inter-bold">{{ store.title() || 'Por definir' }}</p>
-        </div>
-        @if (store.category()) {
+  <aside
+    class="order-first flex max-h-[45dvh] min-w-0 flex-col overflow-y-auto border-b border-border bg-surface px-3 py-3 md:order-none md:sticky md:top-0 md:h-full md:max-h-none md:min-h-0 md:self-start md:border-b-0 md:px-5 md:py-6 lg:px-6"
+  >
+    <button
+      type="button"
+      (click)="toggleSummary()"
+      [attr.aria-expanded]="summaryExpanded()"
+      class="flex w-full items-center justify-between gap-3 text-left md:pointer-events-none"
+    >
+      <span class="text-xs font-inter-bold uppercase tracking-[0.12em] text-muted">
+        Resumen en progreso
+      </span>
+      <i
+        class="fas fa-chevron-down text-xs text-muted transition-transform md:hidden"
+        [class.rotate-180]="summaryExpanded()"
+      ></i>
+    </button>
+
+    <div class="min-w-0 md:block" [class.hidden]="!summaryExpanded()">
+      @if (store.title() || store.description() || store.expectedOutcome()) {
+        <div class="mt-4 space-y-4">
           <div>
-            <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">Clasificación</p>
-            <p class="mt-1 text-xs leading-relaxed text-muted">
-              {{ store.category() }} · {{ store.subcategory() || 'Por definir' }}
+            <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-secondary">
+              Servicio
             </p>
+            <p class="mt-1 text-sm font-inter-bold">{{ store.title() || 'Por definir' }}</p>
           </div>
-        }
-        <div>
-          <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">Necesidad</p>
-          <p class="mt-1 line-clamp-4 text-xs leading-relaxed text-muted">
-            {{ store.description() || 'Por definir' }}
-          </p>
-        </div>
-        <div>
-          <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">Resultado</p>
-          <p class="mt-1 line-clamp-4 text-xs leading-relaxed text-muted">
-            {{ store.expectedOutcome() || 'Por definir' }}
-          </p>
-        </div>
-        @if (store.budgetMin() || store.deadline()) {
-          <div class="grid grid-cols-2 gap-3 border-t border-border pt-3">
+          @if (store.category()) {
             <div>
-              <p class="text-[0.65rem] font-inter-bold uppercase tracking-wide text-muted">Presupuesto</p>
-              <p class="mt-1 text-xs font-inter-semibold">
-                @if (store.budgetType() === 'range' && store.budgetMax()) {
-                  S/ {{ store.budgetMin() }} – {{ store.budgetMax() }}
-                } @else {
-                  {{ store.budgetMin() ? 'S/ ' + store.budgetMin() : 'Por definir' }}
-                }
+              <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                Clasificación
+              </p>
+              <p class="mt-1 text-xs leading-relaxed text-muted">
+                {{ store.category() }} · {{ store.subcategory() || 'Por definir' }}
               </p>
             </div>
-            <div>
-              <p class="text-[0.65rem] font-inter-bold uppercase tracking-wide text-muted">Fecha límite</p>
-              <p class="mt-1 text-xs font-inter-semibold">{{ store.deadline() || 'Por definir' }}</p>
-            </div>
-          </div>
-        }
-      </div>
-    } @else {
-      <div class="mt-5 rounded-2xl border border-dashed border-border p-5 text-center">
-        <i class="fas fa-comments text-xl text-secondary"></i>
-        <p class="mt-2 text-xs leading-relaxed text-muted">El resumen aparecerá mientras conversas.</p>
-      </div>
-    }
-
-    @if (store.missingInformation().length) {
-      <div class="mt-5 rounded-2xl border border-warning/20 bg-warning/5 p-4">
-        <p class="text-xs font-inter-bold">
-          <i class="fas fa-circle-info mr-1.5 text-warning"></i>Por completar
-        </p>
-        <ul class="mt-2 space-y-1.5 text-xs text-muted">
-          @for (item of store.missingInformation(); track item) {
-            <li class="flex gap-2"><span class="text-warning">•</span>{{ item }}</li>
           }
-        </ul>
-      </div>
-    }
+          <div>
+            <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+              Necesidad
+            </p>
+            <p class="mt-1 line-clamp-4 text-xs leading-relaxed text-muted">
+              {{ store.description() || 'Por definir' }}
+            </p>
+          </div>
+          <div>
+            <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+              Resultado
+            </p>
+            <p class="mt-1 line-clamp-4 text-xs leading-relaxed text-muted">
+              {{ store.expectedOutcome() || 'Por definir' }}
+            </p>
+          </div>
+          @if (store.budgetMin() || store.deadline()) {
+            <div class="grid grid-cols-2 gap-3 border-t border-border pt-3">
+              <div>
+                <p class="text-[0.65rem] font-inter-bold uppercase tracking-wide text-muted">
+                  Presupuesto
+                </p>
+                <p class="mt-1 text-xs font-inter-semibold">
+                  @if (store.budgetType() === 'range' && store.budgetMax()) {
+                    S/ {{ store.budgetMin() }} – {{ store.budgetMax() }}
+                  } @else {
+                    {{ store.budgetMin() ? 'S/ ' + store.budgetMin() : 'Por definir' }}
+                  }
+                </p>
+              </div>
+              <div>
+                <p class="text-[0.65rem] font-inter-bold uppercase tracking-wide text-muted">
+                  Fecha límite
+                </p>
+                <p class="mt-1 text-xs font-inter-semibold">
+                  {{ store.deadline() || 'Por definir' }}
+                </p>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="mt-4 rounded-2xl border border-dashed border-border p-4 text-center md:mt-5 md:p-5">
+          <i class="fas fa-comments text-xl text-secondary"></i>
+          <p class="mt-2 text-xs leading-relaxed text-muted">
+            El resumen aparecerá mientras conversas.
+          </p>
+        </div>
+      }
+
+      @if (store.missingInformation().length) {
+        <div class="mt-5 rounded-2xl border border-warning/20 bg-warning/5 p-4">
+          <p class="text-xs font-inter-bold">
+            <i class="fas fa-circle-info mr-1.5 text-warning"></i>Por completar
+          </p>
+          <ul class="mt-2 space-y-1.5 text-xs text-muted">
+            @for (item of store.missingInformation(); track item) {
+              <li class="flex gap-2"><span class="text-warning">•</span>{{ item }}</li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
   </aside>
 </div>

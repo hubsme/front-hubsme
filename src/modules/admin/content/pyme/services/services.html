@@ -13,7 +13,7 @@
       class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm font-inter-bold text-fixed-text-50 shadow-md shadow-secondary/20 transition hover:-translate-y-0.5 hover:bg-secondary/90"
     >
       <i class="fas fa-plus"></i>
-      Solicitar servicio
+      {{ store.activeTab() === 'catalog' ? 'Solicitud a medida' : 'Solicitar servicio' }}
     </button>
   </header>
 
@@ -22,7 +22,11 @@
   </div>
 
   <div class="mt-8">
-    <app-pyme-service-list />
+    @if (store.activeTab() === 'catalog') {
+      <app-pyme-service-catalog />
+    } @else {
+      <app-pyme-service-list />
+    }
   </div>
 </div>
 

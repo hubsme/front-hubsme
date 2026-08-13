@@ -2288,6 +2288,7 @@ export interface ServiceRequestResultDto {
   updatedAt: string;
   pymeId: number;
   consultantId: number;
+  serviceOfferId?: number | null;
   initialMeetingProposedStartTimes: string[];
   /** @format date-time */
   initialMeetingStartTime?: string | null;
@@ -2378,6 +2379,11 @@ export interface ServiceRequestMilestoneCreateDto {
 }
 
 export interface ServiceRequestCreateMultipartDto {
+  /**
+   * Oferta del catálogo que originó la solicitud
+   * @min 1
+   */
+  serviceOfferId?: number;
   /**
    * @maxItems 3
    * @minItems 1
@@ -2819,6 +2825,167 @@ export interface FeedbackReplyCreateDto {
 
 export interface FeedbackStatusUpdateDto {
   status: "new" | "in_review" | "accepted" | "resolved" | "closed";
+}
+
+export interface ConsultantServiceOfferResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  consultantId: number;
+  consultantName: string;
+  consultantHeadline?: string | null;
+  consultantPhotoUrl?: string | null;
+  consultantRating: string;
+  consultantYearsExperience: number;
+  title: string;
+  category:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable";
+  subcategory: string;
+  description: string;
+  expectedOutcome: string;
+  requirements: string;
+  deliverables: string[];
+  exclusions?: string | null;
+  estimatedDurationDays: number;
+  workModality: "remote";
+  workMethod: string;
+  price: string;
+  currency: string;
+  pricePeriod: "one_time" | "monthly" | "hourly";
+  isActive: boolean;
+}
+
+export interface ConsultantServiceOfferListDto {
+  data: ConsultantServiceOfferResultDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface ConsultantServiceOfferCreateDto {
+  /**
+   * @maxLength 160
+   * @example "Contabilidad mensual para PYMEs"
+   */
+  title: string;
+  /** @example "Tributario / Contable" */
+  category:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable";
+  /**
+   * @maxLength 120
+   * @example "Contabilidad"
+   */
+  subcategory: string;
+  /** @maxLength 5000 */
+  description: string;
+  /** @maxLength 5000 */
+  expectedOutcome: string;
+  /** @maxLength 5000 */
+  requirements: string;
+  /**
+   * @maxItems 20
+   * @minItems 1
+   */
+  deliverables: string[];
+  /** @maxLength 5000 */
+  exclusions?: string;
+  /**
+   * @min 1
+   * @max 365
+   * @example 30
+   */
+  estimatedDurationDays: number;
+  /** @example "remote" */
+  workModality: "remote";
+  /** @maxLength 5000 */
+  workMethod: string;
+  /**
+   * @min 0.01
+   * @example 1200
+   */
+  price: number;
+  /** @example "monthly" */
+  pricePeriod: "one_time" | "monthly" | "hourly";
+}
+
+export interface ConsultantServiceOfferUpdateDto {
+  /**
+   * @maxLength 160
+   * @example "Contabilidad mensual para PYMEs"
+   */
+  title?: string;
+  /** @example "Tributario / Contable" */
+  category?:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable";
+  /**
+   * @maxLength 120
+   * @example "Contabilidad"
+   */
+  subcategory?: string;
+  /** @maxLength 5000 */
+  description?: string;
+  /** @maxLength 5000 */
+  expectedOutcome?: string;
+  /** @maxLength 5000 */
+  requirements?: string;
+  /**
+   * @maxItems 20
+   * @minItems 1
+   */
+  deliverables?: string[];
+  /** @maxLength 5000 */
+  exclusions?: string;
+  /**
+   * @min 1
+   * @max 365
+   * @example 30
+   */
+  estimatedDurationDays?: number;
+  /** @example "remote" */
+  workModality?: "remote";
+  /** @maxLength 5000 */
+  workMethod?: string;
+  /**
+   * @min 0.01
+   * @example 1200
+   */
+  price?: number;
+  /** @example "monthly" */
+  pricePeriod?: "one_time" | "monthly" | "hourly";
+}
+
+export interface ConsultantServiceOfferActiveDto {
+  isActive: boolean;
 }
 
 export type AppGetHelloData = any;
@@ -4254,6 +4421,98 @@ export interface FeedbackadminReplyParams {
 export type FeedbackadminReplyData = FeedbackResultDto;
 
 export type FeedbackadminReplyError = HttpErrorDto;
+
+export interface ServiceofferFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** @maxLength 160 */
+  search?: string;
+  category?:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable";
+  /** @maxLength 120 */
+  subcategory?: string;
+  isActive?: "true" | "false";
+}
+
+export type ServiceofferFindAllData = ConsultantServiceOfferListDto;
+
+export interface ServiceofferFindMineParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** @maxLength 160 */
+  search?: string;
+  category?:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable";
+  /** @maxLength 120 */
+  subcategory?: string;
+  isActive?: "true" | "false";
+}
+
+export type ServiceofferFindMineData = ConsultantServiceOfferListDto;
+
+export interface ServiceofferFindOneParams {
+  id: number;
+}
+
+export type ServiceofferFindOneData = ConsultantServiceOfferResultDto;
+
+export type ServiceofferFindOneError = HttpErrorDto;
+
+export type ServiceofferCreateData = ConsultantServiceOfferResultDto;
+
+export interface ServiceofferUpdateParams {
+  id: number;
+}
+
+export type ServiceofferUpdateData = ConsultantServiceOfferResultDto;
+
+export interface ServiceofferSetActiveParams {
+  id: number;
+}
+
+export type ServiceofferSetActiveData = ConsultantServiceOfferResultDto;
+
+export interface ServiceofferRemoveParams {
+  id: number;
+}
+
+export type ServiceofferRemoveData = ConsultantServiceOfferResultDto;
 
 export namespace App {
   /**
@@ -7602,6 +7861,192 @@ export namespace FeedbackAdmin {
     export type RequestBody = FeedbackReplyCreateDto;
     export type RequestHeaders = {};
     export type ResponseBody = FeedbackadminReplyData;
+  }
+}
+
+export namespace ServiceOffer {
+  /**
+   * No description
+   * @tags serviceOffer
+   * @name ServiceofferFindAll
+   * @summary List active consultant services available to PYMEs
+   * @request GET:/admin/service-offer/find-all
+   * @secure
+   * @response `200` `ServiceofferFindAllData`
+   */
+  export namespace ServiceofferFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** @maxLength 160 */
+      search?: string;
+      category?:
+        | "Estratégica"
+        | "Financiera"
+        | "Comercial / Ventas"
+        | "Marketing"
+        | "Servicio al cliente"
+        | "Operaciones"
+        | "Organizacional / RRHH"
+        | "Tecnología"
+        | "Legal"
+        | "Laboral"
+        | "Tributario / Contable";
+      /** @maxLength 120 */
+      subcategory?: string;
+      isActive?: "true" | "false";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceofferFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags serviceOffer
+   * @name ServiceofferFindMine
+   * @summary List services published by the authenticated consultant
+   * @request GET:/admin/service-offer/find-mine
+   * @secure
+   * @response `200` `ServiceofferFindMineData`
+   */
+  export namespace ServiceofferFindMine {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** @maxLength 160 */
+      search?: string;
+      category?:
+        | "Estratégica"
+        | "Financiera"
+        | "Comercial / Ventas"
+        | "Marketing"
+        | "Servicio al cliente"
+        | "Operaciones"
+        | "Organizacional / RRHH"
+        | "Tecnología"
+        | "Legal"
+        | "Laboral"
+        | "Tributario / Contable";
+      /** @maxLength 120 */
+      subcategory?: string;
+      isActive?: "true" | "false";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceofferFindMineData;
+  }
+
+  /**
+   * No description
+   * @tags serviceOffer
+   * @name ServiceofferFindOne
+   * @summary Get a consultant service offer
+   * @request GET:/admin/service-offer/find-one/{id}
+   * @secure
+   * @response `200` `ServiceofferFindOneData`
+   * @response `404` `HttpErrorDto`
+   */
+  export namespace ServiceofferFindOne {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceofferFindOneData;
+  }
+
+  /**
+   * No description
+   * @tags serviceOffer
+   * @name ServiceofferCreate
+   * @summary Publish a consultant service
+   * @request POST:/admin/service-offer/create
+   * @secure
+   * @response `201` `ServiceofferCreateData`
+   */
+  export namespace ServiceofferCreate {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantServiceOfferCreateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceofferCreateData;
+  }
+
+  /**
+   * No description
+   * @tags serviceOffer
+   * @name ServiceofferUpdate
+   * @summary Update a consultant service publication
+   * @request PATCH:/admin/service-offer/update/{id}
+   * @secure
+   * @response `200` `ServiceofferUpdateData`
+   */
+  export namespace ServiceofferUpdate {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantServiceOfferUpdateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceofferUpdateData;
+  }
+
+  /**
+   * No description
+   * @tags serviceOffer
+   * @name ServiceofferSetActive
+   * @summary Activate or pause a consultant service publication
+   * @request PATCH:/admin/service-offer/active/{id}
+   * @secure
+   * @response `200` `ServiceofferSetActiveData`
+   */
+  export namespace ServiceofferSetActive {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantServiceOfferActiveDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceofferSetActiveData;
+  }
+
+  /**
+   * No description
+   * @tags serviceOffer
+   * @name ServiceofferRemove
+   * @summary Delete a consultant service publication
+   * @request DELETE:/admin/service-offer/delete/{id}
+   * @secure
+   * @response `200` `ServiceofferRemoveData`
+   */
+  export namespace ServiceofferRemove {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServiceofferRemoveData;
   }
 }
 
@@ -11540,6 +11985,172 @@ export class Api<SecurityDataType extends unknown> {
         body: data,
         secure: true,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  serviceOffer = {
+    /**
+     * No description
+     *
+     * @tags serviceOffer
+     * @name ServiceofferFindAll
+     * @summary List active consultant services available to PYMEs
+     * @request GET:/admin/service-offer/find-all
+     * @secure
+     * @response `200` `ServiceofferFindAllData`
+     */
+    serviceofferFindAll: (
+      query: ServiceofferFindAllParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ServiceofferFindAllData, any>({
+        path: `/admin/service-offer/find-all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags serviceOffer
+     * @name ServiceofferFindMine
+     * @summary List services published by the authenticated consultant
+     * @request GET:/admin/service-offer/find-mine
+     * @secure
+     * @response `200` `ServiceofferFindMineData`
+     */
+    serviceofferFindMine: (
+      query: ServiceofferFindMineParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ServiceofferFindMineData, any>({
+        path: `/admin/service-offer/find-mine`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags serviceOffer
+     * @name ServiceofferFindOne
+     * @summary Get a consultant service offer
+     * @request GET:/admin/service-offer/find-one/{id}
+     * @secure
+     * @response `200` `ServiceofferFindOneData`
+     * @response `404` `HttpErrorDto`
+     */
+    serviceofferFindOne: (
+      { id }: ServiceofferFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ServiceofferFindOneData, ServiceofferFindOneError>({
+        path: `/admin/service-offer/find-one/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags serviceOffer
+     * @name ServiceofferCreate
+     * @summary Publish a consultant service
+     * @request POST:/admin/service-offer/create
+     * @secure
+     * @response `201` `ServiceofferCreateData`
+     */
+    serviceofferCreate: (
+      data: ConsultantServiceOfferCreateDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ServiceofferCreateData, any>({
+        path: `/admin/service-offer/create`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags serviceOffer
+     * @name ServiceofferUpdate
+     * @summary Update a consultant service publication
+     * @request PATCH:/admin/service-offer/update/{id}
+     * @secure
+     * @response `200` `ServiceofferUpdateData`
+     */
+    serviceofferUpdate: (
+      { id }: ServiceofferUpdateParams,
+      data: ConsultantServiceOfferUpdateDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ServiceofferUpdateData, any>({
+        path: `/admin/service-offer/update/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags serviceOffer
+     * @name ServiceofferSetActive
+     * @summary Activate or pause a consultant service publication
+     * @request PATCH:/admin/service-offer/active/{id}
+     * @secure
+     * @response `200` `ServiceofferSetActiveData`
+     */
+    serviceofferSetActive: (
+      { id }: ServiceofferSetActiveParams,
+      data: ConsultantServiceOfferActiveDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ServiceofferSetActiveData, any>({
+        path: `/admin/service-offer/active/${id}`,
+        method: "PATCH",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags serviceOffer
+     * @name ServiceofferRemove
+     * @summary Delete a consultant service publication
+     * @request DELETE:/admin/service-offer/delete/{id}
+     * @secure
+     * @response `200` `ServiceofferRemoveData`
+     */
+    serviceofferRemove: (
+      { id }: ServiceofferRemoveParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ServiceofferRemoveData, any>({
+        path: `/admin/service-offer/delete/${id}`,
+        method: "DELETE",
+        secure: true,
         format: "json",
         ...params,
       }),

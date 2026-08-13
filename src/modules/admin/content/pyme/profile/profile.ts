@@ -26,7 +26,7 @@ type PymeForm = {
 };
 
 @Component({
-  selector: 'app-profile',
+  selector: 'app-pyme-profile',
   imports: [CommonModule, FormsModule, PhoneInputComponent],
   templateUrl: './profile.html',
 })

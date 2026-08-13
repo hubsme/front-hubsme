@@ -49,7 +49,7 @@ type MonthDaySelection = {
 };
 
 @Component({
-  selector: 'app-meetings',
+  selector: 'app-pyme-meetings',
   imports: [
     CommonModule,
     RouterLink,

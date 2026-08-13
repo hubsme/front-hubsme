@@ -30,7 +30,7 @@ type PymeOption = ApiResponse<'consultant', 'meetingPymes'>['data'][number];
 type Task = ApiResponse<'task', 'findAll'>['data'][number];
 
 @Component({
-  selector: 'app-tasks',
+  selector: 'app-consultor-tasks',
   imports: [CommonModule, FormsModule, ModalForm, PymeInputSearch],
   templateUrl: './tasks.html',
 })

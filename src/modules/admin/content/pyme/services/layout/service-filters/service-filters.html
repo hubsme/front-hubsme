@@ -1,14 +1,28 @@
 <section class="overflow-hidden rounded-3xl border border-border bg-surface shadow-sm">
-  <nav class="grid grid-cols-2 border-b border-border" aria-label="Secciones de servicios">
+  <nav class="grid grid-cols-3 border-b border-border" aria-label="Secciones de servicios">
+    <button
+      type="button"
+      (click)="store.changeTab('catalog')"
+      class="relative flex items-center justify-center gap-2 px-2 py-4 text-xs font-inter-bold transition hover:bg-secondary/5 sm:px-4 sm:text-sm"
+      [class.text-secondary]="store.activeTab() === 'catalog'"
+      [class.text-muted]="store.activeTab() !== 'catalog'"
+    >
+      <i class="fas fa-store"></i>
+      Catálogo
+      @if (store.activeTab() === 'catalog') {
+        <span class="absolute inset-x-0 bottom-0 h-0.5 bg-secondary"></span>
+      }
+    </button>
     <button
       type="button"
       (click)="store.changeTab('requests')"
-      class="relative flex items-center justify-center gap-2 px-4 py-4 text-sm font-inter-bold transition hover:bg-secondary/5"
+      class="relative flex items-center justify-center gap-2 border-l border-border px-2 py-4 text-xs font-inter-bold transition hover:bg-secondary/5 sm:px-4 sm:text-sm"
       [class.text-secondary]="store.activeTab() === 'requests'"
       [class.text-muted]="store.activeTab() !== 'requests'"
     >
       <i class="fas fa-paper-plane"></i>
-      Solicitudes enviadas
+      <span class="sm:hidden">Solicitudes</span>
+      <span class="hidden sm:inline">Solicitudes enviadas</span>
       @if (store.activeTab() === 'requests') {
         <span class="absolute inset-x-0 bottom-0 h-0.5 bg-secondary"></span>
       }
@@ -16,12 +30,13 @@
     <button
       type="button"
       (click)="store.changeTab('proposals')"
-      class="relative flex items-center justify-center gap-2 border-l border-border px-4 py-4 text-sm font-inter-bold transition hover:bg-secondary/5"
+      class="relative flex items-center justify-center gap-2 border-l border-border px-2 py-4 text-xs font-inter-bold transition hover:bg-secondary/5 sm:px-4 sm:text-sm"
       [class.text-secondary]="store.activeTab() === 'proposals'"
       [class.text-muted]="store.activeTab() !== 'proposals'"
     >
       <i class="fas fa-file-invoice-dollar"></i>
-      Cotizaciones recibidas
+      <span class="sm:hidden">Cotizaciones</span>
+      <span class="hidden sm:inline">Cotizaciones recibidas</span>
       @if (store.activeTab() === 'proposals') {
         <span class="absolute inset-x-0 bottom-0 h-0.5 bg-secondary"></span>
       }
@@ -44,21 +59,44 @@
         />
       </span>
     </label>
-    <label class="lg:w-64">
-      <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Estado</span>
-      <span class="relative block">
-        <select
-          [value]="store.statusFilter()"
-          (change)="store.changeStatus($event)"
-          class="h-11 w-full appearance-none rounded-xl border border-border bg-background-50 pl-3 pr-9 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
-        >
-          @for (status of store.statusOptions(); track status.value) {
-            <option [value]="status.value">{{ status.label }}</option>
-          }
-        </select>
-        <i class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[0.65rem] text-muted"></i>
-      </span>
-    </label>
+    @if (store.activeTab() === 'catalog') {
+      <label class="lg:w-72">
+        <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Categoría</span>
+        <span class="relative block">
+          <select
+            [value]="store.categoryFilter()"
+            (change)="store.changeCategoryFilter($event)"
+            class="h-11 w-full appearance-none rounded-xl border border-border bg-background-50 pl-3 pr-9 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+          >
+            <option value="">Todas las categorías</option>
+            @for (item of store.categoryOptions; track item.category) {
+              <option [value]="item.category">{{ item.category }}</option>
+            }
+          </select>
+          <i
+            class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[0.65rem] text-muted"
+          ></i>
+        </span>
+      </label>
+    } @else {
+      <label class="lg:w-64">
+        <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Estado</span>
+        <span class="relative block">
+          <select
+            [value]="store.statusFilter()"
+            (change)="store.changeStatus($event)"
+            class="h-11 w-full appearance-none rounded-xl border border-border bg-background-50 pl-3 pr-9 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+          >
+            @for (status of store.statusOptions(); track status.value) {
+              <option [value]="status.value">{{ status.label }}</option>
+            }
+          </select>
+          <i
+            class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[0.65rem] text-muted"
+          ></i>
+        </span>
+      </label>
+    }
     <div class="flex gap-2">
       <button
         type="button"
@@ -68,7 +106,7 @@
         <i class="fas fa-filter"></i>
         Filtrar
       </button>
-      @if (store.search() || store.statusFilter()) {
+      @if (store.search() || store.statusFilter() || store.categoryFilter()) {
         <button
           type="button"
           (click)="store.clearFilters()"

@@ -93,7 +93,7 @@ type DonutChartOptions = {
 };
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'app-consultor-dashboard',
   imports: [CommonModule, NgApexchartsModule, RouterLink],
   templateUrl: './dashboard.html',
 })

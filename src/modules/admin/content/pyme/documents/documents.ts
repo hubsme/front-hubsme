@@ -16,7 +16,7 @@ import { downloadWord } from '../../../functions/download-word';
 type DocumentTab = 'meetings' | 'diagnostics';
 
 @Component({
-  selector: 'app-documents',
+  selector: 'app-pyme-documents',
   imports: [CommonModule, FormsModule, RouterLink, PaginationComponent],
   templateUrl: './documents.html',
 })

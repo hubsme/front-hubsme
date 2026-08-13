@@ -11,6 +11,7 @@ import {
   InitialMeetingSlot,
 } from './utils/service-request-wizard.types';
 import { AiService } from '@service/admin/ai.service';
+import { ConsultantServiceOfferService } from '@service/admin/consultant-service-offer.service';
 import { ConsultantTimeSlotService } from '@service/admin/consultant-time-slot.service';
 import { ServiceRequestService } from '@service/admin/service-request.service';
 import { HubsmeService } from '@service/hubsme.service';
@@ -18,6 +19,7 @@ import { ToastService } from '@service/toast.service';
 import { PATH, buildPath } from '@route/path.route';
 import {
   PaginationMetaDto,
+  ConsultantServiceOfferResultDto,
   ServiceConsultantMatchDto,
   ServicePaymentPlanResultDto,
   ServiceRequestChatMessageDto,
@@ -29,7 +31,7 @@ import {
 } from 'api/backend.api';
 
 type ServiceStatus = ServiceRequestResultDto['status'];
-type ServiceStage = 'requests' | 'proposals';
+type ServiceStage = 'catalog' | 'requests' | 'proposals';
 type WizardStep = 1 | 2 | 3 | 4;
 
 const INITIAL_ASSISTANT_MESSAGE =
@@ -40,6 +42,7 @@ const COMPLETION_MILESTONE_TITLE = 'Cierre y finalización del servicio';
 @Injectable()
 export class PymeServicesStore {
   private readonly serviceRequestService = inject(ServiceRequestService);
+  private readonly offerService = inject(ConsultantServiceOfferService);
   private readonly aiService = inject(AiService);
   private readonly consultantTimeSlotService = inject(ConsultantTimeSlotService);
   private readonly hubsme = inject(HubsmeService);
@@ -62,11 +65,13 @@ export class PymeServicesStore {
     active: 'true',
     validated: 'true',
   };
-  readonly activeTab = signal<ServiceStage>('requests');
+  readonly activeTab = signal<ServiceStage>('catalog');
   readonly services = signal<ServiceRequestResultDto[]>([]);
+  readonly offers = signal<ConsultantServiceOfferResultDto[]>([]);
   readonly meta = signal<PaginationMetaDto | null>(null);
   readonly page = signal(1);
   readonly statusFilter = signal<ServiceStatus | ''>('');
+  readonly categoryFilter = signal<ServiceRequestCategory | ''>('');
   readonly search = signal('');
   readonly loading = signal(false);
   readonly statusOptions = computed<Array<{ value: ServiceStatus | ''; label: string }>>(() =>
@@ -91,6 +96,7 @@ export class PymeServicesStore {
   readonly creating = signal(false);
   readonly sourceMeetingId = signal<number | null>(null);
   readonly sourceMeetingLoading = signal(false);
+  readonly selectedOffer = signal<ConsultantServiceOfferResultDto | null>(null);
   readonly wizardStep = signal<WizardStep>(1);
   readonly chatMessages = signal<ServiceRequestChatMessageDto[]>([]);
   readonly chatInput = signal('');
@@ -144,7 +150,12 @@ export class PymeServicesStore {
   );
 
   constructor() {
-    void this.loadServices();
+    void this.loadCurrentTab();
+  }
+
+  async loadCurrentTab() {
+    if (this.activeTab() === 'catalog') return this.loadOffers();
+    return this.loadServices();
   }
 
   async loadServices() {
@@ -154,7 +165,7 @@ export class PymeServicesStore {
       const result = await this.serviceRequestService.findAll({
         page: this.page(),
         limit: this.pageSize,
-        stage: this.activeTab(),
+        stage: this.activeTab() === 'requests' ? 'requests' : 'proposals',
         status: this.statusFilter() || undefined,
         search: this.search().trim() || undefined,
       });
@@ -170,22 +181,48 @@ export class PymeServicesStore {
     }
   }
 
+  async loadOffers() {
+    const requestId = ++this.requestSequence;
+    this.loading.set(true);
+    try {
+      const result = await this.offerService.findAll({
+        page: this.page(),
+        limit: this.pageSize,
+        search: this.search().trim() || undefined,
+        category: this.categoryFilter() || undefined,
+      });
+      if (requestId !== this.requestSequence) return;
+      this.offers.set(result.data);
+      this.meta.set(result.meta);
+    } catch (error) {
+      if (requestId === this.requestSequence) {
+        this.toastService.error(this.hubsme.getErrorMessage(error));
+      }
+    } finally {
+      if (requestId === this.requestSequence) this.loading.set(false);
+    }
+  }
+
   changeTab(tab: ServiceStage) {
     if (tab === this.activeTab()) return;
     this.activeTab.set(tab);
     this.statusFilter.set('');
+    this.categoryFilter.set('');
+    this.search.set('');
     this.page.set(1);
-    void this.loadServices();
+    this.meta.set(null);
+    void this.loadCurrentTab();
   }
 
   applyFilters() {
     this.page.set(1);
-    void this.loadServices();
+    void this.loadCurrentTab();
   }
 
   clearFilters() {
     this.search.set('');
     this.statusFilter.set('');
+    this.categoryFilter.set('');
     this.applyFilters();
   }
 
@@ -194,15 +231,73 @@ export class PymeServicesStore {
     this.applyFilters();
   }
 
+  changeCategoryFilter(event: Event) {
+    const value = (event.target as HTMLSelectElement).value;
+    const category =
+      this.categoryOptions.find((option) => option.category === value)?.category ?? '';
+    this.categoryFilter.set(category);
+    this.applyFilters();
+  }
+
   changePage(page: number) {
     if (page === this.page()) return;
     this.page.set(page);
-    void this.loadServices();
+    void this.loadCurrentTab();
   }
 
   openCreate() {
     this.resetCreateFlow();
     this.showCreate.set(true);
+  }
+
+  openCreateFromOffer(offer: ConsultantServiceOfferResultDto) {
+    this.resetCreateFlow();
+    this.selectedOffer.set(offer);
+    const deadline = new Date();
+    deadline.setDate(deadline.getDate() + offer.estimatedDurationDays);
+    const deadlineValue = this.toLocalDateInput(deadline);
+    const periodLabel = this.offerPricePeriodLabel(offer.pricePeriod);
+
+    this.title.set(offer.title);
+    this.category.set(offer.category);
+    this.subcategory.set(offer.subcategory);
+    this.description.set(offer.description);
+    this.expectedOutcome.set(offer.expectedOutcome);
+    this.requirements.set(offer.requirements);
+    this.deliverables.set([...offer.deliverables]);
+    this.exclusions.set(offer.exclusions ?? '');
+    this.budgetType.set('fixed');
+    this.budgetMin.set(offer.price);
+    this.deadline.set(deadlineValue);
+    this.estimatedDuration.set(
+      `${offer.estimatedDurationDays} ${offer.estimatedDurationDays === 1 ? 'día' : 'días'}`,
+    );
+    this.workMethod.set(offer.workMethod);
+    this.milestones.set([
+      { title: KICKOFF_MILESTONE_TITLE, dueDate: this.minimumDeadline },
+      { title: COMPLETION_MILESTONE_TITLE, dueDate: deadlineValue },
+    ]);
+    this.details.set(
+      `Solicitud basada en la oferta #${offer.id}. Precio publicado: ${this.formatOfferMoney(offer)} ${periodLabel}.`,
+    );
+    this.chatComplete.set(true);
+    this.selectedConsultants.set([
+      {
+        userId: offer.consultantId,
+        fullName: offer.consultantName,
+        headline: offer.consultantHeadline ?? null,
+        photoUrl: offer.consultantPhotoUrl ?? null,
+        diagnosticAreas: [offer.category],
+        specialties: [offer.subcategory],
+        yearsExperience: offer.consultantYearsExperience,
+        rating: offer.consultantRating,
+        reason: 'Consultor responsable de esta oferta.',
+      },
+    ]);
+    this.initialMeetingOptions.set({ [offer.consultantId]: ['', '', ''] });
+    this.wizardStep.set(2);
+    this.showCreate.set(true);
+    void this.loadInitialMeetingAvailability([offer.consultantId]);
   }
 
   async openCreateFromMeeting(meetingId: number) {
@@ -750,6 +845,18 @@ export class PymeServicesStore {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
+  formatOfferMoney(offer: ConsultantServiceOfferResultDto): string {
+    return new Intl.NumberFormat('es-PE', {
+      style: 'currency',
+      currency: offer.currency,
+      maximumFractionDigits: 2,
+    }).format(Number(offer.price));
+  }
+
+  offerPricePeriodLabel(period: ConsultantServiceOfferResultDto['pricePeriod']): string {
+    return { one_time: 'pago único', monthly: 'al mes', hourly: 'por hora' }[period];
+  }
+
   private addConsultant(consultant: ConsultantSelection) {
     if (this.isConsultantSelected(consultant.userId)) return;
     if (this.selectedConsultants().length >= 3) {
@@ -872,6 +979,7 @@ export class PymeServicesStore {
   private resetCreateFlow() {
     this.aiRequestSequence += 1;
     this.sourceMeetingId.set(null);
+    this.selectedOffer.set(null);
     this.sourceMeetingLoading.set(false);
     this.wizardStep.set(1);
     this.chatMessages.set([{ role: 'assistant', content: INITIAL_ASSISTANT_MESSAGE }]);
@@ -913,6 +1021,8 @@ export class PymeServicesStore {
 
   private buildCreateFormData() {
     const formData = new FormData();
+    const selectedOffer = this.selectedOffer();
+    if (selectedOffer) formData.append('serviceOfferId', String(selectedOffer.id));
     formData.append(
       'consultantIds',
       JSON.stringify(this.selectedConsultants().map((consultant) => consultant.userId)),

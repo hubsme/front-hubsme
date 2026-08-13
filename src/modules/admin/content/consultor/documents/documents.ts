@@ -10,7 +10,7 @@ import { ToastService } from '@service/toast.service';
 import { PATH, buildPath } from '@route/path.route';
 
 @Component({
-  selector: 'app-documents',
+  selector: 'app-consultor-documents',
   imports: [CommonModule, FormsModule, RouterLink, PaginationComponent],
   templateUrl: './documents.html',
 })

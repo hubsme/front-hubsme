@@ -91,7 +91,7 @@ type PreviewList = 'specialties' | 'diagnosticAreas';
 type DraggedPreviewItem = { list: PreviewList; index: number };
 
 @Component({
-  selector: 'app-profile',
+  selector: 'app-consultor-profile',
   imports: [CommonModule, FormsModule, PhoneInputComponent],
   templateUrl: './profile.html',
 })

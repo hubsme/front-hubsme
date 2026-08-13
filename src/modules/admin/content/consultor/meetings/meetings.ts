@@ -65,7 +65,7 @@ type MonthDaySelection = {
 };
 
 @Component({
-  selector: 'app-meetings',
+  selector: 'app-consultor-meetings',
   imports: [
     CommonModule,
     FormsModule,

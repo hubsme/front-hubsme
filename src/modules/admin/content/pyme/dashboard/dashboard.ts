@@ -105,6 +105,15 @@ export class Dashboard implements OnInit, OnDestroy {
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private liveClock: ReturnType<typeof setInterval> | null = null;
+  private readonly peruMeetingDateTimeFormatter = new Intl.DateTimeFormat('es-PE', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+    timeZone: 'America/Lima',
+  });
 
   summary = signal<DashboardSummary | null>(null);
   loading = signal(false);
@@ -649,7 +658,7 @@ export class Dashboard implements OnInit, OnDestroy {
   isMeetingLive(meeting: UpcomingMeeting): boolean {
     if (meeting.status !== 'confirmada') return false;
 
-    const startTime = new Date(meeting.startTime).getTime();
+    const startTime = this.parseMeetingStartTime(meeting.startTime).getTime();
     if (!Number.isFinite(startTime)) return false;
 
     const endTime = startTime + meeting.durationMinutes * 60_000;
@@ -658,6 +667,26 @@ export class Dashboard implements OnInit, OnDestroy {
 
   isMeetingPending(meeting: UpcomingMeeting): boolean {
     return meeting.status === 'por_confirmar';
+  }
+
+  formatMeetingDateTime(startTime: string): string {
+    const date = this.parseMeetingStartTime(startTime);
+    if (!Number.isFinite(date.getTime())) return 'Horario no disponible';
+
+    const parts = this.peruMeetingDateTimeFormatter.formatToParts(date);
+    const part = (type: Intl.DateTimeFormatPartTypes) =>
+      parts.find((item) => item.type === type)?.value ?? '';
+
+    return `${part('weekday')} ${part('day')} ${part('month')} · ${part('hour')}:${part(
+      'minute',
+    )} ${part('dayPeriod')}`.trim();
+  }
+
+  private parseMeetingStartTime(startTime: string): Date {
+    const normalizedStartTime = startTime.trim().replace(' ', 'T');
+    const includesTimeZone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(normalizedStartTime);
+
+    return new Date(includesTimeZone ? normalizedStartTime : `${normalizedStartTime}Z`);
   }
 
   openMeetingInNewTab(meeting: UpcomingMeeting): void {

@@ -105,13 +105,22 @@
                 {{ offer.estimatedDurationDays === 1 ? 'día' : 'días' }}
               </p>
             </div>
-            <button
-              type="button"
-              (click)="store.openCreateFromOffer(offer)"
-              class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-secondary px-4 text-xs font-inter-bold text-fixed-text-50 transition hover:bg-secondary/90"
-            >
-              Solicitar <i class="fas fa-arrow-right"></i>
-            </button>
+            <div class="flex min-w-0 gap-2">
+              <button
+                type="button"
+                (click)="openDetail(offer)"
+                class="inline-flex h-10 min-w-0 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-3 text-xs font-inter-bold text-secondary transition hover:border-secondary/40 hover:bg-secondary/5"
+              >
+                Ver detalle
+              </button>
+              <button
+                type="button"
+                (click)="store.openCreateFromOffer(offer)"
+                class="inline-flex h-10 min-w-0 items-center justify-center gap-2 rounded-xl bg-secondary px-3 text-xs font-inter-bold text-fixed-text-50 transition hover:bg-secondary/90"
+              >
+                Solicitar <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
           </div>
         </article>
       }
@@ -151,4 +160,12 @@
       }
     </p>
   </section>
+}
+
+@if (detailOffer(); as offer) {
+  <app-pyme-service-offer-detail
+    [offer]="offer"
+    (closed)="closeDetail()"
+    (requested)="requestOffer($event)"
+  />
 }

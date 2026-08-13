@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
+import { buildPath, PATH } from '@route/path.route';
 import { QuillModule } from 'ngx-quill';
 import { marked } from 'marked';
 
@@ -29,6 +30,7 @@ type FinalizeTask = {
 })
 export class MeetingMinutesDetail implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
 
@@ -130,21 +132,40 @@ export class MeetingMinutesDetail implements OnInit {
   renderMarkdown(text: string | null | undefined): string {
     const html = this.markdownToEditorHtml(text);
     return html
-      .replace(/<h1(?:\s[^>]*)?>/gi, '<h1 class="mb-5 mt-0 text-lg font-inter-bold uppercase tracking-tight text-text">')
-      .replace(/<h2(?:\s[^>]*)?>/gi, '<h2 class="mb-3 mt-7 text-base font-inter-bold uppercase tracking-wide text-text">')
-      .replace(/<h3(?:\s[^>]*)?>/gi, '<h3 class="mb-2 mt-5 text-sm font-inter-bold uppercase tracking-wide text-text">')
+      .replace(
+        /<h1(?:\s[^>]*)?>/gi,
+        '<h1 class="mb-5 mt-0 text-lg font-inter-bold uppercase tracking-tight text-text">',
+      )
+      .replace(
+        /<h2(?:\s[^>]*)?>/gi,
+        '<h2 class="mb-3 mt-7 text-base font-inter-bold uppercase tracking-wide text-text">',
+      )
+      .replace(
+        /<h3(?:\s[^>]*)?>/gi,
+        '<h3 class="mb-2 mt-5 text-sm font-inter-bold uppercase tracking-wide text-text">',
+      )
       .replace(/<p(?:\s[^>]*)?>/gi, '<p class="mb-4 text-[0.92rem] leading-7 text-text">')
-      .replace(/<ul(?:\s[^>]*)?>/gi, '<ul class="my-4 space-y-2 pl-5 text-[0.92rem] leading-7 text-text">')
-      .replace(/<ol(?:\s[^>]*)?>/gi, '<ol class="my-4 space-y-2 pl-5 text-[0.92rem] leading-7 text-text">')
+      .replace(
+        /<ul(?:\s[^>]*)?>/gi,
+        '<ul class="my-4 space-y-2 pl-5 text-[0.92rem] leading-7 text-text">',
+      )
+      .replace(
+        /<ol(?:\s[^>]*)?>/gi,
+        '<ol class="my-4 space-y-2 pl-5 text-[0.92rem] leading-7 text-text">',
+      )
       .replace(/<li(?:\s[^>]*)?>/gi, '<li class="pl-1">')
-      .replace(/<blockquote(?:\s[^>]*)?>/gi, '<blockquote class="my-4 border-l-2 border-secondary/40 pl-4 text-[0.92rem] leading-7 text-muted">');
+      .replace(
+        /<blockquote(?:\s[^>]*)?>/gi,
+        '<blockquote class="my-4 border-l-2 border-secondary/40 pl-4 text-[0.92rem] leading-7 text-muted">',
+      );
   }
 
   private markdownToEditorHtml(text: string | null | undefined): string {
     if (!text) return '';
-    if (/<[a-z][\s\S]*>/i.test(text)) return text;
+    const normalizedText = text.replace(/&nbsp;/gi, ' ').replace(/\u00a0/g, ' ');
+    if (/<[a-z][\s\S]*>/i.test(normalizedText)) return normalizedText;
 
-    return marked.parse(text, { async: false }) as string;
+    return marked.parse(normalizedText, { async: false }) as string;
   }
 
   private editorHtmlToMarkdown(value: string): string {
@@ -162,12 +183,15 @@ export class MeetingMinutesDetail implements OnInit {
   }
 
   private htmlNodeToMarkdown(node: Node): string {
-    if (node.nodeType === Node.TEXT_NODE) return node.textContent || '';
+    if (node.nodeType === Node.TEXT_NODE) return (node.textContent || '').replace(/\u00a0/g, ' ');
     if (node.nodeType !== Node.ELEMENT_NODE) return '';
 
     const element = node as HTMLElement;
     const tag = element.tagName.toLowerCase();
-    const content = () => Array.from(element.childNodes).map((child) => this.htmlNodeToMarkdown(child)).join('');
+    const content = () =>
+      Array.from(element.childNodes)
+        .map((child) => this.htmlNodeToMarkdown(child))
+        .join('');
 
     if (tag === 'br') return '\n';
     if (tag === 'strong' || tag === 'b') return `**${content().trim()}**`;
@@ -292,6 +316,24 @@ export class MeetingMinutesDetail implements OnInit {
     return this.hubsme.currentUser()?.role === 'consultor';
   }
 
+  canCreateServiceFromMinutes(meeting: Meeting) {
+    return (
+      !this.isConsultant() &&
+      meeting.status === 'finalizada' &&
+      meeting.meetingType === 'consultoria' &&
+      meeting.serviceRequestId === null &&
+      Boolean(meeting.description?.trim())
+    );
+  }
+
+  createServiceFromMinutes(meeting: Meeting) {
+    if (!this.canCreateServiceFromMinutes(meeting)) return;
+
+    void this.router.navigate([buildPath(PATH.admin.pyme.services)], {
+      queryParams: { createFromMeeting: meeting.id },
+    });
+  }
+
   handleMinutesAction() {
     const current = this.meeting();
     if (!current) return;
@@ -404,13 +446,13 @@ export class MeetingMinutesDetail implements OnInit {
     this.isSaving.set(true);
 
     const tasksPayload = this.editTasks().map((t) => ({
-        ...t,
-        title: t.title.trim() || 'Pendiente de la reunión',
-        description: t.description.trim() || '.',
-        assignedTo: t.assignedTo,
-        dueDate: t.dueDate ? new Date(t.dueDate + 'T12:00:00').toISOString() : undefined,
-        status: t.status,
-      }));
+      ...t,
+      title: t.title.trim() || 'Pendiente de la reunión',
+      description: t.description.trim() || '.',
+      assignedTo: t.assignedTo,
+      dueDate: t.dueDate ? new Date(t.dueDate + 'T12:00:00').toISOString() : undefined,
+      status: t.status,
+    }));
 
     this.hubsme
       .finalizeMeeting(current.id, {
@@ -448,15 +490,14 @@ export class MeetingMinutesDetail implements OnInit {
         const actaText = response.data.summary?.trim() || '.';
         this.editDescription.set(this.markdownToEditorHtml(actaText));
 
-        const suggestedTasks: FinalizeTask[] = (response.data.tasks || [])
-          .map((t) => ({
-            title: t.title || 'Pendiente de la reunión',
-            description: t.description || '.',
-            assignedTo: t.assignedTo === 'consultor' ? 'consultor' : 'pyme',
-            priority: t.priority,
-            status: 'pendiente',
-            dueDate: t.dueDate || undefined,
-          }));
+        const suggestedTasks: FinalizeTask[] = (response.data.tasks || []).map((t) => ({
+          title: t.title || 'Pendiente de la reunión',
+          description: t.description || '.',
+          assignedTo: t.assignedTo === 'consultor' ? 'consultor' : 'pyme',
+          priority: t.priority,
+          status: 'pendiente',
+          dueDate: t.dueDate || undefined,
+        }));
         this.editTasks.set(suggestedTasks);
 
         this.toastService.success('Acta y compromisos sugeridos generados con IA');

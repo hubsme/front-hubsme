@@ -1,4 +1,4 @@
-<div class="space-y-6 font-inter-regular text-text">
+<div class="min-w-0 max-w-full space-y-6 font-inter-regular text-text">
   <div class="flex flex-col gap-4">
     <div>
       <div class="flex flex-wrap items-center justify-between gap-4">
@@ -16,6 +16,16 @@
             </button>
           }
           @if (meeting(); as current) {
+            @if (canCreateServiceFromMinutes(current)) {
+              <button
+                type="button"
+                (click)="createServiceFromMinutes(current)"
+                class="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-secondary px-4 text-xs font-inter-semibold text-fixed-background-50 shadow-sm transition-colors hover:bg-secondary/90"
+              >
+                <i class="fas fa-wand-magic-sparkles"></i>
+                Crear servicio
+              </button>
+            }
             <span
               class="inline-flex items-center gap-2 rounded-full bg-secondary-50 px-3 py-1 text-[0.75rem] capitalize text-secondary font-inter-bold"
             >
@@ -40,7 +50,7 @@
           <div class="h-11 w-36 rounded-xl bg-text/10"></div>
         </div>
       </section>
-      <div class="grid gap-6 lg:grid-cols-[1fr_360px]">
+      <div class="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_22.5rem]">
         <section class="animate-pulse rounded-2xl border border-border bg-surface p-6">
           <div class="h-5 w-44 rounded-full bg-text/10"></div>
           <div class="mt-6 space-y-4">
@@ -138,9 +148,9 @@
     </section>
 
     @if (isEditing()) {
-      <div class="grid gap-6 lg:grid-cols-[1fr_360px]">
+      <div class="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_22.5rem]">
         <!-- Left Column: Acta de la sesión (Quill Editor) -->
-        <div class="space-y-6">
+        <div class="min-w-0 space-y-6">
           <section
             class="rounded-2xl border border-border bg-surface p-6 shadow-[0_12px_28px_rgba(15,23,42,0.04)]"
           >
@@ -171,7 +181,7 @@
         </div>
 
         <!-- Right Column: Tareas generadas (Editable Tasks) -->
-        <div class="space-y-6">
+        <div class="min-w-0 space-y-6">
           <section
             class="rounded-2xl border border-border bg-surface p-6 shadow-[0_12px_28px_rgba(15,23,42,0.04)]"
           >
@@ -367,7 +377,8 @@
               <div class="mt-5 border-t border-border pt-5">
                 <p class="mb-3 text-xs leading-5 text-muted">
                   Se combinaron todas las transcripciones disponibles antes de generar el acta y las
-                  tareas. La generación con IA se ejecuta una sola vez desde el flujo de finalización.
+                  tareas. La generación con IA se ejecuta una sola vez desde el flujo de
+                  finalización.
                 </p>
               </div>
             } @else {
@@ -403,8 +414,8 @@
         </button>
       </div>
     } @else {
-      <div class="grid gap-6 lg:grid-cols-[1fr_360px]">
-        <div class="space-y-6">
+      <div class="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_22.5rem]">
+        <div class="min-w-0 space-y-6">
           <section
             class="rounded-2xl border border-border bg-surface p-6 shadow-[0_12px_28px_rgba(15,23,42,0.04)]"
           >
@@ -419,7 +430,7 @@
             @if (current.description) {
               <div
                 [innerHTML]="renderMarkdown(current.description)"
-                class="px-2 pb-2 pt-1"
+                class="min-w-0 max-w-full overflow-x-auto break-words px-2 pb-2 pt-1"
               ></div>
             } @else {
               <p class="py-10 text-center text-sm text-muted italic">
@@ -429,7 +440,7 @@
           </section>
         </div>
 
-        <div class="space-y-6">
+        <div class="min-w-0 space-y-6">
           <section
             class="rounded-2xl border border-border bg-surface p-6 shadow-[0_12px_28px_rgba(15,23,42,0.04)]"
           >
@@ -450,14 +461,19 @@
                   <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
                       <div class="mb-2 flex flex-wrap items-center gap-1.5">
-                        <span class="rounded-full bg-secondary-50 px-2 py-0.5 text-[0.62rem] font-inter-bold uppercase text-secondary">
+                        <span
+                          class="rounded-full bg-secondary-50 px-2 py-0.5 text-[0.62rem] font-inter-bold uppercase text-secondary"
+                        >
                           {{ taskOriginLabel(task.meetingId) }}
                         </span>
-                        <span class="rounded-full px-2 py-0.5 text-[0.62rem] font-inter-bold uppercase" [class]="taskStatusClass(task.status)">
+                        <span
+                          class="rounded-full px-2 py-0.5 text-[0.62rem] font-inter-bold uppercase"
+                          [class]="taskStatusClass(task.status)"
+                        >
                           {{ taskStatusLabel(task.status) }}
                         </span>
                       </div>
-                      <h4 class="text-[1rem] font-inter-bold leading-tight text-text">
+                      <h4 class="break-words text-[1rem] font-inter-bold leading-tight text-text">
                         {{ task.title }}
                       </h4>
                     </div>
@@ -468,7 +484,9 @@
                       {{ task.priority }}
                     </span>
                   </div>
-                  <p class="mt-2 text-[0.85rem] leading-relaxed text-muted line-clamp-4">
+                  <p
+                    class="mt-2 break-words text-[0.85rem] leading-relaxed text-muted line-clamp-4"
+                  >
                     {{ task.description }}
                   </p>
 
@@ -602,7 +620,9 @@
       class="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl bg-surface shadow-[0_28px_80px_rgba(15,23,42,0.28)] ring-1 ring-text/5 animate-[slideUp_0.25s_ease-out]"
       (click)="$event.stopPropagation()"
     >
-      <header class="flex shrink-0 items-start justify-between gap-5 px-6 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-8">
+      <header
+        class="flex shrink-0 items-start justify-between gap-5 px-6 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-8"
+      >
         <div class="min-w-0">
           <h2
             id="recording-check-title"
@@ -626,8 +646,12 @@
       </header>
 
       <div class="min-h-0 flex-1 overflow-y-auto px-6 pb-6 sm:px-8 sm:pb-8">
-        <div class="flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/10 px-4 py-3.5">
-          <span class="grid size-8 shrink-0 place-items-center rounded-full bg-warning/10 text-warning">
+        <div
+          class="flex items-start gap-3 rounded-2xl border border-warning/20 bg-warning/10 px-4 py-3.5"
+        >
+          <span
+            class="grid size-8 shrink-0 place-items-center rounded-full bg-warning/10 text-warning"
+          >
             <i class="far fa-clock"></i>
           </span>
           <p class="pt-1 text-sm leading-6 text-text">
@@ -637,10 +661,16 @@
         </div>
 
         <section class="mt-6 overflow-hidden rounded-3xl border border-border bg-surface">
-          <div class="flex items-center justify-between gap-4 border-b border-border px-5 py-4 sm:px-6 sm:py-5">
+          <div
+            class="flex items-center justify-between gap-4 border-b border-border px-5 py-4 sm:px-6 sm:py-5"
+          >
             <div class="min-w-0">
-              <h3 class="font-plus-jakarta-sans text-lg font-bold text-text">Grabaciones disponibles</h3>
-              <p class="mt-1 text-sm text-muted">Todas las grabaciones mostradas se incluirán en el acta.</p>
+              <h3 class="font-plus-jakarta-sans text-lg font-bold text-text">
+                Grabaciones disponibles
+              </h3>
+              <p class="mt-1 text-sm text-muted">
+                Todas las grabaciones mostradas se incluirán en el acta.
+              </p>
             </div>
             <div class="flex shrink-0 items-center gap-2">
               @if (!recordingsLoading()) {
@@ -673,20 +703,26 @@
                 >
                   <i class="fas fa-circle-notch fa-spin"></i>
                 </span>
-                <p class="mt-5 font-plus-jakarta-sans text-lg font-bold text-text">Buscando grabaciones</p>
+                <p class="mt-5 font-plus-jakarta-sans text-lg font-bold text-text">
+                  Buscando grabaciones
+                </p>
                 <p class="mt-2 text-sm text-muted">Consultando Microsoft Teams y OneDrive...</p>
               </div>
             </div>
           } @else if (recordingsError()) {
             <div class="grid min-h-80 place-items-center px-6 py-12 text-center">
               <div>
-                <span class="mx-auto grid size-20 place-items-center rounded-full bg-danger/10 text-2xl text-danger">
+                <span
+                  class="mx-auto grid size-20 place-items-center rounded-full bg-danger/10 text-2xl text-danger"
+                >
                   <i class="fas fa-triangle-exclamation"></i>
                 </span>
                 <p class="mt-5 font-plus-jakarta-sans text-lg font-bold text-text">
                   No pudimos consultar las grabaciones
                 </p>
-                <p class="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted">{{ recordingsError() }}</p>
+                <p class="mx-auto mt-2 max-w-lg text-sm leading-6 text-muted">
+                  {{ recordingsError() }}
+                </p>
                 <button
                   type="button"
                   (click)="refreshRecordings()"
@@ -713,7 +749,9 @@
                       <p class="truncate text-sm font-inter-bold text-text">
                         {{ recording.fileName || 'Grabación ' + ($index + 1) }}
                       </p>
-                      <p class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+                      <p
+                        class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted"
+                      >
                         <span>{{ recordingDate(recording.createdDateTime) }}</span>
                         <span aria-hidden="true">·</span>
                         <span>{{ recordingDuration(recording) }}</span>
@@ -752,19 +790,29 @@
               }
             </div>
 
-            <div class="flex items-start gap-2 border-t border-border bg-secondary/5 px-5 py-3.5 text-xs leading-5 text-muted sm:px-6">
+            <div
+              class="flex items-start gap-2 border-t border-border bg-secondary/5 px-5 py-3.5 text-xs leading-5 text-muted sm:px-6"
+            >
               <i class="fas fa-circle-info mt-0.5 text-secondary"></i>
-              <p>No necesitas seleccionar nada: se usarán automáticamente todas las grabaciones de esta lista.</p>
+              <p>
+                No necesitas seleccionar nada: se usarán automáticamente todas las grabaciones de
+                esta lista.
+              </p>
             </div>
           } @else {
             <div class="grid min-h-80 place-items-center px-6 py-12 text-center">
               <div>
-                <span class="mx-auto grid size-20 place-items-center rounded-full bg-background-50 text-2xl text-muted">
+                <span
+                  class="mx-auto grid size-20 place-items-center rounded-full bg-background-50 text-2xl text-muted"
+                >
                   <i class="fas fa-video"></i>
                 </span>
-                <p class="mt-5 font-plus-jakarta-sans text-lg font-bold text-text">Todavía no hay grabaciones</p>
+                <p class="mt-5 font-plus-jakarta-sans text-lg font-bold text-text">
+                  Todavía no hay grabaciones
+                </p>
                 <p class="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
-                  Espera unos minutos y realiza una nueva búsqueda para verificar si ya están disponibles.
+                  Espera unos minutos y realiza una nueva búsqueda para verificar si ya están
+                  disponibles.
                 </p>
                 <button
                   type="button"

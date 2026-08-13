@@ -1,15 +1,15 @@
 <div
-  class="fixed inset-0 bg-fixed-text-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-[fadeIn_0.2s_ease-out]"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-fixed-text-950/60 p-2 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out] sm:p-4"
   (click)="handleBackdropClick($event)"
 >
   <div
-    class="bg-surface rounded-2xl shadow-2xl w-full flex flex-col max-h-[90vh] overflow-hidden animate-[slideUp_0.25s_ease-out] ring-1 ring-text/5"
+    class="flex max-h-[calc(100dvh-1rem)] w-full min-w-0 flex-col overflow-hidden rounded-2xl bg-surface shadow-2xl ring-1 ring-text/5 animate-[slideUp_0.25s_ease-out] sm:max-h-[90vh]"
     [ngClass]="getMaxWidthClass()"
     (click)="$event.stopPropagation()"
   >
     <!-- Header -->
     <div
-      class="flex items-center justify-between px-6 py-4 border-b border-border bg-background-50/50 shrink-0 rounded-t-2xl"
+      class="flex shrink-0 items-center justify-between rounded-t-2xl border-b border-border bg-background-50/50 px-4 py-3 sm:px-6 sm:py-4"
     >
       <h2 class="text-xl font-anton lowercase text-text">{{ title() }}</h2>
       <button
@@ -24,14 +24,14 @@
     <ng-content select="[modalFooter]"></ng-content>
 
     <!-- Body (Scrollable) -->
-    <div class="flex min-h-0 flex-1 flex-col overflow-y-auto bg-surface">
+    <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto bg-surface">
       <ng-content></ng-content>
     </div>
 
     <!-- Footer -->
     @if (showFooter()) {
       <div
-        class="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-background-50/50 shrink-0 rounded-b-2xl"
+        class="flex shrink-0 flex-col-reverse gap-3 rounded-b-2xl border-t border-border bg-background-50/50 px-4 py-3 sm:flex-row sm:items-center sm:justify-end sm:px-6 sm:py-4"
       >
         <button
           type="button"

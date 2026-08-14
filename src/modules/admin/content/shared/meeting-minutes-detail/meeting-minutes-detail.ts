@@ -15,6 +15,7 @@ type MeetingTask = NonNullable<Meeting['tasks']>[number];
 type MeetingRecording = ApiResponse<'meeting', 'getRecordings'>[number];
 
 type FinalizeTask = {
+  id?: number;
   title: string;
   description: string;
   assignedTo: 'pyme' | 'consultor';
@@ -305,6 +306,11 @@ export class MeetingMinutesDetail implements OnInit {
     return 'bg-text/5 text-muted';
   }
 
+  hasTaskDescription(task: MeetingTask) {
+    const description = task.description?.trim();
+    return Boolean(description && description !== '.');
+  }
+
   priorityClass(value: string | null | undefined) {
     const priority = (value || 'baja').toLowerCase();
     if (priority === 'alta') return 'bg-error/10 text-error';
@@ -316,21 +322,25 @@ export class MeetingMinutesDetail implements OnInit {
     return this.hubsme.currentUser()?.role === 'consultor';
   }
 
-  canCreateServiceFromMinutes(meeting: Meeting) {
+  canRequestServiceForTask(meeting: Meeting) {
     return (
       !this.isConsultant() &&
       meeting.status === 'finalizada' &&
       meeting.meetingType === 'consultoria' &&
-      meeting.serviceRequestId === null &&
       Boolean(meeting.description?.trim())
     );
   }
 
-  createServiceFromMinutes(meeting: Meeting) {
-    if (!this.canCreateServiceFromMinutes(meeting)) return;
+  requestServiceForTask(meeting: Meeting, task: MeetingTask) {
+    if (!this.canRequestServiceForTask(meeting)) return;
+
+    if (task.serviceRequestId) {
+      void this.router.navigate([buildPath(PATH.admin.pyme.services), task.serviceRequestId]);
+      return;
+    }
 
     void this.router.navigate([buildPath(PATH.admin.pyme.services)], {
-      queryParams: { createFromMeeting: meeting.id },
+      queryParams: { createFromTask: task.id },
     });
   }
 
@@ -384,6 +394,7 @@ export class MeetingMinutesDetail implements OnInit {
         dueDateStr = `${year}-${month}-${day}`;
       }
       return {
+        id: t.id,
         title: t.title || '',
         description: t.description || '',
         assignedTo: t.assignedTo === 'consultor' ? 'consultor' : 'pyme',

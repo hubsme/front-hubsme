@@ -506,6 +506,37 @@
               (ngModelChange)="updateForm('linkedinUrl', $event)"
               class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none transition focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
           </label>
+          <div class="md:col-span-2 rounded-2xl border border-border bg-background p-4">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div class="flex min-w-0 flex-1 items-center gap-3">
+                <span
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                  <i class="fas fa-clock"></i>
+                </span>
+                <div>
+                  <p class="text-sm font-inter-bold text-text">Anticipación mínima para reservar</p>
+                  <p class="mt-1 text-xs leading-5 text-muted">{{ bookingNoticeSummary() }}</p>
+                </div>
+              </div>
+
+              <div class="w-full sm:w-48">
+                <label class="block">
+                  <span class="sr-only">Horas de anticipación</span>
+                  <div
+                    class="flex h-11 items-center overflow-hidden rounded-xl border border-border bg-surface transition focus-within:border-secondary focus-within:ring-2 focus-within:ring-secondary/10">
+                    <input type="number" min="1" max="720" step="1"
+                      [ngModel]="form().minimumBookingNoticeHours" name="minimumBookingNoticeHours"
+                      (ngModelChange)="updateMinimumBookingNoticeHours($event)"
+                      class="h-full min-w-0 flex-1 bg-transparent px-3 text-sm font-inter-semibold text-text outline-none" />
+                    <span
+                      class="flex h-full items-center border-l border-border bg-background px-3 text-xs font-inter-semibold text-muted">
+                      horas
+                    </span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

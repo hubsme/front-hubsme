@@ -1261,13 +1261,11 @@ export class ServiceDetail implements OnInit, OnDestroy {
   }
 
   private availabilityStartDateKey(): string {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowKey = this.dateKeyInTimeZone(tomorrow);
+    const todayKey = this.dateKeyInTimeZone(new Date());
     const paidAt = this.service()?.paidAt;
-    if (!paidAt) return tomorrowKey;
+    if (!paidAt) return todayKey;
     const paidAtKey = this.dateKeyInTimeZone(new Date(paidAt));
-    return paidAtKey > tomorrowKey ? paidAtKey : tomorrowKey;
+    return paidAtKey > todayKey ? paidAtKey : todayKey;
   }
 
   private isSlotWithinDueDate(value: string, dueDate: string | null | undefined): boolean {

@@ -94,8 +94,8 @@ export class PymeServicesStore {
 
   readonly showCreate = signal(false);
   readonly creating = signal(false);
-  readonly sourceMeetingId = signal<number | null>(null);
-  readonly sourceMeetingLoading = signal(false);
+  readonly sourceTaskId = signal<number | null>(null);
+  readonly sourceTaskLoading = signal(false);
   readonly selectedOffer = signal<ConsultantServiceOfferResultDto | null>(null);
   readonly wizardStep = signal<WizardStep>(1);
   readonly chatMessages = signal<ServiceRequestChatMessageDto[]>([]);
@@ -134,6 +134,7 @@ export class PymeServicesStore {
   readonly matchingConsultants = signal(false);
   readonly aiMatches = signal<ServiceConsultantMatchDto[]>([]);
   readonly selectedConsultants = signal<ConsultantSelection[]>([]);
+  readonly consultantSelectionLimit = computed(() => (this.sourceTaskId() ? 1 : 3));
   readonly initialMeetingOptions = signal<Record<number, string[]>>({});
   readonly initialMeetingAvailability = signal<Record<number, InitialMeetingSlot[]>>({});
   readonly initialMeetingAvailabilityLoading = signal(false);
@@ -300,26 +301,27 @@ export class PymeServicesStore {
     void this.loadInitialMeetingAvailability([offer.consultantId]);
   }
 
-  async openCreateFromMeeting(meetingId: number) {
-    if (!Number.isInteger(meetingId) || meetingId <= 0) {
-      this.toastService.error('El acta seleccionada no es válida');
+  async openCreateFromTask(taskId: number) {
+    if (!Number.isInteger(taskId) || taskId <= 0) {
+      this.toastService.error('La tarea seleccionada no es válida');
       return;
     }
 
     this.resetCreateFlow();
-    this.sourceMeetingId.set(meetingId);
+    this.sourceTaskId.set(taskId);
     this.showCreate.set(true);
-    this.sourceMeetingLoading.set(true);
+    this.sourceTaskLoading.set(true);
     this.chatLoading.set(true);
 
     const messages: ServiceRequestChatMessageDto[] = [
       {
         role: 'assistant',
-        content: `Voy a usar el acta #${meetingId} para preparar el servicio y preguntarte solo lo que falte.`,
+        content: `Voy a usar la tarea #${taskId} y su acta para preparar el servicio y preguntarte solo lo que falte.`,
       },
       {
         role: 'user',
-        content: 'Prepara mi solicitud de servicio usando esta acta como base.',
+        content:
+          'Prepara mi solicitud de servicio usando esta tarea como alcance y el acta como contexto.',
       },
     ];
     const requestId = ++this.aiRequestSequence;
@@ -329,7 +331,7 @@ export class PymeServicesStore {
       const result = await this.aiService.continueServiceRequestChat({
         messages,
         draft: this.currentDraft(),
-        sourceMeetingId: meetingId,
+        sourceTaskId: taskId,
       });
       if (requestId !== this.aiRequestSequence) return;
 
@@ -346,7 +348,7 @@ export class PymeServicesStore {
       this.toastService.error(this.hubsme.getErrorMessage(error));
     } finally {
       if (requestId === this.aiRequestSequence) {
-        this.sourceMeetingLoading.set(false);
+        this.sourceTaskLoading.set(false);
         this.chatLoading.set(false);
       }
     }
@@ -377,7 +379,7 @@ export class PymeServicesStore {
       const result = await this.aiService.continueServiceRequestChat({
         messages,
         draft: this.currentDraft(),
-        sourceMeetingId: this.sourceMeetingId() ?? undefined,
+        sourceTaskId: this.sourceTaskId() ?? undefined,
       });
       if (requestId !== this.aiRequestSequence) return;
       this.applyChatResult(result);
@@ -674,13 +676,18 @@ export class PymeServicesStore {
     try {
       const result = await this.aiService.matchServiceConsultants({ draft: this.currentDraft() });
       this.aiMatches.set(result.matches);
-      this.selectedConsultants.set(result.matches.map((match) => this.matchToSelection(match)));
+      const selectedMatches = result.matches.slice(0, this.consultantSelectionLimit());
+      this.selectedConsultants.set(selectedMatches.map((match) => this.matchToSelection(match)));
       this.initialMeetingOptions.set(
-        Object.fromEntries(result.matches.map((match) => [match.consultantId, ['', '', '']])),
+        Object.fromEntries(selectedMatches.map((match) => [match.consultantId, ['', '', '']])),
       );
       this.initialMeetingAvailability.set({});
-      await this.loadInitialMeetingAvailability(result.matches.map((match) => match.consultantId));
-      this.toastService.success('Encontramos 3 consultores compatibles con tu servicio');
+      await this.loadInitialMeetingAvailability(selectedMatches.map((match) => match.consultantId));
+      this.toastService.success(
+        this.sourceTaskId()
+          ? 'Seleccionamos al consultor más compatible; puedes cambiarlo antes de enviar'
+          : 'Encontramos 3 consultores compatibles con tu servicio',
+      );
     } catch (error) {
       this.toastService.error(this.hubsme.getErrorMessage(error));
     } finally {
@@ -793,11 +800,9 @@ export class PymeServicesStore {
   }
 
   private initialMeetingWindow() {
-    const today = new Date();
+    const start = new Date();
+    const today = new Date(start);
     today.setHours(0, 0, 0, 0);
-
-    const start = new Date(today);
-    start.setDate(start.getDate() + 1);
 
     const monday = new Date(today);
     const daysSinceMonday = (monday.getDay() + 6) % 7;
@@ -859,9 +864,14 @@ export class PymeServicesStore {
 
   private addConsultant(consultant: ConsultantSelection) {
     if (this.isConsultantSelected(consultant.userId)) return;
-    if (this.selectedConsultants().length >= 3) {
-      this.toastService.warning('Puedes enviar la solicitud a un máximo de 3 consultores');
-      return;
+    const selectionLimit = this.consultantSelectionLimit();
+    if (this.selectedConsultants().length >= selectionLimit) {
+      if (selectionLimit === 1 && this.selectedConsultants()[0]) {
+        this.removeConsultant(this.selectedConsultants()[0].userId);
+      } else {
+        this.toastService.warning('Puedes enviar la solicitud a un máximo de 3 consultores');
+        return;
+      }
     }
     this.selectedConsultants.update((current) => [...current, consultant]);
     this.initialMeetingOptions.update((current) => ({
@@ -978,9 +988,9 @@ export class PymeServicesStore {
 
   private resetCreateFlow() {
     this.aiRequestSequence += 1;
-    this.sourceMeetingId.set(null);
+    this.sourceTaskId.set(null);
     this.selectedOffer.set(null);
-    this.sourceMeetingLoading.set(false);
+    this.sourceTaskLoading.set(false);
     this.wizardStep.set(1);
     this.chatMessages.set([{ role: 'assistant', content: INITIAL_ASSISTANT_MESSAGE }]);
     this.chatInput.set('');
@@ -1023,6 +1033,7 @@ export class PymeServicesStore {
     const formData = new FormData();
     const selectedOffer = this.selectedOffer();
     if (selectedOffer) formData.append('serviceOfferId', String(selectedOffer.id));
+    if (this.sourceTaskId()) formData.append('sourceTaskId', String(this.sourceTaskId()));
     formData.append(
       'consultantIds',
       JSON.stringify(this.selectedConsultants().map((consultant) => consultant.userId)),

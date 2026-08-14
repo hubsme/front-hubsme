@@ -12,11 +12,11 @@
         <div class="min-w-0">
           <h3 class="text-sm font-inter-bold sm:text-base">Asistente de servicios</h3>
           <p class="mt-0.5 text-xs text-muted">
-            @if (store.sourceMeetingId(); as meetingId) {
-              @if (store.sourceMeetingLoading()) {
-                Analizando el acta #{{ meetingId }}...
+            @if (store.sourceTaskId(); as taskId) {
+              @if (store.sourceTaskLoading()) {
+                Analizando la tarea #{{ taskId }} y su acta...
               } @else {
-                Basado en el acta #{{ meetingId }} · Solo preguntará lo pendiente.
+                Basado en la tarea #{{ taskId }} y su acta · Solo preguntará lo pendiente.
               }
             } @else {
               Te hará preguntas cortas para entender el trabajo.

@@ -18,13 +18,13 @@ export class PymeServices implements OnInit {
   private readonly router = inject(Router);
 
   ngOnInit() {
-    const sourceMeetingId = Number(this.route.snapshot.queryParamMap.get('createFromMeeting'));
-    if (!Number.isInteger(sourceMeetingId) || sourceMeetingId <= 0) return;
+    const sourceTaskId = Number(this.route.snapshot.queryParamMap.get('createFromTask'));
+    if (!Number.isInteger(sourceTaskId) || sourceTaskId <= 0) return;
 
-    void this.store.openCreateFromMeeting(sourceMeetingId);
+    void this.store.openCreateFromTask(sourceTaskId);
     void this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: { createFromMeeting: null },
+      queryParams: { createFromTask: null },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });

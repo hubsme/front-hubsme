@@ -74,10 +74,19 @@
       <div class="mb-3 flex items-center justify-between gap-3">
         <div>
           <h3 class="font-inter-bold">Consultores recomendados</h3>
-          <p class="mt-1 text-xs text-muted">Marca uno, dos o los tres.</p>
+          <p class="mt-1 text-xs text-muted">
+            {{
+              store.sourceTaskId()
+                ? 'Elige un consultor para esta tarea.'
+                : 'Marca uno, dos o los tres.'
+            }}
+          </p>
         </div>
         <span class="rounded-full bg-secondary/10 px-3 py-1 text-xs font-inter-bold text-secondary">
-          {{ store.selectedConsultants().length }}/3 seleccionados
+          {{ store.selectedConsultants().length }}/{{
+            store.consultantSelectionLimit()
+          }}
+          seleccionados
         </span>
       </div>
       <div class="grid gap-3 lg:grid-cols-3">
@@ -155,7 +164,7 @@
         @if (store.selectedOffer()) {
           Consultor asignado
         } @else {
-          {{ store.selectedConsultants().length }} de 3
+          {{ store.selectedConsultants().length }} de {{ store.consultantSelectionLimit() }}
         }
       </span>
     </div>

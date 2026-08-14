@@ -133,11 +133,6 @@ export class ConsultantDetail implements OnInit {
 
   selectDate(day: CalendarDay) {
     if (!day.inMonth || !day.hasAvailability) return;
-    
-    const tomorrow = new Date();
-    tomorrow.setHours(0, 0, 0, 0);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    if (day.date.getTime() < tomorrow.getTime()) return;
 
     this.selectedDate.set(day.date);
   }
@@ -261,14 +256,7 @@ export class ConsultantDetail implements OnInit {
     return Promise.all(requests)
       .then((responses) => {
         const allMonths = responses.flatMap((response) => response.data);
-        let slots = this.expandAvailabilityMonths(allMonths);
-        
-        // Filter out past and today's slots (only tomorrow and later are allowed)
-        const tomorrow = new Date();
-        tomorrow.setHours(0, 0, 0, 0);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        slots = slots.filter((slot) => new Date(slot.startTime).getTime() >= tomorrow.getTime());
-
+        const slots = this.expandAvailabilityMonths(allMonths);
         this.slots.set(slots);
         this.selectFirstAvailableDay(slots);
       });
@@ -283,15 +271,13 @@ export class ConsultantDetail implements OnInit {
     if (firstSlot) {
       this.selectedDate.set(new Date(firstSlot.startTime));
     } else {
-      const tomorrow = new Date();
-      tomorrow.setHours(0, 0, 0, 0);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
       const viewFirst = new Date(this.viewDate().getFullYear(), this.viewDate().getMonth(), 1);
-      if (viewFirst.getTime() > tomorrow.getTime()) {
+      if (viewFirst.getTime() > today.getTime()) {
         this.selectedDate.set(viewFirst);
       } else {
-        this.selectedDate.set(tomorrow);
+        this.selectedDate.set(today);
       }
     }
     this.selectedStartIsos.set([]);
@@ -304,21 +290,15 @@ export class ConsultantDetail implements OnInit {
     start.setDate(first.getDate() - first.getDay());
     const availableDates = this.availableDates();
 
-    const tomorrow = new Date();
-    tomorrow.setHours(0, 0, 0, 0);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
     return Array.from({ length: 42 }, (_, index) => {
       const date = new Date(start);
       date.setDate(start.getDate() + index);
-      
-      const isPastOrToday = date.getTime() < tomorrow.getTime();
 
       return {
         date,
         day: date.getDate(),
         inMonth: date.getMonth() === current.getMonth(),
-        hasAvailability: !isPastOrToday && availableDates.has(this.toDateKey(date)),
+        hasAvailability: availableDates.has(this.toDateKey(date)),
       };
     });
   }

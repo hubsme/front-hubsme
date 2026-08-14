@@ -72,6 +72,7 @@ type ConsultantForm = {
   cvText: string;
   cvUrl: string;
   pricePerHour: number;
+  minimumBookingNoticeHours: number;
   photoUrl: string;
   videoUrl: string;
   ownerPhone: string;
@@ -170,6 +171,7 @@ export class Profile implements OnInit, OnDestroy {
     cvText: '',
     cvUrl: '',
     pricePerHour: 0,
+    minimumBookingNoticeHours: 48,
     photoUrl: '',
     videoUrl: '',
     ownerPhone: '',
@@ -181,6 +183,10 @@ export class Profile implements OnInit, OnDestroy {
   readonly visibleDiagnosticAreas = computed(() => this.form().diagnosticAreas.slice(0, 3));
   readonly primarySpecialty = computed(() => this.form().specialties[0] || 'Consultoría para PYMES');
   readonly previewDisplayName = computed(() => this.capitalizeName(this.form().fullName || 'Tu nombre'));
+  readonly bookingNoticeSummary = computed(() => {
+    const hours = this.form().minimumBookingNoticeHours;
+    return `Las PYMEs podrán reservar como mínimo con ${hours} ${hours === 1 ? 'hora' : 'horas'} de anticipación.`;
+  });
   readonly formattedBirthDate = computed(() => {
     const birthDate = this.consultant()?.birthDate;
     if (!birthDate) return '';
@@ -234,6 +240,7 @@ export class Profile implements OnInit, OnDestroy {
           cvText: data.cvText ?? '',
           cvUrl: data.cvUrl ?? '',
           pricePerHour: Number(data.pricePerHour),
+          minimumBookingNoticeHours: data.minimumBookingNoticeHours ?? 48,
           photoUrl: data.photoUrl ?? '',
           videoUrl: data.videoUrl ?? '',
           ownerPhone: data.ownerPhone ?? '',
@@ -279,6 +286,7 @@ export class Profile implements OnInit, OnDestroy {
       cvText: form.cvText || undefined,
       cvUrl: form.cvUrl || undefined,
       pricePerHour: Number(form.pricePerHour) || 0,
+      minimumBookingNoticeHours: form.minimumBookingNoticeHours,
       photoUrl: form.photoUrl || undefined,
       videoUrl: form.videoUrl || undefined,
       active: form.active,
@@ -301,6 +309,14 @@ export class Profile implements OnInit, OnDestroy {
 
   toggleActive() {
     this.updateForm('active', this.form().active === 'true' ? 'false' : 'true');
+  }
+
+  updateMinimumBookingNoticeHours(value: string | number | null): void {
+    const parsed = Math.trunc(Number(value));
+    this.updateForm(
+      'minimumBookingNoticeHours',
+      Number.isFinite(parsed) ? Math.min(720, Math.max(1, parsed)) : 1,
+    );
   }
 
   toggleProfilePreviewEdit(): void {

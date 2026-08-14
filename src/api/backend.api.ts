@@ -899,6 +899,7 @@ export interface TaskResultDto {
   /** @format date-time */
   deletedAt: string | null;
   meetingId: number | null;
+  serviceRequestId: number | null;
   pymeId: number;
   consultantId: number | null;
   title: string;
@@ -1176,6 +1177,11 @@ export interface MeetingConsultantCancelResultDto {
 }
 
 export interface MeetingFinalizeTaskDto {
+  /**
+   * ID de la tarea existente al editar un acta
+   * @min 1
+   */
+  id?: number;
   /** @example "Preparar propuesta de optimizacion" */
   title: string;
   /** @example "Detallar alcance, tiempos y siguientes pasos." */
@@ -1354,6 +1360,11 @@ export interface ServiceRequestChatRunDto {
    * @min 1
    */
   sourceMeetingId?: number;
+  /**
+   * Tarea concreta del acta que se usará como alcance inicial de la solicitud
+   * @min 1
+   */
+  sourceTaskId?: number;
 }
 
 export interface ServiceRequestChatResultDto {
@@ -1613,6 +1624,12 @@ export interface ConsultantResultDto {
   photoUrl: string | null;
   videoUrl: string | null;
   pricePerHour: string;
+  /**
+   * Horas mínimas de anticipación para reservar.
+   * @default 48
+   * @example 48
+   */
+  minimumBookingNoticeHours: number;
   rating: string;
   totalReviews: number;
   active: "true" | "false";
@@ -1768,6 +1785,14 @@ export interface ConsultantCreateDto {
   videoUrl?: string;
   /** @example 150 */
   pricePerHour?: number;
+  /**
+   * Horas mínimas de anticipación para reservar. El valor predeterminado es 48 horas.
+   * @min 1
+   * @max 720
+   * @default 48
+   * @example 48
+   */
+  minimumBookingNoticeHours?: number;
   /** @default "true" */
   active?: "true" | "false";
 }
@@ -1848,6 +1873,14 @@ export interface ConsultantUpdateDto {
   videoUrl?: string;
   /** @example 150 */
   pricePerHour?: number;
+  /**
+   * Horas mínimas de anticipación para reservar. El valor predeterminado es 48 horas.
+   * @min 1
+   * @max 720
+   * @default 48
+   * @example 48
+   */
+  minimumBookingNoticeHours?: number;
   /** @default "true" */
   active?: "true" | "false";
 }
@@ -2379,6 +2412,11 @@ export interface ServiceRequestMilestoneCreateDto {
 }
 
 export interface ServiceRequestCreateMultipartDto {
+  /**
+   * Tarea del acta que originó la solicitud
+   * @min 1
+   */
+  sourceTaskId?: number;
   /**
    * Oferta del catálogo que originó la solicitud
    * @min 1

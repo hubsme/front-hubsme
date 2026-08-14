@@ -16,16 +16,6 @@
             </button>
           }
           @if (meeting(); as current) {
-            @if (canCreateServiceFromMinutes(current)) {
-              <button
-                type="button"
-                (click)="createServiceFromMinutes(current)"
-                class="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-secondary px-4 text-xs font-inter-semibold text-fixed-background-50 shadow-sm transition-colors hover:bg-secondary/90"
-              >
-                <i class="fas fa-wand-magic-sparkles"></i>
-                Enviar requerimiento a consultor
-              </button>
-            }
             <span
               class="inline-flex items-center gap-2 rounded-full bg-secondary-50 px-3 py-1 text-[0.75rem] capitalize text-secondary font-inter-bold"
             >
@@ -444,23 +434,31 @@
           <section
             class="rounded-2xl border border-border bg-surface p-6 shadow-[0_12px_28px_rgba(15,23,42,0.04)]"
           >
-            <div class="flex items-center gap-3 border-b border-border pb-4 mb-5">
-              <span
-                class="grid h-10 w-10 place-items-center rounded-xl bg-secondary-50 text-secondary"
-              >
-                <i class="fas fa-tasks text-lg"></i>
-              </span>
-              <h3 class="text-xl font-anton lowercase text-text">tareas</h3>
+            <div class="mb-1 flex items-center justify-between gap-3 border-b border-border pb-4">
+              <div class="flex items-center gap-3">
+                <span
+                  class="grid h-10 w-10 place-items-center rounded-xl bg-secondary-50 text-secondary"
+                >
+                  <i class="fas fa-tasks text-lg"></i>
+                </span>
+                <h3 class="text-xl font-anton lowercase text-text">tareas</h3>
+              </div>
+              @if (current.tasks?.length) {
+                <span
+                  class="shrink-0 rounded-full bg-secondary-50 px-2.5 py-1 text-[0.68rem] font-inter-bold text-secondary"
+                >
+                  {{ current.tasks?.length }}
+                  {{ current.tasks?.length === 1 ? 'tarea' : 'tareas' }}
+                </span>
+              }
             </div>
 
-            <div class="space-y-4">
+            <div class="divide-y divide-border">
               @for (task of current.tasks; track task.id) {
-                <article
-                  class="rounded-xl border border-border bg-background/30 p-4 transition-hover hover:border-secondary/30"
-                >
+                <article class="py-5 first:pt-4 last:pb-0">
                   <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
-                      <div class="mb-2 flex flex-wrap items-center gap-1.5">
+                      <div class="mb-2.5 flex flex-wrap items-center gap-1.5">
                         <span
                           class="rounded-full bg-secondary-50 px-2 py-0.5 text-[0.62rem] font-inter-bold uppercase text-secondary"
                         >
@@ -484,24 +482,46 @@
                       {{ task.priority }}
                     </span>
                   </div>
-                  <p
-                    class="mt-2 break-words text-[0.85rem] leading-relaxed text-muted line-clamp-4"
-                  >
-                    {{ task.description }}
-                  </p>
+                  @if (hasTaskDescription(task)) {
+                    <p
+                      class="mt-2 break-words text-[0.85rem] leading-relaxed text-muted line-clamp-3"
+                    >
+                      {{ task.description }}
+                    </p>
+                  }
 
                   <div
-                    class="mt-4 flex items-center justify-between border-t border-border/50 pt-3 text-[0.75rem]"
+                    class="mt-4 flex flex-wrap items-center justify-between gap-x-3 gap-y-2"
                   >
-                    <div class="flex items-center gap-1.5 text-muted">
-                      <i class="far fa-user text-[0.7rem]"></i>
-                      <span>{{ responsibleLabel(task.assignedTo) }}</span>
-                    </div>
-                    @if (task.dueDate) {
+                    <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[0.75rem]">
                       <div class="flex items-center gap-1.5 text-muted">
-                        <i class="far fa-calendar text-[0.7rem]"></i>
-                        <span>{{ meetingDate(task.dueDate) }}</span>
+                        <i class="far fa-user text-[0.7rem]"></i>
+                        <span>{{ responsibleLabel(task.assignedTo) }}</span>
                       </div>
+                      @if (task.dueDate) {
+                        <div class="flex items-center gap-1.5 text-muted">
+                          <i class="far fa-calendar text-[0.7rem]"></i>
+                          <span>{{ meetingDate(task.dueDate) }}</span>
+                        </div>
+                      }
+                    </div>
+
+                    @if (canRequestServiceForTask(current)) {
+                      <button
+                        type="button"
+                        (click)="requestServiceForTask(current, task)"
+                        class="ml-auto inline-flex shrink-0 items-center justify-center gap-1.5 py-1 text-xs font-inter-bold text-secondary transition-colors hover:text-secondary/75"
+                      >
+                        <i
+                          [class]="
+                            task.serviceRequestId
+                              ? 'fas fa-arrow-up-right-from-square'
+                              : 'fas fa-wand-magic-sparkles'
+                          "
+                        ></i>
+                        {{ task.serviceRequestId ? 'Ver servicio' : 'Solicitar servicio' }}
+                        <i class="fas fa-arrow-right text-[0.65rem]"></i>
+                      </button>
                     }
                   </div>
                 </article>

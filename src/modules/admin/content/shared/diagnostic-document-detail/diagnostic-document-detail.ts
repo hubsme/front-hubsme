@@ -6,6 +6,7 @@ import { QuillModule } from 'ngx-quill';
 import { ApiResponse } from 'api/backend.api';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
+import { formatInPeru } from '@function/date.function';
 
 type DiagnosticDocument = ApiResponse<'diagnosticDocument', 'diagnosticdocumentFindOne'>;
 
@@ -47,7 +48,7 @@ export class DiagnosticDocumentDetail implements OnInit {
 
   meetingDate(value: string | Date | null | undefined) {
     if (!value) return 'Sin fecha';
-    return new Date(value).toLocaleDateString('es-PE', {
+    return formatInPeru(value, {
       day: '2-digit',
       month: 'short',
       year: 'numeric',

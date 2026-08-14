@@ -3,13 +3,15 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZonelessChangeDetection,
   PLATFORM_ID,
+  LOCALE_ID,
   inject,
   Injector,
 } from '@angular/core';
 import { PreloadAllModules, provideRouter, Router, withPreloading } from '@angular/router';
-import { isPlatformBrowser, registerLocaleData } from '@angular/common';
+import { DATE_PIPE_DEFAULT_OPTIONS, isPlatformBrowser, registerLocaleData } from '@angular/common';
 import localeEsPE from '@angular/common/locales/es-PE';
 import { SessionService } from '@service/session.service';
+import { PERU_TIME_ZONE } from '@function/date.function';
 
 registerLocaleData(localeEsPE, 'es-PE');
 
@@ -25,6 +27,11 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
     provideClientHydration(withEventReplay()),
+    { provide: LOCALE_ID, useValue: 'es-PE' },
+    {
+      provide: DATE_PIPE_DEFAULT_OPTIONS,
+      useValue: { timezone: PERU_TIME_ZONE },
+    },
 
     // agregado
     {

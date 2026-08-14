@@ -1,0 +1,101 @@
+<div class="relative inline-flex">
+  <button
+    type="button"
+    (click)="toggle()"
+    class="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-surface px-3.5 text-sm text-muted font-inter-semibold shadow-sm transition-colors hover:border-secondary/40 hover:text-secondary"
+    [attr.aria-expanded]="open()"
+    aria-haspopup="dialog"
+  >
+    <i class="fas fa-filter text-xs"></i>
+    <span>Filtros</span>
+    @if (activeFilterCount()) {
+      <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1.5 text-[0.65rem] text-fixed-background-50 font-inter-bold">
+        {{ activeFilterCount() }}
+      </span>
+    }
+  </button>
+
+  @if (open()) {
+    <button
+      type="button"
+      (click)="close()"
+      class="fixed inset-0 z-40 cursor-default bg-transparent"
+      aria-label="Cerrar filtros"
+    ></button>
+
+    <section
+      role="dialog"
+      aria-label="Filtros del tablero"
+      class="fixed left-4 right-4 top-24 z-50 rounded-2xl border border-border bg-surface p-4 shadow-[0_18px_50px_rgba(15,23,42,0.16)] sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[40rem]"
+    >
+      <div class="mb-4 flex items-center justify-between gap-4">
+        <div>
+          <h2 class="text-sm font-inter-bold">Filtrar tareas</h2>
+          <p class="mt-0.5 text-xs text-muted">Prioridad, responsable y reunión de origen.</p>
+        </div>
+        <button
+          type="button"
+          (click)="close()"
+          class="grid h-8 w-8 place-items-center rounded-full text-muted transition-colors hover:bg-background hover:text-text"
+          aria-label="Cerrar filtros"
+        >
+          <i class="fas fa-times text-xs"></i>
+        </button>
+      </div>
+
+      <div class="grid gap-3 sm:grid-cols-2">
+    <label class="block min-w-0">
+      <span class="mb-1.5 block text-xs text-muted font-inter-semibold">Prioridad</span>
+      <span class="relative block">
+        <select
+          [ngModel]="priority()"
+          (ngModelChange)="priorityChange.emit($event)"
+          class="h-10 w-full appearance-none rounded-xl border border-border bg-background px-3 pr-10 text-sm text-text outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+        >
+          <option value="all">Todas las prioridades</option>
+          <option value="alta">Alta</option>
+          <option value="media">Media</option>
+          <option value="baja">Baja</option>
+        </select>
+        <i class="fas fa-chevron-down pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.65rem] text-muted"></i>
+      </span>
+    </label>
+
+    <label class="block min-w-0">
+      <span class="mb-1.5 block text-xs text-muted font-inter-semibold">Responsable</span>
+      <span class="relative block">
+        <select
+          [ngModel]="assignee()"
+          (ngModelChange)="assigneeChange.emit($event)"
+          class="h-10 w-full appearance-none rounded-xl border border-border bg-background px-3 pr-10 text-sm text-text outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+        >
+          <option value="all">Todos los responsables</option>
+          <option value="pyme">PYME</option>
+          <option value="consultor">Consultor</option>
+        </select>
+        <i class="fas fa-chevron-down pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.65rem] text-muted"></i>
+      </span>
+    </label>
+
+    <label class="block min-w-0 sm:col-span-2">
+      <span class="mb-1.5 block text-xs text-muted font-inter-semibold">Reunión de origen</span>
+      <span class="relative block">
+        <select
+          [ngModel]="meeting()"
+          (ngModelChange)="meetingChange.emit($event)"
+          class="h-10 w-full appearance-none truncate rounded-xl border border-border bg-background px-3 pr-10 text-sm text-text outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+        >
+          <option [ngValue]="'all'">Todas las reuniones</option>
+          <option [ngValue]="'manual'">Tareas independientes</option>
+          @for (option of meetings(); track option.id) {
+            <option [ngValue]="option.id">{{ meetingLabel(option) }}</option>
+          }
+        </select>
+        <i class="fas fa-chevron-down pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.65rem] text-muted"></i>
+      </span>
+    </label>
+
+      </div>
+    </section>
+  }
+</div>

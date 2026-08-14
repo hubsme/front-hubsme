@@ -9,6 +9,7 @@ import { PATH, buildPath } from '@route/path.route';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { downloadPdf } from '../../../functions/download-pdf';
 import { downloadWord, ChartImages } from '../../../functions/download-word';
+import { formatInPeru } from '@function/date.function';
 import {
   AreaConsultantsMap,
   CriticalArea,
@@ -327,7 +328,7 @@ export class DiagnosticDetail implements OnInit {
 
   date(value: string | Date | null | undefined) {
     if (!value) return 'Sin fecha';
-    return new Date(value).toLocaleDateString('es-PE', {
+    return formatInPeru(value, {
       day: '2-digit',
       month: 'long',
       year: 'numeric',

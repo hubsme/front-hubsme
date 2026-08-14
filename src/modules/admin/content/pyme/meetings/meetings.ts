@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   CalendarDatePipe,
   CalendarEvent,
@@ -20,6 +21,15 @@ import { ToastService } from '@service/toast.service';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { MeetingService } from '@service/admin/meeting.service';
 import { PATH, buildPath } from '@route/path.route';
+import { MeetingList } from '@module/admin/content/shared/meeting-list/meeting-list';
+import {
+  dateKeyInPeru,
+  formatDateForDatetimeLocal,
+  formatInPeru,
+  parseApiDate,
+  peruDateOnlyToUtc,
+  peruDateTimeInputToUtc,
+} from '@function/date.function';
 
 type MeetingForm = {
   pymeId: number;
@@ -60,6 +70,7 @@ type MonthDaySelection = {
     CalendarMonthViewComponent,
     CalendarWeekViewComponent,
     CalendarDatePipe,
+    MeetingList,
   ],
   providers: [
     provideCalendar({
@@ -74,9 +85,16 @@ export class Meetings implements OnInit {
   private meetingService = inject(MeetingService);
   private toastService = inject(ToastService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private queryParamMap = toSignal(this.route.queryParamMap, {
+    initialValue: this.route.snapshot.queryParamMap,
+  });
   readonly CalendarView = CalendarView;
   readonly PATH = PATH;
   readonly buildPath = buildPath;
+  readonly pageMode = computed<'calendar' | 'list'>(() =>
+    this.queryParamMap().get('view') === 'list' ? 'list' : 'calendar',
+  );
 
   currentUserName = computed(() => {
     try {
@@ -125,7 +143,7 @@ export class Meetings implements OnInit {
   selectedMeeting = signal<Meeting | null>(null);
   calendarEvents = computed<CalendarEvent<MeetingEventMeta>[]>(() =>
     this.meetings()
-      .filter((meeting) => ['confirmada', 'pago_pendiente', 'por_confirmar'].includes(meeting.status))
+      .filter((meeting) => ['confirmada', 'por_confirmar'].includes(meeting.status))
       .flatMap((meeting) => this.meetingCalendarEvents(meeting)),
   );
 
@@ -141,6 +159,20 @@ export class Meetings implements OnInit {
 
   load() {
     void this.loadCalendarMeetings();
+  }
+
+  togglePageMode(): void {
+    const nextMode = this.pageMode() === 'calendar' ? 'list' : 'calendar';
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        view: nextMode,
+        status: nextMode === 'calendar' ? null : undefined,
+        month: nextMode === 'calendar' ? null : undefined,
+        page: nextMode === 'calendar' ? null : 1,
+      },
+      queryParamsHandling: 'merge',
+    });
   }
 
   changeViewDate(date: Date) {
@@ -192,7 +224,7 @@ export class Meetings implements OnInit {
   }
 
   monthDayLabel(date: Date) {
-    return date.toLocaleDateString('es-PE', {
+    return formatInPeru(date, {
       day: 'numeric',
       month: 'long',
     });
@@ -209,6 +241,11 @@ export class Meetings implements OnInit {
       this.toastService.error('Selecciona un consultor y completa titulo y fecha');
       return;
     }
+    const startTime = peruDateTimeInputToUtc(data.startTime);
+    if (!startTime) {
+      this.toastService.error('La fecha y hora de la reunión no son válidas');
+      return;
+    }
 
     this.creating.set(true);
     this.hubsme
@@ -216,7 +253,7 @@ export class Meetings implements OnInit {
         pymeId: Number(data.pymeId),
         consultantId: Number(data.consultantId),
         title: data.title,
-        startTime: new Date(data.startTime).toISOString(),
+        startTime: startTime.toISOString(),
         durationMinutes: Number(data.durationMinutes) || 60,
         description: data.description || undefined,
         requestedBy: 'pyme',
@@ -292,7 +329,7 @@ export class Meetings implements OnInit {
         description: '',
         assignedTo: 'pyme',
         priority: 'media',
-        dueDate: new Date().toISOString().split('T')[0],
+        dueDate: dateKeyInPeru(),
       },
     ]);
   }
@@ -327,7 +364,7 @@ export class Meetings implements OnInit {
           .map((t) => ({
             ...t,
             assignedTo: 'pyme' as const,
-            dueDate: t.dueDate ? new Date(t.dueDate).toISOString() : undefined,
+            dueDate: peruDateOnlyToUtc(t.dueDate ?? '')?.toISOString(),
           })),
       })
       .then(() => {
@@ -351,31 +388,27 @@ export class Meetings implements OnInit {
   private defaultDateTime(): string {
     const date = new Date();
     date.setMinutes(date.getMinutes() + 10);
-    const tzOffset = date.getTimezoneOffset() * 60000;
-    return new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
+    return formatDateForDatetimeLocal(date);
   }
 
 
   month(startTime: string) {
-    return new Date(startTime).toLocaleDateString('en-US', {
+    return formatInPeru(startTime, {
       month: 'short',
-      timeZone: 'America/Lima',
-    }).toUpperCase();
+    }, 'en-US').toUpperCase();
   }
 
   day(startTime: string) {
-    return new Date(startTime).toLocaleDateString('en-US', {
+    return formatInPeru(startTime, {
       day: '2-digit',
-      timeZone: 'America/Lima',
-    });
+    }, 'en-US');
   }
 
   time(startTime: string) {
-    return new Date(startTime).toLocaleTimeString('es-PE', {
+    return formatInPeru(startTime, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
-      timeZone: 'America/Lima',
     });
   }
 
@@ -392,7 +425,6 @@ export class Meetings implements OnInit {
   statusLabel(status: Meeting['status']) {
     const labels: Record<Meeting['status'], string> = {
       solicitada: 'Solicitada',
-      pago_pendiente: 'Pago pendiente',
       por_confirmar: 'Por confirmación',
       confirmada: 'Confirmada',
       finalizada: 'Finalizada',
@@ -403,7 +435,6 @@ export class Meetings implements OnInit {
 
   statusClass(status: Meeting['status']) {
     if (status === 'solicitada') return 'bg-warning/10 text-warning';
-    if (status === 'pago_pendiente') return 'bg-secondary/10 text-secondary';
     if (status === 'por_confirmar') return 'bg-warning/10 text-warning';
     if (status === 'cancelada') return 'bg-danger/10 text-danger';
     if (status === 'finalizada') return 'bg-text/5 text-text';
@@ -425,7 +456,7 @@ export class Meetings implements OnInit {
   }
 
   canPay(meeting: Meeting) {
-    return meeting.status === 'pago_pendiente';
+    return meeting.status === 'solicitada' && meeting.requestedBy === 'pyme';
   }
 
   canJoin(meeting: Meeting) {
@@ -439,7 +470,7 @@ export class Meetings implements OnInit {
   }
 
   meetingDisplayStart(meeting: Meeting) {
-    return new Date(meeting.startTime ?? meeting.proposedStartTimes?.[0] ?? meeting.createdAt);
+    return parseApiDate(meeting.startTime ?? meeting.proposedStartTimes?.[0] ?? meeting.createdAt);
   }
 
   proposedTimes(meeting: Meeting) {
@@ -451,7 +482,7 @@ export class Meetings implements OnInit {
   private meetingCalendarEvents(meeting: Meeting): CalendarEvent<MeetingEventMeta>[] {
     const proposedStarts = meeting.status === 'por_confirmar'
       ? this.proposedTimes(meeting)
-          .map((value) => new Date(value))
+          .map((value) => parseApiDate(value))
           .filter((value) => !Number.isNaN(value.getTime()))
       : [];
     const isProposedOption = proposedStarts.length > 0;
@@ -492,7 +523,7 @@ export class Meetings implements OnInit {
   }
 
   private calendarEventTime(value: Date) {
-    return value.toLocaleTimeString('es-PE', {
+    return formatInPeru(value, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,

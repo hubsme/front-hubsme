@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { ConsultantAvailabilityService } from '@service/admin/consultant-availability.service';
 import { ApiResponse } from 'api/backend.api';
+import { formatInPeru, monthKeyInPeru, peruDateTimeToUtc, peruMonthRange } from '@function/date.function';
 
 type AvailabilityMonth = ApiResponse<
   'consultantAvailability',
@@ -17,17 +18,6 @@ export type ConsultantTimeSlot = {
 @Injectable({ providedIn: 'root' })
 export class ConsultantTimeSlotService {
   private readonly consultantAvailabilityService = inject(ConsultantAvailabilityService);
-  private readonly dateFormatter = new Intl.DateTimeFormat('es-PE', {
-    weekday: 'short',
-    day: '2-digit',
-    month: 'short',
-    timeZone: 'America/Lima',
-  });
-  private readonly timeFormatter = new Intl.DateTimeFormat('es-PE', {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'America/Lima',
-  });
 
   async loadAvailableSlots(
     consultantId: number,
@@ -39,8 +29,8 @@ export class ConsultantTimeSlotService {
     const requests = this.monthsWithinWindow(windowStart, windowEnd).map((month) =>
       this.consultantAvailabilityService.visibleMonth({
         consultantId,
-        year: month.getFullYear(),
-        month: month.getMonth() + 1,
+        year: month.getUTCFullYear(),
+        month: month.getUTCMonth() + 1,
       }),
     );
     const results = await Promise.allSettled(requests);
@@ -61,8 +51,8 @@ export class ConsultantTimeSlotService {
       year,
       month,
     });
-    const windowStart = new Date(Date.UTC(year, month - 1, 1, 5));
-    const windowEnd = new Date(Date.UTC(year, month, 1, 5) - 1);
+    const { start: windowStart, end } = peruMonthRange(monthKey);
+    const windowEnd = new Date(end.getTime() - 1);
     return this.buildSlots(response.data, windowStart, windowEnd);
   }
 
@@ -90,8 +80,13 @@ export class ConsultantTimeSlotService {
           }
 
           const value = startTime.toISOString();
-          const dateLabel = this.dateFormatter.format(startTime);
-          const timeLabel = `${this.timeFormatter.format(startTime)} – ${this.timeFormatter.format(endTime)}`;
+          const dateLabel = formatInPeru(startTime, {
+            weekday: 'short',
+            day: '2-digit',
+            month: 'short',
+          });
+          const timeOptions: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
+          const timeLabel = `${formatInPeru(startTime, timeOptions)} – ${formatInPeru(endTime, timeOptions)}`;
           slots.set(value, {
             value,
             label: `${dateLabel} · ${timeLabel}`,
@@ -107,18 +102,20 @@ export class ConsultantTimeSlotService {
 
   private monthsWithinWindow(start: Date, end: Date): Date[] {
     const months: Date[] = [];
-    const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
-    const lastMonth = new Date(end.getFullYear(), end.getMonth(), 1);
+    const [startYear, startMonth] = monthKeyInPeru(start).split('-').map(Number);
+    const [endYear, endMonth] = monthKeyInPeru(end).split('-').map(Number);
+    const cursor = new Date(Date.UTC(startYear, startMonth - 1, 1));
+    const lastMonth = new Date(Date.UTC(endYear, endMonth - 1, 1));
     while (cursor <= lastMonth) {
       months.push(new Date(cursor));
-      cursor.setMonth(cursor.getMonth() + 1);
+      cursor.setUTCMonth(cursor.getUTCMonth() + 1);
     }
     return months;
   }
 
   private fromLimaCalendarParts(year: number, monthIndex: number, day: number, time: string): Date {
     const [hours, minutes] = time.split(':').map(Number);
-    return new Date(Date.UTC(year, monthIndex, day, hours + 5, minutes));
+    return peruDateTimeToUtc(year, monthIndex + 1, day, hours, minutes);
   }
 
   private addMinutesToTimeValue(value: string, minutesToAdd: number): string {

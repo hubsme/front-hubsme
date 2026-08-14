@@ -1,8 +1,9 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { CalendarTutorial } from './layout/tutorial/tutorial';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   CalendarDatePipe,
   CalendarDayViewComponent,
@@ -27,6 +28,16 @@ import { ToastService } from '@service/toast.service';
 import { AlertService } from '@service/alert.service';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { PATH, buildPath } from '@route/path.route';
+import { MeetingList } from '@module/admin/content/shared/meeting-list/meeting-list';
+import {
+  dateKeyInPeru,
+  dateTimePartsInPeru,
+  formatInPeru,
+  parseApiDate,
+  peruDateTimeToUtc,
+  peruDateTimeInputToUtc,
+  timeInputInPeru,
+} from '@function/date.function';
 
 type AvailabilityMonth = ApiResponse<'consultantAvailability', 'consultant-availabilityFindMonth'>['data'][number];
 type AvailabilitySchedule = Record<string, string[]>;
@@ -79,6 +90,7 @@ type MonthDaySelection = {
     ModalForm,
     RouterLink,
     CalendarTutorial,
+    MeetingList,
   ],
   providers: [
     provideCalendar({
@@ -96,11 +108,18 @@ export class Meetings implements OnInit, OnDestroy {
   private toastService = inject(ToastService);
   private alertService = inject(AlertService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private platformId = inject(PLATFORM_ID);
+  private queryParamMap = toSignal(this.route.queryParamMap, {
+    initialValue: this.route.snapshot.queryParamMap,
+  });
 
   readonly CalendarView = CalendarView;
   readonly PATH = PATH;
   readonly buildPath = buildPath;
+  readonly pageMode = computed<'calendar' | 'list'>(() =>
+    this.queryParamMap().get('view') === 'list' ? 'list' : 'calendar',
+  );
   readonly availabilityHourSegmentHeight = 46;
 
   view = signal<CalendarView>(CalendarView.Week);
@@ -162,9 +181,9 @@ export class Meetings implements OnInit, OnDestroy {
   events = computed<CalendarEvent<SlotEventMeta>[]>(() => [
     ...this.googleBusySlots().map((slot) => ({
       id: slot.id,
-      start: new Date(slot.startTime),
-      end: new Date(slot.endTime),
-      title: `${this.calendarEventTime(new Date(slot.startTime))} · Ocupado Google`,
+      start: parseApiDate(slot.startTime),
+      end: parseApiDate(slot.endTime),
+      title: `${this.calendarEventTime(parseApiDate(slot.startTime))} · Ocupado Google`,
       color: { primary: '#f59e0b', secondary: 'rgba(245,158,11,0.18)' },
       cssClass: 'calendar-event-google-busy',
       meta: { type: 'google-calendar' as const, id: slot.id },
@@ -189,6 +208,20 @@ export class Meetings implements OnInit, OnDestroy {
       window.removeEventListener('message', this.googleMessageHandler);
     }
     this.clearGooglePopupTimer();
+  }
+
+  togglePageMode(): void {
+    const nextMode = this.pageMode() === 'calendar' ? 'list' : 'calendar';
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        view: nextMode,
+        status: nextMode === 'calendar' ? null : undefined,
+        month: nextMode === 'calendar' ? null : undefined,
+        page: nextMode === 'calendar' ? null : 1,
+      },
+      queryParamsHandling: 'merge',
+    });
   }
 
   setView(view: CalendarView) {
@@ -319,7 +352,7 @@ export class Meetings implements OnInit, OnDestroy {
   }
 
   monthDayLabel(date: Date) {
-    return date.toLocaleDateString('es-PE', {
+    return formatInPeru(date, {
       day: 'numeric',
       month: 'long',
     });
@@ -558,11 +591,10 @@ export class Meetings implements OnInit, OnDestroy {
 
   recordingDate(value: string | null | undefined) {
     if (!value) return 'Fecha no disponible';
-    return new Date(value).toLocaleDateString('es-PE', {
+    return formatInPeru(value, {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
-      timeZone: 'America/Lima',
     });
   }
 
@@ -580,7 +612,7 @@ export class Meetings implements OnInit, OnDestroy {
     if (!recording.createdDateTime || !recording.endDateTime) return 'Duración no disponible';
     const minutes = Math.max(
       1,
-      Math.round((new Date(recording.endDateTime).getTime() - new Date(recording.createdDateTime).getTime()) / 60_000),
+      Math.round((parseApiDate(recording.endDateTime).getTime() - parseApiDate(recording.createdDateTime).getTime()) / 60_000),
     );
     return `${minutes} min`;
   }
@@ -796,29 +828,24 @@ export class Meetings implements OnInit, OnDestroy {
   }
 
   formatDate(value: Date | string) {
-    const date = typeof value === 'string' ? new Date(value) : value;
-    return date.toLocaleDateString('es-PE', {
+    return formatInPeru(value, {
       weekday: 'short',
       day: '2-digit',
       month: 'short',
-      timeZone: 'America/Lima',
     });
   }
 
   formatHour(value: Date | string) {
-    const date = typeof value === 'string' ? new Date(value) : value;
-    return date.toLocaleTimeString('es-PE', {
+    return formatInPeru(value, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
-      timeZone: 'America/Lima',
     });
   }
 
   meetingStatusLabel(status: Meeting['status']) {
     const labels: Record<Meeting['status'], string> = {
       solicitada: 'Solicitada',
-      pago_pendiente: 'Pago pendiente',
       por_confirmar: 'Por confirmar',
       confirmada: 'Confirmada',
       finalizada: 'Finalizada',
@@ -829,7 +856,6 @@ export class Meetings implements OnInit, OnDestroy {
 
   meetingStatusClass(status: Meeting['status']) {
     if (status === 'confirmada') return 'bg-success/10 text-success';
-    if (status === 'pago_pendiente') return 'bg-secondary/10 text-secondary';
     if (status === 'por_confirmar') return 'bg-warning/10 text-warning';
     if (status === 'solicitada') return 'bg-warning/10 text-warning';
     if (status === 'finalizada') return 'bg-text/5 text-text';
@@ -851,11 +877,11 @@ export class Meetings implements OnInit, OnDestroy {
   }
 
   meetingDisplayStart(meeting: Meeting) {
-    return new Date(meeting.startTime ?? meeting.proposedStartTimes?.[0] ?? meeting.createdAt);
+    return parseApiDate(meeting.startTime ?? meeting.proposedStartTimes?.[0] ?? meeting.createdAt);
   }
 
   private calendarEventTime(value: Date) {
-    return value.toLocaleTimeString('es-PE', {
+    return formatInPeru(value, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
@@ -877,7 +903,7 @@ export class Meetings implements OnInit, OnDestroy {
   }
 
   private formatAvailabilityTime(value: Date) {
-    return value.toLocaleTimeString('es-PE', {
+    return formatInPeru(value, {
       hour: 'numeric',
       ...(value.getMinutes() === 0 ? {} : { minute: '2-digit' as const }),
       hour12: true,
@@ -893,7 +919,7 @@ export class Meetings implements OnInit, OnDestroy {
   private meetingCalendarEvents(meeting: Meeting): CalendarEvent<SlotEventMeta>[] {
     const proposedStarts = meeting.status === 'por_confirmar'
       ? this.proposedTimes(meeting)
-          .map((value) => new Date(value))
+          .map((value) => parseApiDate(value))
           .filter((value) => !Number.isNaN(value.getTime()))
       : [];
     const isProposedOption = proposedStarts.length > 0;
@@ -1083,8 +1109,9 @@ export class Meetings implements OnInit, OnDestroy {
         cursor.getTime() < slot.endTime.getTime();
         cursor = this.addMinutes(cursor, this.halfHourMinutes())
       ) {
-        if (cursor.getFullYear() !== year || (cursor.getMonth() + 1) !== month) continue;
-        const day = String(cursor.getDate());
+        const parts = dateTimePartsInPeru(cursor);
+        if (parts.year !== year || parts.month !== month) continue;
+        const day = String(parts.day);
         const daySchedule = schedule.get(day) ?? new Set<string>();
         daySchedule.add(this.toTimeInput(cursor));
         schedule.set(day, daySchedule);
@@ -1103,7 +1130,7 @@ export class Meetings implements OnInit, OnDestroy {
 
     for (const slot of this.visibleWeekSlots()) {
       if (slot.status !== 'disponible') continue;
-      const weekday = slot.startTime.getDay();
+      const weekday = dateTimePartsInPeru(slot.startTime).weekday;
       const times = weekdaySchedule.get(weekday) ?? new Set<string>();
 
       for (
@@ -1301,10 +1328,7 @@ export class Meetings implements OnInit, OnDestroy {
   }
 
   private toDateInput(date: Date) {
-    const year = date.getFullYear();
-    const month = `${date.getMonth() + 1}`.padStart(2, '0');
-    const day = `${date.getDate()}`.padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return dateKeyInPeru(date);
   }
 
   private toDateKey(date: Date) {
@@ -1312,20 +1336,17 @@ export class Meetings implements OnInit, OnDestroy {
   }
 
   private toTimeInput(date: Date) {
-    const hour = `${date.getHours()}`.padStart(2, '0');
-    const minute = `${date.getMinutes()}`.padStart(2, '0');
-    return `${hour}:${minute}`;
+    return timeInputInPeru(date);
   }
 
   private fromLocalInput(date: string, time: string) {
     if (!date || !time) return null;
-    const value = new Date(`${date}T${time}:00`);
-    return Number.isNaN(value.getTime()) ? null : value;
+    return peruDateTimeInputToUtc(`${date}T${time}`);
   }
 
   private fromMonthDayTime(year: number, monthIndex: number, day: number, time: string) {
     const [hours, minutes] = time.split(':').map(Number);
-    return new Date(year, monthIndex, day, hours, minutes);
+    return peruDateTimeToUtc(year, monthIndex + 1, day, hours, minutes);
   }
 
   private checkIfFirstTime() {

@@ -52,9 +52,9 @@
       @for (card of kpiCards(); track trackByLabel($index, card)) {
         <article
           class="min-h-[11.6rem] rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)] transition-shadow"
-          [class.cursor-pointer]="card.action === 'upcomingMeetings'"
-          [attr.role]="card.action === 'upcomingMeetings' ? 'button' : null"
-          [attr.tabindex]="card.action === 'upcomingMeetings' ? 0 : null"
+          [class.cursor-pointer]="card.action === 'meetingList'"
+          [attr.role]="card.action === 'meetingList' ? 'button' : null"
+          [attr.tabindex]="card.action === 'meetingList' ? 0 : null"
           (click)="onKpiCardClick(card)"
           (keydown.enter)="onKpiCardKeydown($event, card)"
           (keydown.space)="onKpiCardKeydown($event, card)"
@@ -79,10 +79,12 @@
           @if (card.details; as details) {
             <div class="mt-6 grid grid-cols-2 gap-x-3 gap-y-2 border-t border-border pt-3">
               @for (detail of details; track detail.label) {
-                <div class="flex items-center justify-between gap-2 text-[0.68rem]">
+                <button type="button" (click)="openMeetingList(detail.status, $event)"
+                  (keydown)="$event.stopPropagation()"
+                  class="flex w-full items-center justify-between gap-2 rounded-lg px-1 py-0.5 text-[0.68rem] transition hover:bg-secondary/10">
                   <span class="text-muted">{{ detail.label }}</span>
                   <span class="text-[0.82rem] font-inter-bold text-text">{{ detail.value }}</span>
-                </div>
+                </button>
               }
             </div>
           } @else {

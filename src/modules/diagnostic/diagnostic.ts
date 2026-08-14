@@ -10,6 +10,7 @@ import { ToastService } from '@service/toast.service';
 import { PATH, buildPath } from '@route/path.route';
 import { DIAGNOSTIC_STEPS } from './diagnostic.constants';
 import { NgApexchartsModule } from 'ng-apexcharts';
+import { formatInPeru } from '@function/date.function';
 import {
   AreaConsultantsMap,
   CriticalArea,
@@ -490,7 +491,7 @@ export class Diagnostic implements OnInit {
 
   date(value: string | Date | null | undefined) {
     if (!value) return 'Sin fecha';
-    return new Date(value).toLocaleDateString('es-PE', {
+    return formatInPeru(value, {
       day: '2-digit',
       month: 'long',
       year: 'numeric',

@@ -18,6 +18,12 @@ import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { PATH, buildPath } from '@route/path.route';
 import {
+  addDaysToDateOnly,
+  dateKeyInPeru,
+  formatDateForDatetimeLocal,
+  parseApiDate,
+} from '@function/date.function';
+import {
   PaginationMetaDto,
   ConsultantServiceOfferResultDto,
   ServiceConsultantMatchDto,
@@ -48,12 +54,6 @@ export class PymeServicesStore {
   private readonly hubsme = inject(HubsmeService);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
-  private readonly meetingDateFormatter = new Intl.DateTimeFormat('en-US', {
-    timeZone: 'America/Lima',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
   private requestSequence = 0;
   private aiRequestSequence = 0;
   private paymentPlanRequestSequence = 0;
@@ -130,7 +130,7 @@ export class PymeServicesStore {
       this.categoryOptions.find((option) => option.category === this.category())?.subcategories ??
       [],
   );
-  readonly minimumDeadline = this.toLocalDateInput(new Date());
+  readonly minimumDeadline = dateKeyInPeru();
   readonly matchingConsultants = signal(false);
   readonly aiMatches = signal<ServiceConsultantMatchDto[]>([]);
   readonly selectedConsultants = signal<ConsultantSelection[]>([]);
@@ -138,7 +138,7 @@ export class PymeServicesStore {
   readonly initialMeetingOptions = signal<Record<number, string[]>>({});
   readonly initialMeetingAvailability = signal<Record<number, InitialMeetingSlot[]>>({});
   readonly initialMeetingAvailabilityLoading = signal(false);
-  readonly minimumMeetingDateTime = this.toLocalDateTimeInput(
+  readonly minimumMeetingDateTime = formatDateForDatetimeLocal(
     new Date(Date.now() + 24 * 60 * 60 * 1000),
   );
   readonly canReviewDraft = computed(() => this.chatComplete() && this.hasValidDraft());
@@ -254,9 +254,7 @@ export class PymeServicesStore {
   openCreateFromOffer(offer: ConsultantServiceOfferResultDto) {
     this.resetCreateFlow();
     this.selectedOffer.set(offer);
-    const deadline = new Date();
-    deadline.setDate(deadline.getDate() + offer.estimatedDurationDays);
-    const deadlineValue = this.toLocalDateInput(deadline);
+    const deadlineValue = addDaysToDateOnly(dateKeyInPeru(), offer.estimatedDurationDays);
     const periodLabel = this.offerPricePeriodLabel(offer.pricePeriod);
 
     this.title.set(offer.title);
@@ -752,13 +750,7 @@ export class PymeServicesStore {
   }
 
   private initialMeetingDateKey(value: string) {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return '';
-    const parts: Record<string, string> = {};
-    for (const part of this.meetingDateFormatter.formatToParts(date)) {
-      if (part.type !== 'literal') parts[part.type] = part.value;
-    }
-    return `${parts['year']}-${parts['month']}-${parts['day']}`;
+    return dateKeyInPeru(value);
   }
 
   private async loadInitialMeetingAvailability(consultantIds: number[]) {
@@ -1042,7 +1034,7 @@ export class PymeServicesStore {
       this.selectedConsultants().map((consultant) => ({
         consultantId: consultant.userId,
         proposedStartTimes: this.initialMeetingTimesFor(consultant.userId).map((value) =>
-          new Date(value).toISOString(),
+          parseApiDate(value).toISOString(),
         ),
       }));
     formData.append('initialMeetingOptions', JSON.stringify(initialMeetingOptions));
@@ -1115,15 +1107,4 @@ export class PymeServicesStore {
     }
   }
 
-  private toLocalDateInput(date: Date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-
-  private toLocalDateTimeInput(date: Date) {
-    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60 * 1000);
-    return local.toISOString().slice(0, 16);
-  }
 }

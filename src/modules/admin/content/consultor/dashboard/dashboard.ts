@@ -25,15 +25,18 @@ import { SessionService } from '@service/session.service';
 import { ToastService } from '@service/toast.service';
 import { ThemeService } from '@service/theme.service';
 import { PATH, buildPath } from '@route/path.route';
+import { monthKeyInPeru, parseApiDate } from '@function/date.function';
 
 type DashboardSummary = ApiResponse<'dashboard', 'summary'>;
 type UpcomingMeeting = DashboardSummary['upcomingMeetings'][number];
 type DashboardRole = 'admin' | 'pyme' | 'consultor';
-type KpiCardAction = 'upcomingMeetings';
+type MeetingListStatus = 'solicitada' | 'pendiente' | 'confirmada' | 'finalizada';
+type KpiCardAction = 'meetingList';
 
 type KpiDetail = {
   label: string;
   value: string;
+  status?: MeetingListStatus;
 };
 
 type KpiCard = {
@@ -201,12 +204,12 @@ export class Dashboard implements OnInit, OnDestroy {
           icon: 'fas fa-calendar-days',
           iconClass: 'bg-accent/10 text-accent',
           details: [
-            { label: 'Confirmadas', value: `${this.meetingStats().confirmed}` },
-            { label: 'Solicitadas', value: `${this.meetingStats().requested}` },
-            { label: 'Pendientes', value: `${this.meetingStats().pending}` },
-            { label: 'Completadas', value: `${this.meetingStats().completed}` },
+            { label: 'Confirmadas', value: `${this.meetingStats().confirmed}`, status: 'confirmada' },
+            { label: 'Solicitadas', value: `${this.meetingStats().requested}`, status: 'solicitada' },
+            { label: 'Pendientes', value: `${this.meetingStats().pending}`, status: 'pendiente' },
+            { label: 'Completadas', value: `${this.meetingStats().completed}`, status: 'finalizada' },
           ],
-          action: 'upcomingMeetings',
+          action: 'meetingList',
         },
         {
           label: 'Tareas pendientes',
@@ -244,12 +247,12 @@ export class Dashboard implements OnInit, OnDestroy {
         icon: 'fas fa-calendar-days',
         iconClass: 'bg-accent/10 text-accent',
         details: [
-          { label: 'Confirmadas', value: `${this.meetingStats().confirmed}` },
-          { label: 'Solicitadas', value: `${this.meetingStats().requested}` },
-          { label: 'Pendientes', value: `${this.meetingStats().pending}` },
-          { label: 'Completadas', value: `${this.meetingStats().completed}` },
+          { label: 'Confirmadas', value: `${this.meetingStats().confirmed}`, status: 'confirmada' },
+          { label: 'Solicitadas', value: `${this.meetingStats().requested}`, status: 'solicitada' },
+          { label: 'Pendientes', value: `${this.meetingStats().pending}`, status: 'pendiente' },
+          { label: 'Completadas', value: `${this.meetingStats().completed}`, status: 'finalizada' },
         ],
-        action: 'upcomingMeetings',
+        action: 'meetingList',
       },
       {
         label: 'Tareas',
@@ -262,7 +265,7 @@ export class Dashboard implements OnInit, OnDestroy {
       {
         label: 'Consultores',
         value: `${this.consultantCount()}`,
-        helper: 'Expertos conectados',
+        helper: 'Servicios contratados',
         badge: 'Activos en tu red',
         icon: 'fas fa-users',
         iconClass: 'bg-violet-500/10 text-violet-600',
@@ -648,7 +651,7 @@ export class Dashboard implements OnInit, OnDestroy {
   isMeetingLive(meeting: UpcomingMeeting): boolean {
     if (meeting.status !== 'confirmada') return false;
 
-    const startTime = new Date(meeting.startTime).getTime();
+    const startTime = parseApiDate(meeting.startTime).getTime();
     if (!Number.isFinite(startTime)) return false;
 
     const endTime = startTime + meeting.durationMinutes * 60_000;
@@ -669,12 +672,19 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   onKpiCardClick(card: KpiCard): void {
-    if (card.action !== 'upcomingMeetings' || !isPlatformBrowser(this.platformId)) return;
+    if (card.action !== 'meetingList') return;
+    this.openMeetingList();
+  }
 
-    document.getElementById('upcoming-sessions')?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
+  openMeetingList(status?: MeetingListStatus, event?: Event): void {
+    event?.stopPropagation();
+    void this.router.navigate([`/${this.meetingDetailsPath}`], {
+      queryParams: { view: 'list', status: status ?? null, month: this.currentMonth(), page: 1 },
     });
+  }
+
+  private currentMonth(): string {
+    return monthKeyInPeru();
   }
 
   onKpiCardKeydown(event: Event, card: KpiCard): void {

@@ -7,6 +7,7 @@ import { ToastService } from '@service/toast.service';
 import { SessionService } from '@service/session.service';
 import { PhoneInputComponent } from '@component/phone-input/phone-input';
 import { normalizePhoneForSubmit } from '@function/phone.function';
+import { dateKeyInPeru, formatInPeru } from '@function/date.function';
 
 type PymeProfileData = ApiResponse<'pyme', 'findByUser'>;
 
@@ -43,13 +44,16 @@ export class Profile implements OnInit {
   imageError = signal(false);
 
   lastUpdatedText = computed(() => {
-    const p = this.pyme() as any;
+    const p = this.pyme();
     if (!p || !p.updatedAt) return '';
-    const date = new Date(p.updatedAt);
-    const now = new Date();
-    const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-    const timeStr = date.toLocaleTimeString('es-PE', { hour: 'numeric', minute: '2-digit', hour12: true });
-    return isToday ? `Hoy, ${timeStr}` : `${date.toLocaleDateString('es-PE')}, ${timeStr}`;
+    const isToday = dateKeyInPeru(p.updatedAt) === dateKeyInPeru();
+    const time = formatInPeru(p.updatedAt, {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    const date = formatInPeru(p.updatedAt, { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return isToday ? `Hoy, ${time}` : `${date}, ${time}`;
   });
 
   form = signal<PymeForm>({

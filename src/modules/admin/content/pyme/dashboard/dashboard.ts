@@ -25,15 +25,18 @@ import { SessionService } from '@service/session.service';
 import { ToastService } from '@service/toast.service';
 import { ThemeService } from '@service/theme.service';
 import { PATH, buildPath } from '@route/path.route';
+import { formatToPartsInPeru, monthKeyInPeru, parseApiDate } from '@function/date.function';
 
 type DashboardSummary = ApiResponse<'dashboard', 'summary'>;
 type UpcomingMeeting = DashboardSummary['upcomingMeetings'][number];
 type DashboardRole = 'admin' | 'pyme' | 'consultor';
-type KpiCardAction = 'upcomingMeetings';
+type MeetingListStatus = 'solicitada' | 'pendiente' | 'confirmada' | 'finalizada';
+type KpiCardAction = 'meetingList';
 
 type KpiDetail = {
   label: string;
   value: string;
+  status?: MeetingListStatus;
 };
 
 type KpiCard = {
@@ -105,16 +108,6 @@ export class Dashboard implements OnInit, OnDestroy {
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private liveClock: ReturnType<typeof setInterval> | null = null;
-  private readonly peruMeetingDateTimeFormatter = new Intl.DateTimeFormat('es-PE', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-    timeZone: 'America/Lima',
-  });
-
   summary = signal<DashboardSummary | null>(null);
   loading = signal(false);
   now = signal(Date.now());
@@ -208,11 +201,12 @@ export class Dashboard implements OnInit, OnDestroy {
           icon: 'fas fa-calendar-days',
           iconClass: 'bg-accent/10 text-accent',
           details: [
-            { label: 'Confirmadas', value: `${this.meetingStats().confirmed}` },
-            { label: 'Solicitadas', value: `${this.meetingStats().requested}` },
-            { label: 'Pendientes', value: `${this.meetingStats().pending}` },
-            { label: 'Completadas', value: `${this.meetingStats().completed}` },
+            { label: 'Confirmadas', value: `${this.meetingStats().confirmed}`, status: 'confirmada' },
+            { label: 'Solicitadas', value: `${this.meetingStats().requested}`, status: 'solicitada' },
+            { label: 'Pendientes', value: `${this.meetingStats().pending}`, status: 'pendiente' },
+            { label: 'Completadas', value: `${this.meetingStats().completed}`, status: 'finalizada' },
           ],
+          action: 'meetingList',
         },
         {
           label: 'Tareas pendientes',
@@ -250,12 +244,12 @@ export class Dashboard implements OnInit, OnDestroy {
         icon: 'fas fa-calendar-days',
         iconClass: 'bg-accent/10 text-accent',
         details: [
-          { label: 'Confirmadas', value: `${this.meetingStats().confirmed}` },
-          { label: 'Solicitadas', value: `${this.meetingStats().requested}` },
-          { label: 'Pendientes', value: `${this.meetingStats().pending}` },
-          { label: 'Completadas', value: `${this.meetingStats().completed}` },
+          { label: 'Confirmadas', value: `${this.meetingStats().confirmed}`, status: 'confirmada' },
+          { label: 'Solicitadas', value: `${this.meetingStats().requested}`, status: 'solicitada' },
+          { label: 'Pendientes', value: `${this.meetingStats().pending}`, status: 'pendiente' },
+          { label: 'Completadas', value: `${this.meetingStats().completed}`, status: 'finalizada' },
         ],
-        action: 'upcomingMeetings',
+        action: 'meetingList',
       },
       {
         label: 'Tareas pendientes',
@@ -268,7 +262,7 @@ export class Dashboard implements OnInit, OnDestroy {
       {
         label: 'Consultores',
         value: `${this.consultantCount()}`,
-        helper: 'Expertos conectados',
+        helper: 'Servicios contratados',
         badge: `${this.consultantCount()} interacciones`,
         icon: 'fas fa-users',
         iconClass: 'bg-violet-500/10 text-violet-600',
@@ -673,7 +667,14 @@ export class Dashboard implements OnInit, OnDestroy {
     const date = this.parseMeetingStartTime(startTime);
     if (!Number.isFinite(date.getTime())) return 'Horario no disponible';
 
-    const parts = this.peruMeetingDateTimeFormatter.formatToParts(date);
+    const parts = formatToPartsInPeru(date, {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
     const part = (type: Intl.DateTimeFormatPartTypes) =>
       parts.find((item) => item.type === type)?.value ?? '';
 
@@ -683,10 +684,7 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   private parseMeetingStartTime(startTime: string): Date {
-    const normalizedStartTime = startTime.trim().replace(' ', 'T');
-    const includesTimeZone = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(normalizedStartTime);
-
-    return new Date(includesTimeZone ? normalizedStartTime : `${normalizedStartTime}Z`);
+    return parseApiDate(startTime);
   }
 
   openMeetingInNewTab(meeting: UpcomingMeeting): void {
@@ -699,12 +697,19 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   onKpiCardClick(card: KpiCard): void {
-    if (card.action !== 'upcomingMeetings' || !isPlatformBrowser(this.platformId)) return;
+    if (card.action !== 'meetingList') return;
+    this.openMeetingList();
+  }
 
-    document.getElementById('upcoming-sessions')?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
+  openMeetingList(status?: MeetingListStatus, event?: Event): void {
+    event?.stopPropagation();
+    void this.router.navigate([`/${this.meetingDetailsPath}`], {
+      queryParams: { view: 'list', status: status ?? null, month: this.currentMonth(), page: 1 },
     });
+  }
+
+  private currentMonth(): string {
+    return monthKeyInPeru();
   }
 
   onKpiCardKeydown(event: Event, card: KpiCard): void {

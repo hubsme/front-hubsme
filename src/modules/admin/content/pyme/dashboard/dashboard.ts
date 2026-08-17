@@ -25,10 +25,16 @@ import { SessionService } from '@service/session.service';
 import { ToastService } from '@service/toast.service';
 import { ThemeService } from '@service/theme.service';
 import { PATH, buildPath } from '@route/path.route';
-import { formatToPartsInPeru, monthKeyInPeru, parseApiDate } from '@function/date.function';
+import {
+  dateKeyInPeru,
+  formatToPartsInPeru,
+  monthKeyInPeru,
+  parseApiDate,
+} from '@function/date.function';
 
 type DashboardSummary = ApiResponse<'dashboard', 'summary'>;
 type UpcomingMeeting = DashboardSummary['upcomingMeetings'][number];
+type DeadlineTask = DashboardSummary['upcomingTasks'][number];
 type DashboardRole = 'admin' | 'pyme' | 'consultor';
 type MeetingListStatus = 'solicitada' | 'pendiente' | 'confirmada' | 'finalizada';
 type KpiCardAction = 'meetingList';
@@ -119,6 +125,7 @@ export class Dashboard implements OnInit, OnDestroy {
   userName = computed(() => this.sessionService.session()?.user.name ?? 'Hubsme');
   isConsultant = computed(() => this.role() === 'consultor');
   meetingDetailsPath = buildPath(PATH.admin.pyme.meetings);
+  taskBoardPath = buildPath(PATH.admin.pyme.tasks);
 
   headerTitle = computed(() => 'Panel General');
 
@@ -341,22 +348,6 @@ export class Dashboard implements OnInit, OnDestroy {
     ];
   });
 
-  activitySeries = computed(() => {
-    const meetings = this.summary()?.stats.meetings ?? 0;
-    const tasks = this.summary()?.stats.tasks ?? 0;
-
-    return {
-      labels: ['Actual'],
-      meetings: [meetings],
-      tasks: [tasks],
-    };
-  });
-
-  hasActivity = computed(() => {
-    const stats = this.summary()?.stats;
-    return (stats?.meetings ?? 0) > 0 || (stats?.tasks ?? 0) > 0;
-  });
-
   workloadChartOptions = computed<AxisChartOptions>(() => ({
     series: [
       {
@@ -434,77 +425,6 @@ export class Dashboard implements OnInit, OnDestroy {
     responsive: [],
   }));
 
-  lineChartOptions = computed<AxisChartOptions>(() => ({
-    series: [
-      { name: 'Reuniones', data: this.activitySeries().meetings },
-      { name: 'Tareas', data: this.activitySeries().tasks },
-    ],
-    chart: {
-      type: 'line',
-      height: 340,
-      toolbar: { show: false },
-      fontFamily: 'Inter Regular, sans-serif',
-      animations: { enabled: false },
-    },
-    colors: ['#2563eb', '#f59e0b'],
-    dataLabels: { enabled: false },
-    stroke: {
-      curve: 'smooth',
-      width: [5, 4],
-      lineCap: 'round',
-    },
-    xaxis: {
-      categories: this.activitySeries().labels,
-      labels: {
-        style: {
-          colors: this.chartTheme().text,
-          fontSize: '11px',
-          fontFamily: 'Inter Medium, sans-serif',
-        },
-      },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      min: 0,
-      labels: {
-        style: {
-          colors: this.chartTheme().text,
-          fontSize: '11px',
-          fontFamily: 'Inter Medium, sans-serif',
-        },
-      },
-    },
-    grid: {
-      borderColor: this.chartTheme().grid,
-      strokeDashArray: 3,
-    },
-    tooltip: {
-      theme: this.chartTheme().tooltip,
-      shared: true,
-      intersect: false,
-    },
-    legend: {
-      position: 'top',
-      horizontalAlign: 'right',
-      fontSize: '12px',
-      labels: { colors: this.chartTheme().text },
-    },
-    plotOptions: {},
-    fill: { opacity: 1 },
-    markers: {
-      size: 5,
-      strokeColors: '#ffffff',
-      strokeWidth: 3,
-      hover: { size: 6, sizeOffset: 0 },
-    },
-    states: {
-      hover: { filter: { type: 'none' } },
-      active: { filter: { type: 'none' }, allowMultipleDataPointsSelection: false },
-    },
-    responsive: [],
-  }));
-
   donutChartOptions = computed<DonutChartOptions>(() => ({
     series: this.taskSlices().map((item) => item.value),
     chart: {
@@ -560,74 +480,106 @@ export class Dashboard implements OnInit, OnDestroy {
     responsive: [{ breakpoint: 1280, options: { chart: { height: 300 } } }],
   }));
 
-  taskBarsChartOptions = computed<AxisChartOptions>(() => ({
-    series: [
-      {
-        name: 'Tareas',
-        data: this.taskSlices().map((item) => item.value),
+  taskBarsChartOptions = computed<AxisChartOptions>(() => {
+    const taskSlices = this.taskSlices().filter((item) => item.label !== 'Bloqueadas');
+    const totalTasks = taskSlices.reduce((total, item) => total + item.value, 0);
+    const maxTaskValue = Math.max(0, ...taskSlices.map((item) => item.value));
+    const percentage = (value: number) =>
+      totalTasks > 0 ? Math.round((value / totalTasks) * 100) : 0;
+
+    return {
+      series: [
+        {
+          name: 'Tareas',
+          data: taskSlices.map((item) => item.value),
+        },
+      ],
+      chart: {
+        type: 'bar',
+        height: 340,
+        toolbar: { show: false },
+        fontFamily: 'Inter Regular, sans-serif',
+        animations: { enabled: false },
       },
-    ],
-    chart: {
-      type: 'bar',
-      height: 340,
-      toolbar: { show: false },
-      fontFamily: 'Inter Regular, sans-serif',
-      animations: { enabled: false },
-    },
-    colors: this.taskSlices().map((item) => item.color),
-    plotOptions: {
-      bar: {
-        columnWidth: '42%',
-        borderRadius: 8,
-        distributed: true,
-      },
-    },
-    dataLabels: { enabled: false },
-    xaxis: {
-      categories: this.taskSlices().map((item) => item.shortLabel),
-      labels: {
-        style: {
-          colors: this.chartTheme().text,
-          fontSize: '11px',
-          fontFamily: 'Inter Medium, sans-serif',
+      colors: taskSlices.map((item) => item.color),
+      plotOptions: {
+        bar: {
+          columnWidth: '42%',
+          borderRadius: 8,
+          distributed: true,
+          dataLabels: { position: 'top' },
         },
       },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      min: 0,
-      labels: {
+      dataLabels: {
+        enabled: true,
+        formatter: (value: number) => `${percentage(value)}%`,
+        offsetY: -18,
         style: {
-          colors: this.chartTheme().text,
           fontSize: '11px',
-          fontFamily: 'Inter Medium, sans-serif',
+          fontFamily: 'Inter SemiBold, sans-serif',
+          colors: [this.chartTheme().text],
+        },
+        background: { enabled: false },
+      },
+      xaxis: {
+        categories: taskSlices.map((item) => item.shortLabel),
+        labels: {
+          style: {
+            colors: this.chartTheme().text,
+            fontSize: '11px',
+            fontFamily: 'Inter Medium, sans-serif',
+          },
+        },
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+      },
+      yaxis: {
+        min: 0,
+        max: Math.max(1, Math.ceil(maxTaskValue * 1.25)),
+        forceNiceScale: true,
+        labels: {
+          style: {
+            colors: this.chartTheme().text,
+            fontSize: '11px',
+            fontFamily: 'Inter Medium, sans-serif',
+          },
         },
       },
-    },
-    grid: {
-      borderColor: this.chartTheme().grid,
-      strokeDashArray: 4,
-    },
-    tooltip: {
-      theme: this.chartTheme().tooltip,
-      shared: false,
-      intersect: true,
-      followCursor: false,
-      marker: { show: true },
-    },
-    stroke: { show: false },
-    legend: { show: false },
-    fill: { opacity: 1 },
-    markers: { size: 0 },
-    states: {
-      hover: { filter: { type: 'none' } },
-      active: { filter: { type: 'none' }, allowMultipleDataPointsSelection: false },
-    },
-    responsive: [],
-  }));
+      grid: {
+        borderColor: this.chartTheme().grid,
+        strokeDashArray: 4,
+        padding: { top: 16 },
+      },
+      tooltip: {
+        theme: this.chartTheme().tooltip,
+        shared: false,
+        intersect: true,
+        followCursor: false,
+        marker: { show: true },
+        y: {
+          formatter: (value: number) =>
+            `${value} ${value === 1 ? 'tarea' : 'tareas'} · ${percentage(value)}%`,
+        },
+      },
+      stroke: { show: false },
+      legend: { show: false },
+      fill: { opacity: 1 },
+      markers: { size: 0 },
+      states: {
+        hover: { filter: { type: 'none' } },
+        active: { filter: { type: 'none' }, allowMultipleDataPointsSelection: false },
+      },
+      responsive: [],
+    };
+  });
 
   upcomingMeetings = computed(() => this.summary()?.upcomingMeetings ?? []);
+  upcomingTasks = computed(() => this.summary()?.upcomingTasks ?? []);
+  overdueTasks = computed(() => this.summary()?.overdueTasks ?? []);
+  visibleUpcomingTasks = computed(() => this.upcomingTasks().slice(0, 3));
+  visibleOverdueTasks = computed(() => this.overdueTasks().slice(0, 3));
+  upcomingExtraTaskCount = computed(() => Math.max(0, this.upcomingTasks().length - 3));
+  overdueExtraTaskCount = computed(() => Math.max(0, this.overdueTasks().length - 3));
 
   ngOnInit() {
     this.loadSummary();
@@ -681,6 +633,33 @@ export class Dashboard implements OnInit, OnDestroy {
     return `${part('weekday')} ${part('day')} ${part('month')} · ${part('hour')}:${part(
       'minute',
     )} ${part('dayPeriod')}`.trim();
+  }
+
+  taskDueLabel(task: DeadlineTask, overdue: boolean): string {
+    const dueDay = this.peruDayIndex(task.dueDate);
+    const today = this.peruDayIndex(new Date(this.now()));
+    if (dueDay === null || today === null) return 'Fecha límite no disponible';
+
+    const difference = dueDay - today;
+    if (overdue) {
+      const elapsedDays = Math.max(1, Math.abs(difference));
+      return elapsedDays === 1 ? 'Venció ayer' : `Venció hace ${elapsedDays} días`;
+    }
+
+    if (difference === 0) return 'Vence hoy';
+    if (difference === 1) return 'Vence mañana';
+
+    const parts = formatToPartsInPeru(task.dueDate, { day: 'numeric', month: 'short' });
+    const part = (type: Intl.DateTimeFormatPartTypes) =>
+      parts.find((item) => item.type === type)?.value ?? '';
+    return `Vence ${part('day')} ${part('month')}`.trim();
+  }
+
+  private peruDayIndex(value: string | Date): number | null {
+    const key = dateKeyInPeru(value);
+    if (!key) return null;
+    const [year, month, day] = key.split('-').map(Number);
+    return Math.floor(Date.UTC(year, month - 1, day) / 86_400_000);
   }
 
   private parseMeetingStartTime(startTime: string): Date {

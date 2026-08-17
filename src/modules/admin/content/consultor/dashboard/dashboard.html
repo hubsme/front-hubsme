@@ -207,16 +207,18 @@
         class="rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]"
       >
         <div>
-          <h2 class="text-xl leading-tight text-text font-anton lowercase">
-            {{ isConsultant() ? 'Carga de Trabajo por Cliente' : 'Evolucion de Actividad' }}
-          </h2>
-          <p class="mt-1 text-[0.84rem] leading-relaxed text-muted">
-            {{
-              isConsultant()
-                ? 'Distribucion de tareas y progreso por cada PYME.'
-                : 'Lectura rapida del movimiento reciente entre reuniones y tareas.'
-            }}
-          </p>
+          <div>
+            <h2 class="text-xl leading-tight text-text font-anton lowercase">
+              {{ isConsultant() ? 'Carga de Trabajo por Cliente' : 'Evolucion de Actividad' }}
+            </h2>
+            <p class="mt-1 text-[0.84rem] leading-relaxed text-muted">
+              {{
+                isConsultant()
+                  ? 'Distribucion de tareas y progreso por cada PYME.'
+                  : 'Lectura rapida del movimiento reciente entre reuniones y tareas.'
+              }}
+            </p>
+          </div>
         </div>
 
         @if (isBrowser) {
@@ -273,7 +275,7 @@
       <section
         class="rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]"
       >
-        <div>
+        <div class="w-full">
           <h2 class="text-xl leading-tight text-text font-anton lowercase">
             {{ isConsultant() ? 'Estado de Tareas Global' : 'Tareas por Estado' }}
           </h2>
@@ -284,6 +286,18 @@
                 : 'Balance entre carga pendiente, ejecucion y cierre.'
             }}
           </p>
+          @if (isConsultant()) {
+            <div class="mt-4 flex w-full justify-end sm:mt-3">
+              <div class="w-full sm:max-w-xs">
+                <app-pyme-input-search
+                  aria-label="Filtrar estado de tareas por PYME"
+                  emptyLabel="Todas las PYMEs"
+                  [showClear]="true"
+                  (onSelected)="onPymeSelected($event)"
+                />
+              </div>
+            </div>
+          }
         </div>
 
         @if (isBrowser) {

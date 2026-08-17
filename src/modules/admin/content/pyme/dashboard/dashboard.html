@@ -206,22 +206,18 @@
       <section
         class="rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]"
       >
-        <div>
-          <h2 class="text-xl leading-tight text-text font-anton lowercase">
-            {{ isConsultant() ? 'Carga de Trabajo por Cliente' : 'Evolucion de Actividad' }}
-          </h2>
-          <p class="mt-1 text-[0.84rem] leading-relaxed text-muted">
-            {{
-              isConsultant()
-                ? 'Distribucion de tareas y progreso por cada PYME.'
-                : 'Lectura rapida del movimiento reciente entre reuniones y tareas.'
-            }}
-          </p>
-        </div>
+        @if (isConsultant()) {
+          <div>
+            <h2 class="text-xl leading-tight text-text font-anton lowercase">
+              Carga de Trabajo por Cliente
+            </h2>
+            <p class="mt-1 text-[0.84rem] leading-relaxed text-muted">
+              Distribución de tareas y progreso por cada PYME.
+            </p>
+          </div>
 
-        @if (isBrowser) {
-          <div class="mt-6 min-h-80 overflow-hidden [&_*]:!transition-none">
-            @if (isConsultant()) {
+          @if (isBrowser) {
+            <div class="mt-6 min-h-80 overflow-hidden [&_*]:!transition-none">
               <apx-chart
                 [series]="workloadChartOptions().series"
                 [chart]="workloadChartOptions().chart"
@@ -239,33 +235,139 @@
                 [states]="workloadChartOptions().states"
                 [responsive]="workloadChartOptions().responsive"
               ></apx-chart>
-            } @else {
-              @if (hasActivity()) {
-                <apx-chart
-                  [series]="lineChartOptions().series"
-                  [chart]="lineChartOptions().chart"
-                  [colors]="lineChartOptions().colors"
-                  [plotOptions]="lineChartOptions().plotOptions"
-                  [dataLabels]="lineChartOptions().dataLabels"
-                  [stroke]="lineChartOptions().stroke"
-                  [xaxis]="lineChartOptions().xaxis"
-                  [yaxis]="lineChartOptions().yaxis"
-                  [grid]="lineChartOptions().grid"
-                  [tooltip]="lineChartOptions().tooltip"
-                  [legend]="lineChartOptions().legend"
-                  [fill]="lineChartOptions().fill"
-                  [markers]="lineChartOptions().markers"
-                  [states]="lineChartOptions().states"
-                  [responsive]="lineChartOptions().responsive"
-                ></apx-chart>
-              } @else {
-                <div
-                  class="flex min-h-80 items-center justify-center rounded-2xl border border-dashed border-border bg-background-50 text-center text-muted"
-                >
-                  No hay actividad registrada.
+            </div>
+          }
+        } @else {
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 class="text-xl leading-tight text-text font-anton lowercase">
+                Tareas que requieren atención
+              </h2>
+              <p class="mt-1 text-[0.84rem] leading-relaxed text-muted">
+                Revisa los próximos vencimientos y evita retrasos.
+              </p>
+            </div>
+            <a
+              [routerLink]="['/' + taskBoardPath]"
+              class="inline-flex h-9 w-fit shrink-0 items-center gap-2 rounded-xl border border-border px-3 text-xs text-secondary font-inter-semibold transition-colors hover:border-secondary/30 hover:bg-secondary/5"
+            >
+              Ver tablero
+              <i class="fas fa-arrow-right text-[0.65rem]"></i>
+            </a>
+          </div>
+
+          <div class="mt-7 grid divide-y divide-border md:grid-cols-2 md:divide-x md:divide-y-0">
+            <section class="pb-5 md:pb-0 md:pr-5">
+              <div class="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2.5">
+                <span class="grid h-8 w-8 place-items-center text-warning">
+                    <i class="fas fa-clock text-sm"></i>
+                </span>
+                <div class="min-w-0">
+                  <h3 class="text-sm font-inter-bold">Próximas a vencer</h3>
+                  <p class="mt-0.5 text-[0.68rem] text-muted">Durante los próximos 7 días</p>
                 </div>
-              }
-            }
+                <span class="text-xs text-muted font-inter-bold">
+                  {{ upcomingTasks().length }}
+                </span>
+              </div>
+
+              <div class="mt-3">
+                @for (task of visibleUpcomingTasks(); track task.id) {
+                  <a
+                    [routerLink]="['/' + taskBoardPath]"
+                    class="group grid grid-cols-[2rem_minmax(0,1fr)_auto] items-start gap-2.5 border-b border-border/70 py-3.5"
+                  >
+                    <span class="grid h-5 w-8 place-items-center text-warning">
+                      <i class="far fa-calendar-check text-xs"></i>
+                    </span>
+                    <div class="min-w-0 flex-1">
+                      <p class="line-clamp-2 max-h-10 overflow-hidden text-[0.8rem] leading-5 font-inter-semibold group-hover:underline">
+                        {{ task.title }}
+                      </p>
+                      <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.68rem] text-muted">
+                        <span class="font-inter-semibold">{{ taskDueLabel(task, false) }}</span>
+                        <span class="inline-flex items-center gap-1.5">
+                          <i class="far fa-user text-[0.6rem]"></i>
+                          {{ task.assignedTo === 'pyme' ? 'PYME' : 'Consultor' }}
+                        </span>
+                      </div>
+                    </div>
+                    <i class="fas fa-chevron-right mt-1.5 text-[0.6rem] text-muted transition-transform group-hover:translate-x-0.5"></i>
+                  </a>
+                } @empty {
+                  <div class="flex min-h-40 flex-col items-center justify-center px-4 text-center">
+                    <i class="fas fa-circle-check text-lg text-success"></i>
+                    <p class="mt-2 text-xs text-muted">No tienes tareas próximas a vencer.</p>
+                  </div>
+                }
+                @if (upcomingExtraTaskCount() > 0) {
+                  <a
+                    [routerLink]="['/' + taskBoardPath]"
+                    class="inline-flex items-center gap-1.5 py-3 pl-[2.625rem] text-xs text-secondary font-inter-semibold hover:underline"
+                  >
+                    +{{ upcomingExtraTaskCount() }}
+                    {{ upcomingExtraTaskCount() === 1 ? 'tarea extra' : 'tareas extra' }}
+                    <i class="fas fa-arrow-right text-[0.6rem]"></i>
+                  </a>
+                }
+              </div>
+            </section>
+
+            <section class="pt-5 md:pl-5 md:pt-0">
+              <div class="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2.5">
+                <span class="grid h-8 w-8 place-items-center text-danger">
+                    <i class="fas fa-triangle-exclamation text-sm"></i>
+                </span>
+                <div class="min-w-0">
+                  <h3 class="text-sm font-inter-bold">Tareas vencidas</h3>
+                  <p class="mt-0.5 text-[0.68rem] text-muted">Pendientes fuera de fecha</p>
+                </div>
+                <span class="text-xs text-muted font-inter-bold">
+                  {{ overdueTasks().length }}
+                </span>
+              </div>
+
+              <div class="mt-3">
+                @for (task of visibleOverdueTasks(); track task.id) {
+                  <a
+                    [routerLink]="['/' + taskBoardPath]"
+                    class="group grid grid-cols-[2rem_minmax(0,1fr)_auto] items-start gap-2.5 border-b border-border/70 py-3.5"
+                  >
+                    <span class="grid h-5 w-8 place-items-center text-danger">
+                      <i class="fas fa-triangle-exclamation text-xs"></i>
+                    </span>
+                    <div class="min-w-0 flex-1">
+                      <p class="line-clamp-2 max-h-10 overflow-hidden text-[0.8rem] leading-5 font-inter-semibold group-hover:underline">
+                        {{ task.title }}
+                      </p>
+                      <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.68rem] text-muted">
+                        <span class="font-inter-semibold">{{ taskDueLabel(task, true) }}</span>
+                        <span class="inline-flex items-center gap-1.5">
+                          <i class="far fa-user text-[0.6rem]"></i>
+                          {{ task.assignedTo === 'pyme' ? 'PYME' : 'Consultor' }}
+                        </span>
+                      </div>
+                    </div>
+                    <i class="fas fa-chevron-right mt-1.5 text-[0.6rem] text-muted transition-transform group-hover:translate-x-0.5"></i>
+                  </a>
+                } @empty {
+                  <div class="flex min-h-40 flex-col items-center justify-center px-4 text-center">
+                    <i class="fas fa-circle-check text-lg text-success"></i>
+                    <p class="mt-2 text-xs text-muted">No tienes tareas vencidas.</p>
+                  </div>
+                }
+                @if (overdueExtraTaskCount() > 0) {
+                  <a
+                    [routerLink]="['/' + taskBoardPath]"
+                    class="inline-flex items-center gap-1.5 py-3 pl-[2.625rem] text-xs text-secondary font-inter-semibold hover:underline"
+                  >
+                    +{{ overdueExtraTaskCount() }}
+                    {{ overdueExtraTaskCount() === 1 ? 'tarea extra' : 'tareas extra' }}
+                    <i class="fas fa-arrow-right text-[0.6rem]"></i>
+                  </a>
+                }
+              </div>
+            </section>
           </div>
         }
       </section>

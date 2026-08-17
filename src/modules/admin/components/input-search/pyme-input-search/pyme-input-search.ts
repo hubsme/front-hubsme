@@ -31,6 +31,7 @@ export class PymeInputSearch implements ControlValueAccessor {
   filters = input<PymeInputSearchFilters | null>(null);
   options = input<PymeOption[] | null>(null);
   showClear = input(false);
+  emptyLabel = input('Seleccionar PYME...');
   onSelected = output<PymeOption | null>();
 
   isOpen = signal(false);
@@ -106,7 +107,7 @@ export class PymeInputSearch implements ControlValueAccessor {
 
   getDisplayText(): string {
     const item = this.selectedItem();
-    return item ? item.name : 'Seleccionar PYME...';
+    return item ? item.name : this.emptyLabel();
   }
 
   @HostListener('document:click', ['$event'])

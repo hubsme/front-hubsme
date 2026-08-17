@@ -2077,6 +2077,16 @@ export interface DashboardTaskStatusDto {
   bloqueada: number;
 }
 
+export interface DashboardTaskDeadlineDto {
+  id: number;
+  title: string;
+  /** @format date-time */
+  dueDate: string;
+  priority: "alta" | "media" | "baja";
+  assignedTo: "pyme" | "consultor";
+  status: "pendiente" | "en_progreso" | "bloqueada";
+}
+
 export interface DashboardMeetingDto {
   id: number;
   title: string;
@@ -2091,6 +2101,8 @@ export interface DashboardWorkloadClientDto {
   name: string;
   total: number;
   completed: number;
+  pending: number;
+  inProgress: number;
 }
 
 export interface DashboardAlertDto {
@@ -2105,6 +2117,8 @@ export interface DashboardResponseDto {
   latestDiagnostic: DashboardLatestDiagnosticDto | null;
   meetingStats: DashboardMeetingStatsDto;
   taskStatus: DashboardTaskStatusDto;
+  upcomingTasks: DashboardTaskDeadlineDto[];
+  overdueTasks: DashboardTaskDeadlineDto[];
   upcomingMeetings: DashboardMeetingDto[];
   workloadByClient: DashboardWorkloadClientDto[];
   alerts: DashboardAlertDto[];

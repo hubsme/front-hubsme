@@ -9,6 +9,12 @@ import { QuillModule } from 'ngx-quill';
 import { marked } from 'marked';
 
 import { FormsModule } from '@angular/forms';
+import {
+  dateKeyInPeru,
+  formatInPeru,
+  parseApiDate,
+  peruDateOnlyToUtc,
+} from '@function/date.function';
 
 type Meeting = ApiResponse<'meeting', 'findOne'>;
 type MeetingTask = NonNullable<Meeting['tasks']>[number];
@@ -227,11 +233,10 @@ export class MeetingMinutesDetail implements OnInit {
 
   meetingDate(value: string | null) {
     if (!value) return 'Sin fecha';
-    return new Date(value).toLocaleDateString('es-PE', {
+    return formatInPeru(value, {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
-      timeZone: 'America/Lima',
     });
   }
 
@@ -241,32 +246,30 @@ export class MeetingMinutesDetail implements OnInit {
 
   meetingTime(value: string | null) {
     if (!value) return 'Sin hora';
-    return new Date(value).toLocaleTimeString('es-PE', {
+    return formatInPeru(value, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
-      timeZone: 'America/Lima',
     });
   }
 
   recordingDate(value?: string) {
     if (!value) return 'Fecha no disponible';
 
-    return new Date(value).toLocaleString('es-PE', {
+    return formatInPeru(value, {
       day: '2-digit',
       month: 'short',
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
-      timeZone: 'America/Lima',
     });
   }
 
   recordingDuration(recording: MeetingRecording) {
     if (!recording.createdDateTime || !recording.endDateTime) return 'Duracion no disponible';
 
-    const start = new Date(recording.createdDateTime).getTime();
-    const end = new Date(recording.endDateTime).getTime();
+    const start = parseApiDate(recording.createdDateTime).getTime();
+    const end = parseApiDate(recording.endDateTime).getTime();
     const minutes = Math.max(1, Math.round((end - start) / 60_000));
     return `${minutes} min`;
   }
@@ -387,11 +390,7 @@ export class MeetingMinutesDetail implements OnInit {
     const mappedTasks: FinalizeTask[] = (current.tasks || []).map((t: MeetingTask) => {
       let dueDateStr = '';
       if (t.dueDate) {
-        const date = new Date(t.dueDate);
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        dueDateStr = `${year}-${month}-${day}`;
+        dueDateStr = dateKeyInPeru(t.dueDate);
       }
       return {
         id: t.id,
@@ -413,11 +412,7 @@ export class MeetingMinutesDetail implements OnInit {
   }
 
   addTask() {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const defaultDate = `${year}-${month}-${day}`;
+    const defaultDate = dateKeyInPeru();
 
     this.editTasks.update((tasks) => [
       {
@@ -461,7 +456,7 @@ export class MeetingMinutesDetail implements OnInit {
       title: t.title.trim() || 'Pendiente de la reunión',
       description: t.description.trim() || '.',
       assignedTo: t.assignedTo,
-      dueDate: t.dueDate ? new Date(t.dueDate + 'T12:00:00').toISOString() : undefined,
+      dueDate: peruDateOnlyToUtc(t.dueDate ?? '')?.toISOString(),
       status: t.status,
     }));
 

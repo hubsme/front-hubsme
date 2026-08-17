@@ -11,28 +11,48 @@
   <section
     class="rounded-3xl border border-border bg-surface p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:p-6"
   >
-    <div class="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-      <div class="flex items-center gap-3">
-        <span
-          class="grid size-12 place-items-center rounded-2xl bg-secondary/10 text-xl text-secondary"
-        >
-          <i class="fas fa-receipt"></i>
-        </span>
-        <div>
-          <h2 class="font-inter-bold text-lg">Operaciones registradas</h2>
-          <p class="text-xs text-muted">Pagos y cupones, máximo 10 por página.</p>
-        </div>
-      </div>
+    <div class="grid w-full gap-3 sm:grid-cols-3">
+      <label class="block min-w-0">
+          <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Tipo</span>
+          <span class="relative block">
+            <select
+              [value]="operationType()"
+              (change)="changeOperationType($event)"
+              class="h-11 w-full appearance-none rounded-xl border border-border bg-background-50 px-3 pr-10 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+            >
+              @for (option of operationTypeOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+            <i class="fas fa-chevron-down pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.65rem] text-muted"></i>
+          </span>
+      </label>
 
-      <label class="block min-w-52">
-        <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Mes y año</span>
-        <input
-          type="month"
-          [value]="monthInputValue()"
-          (change)="changeMonth($event)"
-          class="h-11 w-full rounded-xl border border-border bg-background-50 px-3 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
-          aria-label="Seleccionar mes y año"
-        />
+      <label class="block min-w-0">
+          <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Tipo de pago</span>
+          <span class="relative block">
+            <select
+              [value]="paymentType()"
+              (change)="changePaymentType($event)"
+              class="h-11 w-full appearance-none rounded-xl border border-border bg-background-50 px-3 pr-10 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+            >
+              @for (option of paymentTypeOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+            <i class="fas fa-chevron-down pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.65rem] text-muted"></i>
+          </span>
+      </label>
+
+      <label class="block min-w-0">
+          <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Mes y año</span>
+          <input
+            type="month"
+            [value]="monthInputValue()"
+            (change)="changeMonth($event)"
+            class="h-11 w-full rounded-xl border border-border bg-background-50 px-3 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+            aria-label="Seleccionar mes y año"
+          />
       </label>
     </div>
   </section>
@@ -43,16 +63,17 @@
       aria-label="Cargando pagos"
     >
       <div class="overflow-x-auto">
-        <table class="w-full min-w-[1080px] table-fixed">
+        <table class="w-full min-w-[1280px] table-fixed">
           <thead class="border-b border-border bg-surface">
             <tr>
-              <th class="w-[24%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Operación</th>
-              <th class="w-[15%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Consultor</th>
-              <th class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha</th>
-              <th class="w-[11%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Estado</th>
-              <th class="w-[18%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Medio</th>
-              <th class="w-[12%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted">Importe</th>
-              <th class="w-[7%] px-5 py-3.5"><span class="sr-only">Acciones</span></th>
+              <th class="w-[21%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Operación</th>
+              <th class="w-[12%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Consultor</th>
+              <th class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha de agenda</th>
+              <th class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha de reunión</th>
+              <th class="w-[10%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Estado</th>
+              <th class="w-[14%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Medio</th>
+              <th class="w-[11%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted">Importe</th>
+              <th class="w-[6%] px-5 py-3.5"><span class="sr-only">Acciones</span></th>
             </tr>
           </thead>
           <tbody class="divide-y divide-border">
@@ -60,6 +81,7 @@
               <tr class="animate-pulse">
                 <td class="px-5 py-4"><div class="h-10 w-4/5 rounded-xl bg-text/10"></div></td>
                 <td class="px-5 py-4"><div class="h-4 w-3/4 rounded-full bg-text/10"></div></td>
+                <td class="px-5 py-4"><div class="h-4 w-2/3 rounded-full bg-text/10"></div></td>
                 <td class="px-5 py-4"><div class="h-4 w-2/3 rounded-full bg-text/10"></div></td>
                 <td class="px-5 py-4"><div class="h-6 w-20 rounded-full bg-text/10"></div></td>
                 <td class="px-5 py-4"><div class="h-6 w-20 rounded-full bg-text/10"></div></td>
@@ -90,16 +112,17 @@
         class="overflow-hidden rounded-2xl border border-border bg-surface shadow-[0_12px_30px_rgba(15,23,42,0.04)]"
       >
         <div class="overflow-x-auto">
-          <table class="w-full min-w-[1080px] table-fixed">
+          <table class="w-full min-w-[1280px] table-fixed">
             <thead class="border-b border-border bg-surface">
               <tr>
-                <th scope="col" class="w-[24%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Operación</th>
-                <th scope="col" class="w-[15%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Consultor</th>
-                <th scope="col" class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha</th>
-                <th scope="col" class="w-[11%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Estado</th>
-                <th scope="col" class="w-[18%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Medio</th>
-                <th scope="col" class="w-[12%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted">Importe</th>
-                <th scope="col" class="w-[7%] px-5 py-3.5"><span class="sr-only">Acciones</span></th>
+                <th scope="col" class="w-[21%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Operación</th>
+                <th scope="col" class="w-[12%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Consultor</th>
+                <th scope="col" class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha de agenda</th>
+                <th scope="col" class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha de reunión</th>
+                <th scope="col" class="w-[10%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Estado</th>
+                <th scope="col" class="w-[14%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Medio</th>
+                <th scope="col" class="w-[11%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted">Importe</th>
+                <th scope="col" class="w-[6%] px-5 py-3.5"><span class="sr-only">Acciones</span></th>
               </tr>
             </thead>
             <tbody class="divide-y divide-border">
@@ -129,15 +152,23 @@
                     <span class="block truncate">{{ counterparty(payment) }}</span>
                   </td>
                   <td class="px-5 py-4 align-middle">
-                    <p class="whitespace-nowrap text-sm font-inter-semibold">{{ payment.createdAt | date: 'dd/MM/yyyy' }}</p>
-                    <p class="mt-1 whitespace-nowrap text-xs text-muted">{{ payment.createdAt | date: 'HH:mm' }}</p>
+                    <p class="whitespace-nowrap text-sm font-inter-semibold">{{ historyDate(payment.meetingCreatedAt) }}</p>
+                    @if (payment.meetingCreatedAt) {
+                      <p class="mt-1 whitespace-nowrap text-xs text-muted">{{ historyTime(payment.meetingCreatedAt) }}</p>
+                    }
+                  </td>
+                  <td class="px-5 py-4 align-middle">
+                    <p class="whitespace-nowrap text-sm font-inter-semibold">{{ historyDate(payment.meetingStartTime) }}</p>
+                    @if (payment.meetingStartTime) {
+                      <p class="mt-1 whitespace-nowrap text-xs text-muted">{{ historyTime(payment.meetingStartTime) }}</p>
+                    }
                   </td>
                   <td class="px-5 py-4 align-middle">
                     <span
                       class="inline-flex rounded-full px-2.5 py-1 text-[0.68rem] font-inter-bold uppercase tracking-wide"
-                      [class]="paymentStatusClass(payment.status)"
+                      [class]="operationStatusClass(payment)"
                     >
-                      {{ paymentStatusLabel(payment.status) }}
+                      {{ operationStatusLabel(payment) }}
                     </span>
                   </td>
                   <td class="px-5 py-4 align-middle">
@@ -202,7 +233,7 @@
       </span>
       <h2 class="mt-5 font-plus-jakarta-sans text-xl font-bold">No hay operaciones en este periodo</h2>
       <p class="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
-        Prueba con otro año o mes para consultar más operaciones.
+        Prueba con otro tipo, medio de pago o periodo para consultar más operaciones.
       </p>
     </section>
   }
@@ -257,6 +288,22 @@
             <div class="h-4 w-5/6 rounded-full bg-text/10"></div>
           </div>
         } @else {
+          @if (payment.meetingStatus === 'cancelada') {
+            <div class="rounded-2xl border border-danger/20 bg-danger/5 p-4">
+              <div class="flex items-start gap-3">
+                <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-danger/10 text-danger">
+                  <i class="fas fa-calendar-xmark"></i>
+                </span>
+                <div>
+                  <p class="font-inter-bold text-danger">Reunión cancelada</p>
+                  <p class="mt-1 text-sm leading-relaxed text-muted">
+                    {{ payment.meetingCancellationReason || 'La reunión asociada a esta operación fue cancelada.' }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          }
+
           <div>
             <p class="text-xs font-inter-bold uppercase tracking-[0.14em] text-muted">
               {{ payment.serviceRequestId ? 'Servicio asociado' : 'Sesión asociada' }}

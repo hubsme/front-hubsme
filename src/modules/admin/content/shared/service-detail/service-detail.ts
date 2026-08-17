@@ -29,6 +29,14 @@ import { ToastService } from '@service/toast.service';
 import { MercadoPagoCheckoutDto, ServiceRequestResultDto } from 'api/backend.api';
 import { ConsultantQuoteForm } from './components/consultant-quote-form/consultant-quote-form';
 import { ServicePaymentPlanSummary } from './layout/payment-plan-summary/payment-plan-summary';
+import {
+  dateKeyInPeru,
+  formatInPeru,
+  formatInUtc,
+  isValidDateOnly,
+  parseApiDate,
+  peruDateOnlyToUtc,
+} from '@function/date.function';
 
 type ServiceStatus = ServiceRequestResultDto['status'];
 type ServiceMeeting = ServiceRequestResultDto['meetings'][number];
@@ -130,7 +138,7 @@ export class ServiceDetail implements OnInit, OnDestroy {
   readonly deletingMilestone = signal(false);
   readonly deletingEvidenceId = signal<string | null>(null);
   readonly completingService = signal(false);
-  readonly minimumMilestoneDate = this.dateKeyInTimeZone(new Date());
+  readonly minimumMilestoneDate = dateKeyInPeru();
   readonly isConsultant = computed(() => this.hubsme.currentUser().role === 'consultor');
   readonly showDeclineForm = signal(false);
 
@@ -160,7 +168,7 @@ export class ServiceDetail implements OnInit, OnDestroy {
   readonly canSubmitExtraMilestone = computed(() => {
     const selectedTimes = this.extraMilestoneTimes().filter(Boolean);
     const selectedDays = new Set(
-      selectedTimes.map((value) => this.dateKeyInTimeZone(new Date(value))),
+      selectedTimes.map((value) => dateKeyInPeru(value)),
     );
     return (
       Boolean(this.selectedMilestoneInsertion()) &&
@@ -196,7 +204,7 @@ export class ServiceDetail implements OnInit, OnDestroy {
     const current = this.service();
     if (!current?.paidAt || !current.deadline) return null;
 
-    const startKey = this.dateKeyInTimeZone(new Date(current.paidAt));
+    const startKey = dateKeyInPeru(current.paidAt);
     const endKey = current.deadline;
     if (startKey > endKey) return null;
 
@@ -222,11 +230,10 @@ export class ServiceDetail implements OnInit, OnDestroy {
   });
 
   readonly calendarMonthLabel = computed(() =>
-    new Intl.DateTimeFormat('es-PE', {
+    formatInUtc(this.calendarCursor(), {
       month: 'long',
       year: 'numeric',
-      timeZone: 'UTC',
-    }).format(this.calendarCursor()),
+    }),
   );
   readonly calendarDays = computed<CalendarDay[]>(() => {
     const current = this.calendarCursor();
@@ -240,7 +247,7 @@ export class ServiceDetail implements OnInit, OnDestroy {
     const currentService = this.service();
     for (const meeting of currentService?.meetings ?? []) {
       if (!meeting.startTime) continue;
-      const key = this.dateKeyInTimeZone(new Date(meeting.startTime));
+      const key = dateKeyInPeru(meeting.startTime);
       meetingMap.set(key, [...(meetingMap.get(key) ?? []), meeting]);
     }
     for (const [index, milestone] of (currentService?.milestones ?? []).entries()) {
@@ -250,7 +257,7 @@ export class ServiceDetail implements OnInit, OnDestroy {
       ]);
     }
 
-    const todayKey = this.dateKeyInTimeZone(new Date());
+    const todayKey = dateKeyInPeru();
     return Array.from({ length: 42 }, (_, index) => {
       const date = new Date(gridStart);
       date.setUTCDate(gridStart.getUTCDate() + index);
@@ -468,18 +475,16 @@ export class ServiceDetail implements OnInit, OnDestroy {
   }
 
   calendarMeetingTime(value: string): string {
-    return new Intl.DateTimeFormat('es-PE', {
+    return formatInPeru(value, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
-      timeZone: 'America/Lima',
-    }).format(new Date(value));
+    });
   }
 
   meetingStatusClass(status: ServiceMeeting['status']): string {
     const classes: Record<ServiceMeeting['status'], string> = {
       solicitada: 'bg-info/10 text-info',
-      pago_pendiente: 'bg-warning/10 text-warning',
       por_confirmar: 'bg-warning/10 text-warning',
       confirmada: 'bg-success/10 text-success',
       finalizada: 'bg-secondary/10 text-secondary',
@@ -612,21 +617,20 @@ export class ServiceDetail implements OnInit, OnDestroy {
     const selectedDays = new Set(
       selectedValues
         .filter((selectedValue, selectedIndex) => selectedIndex !== optionIndex && selectedValue)
-        .map((selectedValue) => this.dateKeyInTimeZone(new Date(selectedValue))),
+        .map((selectedValue) => dateKeyInPeru(selectedValue)),
     );
     return availableOptions
-      .filter((option) => selectedDays.has(this.dateKeyInTimeZone(new Date(option.value))))
+      .filter((option) => selectedDays.has(dateKeyInPeru(option.value)))
       .map((option) => option.value);
   }
 
   slotWindowLabel(dueDate: string | null | undefined): string {
     if (!dueDate) return 'Selecciona primero la fecha objetivo';
-    return `Disponibilidad hasta ${new Intl.DateTimeFormat('es-PE', {
+    return `Disponibilidad hasta ${formatInUtc(`${dueDate}T00:00:00Z`, {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
-      timeZone: 'UTC',
-    }).format(new Date(`${dueDate}T00:00:00Z`))}`;
+    })}`;
   }
 
   async addExtraMilestone(): Promise<void> {
@@ -652,7 +656,7 @@ export class ServiceDetail implements OnInit, OnDestroy {
       this.toastService.warning('Selecciona tres horarios diferentes para la reunión');
       return;
     }
-    if (new Set(values.map((value) => this.dateKeyInTimeZone(new Date(value)))).size !== 3) {
+    if (new Set(values.map((value) => dateKeyInPeru(value))).size !== 3) {
       this.toastService.warning('Los horarios deben pertenecer a tres días diferentes');
       return;
     }
@@ -663,7 +667,7 @@ export class ServiceDetail implements OnInit, OnDestroy {
         insertAtIndex,
         title,
         dueDate,
-        proposedStartTimes: values.map((value) => new Date(value).toISOString()),
+        proposedStartTimes: values.map((value) => parseApiDate(value).toISOString()),
       });
       this.service.set(updated);
       this.initializeServiceAvailability(updated, false);
@@ -884,7 +888,7 @@ export class ServiceDetail implements OnInit, OnDestroy {
       this.toastService.warning('Selecciona tres horarios diferentes para el hito');
       return;
     }
-    if (new Set(values.map((value) => this.dateKeyInTimeZone(new Date(value)))).size !== 3) {
+    if (new Set(values.map((value) => dateKeyInPeru(value))).size !== 3) {
       this.toastService.warning('Los horarios deben pertenecer a tres días diferentes');
       return;
     }
@@ -893,7 +897,7 @@ export class ServiceDetail implements OnInit, OnDestroy {
     try {
       const updated = await this.serviceRequestService.scheduleMilestoneMeeting(current.id, {
         milestoneIndex: index,
-        proposedStartTimes: values.map((value) => new Date(value).toISOString()),
+        proposedStartTimes: values.map((value) => parseApiDate(value).toISOString()),
       });
       this.service.set(updated);
       this.toastService.success('Reunión del hito propuesta al consultor');
@@ -907,7 +911,6 @@ export class ServiceDetail implements OnInit, OnDestroy {
   meetingStatusLabel(status: ServiceMeeting['status']): string {
     const labels: Record<ServiceMeeting['status'], string> = {
       solicitada: 'Solicitada',
-      pago_pendiente: 'Pendiente de pago',
       por_confirmar: 'Esperando horario',
       confirmada: 'Confirmada',
       finalizada: 'Finalizada',
@@ -1069,11 +1072,11 @@ export class ServiceDetail implements OnInit, OnDestroy {
     const now = Date.now();
     const nearest = [...meetings].sort(
       (left, right) =>
-        Math.abs(new Date(left.startTime).getTime() - now) -
-        Math.abs(new Date(right.startTime).getTime() - now),
+        Math.abs(parseApiDate(left.startTime).getTime() - now) -
+        Math.abs(parseApiDate(right.startTime).getTime() - now),
     )[0];
     if (!nearest) return;
-    const [year, month] = this.dateKeyInTimeZone(new Date(nearest.startTime))
+    const [year, month] = dateKeyInPeru(nearest.startTime)
       .split('-')
       .map(Number);
     this.calendarCursor.set(this.clampCalendarMonth(new Date(Date.UTC(year, month - 1, 1))));
@@ -1224,7 +1227,7 @@ export class ServiceDetail implements OnInit, OnDestroy {
   }
 
   private firstDayOfMonth(date: Date): Date {
-    const [year, month] = this.dateKeyInTimeZone(date).split('-').map(Number);
+    const [year, month] = dateKeyInPeru(date).split('-').map(Number);
     return new Date(Date.UTC(year, month - 1, 1));
   }
 
@@ -1242,38 +1245,30 @@ export class ServiceDetail implements OnInit, OnDestroy {
   }
 
   private isDateOnly(value: string): boolean {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-    const [year, month, day] = value.split('-').map(Number);
-    const date = new Date(Date.UTC(year, month - 1, day));
-    return (
-      date.getUTCFullYear() === year &&
-      date.getUTCMonth() === month - 1 &&
-      date.getUTCDate() === day
-    );
+    return isValidDateOnly(value);
   }
 
   private formatMonthKey(value: string): string {
-    return new Intl.DateTimeFormat('es-PE', {
+    return formatInUtc(`${value}-01T00:00:00Z`, {
       month: 'long',
       year: 'numeric',
-      timeZone: 'UTC',
-    }).format(new Date(`${value}-01T00:00:00Z`));
+    });
   }
 
   private availabilityStartDateKey(): string {
-    const todayKey = this.dateKeyInTimeZone(new Date());
+    const todayKey = dateKeyInPeru();
     const paidAt = this.service()?.paidAt;
     if (!paidAt) return todayKey;
-    const paidAtKey = this.dateKeyInTimeZone(new Date(paidAt));
+    const paidAtKey = dateKeyInPeru(paidAt);
     return paidAtKey > todayKey ? paidAtKey : todayKey;
   }
 
   private isSlotWithinDueDate(value: string, dueDate: string | null | undefined): boolean {
     if (!dueDate) return false;
-    const slotDate = new Date(value);
-    const deadline = new Date(`${dueDate}T23:59:59-05:00`).getTime();
+    const slotDate = parseApiDate(value);
+    const deadline = peruDateOnlyToUtc(dueDate, true)?.getTime() ?? Number.NaN;
     return (
-      this.dateKeyInTimeZone(slotDate) >= this.availabilityStartDateKey() &&
+      dateKeyInPeru(slotDate) >= this.availabilityStartDateKey() &&
       slotDate.getTime() <= deadline
     );
   }
@@ -1296,26 +1291,11 @@ export class ServiceDetail implements OnInit, OnDestroy {
   }
 
   private formatDateKey(value: string): string {
-    return new Intl.DateTimeFormat('es-PE', {
+    return formatInUtc(`${value}T00:00:00Z`, {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
-      timeZone: 'UTC',
-    }).format(new Date(`${value}T00:00:00Z`));
-  }
-
-  private dateKeyInTimeZone(date: Date): string {
-    const values: Record<string, string> = {};
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'America/Lima',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).formatToParts(date);
-    for (const part of parts) {
-      if (part.type !== 'literal') values[part.type] = part.value;
-    }
-    return `${values['year']}-${values['month']}-${values['day']}`;
+    });
   }
 
   private utcDateKey(date: Date): string {

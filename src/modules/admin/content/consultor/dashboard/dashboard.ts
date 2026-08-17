@@ -25,15 +25,19 @@ import { SessionService } from '@service/session.service';
 import { ToastService } from '@service/toast.service';
 import { ThemeService } from '@service/theme.service';
 import { PATH, buildPath } from '@route/path.route';
+import { monthKeyInPeru, parseApiDate } from '@function/date.function';
+import { PymeInputSearch } from '@module/admin/components/input-search/pyme-input-search/pyme-input-search';
 
 type DashboardSummary = ApiResponse<'dashboard', 'summary'>;
 type UpcomingMeeting = DashboardSummary['upcomingMeetings'][number];
 type DashboardRole = 'admin' | 'pyme' | 'consultor';
-type KpiCardAction = 'upcomingMeetings';
+type MeetingListStatus = 'solicitada' | 'pendiente' | 'confirmada' | 'finalizada';
+type KpiCardAction = 'meetingList';
 
 type KpiDetail = {
   label: string;
   value: string;
+  status?: MeetingListStatus;
 };
 
 type KpiCard = {
@@ -94,7 +98,7 @@ type DonutChartOptions = {
 
 @Component({
   selector: 'app-consultor-dashboard',
-  imports: [CommonModule, NgApexchartsModule, RouterLink],
+  imports: [CommonModule, NgApexchartsModule, PymeInputSearch, RouterLink],
   templateUrl: './dashboard.html',
 })
 export class Dashboard implements OnInit, OnDestroy {
@@ -109,6 +113,7 @@ export class Dashboard implements OnInit, OnDestroy {
   summary = signal<DashboardSummary | null>(null);
   loading = signal(false);
   now = signal(Date.now());
+  selectedPymeId = signal<number | null>(null);
 
   isBrowser = isPlatformBrowser(this.platformId);
   role = computed<DashboardRole>(
@@ -201,12 +206,12 @@ export class Dashboard implements OnInit, OnDestroy {
           icon: 'fas fa-calendar-days',
           iconClass: 'bg-accent/10 text-accent',
           details: [
-            { label: 'Confirmadas', value: `${this.meetingStats().confirmed}` },
-            { label: 'Solicitadas', value: `${this.meetingStats().requested}` },
-            { label: 'Pendientes', value: `${this.meetingStats().pending}` },
-            { label: 'Completadas', value: `${this.meetingStats().completed}` },
+            { label: 'Confirmadas', value: `${this.meetingStats().confirmed}`, status: 'confirmada' },
+            { label: 'Solicitadas', value: `${this.meetingStats().requested}`, status: 'solicitada' },
+            { label: 'Pendientes', value: `${this.meetingStats().pending}`, status: 'pendiente' },
+            { label: 'Completadas', value: `${this.meetingStats().completed}`, status: 'finalizada' },
           ],
-          action: 'upcomingMeetings',
+          action: 'meetingList',
         },
         {
           label: 'Tareas pendientes',
@@ -244,12 +249,12 @@ export class Dashboard implements OnInit, OnDestroy {
         icon: 'fas fa-calendar-days',
         iconClass: 'bg-accent/10 text-accent',
         details: [
-          { label: 'Confirmadas', value: `${this.meetingStats().confirmed}` },
-          { label: 'Solicitadas', value: `${this.meetingStats().requested}` },
-          { label: 'Pendientes', value: `${this.meetingStats().pending}` },
-          { label: 'Completadas', value: `${this.meetingStats().completed}` },
+          { label: 'Confirmadas', value: `${this.meetingStats().confirmed}`, status: 'confirmada' },
+          { label: 'Solicitadas', value: `${this.meetingStats().requested}`, status: 'solicitada' },
+          { label: 'Pendientes', value: `${this.meetingStats().pending}`, status: 'pendiente' },
+          { label: 'Completadas', value: `${this.meetingStats().completed}`, status: 'finalizada' },
         ],
-        action: 'upcomingMeetings',
+        action: 'meetingList',
       },
       {
         label: 'Tareas',
@@ -262,7 +267,7 @@ export class Dashboard implements OnInit, OnDestroy {
       {
         label: 'Consultores',
         value: `${this.consultantCount()}`,
-        helper: 'Expertos conectados',
+        helper: 'Servicios contratados',
         badge: 'Activos en tu red',
         icon: 'fas fa-users',
         iconClass: 'bg-violet-500/10 text-violet-600',
@@ -270,9 +275,11 @@ export class Dashboard implements OnInit, OnDestroy {
     ];
   });
 
+  workloadClients = computed(() => this.summary()?.workloadByClient ?? []);
+
   workloadRows = computed<WorkloadRow[]>(() => {
     if (this.isConsultant()) {
-      return this.summary()?.workloadByClient ?? [];
+      return this.workloadClients();
     }
 
     const totalTasks = this.summary()?.stats.tasks ?? 0;
@@ -298,13 +305,28 @@ export class Dashboard implements OnInit, OnDestroy {
     ];
   });
 
+  selectedWorkloadClient = computed(() => {
+    const selectedPymeId = this.selectedPymeId();
+    if (selectedPymeId === null) return null;
+    return this.workloadClients().find((client) => client.pymeId === selectedPymeId) ?? null;
+  });
+
   taskSlices = computed<TaskSlice[]>(() => {
-    const taskStatus = this.summary()?.taskStatus ?? {
-      pendiente: 0,
-      enProgreso: 0,
-      completada: 0,
-      bloqueada: 0,
-    };
+    const selectedClient = this.selectedWorkloadClient();
+    const selectedPymeId = this.selectedPymeId();
+    const taskStatus = selectedClient
+      ? {
+          pendiente: selectedClient.pending,
+          enProgreso: selectedClient.inProgress,
+          completada: selectedClient.completed,
+        }
+      : selectedPymeId !== null
+        ? { pendiente: 0, enProgreso: 0, completada: 0 }
+      : {
+          pendiente: this.summary()?.taskStatus.pendiente ?? 0,
+          enProgreso: this.summary()?.taskStatus.enProgreso ?? 0,
+          completada: this.summary()?.taskStatus.completada ?? 0,
+        };
 
     return [
       { label: 'Pendientes', shortLabel: 'Pend.', value: taskStatus.pendiente, color: '#94a3b8' },
@@ -320,9 +342,12 @@ export class Dashboard implements OnInit, OnDestroy {
         value: taskStatus.completada,
         color: '#16a34a',
       },
-      { label: 'Bloqueadas', shortLabel: 'Bloq.', value: taskStatus.bloqueada, color: '#dc2626' },
     ];
   });
+
+  visibleTaskTotal = computed(() =>
+    this.taskSlices().reduce((total, item) => total + item.value, 0),
+  );
 
   activitySeries = computed(() => {
     const meetings = Math.max(4, this.summary()?.stats.meetings ?? 0);
@@ -345,82 +370,117 @@ export class Dashboard implements OnInit, OnDestroy {
     };
   });
 
-  workloadChartOptions = computed<AxisChartOptions>(() => ({
-    series: [
-      {
-        name: 'Total tareas',
-        data: this.workloadRows().map((row) => row.total),
+  workloadChartOptions = computed<AxisChartOptions>(() => {
+    const rows = this.workloadRows();
+    const maxTotal = Math.max(0, ...rows.map((row) => row.total));
+    const completedPercentage = (row: WorkloadRow) =>
+      row.total > 0 ? Math.round((row.completed / row.total) * 100) : 0;
+
+    return {
+      series: [
+        {
+          name: 'Total tareas',
+          data: rows.map((row) => row.total),
+        },
+        {
+          name: 'Completadas',
+          data: rows.map((row) => row.completed),
+        },
+      ],
+      chart: {
+        type: 'bar',
+        height: 340,
+        toolbar: { show: false },
+        fontFamily: 'Inter Regular, sans-serif',
+        sparkline: { enabled: false },
+        animations: { enabled: false },
       },
-      {
-        name: 'Completadas',
-        data: this.workloadRows().map((row) => row.completed),
-      },
-    ],
-    chart: {
-      type: 'bar',
-      height: 340,
-      toolbar: { show: false },
-      fontFamily: 'Inter Regular, sans-serif',
-      sparkline: { enabled: false },
-      animations: { enabled: false },
-    },
-    colors: ['#e2e8f0', '#3568ea'],
-    plotOptions: {
-      bar: {
-        horizontal: true,
-        borderRadius: 6,
-        barHeight: '48%',
-      },
-    },
-    dataLabels: { enabled: false },
-    stroke: { show: false },
-    xaxis: {
-      categories: this.workloadRows().map((row) => row.name),
-      labels: {
-        style: {
-          colors: this.chartTheme().text,
-          fontSize: '11px',
-          fontFamily: 'Inter Medium, sans-serif',
+      colors: ['#e2e8f0', '#3568ea'],
+      plotOptions: {
+        bar: {
+          horizontal: true,
+          borderRadius: 6,
+          barHeight: '48%',
+          dataLabels: { position: 'top' },
         },
       },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      labels: {
+      dataLabels: {
+        enabled: true,
+        formatter: (_value: number, options) => {
+          const row = rows[options.dataPointIndex];
+          if (!row) return '';
+          return options.seriesIndex === 0 ? '100%' : `${completedPercentage(row)}%`;
+        },
+        textAnchor: 'start',
+        offsetX: 8,
         style: {
-          colors: this.chartTheme().text,
           fontSize: '11px',
           fontFamily: 'Inter SemiBold, sans-serif',
+          colors: [this.chartTheme().text],
+        },
+        background: { enabled: false },
+      },
+      stroke: { show: false },
+      xaxis: {
+        categories: rows.map((row) => row.name),
+        max: Math.max(1, Math.ceil(maxTotal * 1.2)),
+        labels: {
+          style: {
+            colors: this.chartTheme().text,
+            fontSize: '11px',
+            fontFamily: 'Inter Medium, sans-serif',
+          },
+        },
+        axisBorder: { show: false },
+        axisTicks: { show: false },
+      },
+      yaxis: {
+        labels: {
+          style: {
+            colors: this.chartTheme().text,
+            fontSize: '11px',
+            fontFamily: 'Inter SemiBold, sans-serif',
+          },
         },
       },
-    },
-    grid: {
-      borderColor: this.chartTheme().grid,
-      strokeDashArray: 4,
-      xaxis: { lines: { show: false } },
-    },
-    tooltip: {
-      theme: this.chartTheme().tooltip,
-      shared: false,
-      intersect: true,
-      followCursor: false,
-      marker: { show: true },
-    },
-    legend: {
-      position: 'top',
-      horizontalAlign: 'right',
-      fontSize: '12px',
-      labels: { colors: this.chartTheme().text },
-    },
-    fill: { opacity: 1 },
-    markers: { size: 0 },
-    states: {
-      hover: { filter: { type: 'none' } },
-      active: { filter: { type: 'none' }, allowMultipleDataPointsSelection: false },
-    },
-    responsive: [],
-  }));
+      grid: {
+        borderColor: this.chartTheme().grid,
+        strokeDashArray: 4,
+        xaxis: { lines: { show: false } },
+        padding: { right: 18 },
+      },
+      tooltip: {
+        theme: this.chartTheme().tooltip,
+        shared: false,
+        intersect: true,
+        followCursor: false,
+        marker: { show: true },
+        y: {
+          formatter: (value: number, options) => {
+            if (options.seriesIndex !== 1) {
+              return `${value} ${value === 1 ? 'tarea' : 'tareas'} · 100%`;
+            }
+            const row = rows[options.dataPointIndex];
+            const percentage = row ? completedPercentage(row) : 0;
+            return `${value} ${value === 1 ? 'completada' : 'completadas'} · ${percentage}%`;
+          },
+        },
+      },
+      legend: {
+        position: 'top',
+        horizontalAlign: 'right',
+        fontSize: '12px',
+        labels: { colors: this.chartTheme().text },
+      },
+      fill: { opacity: 1 },
+      markers: { size: 0 },
+      states: {
+        hover: { filter: { type: 'none' } },
+        active: { filter: { type: 'none' }, allowMultipleDataPointsSelection: false },
+      },
+      responsive: [],
+    };
+  });
 
   lineChartOptions = computed<AxisChartOptions>(() => ({
     series: [
@@ -543,7 +603,7 @@ export class Dashboard implements OnInit, OnDestroy {
               fontSize: '11px',
               fontFamily: 'Inter SemiBold, sans-serif',
               color: this.chartTheme().text,
-              formatter: () => `${this.summary()?.stats.tasks ?? 0}`,
+              formatter: () => `${this.visibleTaskTotal()}`,
             },
           },
         },
@@ -645,10 +705,14 @@ export class Dashboard implements OnInit, OnDestroy {
       .finally(() => this.loading.set(false));
   }
 
+  onPymeSelected(pyme: ApiResponse<'pyme', 'findAll'>['data'][number] | null): void {
+    this.selectedPymeId.set(pyme?.id ?? null);
+  }
+
   isMeetingLive(meeting: UpcomingMeeting): boolean {
     if (meeting.status !== 'confirmada') return false;
 
-    const startTime = new Date(meeting.startTime).getTime();
+    const startTime = parseApiDate(meeting.startTime).getTime();
     if (!Number.isFinite(startTime)) return false;
 
     const endTime = startTime + meeting.durationMinutes * 60_000;
@@ -669,12 +733,19 @@ export class Dashboard implements OnInit, OnDestroy {
   }
 
   onKpiCardClick(card: KpiCard): void {
-    if (card.action !== 'upcomingMeetings' || !isPlatformBrowser(this.platformId)) return;
+    if (card.action !== 'meetingList') return;
+    this.openMeetingList();
+  }
 
-    document.getElementById('upcoming-sessions')?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'start',
+  openMeetingList(status?: MeetingListStatus, event?: Event): void {
+    event?.stopPropagation();
+    void this.router.navigate([`/${this.meetingDetailsPath}`], {
+      queryParams: { view: 'list', status: status ?? null, month: this.currentMonth(), page: 1 },
     });
+  }
+
+  private currentMonth(): string {
+    return monthKeyInPeru();
   }
 
   onKpiCardKeydown(event: Event, card: KpiCard): void {

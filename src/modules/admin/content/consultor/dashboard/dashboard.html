@@ -52,9 +52,9 @@
       @for (card of kpiCards(); track trackByLabel($index, card)) {
         <article
           class="min-h-[11.6rem] rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)] transition-shadow"
-          [class.cursor-pointer]="card.action === 'upcomingMeetings'"
-          [attr.role]="card.action === 'upcomingMeetings' ? 'button' : null"
-          [attr.tabindex]="card.action === 'upcomingMeetings' ? 0 : null"
+          [class.cursor-pointer]="card.action === 'meetingList'"
+          [attr.role]="card.action === 'meetingList' ? 'button' : null"
+          [attr.tabindex]="card.action === 'meetingList' ? 0 : null"
           (click)="onKpiCardClick(card)"
           (keydown.enter)="onKpiCardKeydown($event, card)"
           (keydown.space)="onKpiCardKeydown($event, card)"
@@ -79,10 +79,12 @@
           @if (card.details; as details) {
             <div class="mt-6 grid grid-cols-2 gap-x-3 gap-y-2 border-t border-border pt-3">
               @for (detail of details; track detail.label) {
-                <div class="flex items-center justify-between gap-2 text-[0.68rem]">
+                <button type="button" (click)="openMeetingList(detail.status, $event)"
+                  (keydown)="$event.stopPropagation()"
+                  class="flex w-full items-center justify-between gap-2 rounded-lg px-1 py-0.5 text-[0.68rem] transition hover:bg-secondary/10">
                   <span class="text-muted">{{ detail.label }}</span>
                   <span class="text-[0.82rem] font-inter-bold text-text">{{ detail.value }}</span>
-                </div>
+                </button>
               }
             </div>
           } @else {
@@ -158,7 +160,7 @@
                   </p>
                 } @else {
                   <p class="mt-1 truncate text-xs text-muted">
-                    {{ meeting.startTime | date: 'EEEE d MMM · hh:mm a': 'America/Lima': 'es-PE' }}
+                    {{ meeting.startTime | date: 'EEEE d MMM · hh:mm a' }}
                   </p>
                 }
               </div>
@@ -205,16 +207,18 @@
         class="rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]"
       >
         <div>
-          <h2 class="text-xl leading-tight text-text font-anton lowercase">
-            {{ isConsultant() ? 'Carga de Trabajo por Cliente' : 'Evolucion de Actividad' }}
-          </h2>
-          <p class="mt-1 text-[0.84rem] leading-relaxed text-muted">
-            {{
-              isConsultant()
-                ? 'Distribucion de tareas y progreso por cada PYME.'
-                : 'Lectura rapida del movimiento reciente entre reuniones y tareas.'
-            }}
-          </p>
+          <div>
+            <h2 class="text-xl leading-tight text-text font-anton lowercase">
+              {{ isConsultant() ? 'Carga de Trabajo por Cliente' : 'Evolucion de Actividad' }}
+            </h2>
+            <p class="mt-1 text-[0.84rem] leading-relaxed text-muted">
+              {{
+                isConsultant()
+                  ? 'Distribucion de tareas y progreso por cada PYME.'
+                  : 'Lectura rapida del movimiento reciente entre reuniones y tareas.'
+              }}
+            </p>
+          </div>
         </div>
 
         @if (isBrowser) {
@@ -271,7 +275,7 @@
       <section
         class="rounded-2xl border border-border bg-surface p-5 shadow-[0_14px_32px_rgba(15,23,42,0.06)]"
       >
-        <div>
+        <div class="w-full">
           <h2 class="text-xl leading-tight text-text font-anton lowercase">
             {{ isConsultant() ? 'Estado de Tareas Global' : 'Tareas por Estado' }}
           </h2>
@@ -282,6 +286,18 @@
                 : 'Balance entre carga pendiente, ejecucion y cierre.'
             }}
           </p>
+          @if (isConsultant()) {
+            <div class="mt-4 flex w-full justify-end sm:mt-3">
+              <div class="w-full sm:max-w-xs">
+                <app-pyme-input-search
+                  aria-label="Filtrar estado de tareas por PYME"
+                  emptyLabel="Todas las PYMEs"
+                  [showClear]="true"
+                  (onSelected)="onPymeSelected($event)"
+                />
+              </div>
+            </div>
+          }
         </div>
 
         @if (isBrowser) {

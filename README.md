@@ -46,6 +46,35 @@ To execute unit tests with the [Karma](https://karma-runner.github.io) test runn
 npm test
 ```
 
+## Fechas y zona horaria
+
+La zona de negocio de Hubsme es `America/Lima` (UTC-5). Las conversiones están centralizadas en `src/functions/date.function.ts`; los componentes y servicios no deben declarar offsets, zonas horarias ni formateadores equivalentes por su cuenta.
+
+Contrato de fechas:
+
+- Los timestamps recibidos del backend representan instantes UTC y se muestran con `formatInPeru()`.
+- Las fechas calendario usan `YYYY-MM-DD`. Para enviarlas como instante se usa `peruDateOnlyToUtc()`; no usar `new Date('YYYY-MM-DD')`.
+- Para valores de `<input type="datetime-local">` usar `formatDateForDatetimeLocal()` y `peruDateTimeInputToUtc()`.
+- Para claves de día o mes usar `dateKeyInPeru()` y `monthKeyInPeru()`.
+- Para sumar días o meses a una fecha calendario usar `addDaysToDateOnly()` y `addMonthsToDateOnly()`.
+- `formatInUtc()` se reserva para calendarios neutrales o valores `date-only` cuya aritmética es deliberadamente UTC.
+
+El `DatePipe` global ya usa `es-PE` y `America/Lima` desde `app.config.ts`. En templates basta con `{{ value | date: 'dd/MM/yyyy HH:mm' }}`. Solo debe indicarse `UTC` explícitamente cuando el dato sea una fecha calendario neutral.
+
+Ejemplo:
+
+```ts
+import {
+  dateKeyInPeru,
+  formatInPeru,
+  peruDateTimeInputToUtc,
+} from '@function/date.function';
+
+const today = dateKeyInPeru();
+const label = formatInPeru(apiTimestamp, { dateStyle: 'long', timeStyle: 'short' });
+const startsAt = peruDateTimeInputToUtc('2026-08-20T15:30')?.toISOString();
+```
+
 ## Running the SSR server
 
 After building, start the SSR server with:

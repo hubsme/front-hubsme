@@ -11,6 +11,14 @@ import {
   PymeInputSearch,
   PymeInputSearchFilters,
 } from '@module/admin/components/input-search/pyme-input-search/pyme-input-search';
+import {
+  TaskAssigneeFilter,
+  TaskBoardFilters,
+  TaskMeetingFilter,
+  TaskMeetingOption,
+  TaskPriorityFilter,
+} from '@module/admin/content/shared/task-board-filters/task-board-filters';
+import { dateKeyInPeru, formatInPeru, peruDateOnlyToUtc } from '@function/date.function';
 
 type TaskStatus = 'pendiente' | 'en_progreso' | 'completada' | 'bloqueada';
 type TaskPriority = 'alta' | 'media' | 'baja';
@@ -31,7 +39,7 @@ type Task = ApiResponse<'task', 'findAll'>['data'][number];
 
 @Component({
   selector: 'app-consultor-tasks',
-  imports: [CommonModule, FormsModule, ModalForm, PymeInputSearch],
+  imports: [CommonModule, FormsModule, ModalForm, PymeInputSearch, TaskBoardFilters],
   templateUrl: './tasks.html',
 })
 export class Tasks implements OnInit, AfterViewInit, OnDestroy {
@@ -55,6 +63,9 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   tasks = signal<ApiResponse<'task', 'findAll'>['data']>([]);
   pymes = signal<PymeOption[]>([]);
   selectedPymeId = signal<number | 'all'>('all');
+  selectedPriority = signal<TaskPriorityFilter>('all');
+  selectedAssignee = signal<TaskAssigneeFilter>('all');
+  selectedMeeting = signal<TaskMeetingFilter>('all');
   showCreate = signal(false);
   loading = signal(false);
   creating = signal(false);
@@ -178,7 +189,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
         assignedTo: data.assignedTo,
         priority: data.priority,
         status: 'pendiente',
-        dueDate: data.dueDate ? new Date(data.dueDate).toISOString() : undefined,
+        dueDate: peruDateOnlyToUtc(data.dueDate)?.toISOString(),
       })
       .then(() => {
         this.toastService.success('Tarea creada');
@@ -207,7 +218,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
         description: data.description,
         assignedTo: data.assignedTo,
         priority: data.priority,
-        dueDate: data.dueDate ? new Date(`${data.dueDate}T00:00:00`).toISOString() : undefined,
+        dueDate: peruDateOnlyToUtc(data.dueDate)?.toISOString(),
       })
       .then(() => {
         this.toastService.success('Tarea actualizada');
@@ -234,11 +245,62 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     return this.filteredTasks().filter((task) => task.status === status);
   }
 
-  filteredTasks = computed(() => {
+  scopedTasks = computed(() => {
     const selected = this.selectedPymeId();
     if (selected === 'all') return this.tasks();
     return this.tasks().filter((task) => task.pymeId === Number(selected));
   });
+
+  meetingOptions = computed<TaskMeetingOption[]>(() => {
+    const meetings = new Map<number, TaskMeetingOption>();
+    for (const task of this.scopedTasks()) {
+      if (!task.meetingId || meetings.has(task.meetingId)) continue;
+      meetings.set(task.meetingId, {
+        id: task.meetingId,
+        title: task.meetingTitle ?? null,
+        startTime: task.meetingStartTime ?? null,
+      });
+    }
+
+    return [...meetings.values()].sort((a, b) =>
+      (b.startTime ?? '').localeCompare(a.startTime ?? ''),
+    );
+  });
+
+  filteredTasks = computed(() => {
+    const priority = this.selectedPriority();
+    const assignee = this.selectedAssignee();
+    const meeting = this.selectedMeeting();
+
+    return this.scopedTasks().filter((task) => {
+      if (priority !== 'all' && task.priority !== priority) return false;
+      if (assignee !== 'all' && task.assignedTo !== assignee) return false;
+      if (meeting === 'manual') return task.meetingId === null;
+      if (meeting !== 'all' && task.meetingId !== meeting) return false;
+      return true;
+    });
+  });
+
+  selectPyme(pymeId: number | null) {
+    this.selectedPymeId.set(pymeId ?? 'all');
+    this.selectedMeeting.set('all');
+  }
+
+  responsibleLabel(assignee: TaskAssignee) {
+    return assignee === 'pyme' ? 'PYME' : 'Consultor';
+  }
+
+  meetingDateTime(task: Task) {
+    if (!task.meetingId) return 'Tarea independiente';
+    if (!task.meetingStartTime) return 'Reunión sin fecha programada';
+    return formatInPeru(task.meetingStartTime, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
 
   clientLabel = computed(() => {
     const selected = this.selectedPymeId();
@@ -257,7 +319,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private dateInputValue(value: string | null) {
-    return value ? new Date(value).toISOString().slice(0, 10) : '';
+    return value ? dateKeyInPeru(value) : '';
   }
 
   private initSortables() {

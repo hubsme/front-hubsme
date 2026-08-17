@@ -12,6 +12,7 @@ import { PromotionCodeService } from '@service/admin/promotion-code.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { PATH, buildPath } from '@route/path.route';
+import { formatInPeru } from '@function/date.function';
 
 type CheckoutData = ApiResponse<'mercadoPago', 'mercadopagoFindCheckout'>;
 type MeetingData = ApiResponse<'meeting', 'findOne'>;
@@ -226,7 +227,7 @@ export class Checkout implements OnInit, OnDestroy {
 
   formatDate(date?: Date | string) {
     if (!date) return '-';
-    return new Date(date).toLocaleDateString('es-PE', {
+    return formatInPeru(date, {
       weekday: 'long',
       day: '2-digit',
       month: 'long',

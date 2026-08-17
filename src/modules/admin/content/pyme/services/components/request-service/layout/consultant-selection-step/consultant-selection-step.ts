@@ -3,6 +3,7 @@ import { ConsultantInputSearch } from '@module/admin/components/input-search/con
 import { TimeSlotPicker } from '@module/admin/components/time-slot-picker/time-slot-picker';
 import { InitialMeetingSlot } from '../../../../utils/service-request-wizard.types';
 import { PymeServicesStore } from '../../../../services.store';
+import { dateKeyInPeru } from '@function/date.function';
 
 @Component({
   selector: 'app-consultant-selection-step',
@@ -43,13 +44,6 @@ export class ConsultantSelectionStep {
   }
 
   private dateKey(value: string): string {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value.slice(0, 10);
-    return new Intl.DateTimeFormat('en-US', {
-      timeZone: 'America/Lima',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).format(date);
+    return dateKeyInPeru(value) || value.slice(0, 10);
   }
 }

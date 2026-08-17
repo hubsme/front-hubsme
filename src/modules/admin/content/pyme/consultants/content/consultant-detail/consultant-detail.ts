@@ -10,6 +10,7 @@ import { MercadoPagoService } from '@service/admin/mercado-pago.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { PATH, buildPath } from '@route/path.route';
+import { dateKeyInPeru, formatInPeru, peruDateTimeToUtc } from '@function/date.function';
 
 type Consultant = ApiResponse<'consultant', 'findByUser'>;
 type AvailabilityMonth = ApiResponse<'consultantAvailability', 'consultant-availabilityVisibleMonth'>['data'][number];
@@ -83,7 +84,7 @@ export class ConsultantDetail implements OnInit {
     return 'Listo: tienes 3 opciones en dias diferentes';
   });
   monthTitle = computed(() =>
-    this.viewDate().toLocaleDateString('es-PE', {
+    formatInPeru(this.viewDate(), {
       month: 'long',
       year: 'numeric',
     }),
@@ -207,7 +208,7 @@ export class ConsultantDetail implements OnInit {
   }
 
   formatDate(date: Date) {
-    return date.toLocaleDateString('es-PE', {
+    return formatInPeru(date, {
       weekday: 'long',
       day: '2-digit',
       month: 'long',
@@ -215,7 +216,7 @@ export class ConsultantDetail implements OnInit {
   }
 
   formatShortDate(date: Date) {
-    return date.toLocaleDateString('es-PE', {
+    return formatInPeru(date, {
       weekday: 'short',
       day: '2-digit',
       month: 'short',
@@ -223,7 +224,7 @@ export class ConsultantDetail implements OnInit {
   }
 
   formatTime(date: Date) {
-    return date.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+    return formatInPeru(date, { hour: '2-digit', minute: '2-digit' });
   }
 
   dayHasProposal(date: Date) {
@@ -314,7 +315,7 @@ export class ConsultantDetail implements OnInit {
       for (let start = new Date(slotStart); start.getTime() + durationMs <= slotEnd.getTime(); start = new Date(start.getTime() + 30 * 60 * 1000)) {
         const end = new Date(start.getTime() + durationMs);
         options.push({
-          label: start.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }),
+          label: formatInPeru(start, { hour: '2-digit', minute: '2-digit' }),
           startTime: start,
           endTime: end,
         });
@@ -325,10 +326,7 @@ export class ConsultantDetail implements OnInit {
   }
 
   private toDateKey(date: Date) {
-    const year = date.getFullYear();
-    const month = `${date.getMonth() + 1}`.padStart(2, '0');
-    const day = `${date.getDate()}`.padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    return dateKeyInPeru(date);
   }
 
   private expandAvailabilityMonths(months: AvailabilityMonth[]): AvailabilitySlot[] {
@@ -372,7 +370,7 @@ export class ConsultantDetail implements OnInit {
 
   private fromMonthDayTime(year: number, monthIndex: number, day: number, time: string) {
     const [hours, minutes] = time.split(':').map(Number);
-    return new Date(year, monthIndex, day, hours, minutes);
+    return peruDateTimeToUtc(year, monthIndex + 1, day, hours, minutes);
   }
 
   private addMinutes(date: Date, minutes: number) {

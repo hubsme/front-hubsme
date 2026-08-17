@@ -513,7 +513,6 @@ export interface PymeMeetingDocumentDto {
   description: string | null;
   status:
     | "solicitada"
-    | "pago_pendiente"
     | "por_confirmar"
     | "confirmada"
     | "finalizada"
@@ -899,6 +898,9 @@ export interface TaskResultDto {
   /** @format date-time */
   deletedAt: string | null;
   meetingId: number | null;
+  /** @format date-time */
+  meetingStartTime?: string | null;
+  meetingTitle?: string | null;
   serviceRequestId: number | null;
   pymeId: number;
   consultantId: number | null;
@@ -932,7 +934,6 @@ export interface MeetingResultDto {
   hasMeetingLink: boolean;
   status:
     | "solicitada"
-    | "pago_pendiente"
     | "por_confirmar"
     | "confirmada"
     | "finalizada"
@@ -972,7 +973,6 @@ export interface MeetingAdminResultDto {
   hasMeetingLink: boolean;
   status:
     | "solicitada"
-    | "pago_pendiente"
     | "por_confirmar"
     | "confirmada"
     | "finalizada"
@@ -1010,7 +1010,6 @@ export interface MeetingCalendarItemDto {
   hasMeetingLink: boolean;
   status:
     | "solicitada"
-    | "pago_pendiente"
     | "por_confirmar"
     | "confirmada"
     | "finalizada"
@@ -1154,7 +1153,6 @@ export interface MeetingUpdateDto {
   description?: string;
   status?:
     | "solicitada"
-    | "pago_pendiente"
     | "por_confirmar"
     | "confirmada"
     | "finalizada"
@@ -1676,7 +1674,6 @@ export interface ConsultantMeetingDocumentDto {
   description: string | null;
   status:
     | "solicitada"
-    | "pago_pendiente"
     | "por_confirmar"
     | "confirmada"
     | "finalizada"
@@ -2080,6 +2077,16 @@ export interface DashboardTaskStatusDto {
   bloqueada: number;
 }
 
+export interface DashboardTaskDeadlineDto {
+  id: number;
+  title: string;
+  /** @format date-time */
+  dueDate: string;
+  priority: "alta" | "media" | "baja";
+  assignedTo: "pyme" | "consultor";
+  status: "pendiente" | "en_progreso" | "bloqueada";
+}
+
 export interface DashboardMeetingDto {
   id: number;
   title: string;
@@ -2094,6 +2101,8 @@ export interface DashboardWorkloadClientDto {
   name: string;
   total: number;
   completed: number;
+  pending: number;
+  inProgress: number;
 }
 
 export interface DashboardAlertDto {
@@ -2108,6 +2117,8 @@ export interface DashboardResponseDto {
   latestDiagnostic: DashboardLatestDiagnosticDto | null;
   meetingStats: DashboardMeetingStatsDto;
   taskStatus: DashboardTaskStatusDto;
+  upcomingTasks: DashboardTaskDeadlineDto[];
+  overdueTasks: DashboardTaskDeadlineDto[];
   upcomingMeetings: DashboardMeetingDto[];
   workloadByClient: DashboardWorkloadClientDto[];
   alerts: DashboardAlertDto[];
@@ -2197,6 +2208,10 @@ export interface MercadoPagoPaymentHistoryItemDto {
   createdAt: string;
   /** @format date-time */
   updatedAt: string;
+  /** @format date-time */
+  meetingCreatedAt: string | null;
+  /** @format date-time */
+  meetingStartTime: string | null;
   meetingId: number | null;
   serviceRequestId: number | null;
   serviceInstallmentIndex: number | null;
@@ -2214,6 +2229,14 @@ export interface MercadoPagoPaymentHistoryItemDto {
   marketplaceFee: string;
   currency: string;
   meetingDetails?: CheckoutMeetingDetailsDto | null;
+  meetingStatus:
+    | "solicitada"
+    | "por_confirmar"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada"
+    | null;
+  meetingCancellationReason: string | null;
   serviceTitle: string | null;
   serviceDescription: string | null;
   mercadoPagoPaymentId: string | null;
@@ -3339,7 +3362,6 @@ export interface MeetingadminFindAllParams {
   consultantId?: number;
   status?:
     | "solicitada"
-    | "pago_pendiente"
     | "por_confirmar"
     | "confirmada"
     | "finalizada"
@@ -3379,6 +3401,13 @@ export interface MeetingCalendarParams {
    * @example "2026-08-01T00:00:00.000Z"
    */
   endDate: string;
+  /** Estado visible. Pendiente agrupa pago pendiente y por confirmar. */
+  status?:
+    | "solicitada"
+    | "pendiente"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada";
 }
 
 export type MeetingCalendarData = MeetingCalendarListDto;
@@ -3404,7 +3433,6 @@ export interface MeetingFindAllParams {
   consultantId?: number;
   status?:
     | "solicitada"
-    | "pago_pendiente"
     | "por_confirmar"
     | "confirmada"
     | "finalizada"
@@ -4134,6 +4162,10 @@ export interface MercadopagoFindPaymentsParams {
    * @default 8
    */
   month?: number;
+  /** Type of operation */
+  operationType?: "servicio" | "consultoria";
+  /** Payment method category */
+  paymentType?: "cupon" | "mercado_pago" | "tarjeta" | "yape";
 }
 
 export type MercadopagoFindPaymentsData = MercadoPagoPaymentHistoryResponseDto;
@@ -5386,7 +5418,6 @@ export namespace MeetingAdmin {
       consultantId?: number;
       status?:
         | "solicitada"
-        | "pago_pendiente"
         | "por_confirmar"
         | "confirmada"
         | "finalizada"
@@ -5452,6 +5483,13 @@ export namespace Meeting {
        * @example "2026-08-01T00:00:00.000Z"
        */
       endDate: string;
+      /** Estado visible. Pendiente agrupa pago pendiente y por confirmar. */
+      status?:
+        | "solicitada"
+        | "pendiente"
+        | "confirmada"
+        | "finalizada"
+        | "cancelada";
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
@@ -5489,7 +5527,6 @@ export namespace Meeting {
       consultantId?: number;
       status?:
         | "solicitada"
-        | "pago_pendiente"
         | "por_confirmar"
         | "confirmada"
         | "finalizada"
@@ -7154,6 +7191,10 @@ export namespace MercadoPago {
        * @default 8
        */
       month?: number;
+      /** Type of operation */
+      operationType?: "servicio" | "consultoria";
+      /** Payment method category */
+      paymentType?: "cupon" | "mercado_pago" | "tarjeta" | "yape";
     };
     export type RequestBody = never;
     export type RequestHeaders = {};

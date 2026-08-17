@@ -1,10 +1,12 @@
+import { formatInPeru } from '@function/date.function';
+
 interface ChartImages { barChart?: string; radarChart?: string }
 
 export type { ChartImages };
 
 function formatDate(value: string | Date | null | undefined): string {
   if (!value) return 'Sin fecha';
-  return new Date(value).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' });
+  return formatInPeru(value, { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 function buildReportHtml(diagnostic: any, chartImages?: ChartImages, format: 'pdf' | 'word' = 'pdf'): string {

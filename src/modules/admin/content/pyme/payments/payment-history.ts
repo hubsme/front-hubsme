@@ -1,15 +1,19 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { ApiResponse, PaginationMetaDto } from 'api/backend.api';
+import { ApiQuery, ApiResponse, PaginationMetaDto } from 'api/backend.api';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { PaginationComponent } from '@module/admin/components/pagination/pagination';
 import { MercadoPagoService } from '@service/admin/mercado-pago.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
+import { formatInPeru } from '@function/date.function';
 
 type PaymentHistoryResponse = ApiResponse<'mercadoPago', 'mercadopagoFindPayments'>;
 type PaymentHistoryItem = PaymentHistoryResponse['data'][number];
 type PaymentDetail = ApiResponse<'mercadoPago', 'mercadopagoFindPayment'>;
+type PaymentHistoryQuery = ApiQuery<'mercadoPago', 'mercadopagoFindPayments'>;
+type OperationTypeFilter = 'all' | NonNullable<PaymentHistoryQuery['operationType']>;
+type PaymentTypeFilter = 'all' | NonNullable<PaymentHistoryQuery['paymentType']>;
 
 @Component({
   selector: 'app-payment-history',
@@ -39,12 +43,26 @@ export class PaymentHistory {
     { value: 11, label: 'Noviembre' },
     { value: 12, label: 'Diciembre' },
   ];
+  readonly operationTypeOptions: { value: OperationTypeFilter; label: string }[] = [
+    { value: 'all', label: 'Todos los tipos' },
+    { value: 'servicio', label: 'Servicios' },
+    { value: 'consultoria', label: 'Consultorías' },
+  ];
+  readonly paymentTypeOptions: { value: PaymentTypeFilter; label: string }[] = [
+    { value: 'all', label: 'Todos los pagos' },
+    { value: 'cupon', label: 'Cupón' },
+    { value: 'mercado_pago', label: 'Mercado Pago' },
+    { value: 'tarjeta', label: 'Tarjeta' },
+    { value: 'yape', label: 'Yape' },
+  ];
 
   readonly payments = signal<PaymentHistoryItem[]>([]);
   readonly meta = signal<PaginationMetaDto | null>(null);
   readonly page = signal(1);
   readonly year = signal(this.currentYear);
   readonly month = signal(new Date().getMonth() + 1);
+  readonly operationType = signal<OperationTypeFilter>('all');
+  readonly paymentType = signal<PaymentTypeFilter>('all');
   readonly monthInputValue = computed(
     () => `${this.year()}-${String(this.month()).padStart(2, '0')}`,
   );
@@ -63,6 +81,8 @@ export class PaymentHistory {
 
   async loadPayments() {
     const requestId = ++this.requestSequence;
+    const operationType = this.operationType();
+    const paymentType = this.paymentType();
     this.loading.set(true);
 
     try {
@@ -71,6 +91,8 @@ export class PaymentHistory {
         limit: this.pageSize,
         year: this.year(),
         month: this.month(),
+        operationType: operationType === 'all' ? undefined : operationType,
+        paymentType: paymentType === 'all' ? undefined : paymentType,
       });
       if (requestId !== this.requestSequence) return;
       this.payments.set(result.data);
@@ -105,6 +127,22 @@ export class PaymentHistory {
     if (page === this.page()) return;
     this.page.set(page);
     void this.loadPayments();
+  }
+
+  changeOperationType(event: Event) {
+    const value = (event.target as HTMLSelectElement).value;
+    const option = this.operationTypeOptions.find((item) => item.value === value);
+    if (!option) return;
+    this.operationType.set(option.value);
+    this.resetAndLoad();
+  }
+
+  changePaymentType(event: Event) {
+    const value = (event.target as HTMLSelectElement).value;
+    const option = this.paymentTypeOptions.find((item) => item.value === value);
+    if (!option) return;
+    this.paymentType.set(option.value);
+    this.resetAndLoad();
   }
 
   async openPayment(payment: PaymentHistoryItem) {
@@ -155,6 +193,16 @@ export class PaymentHistory {
     return classes[status];
   }
 
+  operationStatusLabel(payment: PaymentHistoryItem) {
+    if (payment.meetingStatus === 'cancelada') return 'Cancelada';
+    return this.paymentStatusLabel(payment.status);
+  }
+
+  operationStatusClass(payment: PaymentHistoryItem) {
+    if (payment.meetingStatus === 'cancelada') return 'bg-danger/10 text-danger';
+    return this.paymentStatusClass(payment.status);
+  }
+
   paymentMethodLabel(payment: PaymentHistoryItem) {
     if (payment.paymentMethod === 'promotion_code') return 'Cupón';
 
@@ -196,8 +244,26 @@ export class PaymentHistory {
     return payment.consultantName ?? `Consultor #${payment.consultantId}`;
   }
 
+  historyDate(value: string | null) {
+    if (!value) return 'Por definir';
+    return formatInPeru(value, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
+  historyTime(value: string) {
+    return formatInPeru(value, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
+
   private resetAndLoad() {
     this.page.set(1);
     void this.loadPayments();
   }
+
 }

@@ -304,7 +304,7 @@
                           <i class="far fa-calendar-check"></i>
                           {{ meetingStatusLabel(meeting.status) }}
                           @if (meeting.startTime) {
-                            · {{ meeting.startTime | date: 'dd/MM, HH:mm' : 'America/Lima' }}
+                            · {{ meeting.startTime | date: 'dd/MM, HH:mm' }}
                           }
                         </a>
                       }
@@ -568,14 +568,14 @@
             <div class="flex items-start justify-between gap-3">
               <dt class="text-[0.68rem] text-muted">Creado</dt>
               <dd class="text-right text-[0.68rem] font-inter-bold">
-                {{ current.createdAt | date: 'dd/MM/yyyy' : 'America/Lima' }}
+                {{ current.createdAt | date: 'dd/MM/yyyy' }}
               </dd>
             </div>
             @if (current.paidAt) {
               <div class="flex items-start justify-between gap-3">
                 <dt class="text-[0.68rem] text-muted">Pago confirmado</dt>
                 <dd class="text-right text-[0.68rem] font-inter-bold">
-                  {{ current.paidAt | date: 'dd/MM/yyyy, HH:mm' : 'America/Lima' }}
+                  {{ current.paidAt | date: 'dd/MM/yyyy, HH:mm' }}
                 </dd>
               </div>
             }
@@ -583,7 +583,7 @@
               <div class="flex items-start justify-between gap-3">
                 <dt class="text-[0.68rem] text-muted">Servicio completado</dt>
                 <dd class="text-right text-[0.68rem] font-inter-bold">
-                  {{ current.completedAt | date: 'dd/MM/yyyy, HH:mm' : 'America/Lima' }}
+                  {{ current.completedAt | date: 'dd/MM/yyyy, HH:mm' }}
                 </dd>
               </div>
             }
@@ -828,7 +828,7 @@
               <p class="mt-1 text-[0.68rem] leading-relaxed text-muted">
                 La PYME confirmó la primera cuota{{
                   current.paidAt
-                    ? ' el ' + (current.paidAt | date: 'dd/MM/yyyy, HH:mm' : 'America/Lima')
+                    ? ' el ' + (current.paidAt | date: 'dd/MM/yyyy, HH:mm')
                     : ''
                 }}. Revisa el plan de pagos para seguir el avance.
               </p>
@@ -850,7 +850,7 @@
               <p class="mt-1 text-[0.68rem] leading-relaxed text-muted">
                 La PYME cerró el seguimiento{{
                   current.completedAt
-                    ? ' el ' + (current.completedAt | date: 'dd/MM/yyyy, HH:mm' : 'America/Lima')
+                    ? ' el ' + (current.completedAt | date: 'dd/MM/yyyy, HH:mm')
                     : ''
                 }}.
               </p>
@@ -958,7 +958,7 @@
                             <span class="mt-0.5 block text-[0.6rem] text-muted">
                               {{ formatFileSize(attachment.sizeBytes) }} ·
                               {{
-                                attachment.uploadedAt | date: 'dd/MM/yyyy, HH:mm' : 'America/Lima'
+                                attachment.uploadedAt | date: 'dd/MM/yyyy, HH:mm'
                               }}
                             </span>
                             @if (attachment.note) {

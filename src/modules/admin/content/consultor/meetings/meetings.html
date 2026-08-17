@@ -1,13 +1,32 @@
 <div class="space-y-6 font-inter-regular text-text">
   <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
     <div>
-      <h1 class="text-3xl font-plus-jakarta-sans font-bold capitalize">mi calendario</h1>
+      <h1 class="text-3xl font-plus-jakarta-sans font-bold capitalize">
+        {{ pageMode() === 'list' ? 'Mis Reuniones' : 'Mi Calendario' }}
+      </h1>
       <p class="mt-1 text-[0.84rem] leading-relaxed text-muted">
-        Configura disponibilidad, revisa bloqueos y gestiona tus reuniones agendadas.
+        {{
+          pageMode() === 'list'
+            ? 'Consulta y filtra tus reuniones agendadas.'
+            : 'Configura disponibilidad, revisa bloqueos y gestiona tus reuniones agendadas.'
+        }}
       </p>
     </div>
 
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <button type="button" (click)="togglePageMode()"
+        class="inline-flex h-10 shrink-0 items-center justify-center rounded-xl border border-border bg-surface text-sm font-inter-bold text-muted shadow-sm transition hover:border-secondary/30 hover:bg-secondary/10 hover:text-secondary"
+        [class.w-10]="pageMode() === 'calendar'"
+        [class.gap-2]="pageMode() === 'list'"
+        [class.px-4]="pageMode() === 'list'"
+        [attr.aria-label]="pageMode() === 'calendar' ? 'Cambiar a vista de lista' : 'Cambiar a vista de calendario'"
+        [title]="pageMode() === 'calendar' ? 'Vista de lista' : 'Vista de calendario'">
+        <i class="fas" [class.fa-list]="pageMode() === 'calendar'" [class.fa-calendar-days]="pageMode() === 'list'"></i>
+        @if (pageMode() === 'list') {
+        <span>Calendario</span>
+        }
+      </button>
+      @if (pageMode() === 'calendar') {
       @if (googleStatus().connected) {
       <button type="button" (click)="confirmDisconnectGoogleCalendar()" [disabled]="googleLoading()"
         class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-5 text-sm text-text font-inter-bold transition-colors hover:bg-background-100 disabled:opacity-50">
@@ -84,9 +103,13 @@
         }
       </div>
       }
+      }
     </div>
   </div>
 
+  @if (pageMode() === 'list') {
+  <app-meeting-list role="consultor" />
+  } @else {
   <section class="rounded-xl border border-border bg-surface p-4 shadow-[0_14px_32px_rgba(15,23,42,0.05)] lg:p-5">
     <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
       <div class="flex items-center gap-2">
@@ -362,6 +385,7 @@
       </span>
     </div>
   </section>
+  }
 </div>
 
 @if (expandedMonthDay(); as monthDay) {

@@ -16,6 +16,11 @@ import {
   PromotionCodeResultDto,
   ApiResponse,
 } from 'api/backend.api';
+import {
+  addMonthsToDateOnly,
+  dateKeyInPeru,
+  peruDateOnlyToUtc,
+} from '@function/date.function';
 
 type PymeOption = ApiResponse<'pyme', 'findAll'>['data'][number];
 type ConsultantOption = ApiResponse<'consultant', 'findAll'>['data'][number];
@@ -115,12 +120,9 @@ export class Codes {
     this.selectedPymes.set([]);
     this.selectedConsultants.set([]);
 
-    const today = new Date();
-    const nextMonth = new Date(today);
-    nextMonth.setMonth(nextMonth.getMonth() + 1);
-
-    this.startsAt.set(this.formatDateInput(today));
-    this.expiresAt.set(this.formatDateInput(nextMonth));
+    const today = dateKeyInPeru();
+    this.startsAt.set(today);
+    this.expiresAt.set(addMonthsToDateOnly(today, 1));
     this.showCreateModal.set(true);
   }
 
@@ -252,14 +254,6 @@ export class Codes {
 
   private toIsoDate(value: string, endOfDay = false) {
     if (!value) return undefined;
-    const suffix = endOfDay ? 'T23:59:59.999' : 'T00:00:00.000';
-    return new Date(`${value}${suffix}`).toISOString();
-  }
-
-  private formatDateInput(date: Date): string {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    return peruDateOnlyToUtc(value, endOfDay)?.toISOString();
   }
 }

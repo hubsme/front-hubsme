@@ -5,6 +5,7 @@ import { ApiResponse } from 'api/backend.api';
 import { PATH, buildPath } from '@route/path.route';
 import { MeetingService } from '@service/admin/meeting.service';
 import { SessionService } from '@service/session.service';
+import { formatInPeru } from '@function/date.function';
 
 type MeetingAccessData = ApiResponse<'meeting', 'access'>;
 type AccessError = 'forbidden' | 'not-found' | 'generic';
@@ -109,21 +110,19 @@ export class MeetingAccess implements OnInit {
 
   private formatDate(value: string | null | undefined): string {
     if (!value) return 'Fecha por confirmar';
-    return new Date(value).toLocaleDateString('es-PE', {
+    return formatInPeru(value, {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-      timeZone: 'America/Lima',
     });
   }
 
   private formatTime(value: string | null | undefined): string {
     if (!value) return 'Hora por confirmar';
-    return new Date(value).toLocaleTimeString('es-PE', {
+    return formatInPeru(value, {
       hour: '2-digit',
       minute: '2-digit',
-      timeZone: 'America/Lima',
     });
   }
 }

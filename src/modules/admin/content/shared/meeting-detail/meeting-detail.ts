@@ -10,6 +10,7 @@ import { PymeService } from '@service/admin/pyme.service';
 import { MeetingService } from '@service/admin/meeting.service';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { PATH, buildPath } from '@route/path.route';
+import { formatInPeru, parseApiDate } from '@function/date.function';
 
 type Meeting = ApiResponse<'meeting', 'findOne'>;
 type Consultant = ApiResponse<'consultant', 'findByUser'>;
@@ -67,7 +68,11 @@ export class MeetingDetail implements OnInit {
     if (!meeting) return false;
 
     const user = this.hubsme.currentUser();
-    return meeting.status === 'solicitada' && meeting.requestedBy !== user.role;
+    return (
+      meeting.status === 'solicitada' &&
+      meeting.requestedBy === 'consultor' &&
+      user.role === 'pyme'
+    );
   });
 
   canJoin = computed(() => {
@@ -94,7 +99,7 @@ export class MeetingDetail implements OnInit {
     const meetingStart = meeting.startTime ?? meeting.proposedStartTimes?.[0];
     if (!meetingStart) return false;
 
-    const cancellationDeadline = new Date(meetingStart).getTime() + 24 * 60 * 60 * 1000;
+    const cancellationDeadline = parseApiDate(meetingStart).getTime() + 24 * 60 * 60 * 1000;
     return Date.now() <= cancellationDeadline;
   }
 
@@ -238,7 +243,7 @@ export class MeetingDetail implements OnInit {
 
   meetingDisplayStart(meeting: Meeting) {
     const selectedOption = meeting.status === 'por_confirmar' ? this.selectedProposedStartTime() : null;
-    return new Date(meeting.startTime ?? selectedOption ?? meeting.proposedStartTimes?.[0] ?? meeting.createdAt);
+    return parseApiDate(meeting.startTime ?? selectedOption ?? meeting.proposedStartTimes?.[0] ?? meeting.createdAt);
   }
 
   proposedTimes(meeting: Meeting) {
@@ -248,36 +253,32 @@ export class MeetingDetail implements OnInit {
   }
 
   meetingDate(value: string | Date) {
-    return new Date(value).toLocaleDateString('es-PE', {
+    return formatInPeru(value, {
       day: '2-digit',
       month: 'long',
       year: 'numeric',
-      timeZone: 'America/Lima',
     });
   }
 
   meetingTime(value: string | Date) {
-    return new Date(value).toLocaleTimeString('es-PE', {
+    return formatInPeru(value, {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
-      timeZone: 'America/Lima',
     });
   }
 
   shortDate(value: string) {
-    return new Date(value).toLocaleDateString('es-PE', {
+    return formatInPeru(value, {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
-      timeZone: 'America/Lima',
     });
   }
 
   statusClass(status: Meeting['status']) {
     if (status === 'solicitada') return 'bg-warning/10 text-warning';
     if (status === 'por_confirmar') return 'bg-warning/10 text-warning';
-    if (status === 'pago_pendiente') return 'bg-secondary/10 text-secondary';
     if (status === 'cancelada') return 'bg-danger/10 text-danger';
     if (status === 'finalizada') return 'bg-text/5 text-text';
     return 'bg-success/10 text-success';

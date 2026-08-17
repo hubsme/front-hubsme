@@ -4,6 +4,7 @@ import { ServiceRequestService } from '@service/admin/service-request.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { ServiceRequestResultDto } from 'api/backend.api';
+import { formatInPeru } from '@function/date.function';
 
 @Component({
   selector: 'app-consultant-quote-form',
@@ -59,17 +60,15 @@ export class ConsultantQuoteForm {
   }
 
   formatMeetingOption(value: string): string {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return 'Horario no válido';
-    return new Intl.DateTimeFormat('es-PE', {
-      timeZone: 'America/Lima',
+    const formatted = formatInPeru(value, {
       weekday: 'short',
       day: '2-digit',
       month: 'short',
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
-    }).format(date);
+    });
+    return formatted || 'Horario no válido';
   }
 
   pricePlaceholder(): string {

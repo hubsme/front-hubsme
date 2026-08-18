@@ -24,6 +24,7 @@ import { HubsmeService } from '@service/hubsme.service';
 import { SessionService } from '@service/session.service';
 import { ToastService } from '@service/toast.service';
 import { ThemeService } from '@service/theme.service';
+import { ConsultantService } from '@service/admin/consultant.service';
 import { PATH, buildPath } from '@route/path.route';
 import { monthKeyInPeru, parseApiDate } from '@function/date.function';
 import { PymeInputSearch } from '@module/admin/components/input-search/pyme-input-search/pyme-input-search';
@@ -106,11 +107,13 @@ export class Dashboard implements OnInit, OnDestroy {
   private sessionService = inject(SessionService);
   private toastService = inject(ToastService);
   private themeService = inject(ThemeService);
+  private consultantService = inject(ConsultantService);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private liveClock: ReturnType<typeof setInterval> | null = null;
 
   summary = signal<DashboardSummary | null>(null);
+  clientPymes = signal<ApiResponse<'consultant', 'meetingPymes'>['data']>([]);
   loading = signal(false);
   now = signal(Date.now());
   selectedPymeId = signal<number | null>(null);
@@ -687,6 +690,7 @@ export class Dashboard implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadSummary();
+    if (this.isConsultant()) this.loadClientPymes();
     if (this.isBrowser) {
       this.liveClock = setInterval(() => this.now.set(Date.now()), 30_000);
     }
@@ -703,6 +707,13 @@ export class Dashboard implements OnInit, OnDestroy {
       .then((res) => this.summary.set(res.data))
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
+  }
+
+  loadClientPymes() {
+    this.consultantService
+      .meetingPymes({ page: 1, limit: 100 })
+      .then((response) => this.clientPymes.set(response.data))
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
   }
 
   onPymeSelected(pyme: ApiResponse<'pyme', 'findAll'>['data'][number] | null): void {

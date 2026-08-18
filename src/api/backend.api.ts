@@ -333,7 +333,7 @@ export interface RucVerificationResultDto {
   /** Indica si PeruDevs encontró información para el RUC */
   providerFound: boolean;
   /**
-   * Nombre comercial asociado al RUC cuando existe en el registro
+   * Nombre comercial asociado al RUC; usa la razón social cuando el proveedor no informa un nombre comercial
    * @example "Textiles del Sur SAC"
    */
   nombreComercial: string | null;

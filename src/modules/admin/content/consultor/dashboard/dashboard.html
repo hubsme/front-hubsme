@@ -291,6 +291,7 @@
               <app-pyme-input-search
                 aria-label="Filtrar estado de tareas por PYME"
                 emptyLabel="Todas las PYMEs"
+                [options]="clientPymes()"
                 [showClear]="true"
                 (onSelected)="onPymeSelected($event)"
               />

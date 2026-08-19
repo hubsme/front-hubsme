@@ -1,0 +1,848 @@
+<section class="space-y-5">
+  <div class="grid gap-3 sm:grid-cols-2">
+    <article class="rounded-xl border border-border bg-surface p-4">
+      <div class="flex items-center gap-3">
+        <span class="grid size-10 place-items-center rounded-xl bg-warning/10 text-warning">
+          <i class="fas fa-clock"></i>
+        </span>
+        <div>
+          <p class="text-xs uppercase font-inter-semibold text-muted">Pendiente en esta página</p>
+          <p class="mt-1 text-xl font-inter-bold text-text">
+            S/ {{ pendingAmountOnPage() | number: '1.2-2' }}
+          </p>
+        </div>
+      </div>
+    </article>
+    <article class="rounded-xl border border-border bg-surface p-4">
+      <div class="flex items-center gap-3">
+        <span class="grid size-10 place-items-center rounded-xl bg-secondary/10 text-secondary">
+          <i class="fas fa-receipt"></i>
+        </span>
+        <div>
+          <p class="text-xs uppercase font-inter-semibold text-muted">Registros encontrados</p>
+          <p class="mt-1 text-xl font-inter-bold text-text">{{ totalPayouts() }}</p>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <section class="overflow-hidden rounded-xl border border-border bg-surface">
+    <div class="border-b border-border p-4">
+      <div class="grid items-end gap-3 lg:grid-cols-[1.35fr_1fr_220px]">
+        <label class="block">
+          <span class="mb-2 block text-xs uppercase font-inter-semibold text-muted">Buscar</span>
+          <span class="relative block">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted"></i>
+            <input
+              [ngModel]="search()"
+              (ngModelChange)="onSearchChange($event)"
+              placeholder="Reunión, PYME, referencia o pago"
+              class="h-10 w-full rounded-lg border border-border bg-background-50 pl-10 pr-4 text-text outline-none focus:border-secondary"
+            />
+          </span>
+        </label>
+
+        <label class="block">
+          <span class="mb-2 block text-xs uppercase font-inter-semibold text-muted">Consultor</span>
+          <app-consultant-input-search
+            [options]="consultantOptions()"
+            [showClear]="true"
+            [ngModel]="selectedConsultant()"
+            (ngModelChange)="onConsultantSelected($event)"
+          />
+        </label>
+
+        <label class="block">
+          <span class="mb-2 block text-xs uppercase font-inter-semibold text-muted"
+            >Estado del depósito</span
+          >
+          <span class="relative block">
+            <select
+              [ngModel]="status()"
+              (change)="onStatusSelect($event)"
+              class="h-10 w-full appearance-none rounded-lg border border-border bg-background-50 pl-3 pr-10 text-sm text-text outline-none focus:border-secondary"
+            >
+              <option value="">Todos</option>
+              <option value="pending">Pendientes</option>
+              <option value="paid">Depositados</option>
+            </select>
+            <i
+              class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted"
+            ></i>
+          </span>
+        </label>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="grid h-64 place-items-center text-muted">
+        <span><i class="fas fa-circle-notch fa-spin mr-2"></i>Cargando pagos...</span>
+      </div>
+    } @else if (!payouts().length) {
+      <div class="grid h-64 place-items-center p-6 text-center">
+        <div>
+          <i class="fas fa-money-check-dollar mb-3 text-3xl text-secondary/40"></i>
+          <p class="font-inter-semibold text-text">No hay depósitos para mostrar</p>
+          <p class="mt-1 text-sm text-muted">No se encontraron obligaciones con estos filtros.</p>
+        </div>
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[960px] text-sm">
+          <thead class="border-b border-border bg-background-50">
+            <tr class="text-left text-xs uppercase font-inter-semibold text-muted">
+              <th class="px-4 py-3">Reunión</th>
+              <th class="px-4 py-3">PYME</th>
+              <th class="px-4 py-3">Consultor</th>
+              <th class="px-4 py-3">Cobro en Hubsme</th>
+              <th class="px-4 py-3 text-right">A depositar</th>
+              <th class="px-4 py-3">Depósito</th>
+              <th class="px-4 py-3 text-right">Acción</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            @for (payout of payouts(); track payout.id) {
+              <tr
+                (click)="openTraceabilityModal(payout)"
+                class="cursor-pointer transition hover:bg-background-50"
+                title="Haz clic para ver el detalle y trazabilidad de la reunión"
+              >
+                <td class="px-4 py-4">
+                  <p class="max-w-64 truncate font-inter-semibold text-text">
+                    {{ payout.meetingTitle }}
+                  </p>
+                  <p class="mt-1 text-xs text-muted">
+                    {{ payout.meetingStartTime | date: 'dd/MM/yyyy HH:mm' }}
+                  </p>
+                </td>
+                <td class="px-4 py-4 text-muted">{{ payout.pymeName }}</td>
+                <td class="px-4 py-4 font-inter-semibold text-text">{{ payout.consultantName }}</td>
+                <td class="px-4 py-4">
+                  <p class="font-inter-medium text-text">
+                    {{ payout.mercadoPagoPaymentId || '-' }}
+                  </p>
+                  <p
+                    class="mt-1 max-w-52 truncate text-xs text-muted"
+                    [title]="payout.checkoutExternalReference"
+                  >
+                    {{ payout.checkoutExternalReference }}
+                  </p>
+                </td>
+                <td class="px-4 py-4 text-right font-inter-bold text-text">
+                  S/ {{ payout.amount | number: '1.2-2' }}
+                </td>
+                <td class="px-4 py-4">
+                  <span
+                    class="inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-inter-semibold"
+                    [class]="
+                      payout.status === 'paid'
+                        ? 'bg-success/10 text-success'
+                        : 'bg-warning/10 text-warning'
+                    "
+                  >
+                    {{ statusLabel(payout.status) }}
+                  </span>
+                  @if (payout.paidAt) {
+                    <p class="mt-1 text-xs text-muted">
+                      {{ payout.paidAt | date: 'dd/MM/yyyy HH:mm' }}
+                    </p>
+                  }
+                </td>
+                <td class="px-4 py-4 text-right" (click)="$event.stopPropagation()">
+                  @if (payout.status === 'pending') {
+                    <button
+                      type="button"
+                      (click)="openPaymentModal(payout); $event.stopPropagation()"
+                      class="inline-flex h-9 items-center justify-center gap-2 rounded-lg bg-secondary px-3 text-xs font-inter-semibold text-fixed-background-50 shadow-sm hover:bg-secondary/90"
+                    >
+                      <i class="fas fa-check"></i>
+                      Registrar pago
+                    </button>
+                  } @else if (payout.evidenceFileUrl) {
+                    <a
+                      [href]="payout.evidenceFileUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      (click)="$event.stopPropagation()"
+                      class="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-border px-3 text-xs font-inter-semibold text-secondary hover:bg-secondary/5"
+                    >
+                      <i class="fas fa-file-arrow-down"></i>
+                      Ver constancia
+                    </a>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (meta(); as paginationMeta) {
+      <app-pagination
+        [meta]="paginationMeta"
+        [currentPage]="page()"
+        [pageSize]="pageSize"
+        [showPageSizeSelector]="false"
+        (pageChange)="changePage($event)"
+      />
+    }
+  </section>
+</section>
+
+@if (showPaymentModal() && selectedPayout(); as payout) {
+  <app-modal-form
+    title="Registrar depósito"
+    maxWidth="xl"
+    submitText="Confirmar depósito"
+    [loading]="submitting()"
+    [submitDisabled]="!canSubmitPayment()"
+    (onClose)="closePaymentModal()"
+    (onSubmit)="registerPayment()"
+  >
+    <div class="space-y-5 p-5 sm:p-6">
+      <div class="rounded-xl border border-secondary/20 bg-secondary/5 p-4">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0">
+            <p class="truncate font-inter-semibold text-text">{{ payout.consultantName }}</p>
+            <p class="mt-1 truncate text-sm text-muted">{{ payout.meetingTitle }}</p>
+          </div>
+          <p class="shrink-0 text-lg font-inter-bold text-secondary">
+            S/ {{ payout.amount | number: '1.2-2' }}
+          </p>
+        </div>
+        <div class="mt-4 grid grid-cols-3 gap-3 border-t border-secondary/20 pt-4 text-sm">
+          <div>
+            <p class="text-xs uppercase font-inter-semibold text-muted">Cobrado</p>
+            <p class="mt-1 font-inter-semibold text-text">
+              S/ {{ payout.grossAmount | number: '1.2-2' }}
+            </p>
+          </div>
+          <div>
+            <p class="text-xs uppercase font-inter-semibold text-muted">Comisión</p>
+            <p class="mt-1 font-inter-semibold text-text">
+              S/ {{ payout.platformCommissionAmount | number: '1.2-2' }}
+            </p>
+          </div>
+          <div class="text-right">
+            <p class="text-xs uppercase font-inter-semibold text-muted">Neto</p>
+            <p class="mt-1 font-inter-bold text-secondary">
+              S/ {{ payout.amount | number: '1.2-2' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="rounded-xl border border-warning/20 bg-warning/5 p-4 text-sm leading-relaxed text-muted"
+      >
+        <i class="fas fa-circle-info mr-2 text-warning"></i>
+        Este registro no ejecuta la transferencia. Confirma el depósito manual realizado desde la
+        cuenta de Hubsme y conserva su evidencia.
+      </div>
+
+      <label class="block">
+        <span class="mb-2 block text-xs uppercase font-inter-semibold text-muted">
+          Referencia de transferencia <span class="text-danger">*</span>
+        </span>
+        <input
+          [ngModel]="paymentReference()"
+          (ngModelChange)="paymentReference.set($event)"
+          maxlength="180"
+          placeholder="Ej. operación, transferencia o código de Mercado Pago"
+          class="h-11 w-full rounded-lg border border-border bg-background-50 px-3 text-text outline-none focus:border-secondary"
+        />
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-xs uppercase font-inter-semibold text-muted">
+          Constancia del pago <span class="text-danger">*</span>
+        </span>
+        <span
+          class="flex min-h-24 cursor-pointer items-center justify-center rounded-xl border border-dashed border-border bg-background-50 p-4 text-center hover:border-secondary"
+        >
+          <span>
+            <i class="fas fa-cloud-arrow-up mb-2 text-xl text-secondary"></i>
+            <span class="block text-sm font-inter-semibold text-text">
+              {{ evidence()?.name || 'Seleccionar PDF o imagen' }}
+            </span>
+            <span class="mt-1 block text-xs text-muted">
+              PDF, JPG, PNG o WEBP · máx. 10 MB · pega una imagen con Ctrl/Cmd + V
+            </span>
+          </span>
+          <input
+            type="file"
+            accept="application/pdf,image/jpeg,image/png,image/webp"
+            class="sr-only"
+            (change)="onEvidenceSelected($event)"
+          />
+        </span>
+      </label>
+
+      <label class="block">
+        <span class="mb-2 block text-xs uppercase font-inter-semibold text-muted"
+          >Notas (opcional)</span
+        >
+        <textarea
+          [ngModel]="paymentNotes()"
+          (ngModelChange)="paymentNotes.set($event)"
+          maxlength="2000"
+          rows="3"
+          placeholder="Añade una observación administrativa"
+          class="w-full resize-none rounded-lg border border-border bg-background-50 p-3 text-text outline-none focus:border-secondary"
+        ></textarea>
+      </label>
+    </div>
+  </app-modal-form>
+}
+
+@if (showTraceabilityModal()) {
+  <app-modal-form
+    title="Detalle y trazabilidad de la reunión"
+    maxWidth="3xl"
+    [showFooter]="false"
+    (onClose)="closeTraceabilityModal()"
+  >
+    @if (traceabilityLoading()) {
+      <div class="grid h-72 place-items-center text-muted">
+        <div class="text-center">
+          <i class="fas fa-circle-notch fa-spin text-xl text-secondary"></i>
+          <p class="mt-2 text-xs font-inter-medium text-muted">Cargando detalles...</p>
+        </div>
+      </div>
+    } @else if (traceabilityData(); as trace) {
+      <div class="space-y-5 p-5 sm:p-6 text-sm">
+        <!-- 1. Información de Cobro -->
+        <section class="rounded-xl border border-border bg-surface overflow-hidden">
+          <div
+            class="flex items-center justify-between border-b border-border bg-background-50/70 px-5 py-3"
+          >
+            <div class="flex items-center gap-2.5">
+              <span
+                class="grid size-8 shrink-0 place-items-center rounded-lg bg-secondary/10 text-secondary"
+              >
+                <i class="fas fa-receipt text-xs"></i>
+              </span>
+              <h3 class="text-xs font-inter-semibold uppercase text-muted tracking-wide">
+                Información de cobro
+              </h3>
+            </div>
+            <span
+              class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-inter-semibold"
+              [class]="
+                trace.payout.status === 'paid'
+                  ? 'border-success/30 text-success'
+                  : 'border-warning/30 text-warning'
+              "
+            >
+              <i
+                class="fas text-[9px]"
+                [class.fa-check-circle]="trace.payout.status === 'paid'"
+                [class.fa-clock]="trace.payout.status !== 'paid'"
+              ></i>
+              {{ statusLabel(trace.payout.status) }}
+            </span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 divide-x divide-border/60 p-5">
+            <div class="flex flex-col items-center text-center px-3 first:pl-0">
+              <span
+                class="grid size-9 place-items-center rounded-lg bg-background-50 text-muted mb-2"
+              >
+                <i class="fas fa-file-invoice text-sm"></i>
+              </span>
+              <span class="block text-[11px] text-muted font-inter-medium">Cobrado a PYME</span>
+              <span class="mt-1 block text-lg font-inter-bold text-text">
+                S/ {{ trace.payout.grossAmount | number: '1.2-2' }}
+              </span>
+            </div>
+            <div class="flex flex-col items-center text-center px-3">
+              <span
+                class="grid size-9 place-items-center rounded-lg bg-background-50 text-muted mb-2"
+              >
+                <i class="fas fa-percent text-sm"></i>
+              </span>
+              <span class="block text-[11px] text-muted font-inter-medium"
+                >Comisión Hubsme (4%)</span
+              >
+              <span class="mt-1 block text-lg font-inter-bold text-text">
+                S/ {{ trace.payout.platformCommissionAmount | number: '1.2-2' }}
+              </span>
+            </div>
+            <div class="flex flex-col items-center text-center px-3">
+              <span
+                class="grid size-9 place-items-center rounded-lg bg-background-50 text-muted mb-2"
+              >
+                <i class="fas fa-file-invoice-dollar text-sm"></i>
+              </span>
+              <span class="block text-[11px] text-muted font-inter-medium">Neto Consultor</span>
+              <span class="mt-1 block text-lg font-inter-bold text-text">
+                S/ {{ trace.payout.amount | number: '1.2-2' }}
+              </span>
+            </div>
+            <div class="flex flex-col items-center text-center px-3 last:pr-0">
+              <span
+                class="grid size-9 place-items-center rounded-lg bg-background-50 text-muted mb-2"
+              >
+                <i class="fas fa-user-tie text-sm"></i>
+              </span>
+              <span class="block text-[11px] text-muted font-inter-medium">PYME / Consultor</span>
+              <span
+                class="mt-1 block text-sm font-inter-bold text-text truncate max-w-full"
+                [title]="trace.rootMeeting.pymeName"
+              >
+                {{ trace.rootMeeting.pymeName }}
+              </span>
+              <span
+                class="block text-xs text-muted truncate max-w-full"
+                [title]="trace.rootMeeting.consultantName"
+              >
+                {{ trace.rootMeeting.consultantName }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Detalles de Mercado Pago y Referencia en el cuerpo del card -->
+          <div
+            class="border-t border-border bg-background-50/40 px-5 py-2.5 text-xs flex flex-wrap items-center justify-between gap-3 text-muted"
+          >
+            <div class="truncate">
+              <span>Mercado Pago ID: </span>
+              <span class="font-inter-semibold text-text">{{
+                trace.payout.mercadoPagoPaymentId || 'N/A'
+              }}</span>
+              @if (trace.payout.checkoutExternalReference) {
+                <span class="text-muted/70 ml-2 font-mono text-[11px]">
+                  ({{ trace.payout.checkoutExternalReference }})
+                </span>
+              }
+            </div>
+
+            @if (trace.payout.status === 'paid') {
+              <div class="flex items-center gap-3">
+                @if (trace.payout.paymentReference) {
+                  <div>
+                    <span class="text-muted">Ref. depósito: </span>
+                    <span class="font-inter-semibold text-text">{{
+                      trace.payout.paymentReference
+                    }}</span>
+                    @if (trace.payout.paidAt) {
+                      <span class="text-muted ml-1"
+                        >({{ trace.payout.paidAt | date: 'dd/MM/yyyy HH:mm' }})</span
+                      >
+                    }
+                  </div>
+                }
+                @if (trace.payout.evidenceFileUrl) {
+                  <a
+                    [href]="trace.payout.evidenceFileUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center gap-1.5 text-xs font-inter-semibold text-secondary hover:underline"
+                  >
+                    <i class="fas fa-file-arrow-down"></i>
+                    Constancia
+                  </a>
+                }
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- 2. Sesión Vigente -->
+        <section class="rounded-xl border border-border bg-surface overflow-hidden">
+          <div
+            class="flex items-center justify-between border-b border-border bg-background-50/70 px-5 py-3"
+          >
+            <div class="flex items-center gap-2.5">
+              <span
+                class="grid size-8 shrink-0 place-items-center rounded-lg bg-secondary/10 text-secondary"
+              >
+                <i class="fas fa-calendar-check text-xs"></i>
+              </span>
+              <h3 class="text-xs font-inter-semibold uppercase text-muted tracking-wide">
+                Sesión Vigente
+              </h3>
+            </div>
+            <span
+              class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-inter-semibold"
+              [class]="
+                trace.latestMeeting.status === 'confirmada'
+                  ? 'border-success/30 text-success'
+                  : trace.latestMeeting.status === 'cancelada'
+                    ? 'border-danger/30 text-danger'
+                    : 'border-muted/30 text-muted'
+              "
+            >
+              {{ meetingStatusLabel(trace.latestMeeting.status) }}
+            </span>
+          </div>
+
+          <div class="p-5 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div class="min-w-0">
+                <span class="text-xs text-muted font-inter-medium"
+                  >ID #{{ trace.latestMeeting.id }}</span
+                >
+                <h4 class="font-inter-semibold text-base text-text mt-0.5">
+                  {{ trace.latestMeeting.title }}
+                </h4>
+              </div>
+              <div class="flex items-center gap-2 text-right">
+                <span
+                  class="grid size-8 shrink-0 place-items-center rounded-lg bg-background-50 text-muted"
+                >
+                  <i class="fas fa-clock text-sm"></i>
+                </span>
+                <div>
+                  <span class="text-xs text-muted font-inter-medium block">Fecha y hora</span>
+                  <span class="font-inter-bold text-text text-sm">
+                    {{
+                      trace.latestMeeting.startTime
+                        ? (trace.latestMeeting.startTime | date: 'dd/MM/yyyy HH:mm')
+                        : 'Por definir'
+                    }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            @if (trace.latestMeeting.meetingUrl) {
+              <div
+                class="pt-3 border-t border-border flex items-center justify-between gap-2"
+              >
+                <span class="text-xs text-muted truncate">
+                  Enlace:
+                  <span class="text-secondary">{{ trace.latestMeeting.meetingUrl }}</span>
+                </span>
+                <a
+                  [href]="trace.latestMeeting.meetingUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-inter-medium text-text transition hover:border-secondary hover:text-secondary"
+                >
+                  <i class="fas fa-arrow-up-right-from-square text-[10px]"></i>
+                  Abrir reunión
+                </a>
+              </div>
+            }
+
+            <!-- Botones de acción de la sesión -->
+            <div class="flex items-center gap-2 pt-1">
+              <button
+                type="button"
+                (click)="toggleLatestMeetingDetails()"
+                class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-inter-medium text-text transition hover:border-secondary hover:text-secondary cursor-pointer"
+              >
+                <i
+                  class="fas text-[10px]"
+                  [class.fa-chevron-down]="!showLatestMeetingDetails()"
+                  [class.fa-chevron-up]="showLatestMeetingDetails()"
+                ></i>
+                {{ showLatestMeetingDetails() ? 'Ocultar detalles' : 'Ver más' }}
+              </button>
+              <button
+                type="button"
+                (click)="loadRecordings(trace.latestMeeting.id)"
+                [disabled]="recordingsLoading()"
+                class="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-inter-medium text-text transition hover:border-secondary hover:text-secondary cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                @if (recordingsLoading()) {
+                  <i class="fas fa-circle-notch fa-spin text-[10px]"></i>
+                } @else {
+                  <i class="fas fa-video text-[10px]"></i>
+                }
+                Grabaciones
+              </button>
+            </div>
+
+            <!-- Detalles expandidos -->
+            @if (showLatestMeetingDetails()) {
+              <div class="rounded-lg bg-background-50 p-3.5 text-xs space-y-2">
+                <div class="flex items-center gap-2 text-muted">
+                  <i class="fas fa-clock text-[10px] shrink-0"></i>
+                  <p>
+                    <span class="font-inter-semibold text-text">Duración:</span>
+                    {{ trace.latestMeeting.durationMinutes }} min
+                  </p>
+                </div>
+                <div class="flex items-center gap-2 text-muted">
+                  <i class="fas fa-building text-[10px] shrink-0"></i>
+                  <p>
+                    <span class="font-inter-semibold text-text">PYME:</span>
+                    {{ trace.latestMeeting.pymeName }}
+                  </p>
+                </div>
+                <div class="flex items-center gap-2 text-muted">
+                  <i class="fas fa-user-tie text-[10px] shrink-0"></i>
+                  <p>
+                    <span class="font-inter-semibold text-text">Consultor:</span>
+                    {{ trace.latestMeeting.consultantName }}
+                  </p>
+                </div>
+                @if (trace.latestMeeting.hasMeetingLink) {
+                  <div class="flex items-center gap-2 text-muted">
+                    <i class="fas fa-link text-[10px] shrink-0"></i>
+                    <p>
+                      <span class="font-inter-semibold text-text">Enlace Teams:</span>
+                      Disponible
+                    </p>
+                  </div>
+                }
+                @if (trace.latestMeeting.cancellationReason) {
+                  <div class="flex items-center gap-2 text-muted">
+                    <i class="fas fa-circle-info text-[10px] shrink-0"></i>
+                    <p>
+                      <span class="font-inter-semibold text-text">Motivo cancelación:</span>
+                      {{ trace.latestMeeting.cancellationReason }}
+                    </p>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Grabaciones -->
+            @if (recordings().length) {
+              <div class="rounded-lg border border-border overflow-hidden">
+                <div class="flex items-center gap-2 bg-background-50/70 px-3.5 py-2 text-xs font-inter-semibold text-muted">
+                  <i class="fas fa-video text-[10px] text-secondary"></i>
+                  Grabaciones ({{ recordings().length }})
+                </div>
+                <div class="divide-y divide-border">
+                  @for (rec of recordings(); track rec.id) {
+                    <div class="flex items-center justify-between gap-3 px-3.5 py-2.5 text-xs">
+                      <div class="min-w-0">
+                        <p class="font-inter-medium text-text truncate">{{ rec.fileName || 'Grabación' }}</p>
+                        <p class="text-[11px] text-muted mt-0.5">
+                          {{ rec.createdDateTime | date: 'dd/MM/yyyy HH:mm' }}
+                        </p>
+                      </div>
+                      <div class="flex items-center gap-1.5 shrink-0">
+                        @if (rec.publicUrl) {
+                          <a
+                            [href]="rec.publicUrl"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-flex h-7 items-center gap-1 rounded-md border border-border px-2 text-[11px] font-inter-medium text-text transition hover:border-secondary hover:text-secondary"
+                          >
+                            <i class="fas fa-play text-[9px]"></i>
+                            Ver
+                          </a>
+                        }
+                        @if (rec.downloadUrl) {
+                          <a
+                            [href]="rec.downloadUrl"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-flex h-7 items-center gap-1 rounded-md border border-border px-2 text-[11px] font-inter-medium text-text transition hover:border-secondary hover:text-secondary"
+                          >
+                            <i class="fas fa-download text-[9px]"></i>
+                            Descargar
+                          </a>
+                        }
+                        @if (rec.webUrl) {
+                          <a
+                            [href]="rec.webUrl"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-flex h-7 items-center gap-1 rounded-md border border-border px-2 text-[11px] font-inter-medium text-secondary transition hover:underline"
+                          >
+                            <i class="fas fa-arrow-up-right-from-square text-[9px]"></i>
+                            OneDrive
+                          </a>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- 3. Historial de Reagendamientos -->
+        <section class="rounded-xl border border-border bg-surface overflow-hidden">
+          <div
+            class="flex items-center justify-between border-b border-border bg-background-50/70 px-5 py-3"
+          >
+            <div class="flex items-center gap-2.5">
+              <span
+                class="grid size-8 shrink-0 place-items-center rounded-lg bg-secondary/10 text-secondary"
+              >
+                <i class="fas fa-clock-rotate-left text-xs"></i>
+              </span>
+              <h3 class="text-xs font-inter-semibold uppercase text-muted tracking-wide">
+                Historial de reagendamientos
+              </h3>
+            </div>
+            <span class="text-xs text-muted font-inter-medium">
+              {{
+                trace.rescheduleCount === 0
+                  ? 'Sin cancelaciones previas'
+                  : trace.rescheduleCount === 1
+                    ? '1 reagendamiento registrado'
+                    : trace.rescheduleCount + ' reagendamientos registrados'
+              }}
+            </span>
+          </div>
+
+          <div class="p-5">
+            <div class="space-y-0">
+              <!-- Sesión Inicial (nodo outline) -->
+              <div class="flex gap-4">
+                <!-- Columna Timeline: Punto + Línea -->
+                <div class="flex flex-col items-center">
+                  <div
+                    class="size-3.5 rounded-full border-2 border-secondary bg-surface shrink-0 mt-0.5"
+                  ></div>
+                  <div class="w-0.5 grow bg-secondary/40 my-1"></div>
+                </div>
+
+                <!-- Contenido Sesión Inicial -->
+                <div class="flex-1 pb-6 space-y-1">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                      <span class="text-sm font-inter-semibold text-text"
+                        >Sesión Inicial (#{{ trace.rootMeeting.id }})</span
+                      >
+                      <span
+                        class="rounded-full border px-2 py-0.5 text-[10px] font-inter-medium"
+                        [class]="
+                          trace.rootMeeting.status === 'cancelada'
+                            ? 'border-danger/30 text-danger'
+                            : trace.rootMeeting.status === 'confirmada'
+                              ? 'border-success/30 text-success'
+                              : 'border-muted/30 text-muted'
+                        "
+                      >
+                        {{ meetingStatusLabel(trace.rootMeeting.status) }}
+                      </span>
+                    </div>
+                    <span class="text-xs text-muted font-inter-medium">
+                      {{ trace.rootMeeting.startTime | date: 'dd/MM/yyyy HH:mm' }}
+                    </span>
+                  </div>
+                  <p class="text-xs text-muted">{{ trace.rootMeeting.title }}</p>
+
+                  @if (trace.rootMeeting.cancellationReason) {
+                    <div
+                      class="mt-2 flex items-start gap-2 rounded-lg bg-background-50 px-3.5 py-2.5 text-xs"
+                    >
+                      <i
+                        class="fas fa-circle-info mt-0.5 shrink-0 text-[10px] text-muted"
+                      ></i>
+                      <p class="text-muted">
+                        <span class="font-inter-semibold text-text"
+                          >Motivo de cancelación:</span
+                        >
+                        {{ trace.rootMeeting.cancellationReason }}
+                      </p>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Pasos de reagendamiento (nodo filled) -->
+              @for (step of trace.history; track step.id; let last = $last) {
+                <div class="flex gap-4">
+                  <!-- Columna Timeline: Punto + Línea -->
+                  <div class="flex flex-col items-center">
+                    <div
+                      class="size-3.5 rounded-full bg-secondary border-2 border-secondary shrink-0 mt-0.5"
+                    ></div>
+                    @if (!last) {
+                      <div class="w-0.5 grow bg-secondary/40 my-1"></div>
+                    }
+                  </div>
+
+                  <!-- Contenido Reagendamiento -->
+                  <div class="flex-1 space-y-1" [class.pb-6]="!last">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm font-inter-semibold text-text">
+                          Reagendamiento {{ step.stepIndex }}@if (step.replacementMeetingId) {
+                            (#{{ step.replacementMeetingId }})
+                          }
+                        </span>
+                        <span
+                          class="rounded-full border px-2 py-0.5 text-[10px] font-inter-medium"
+                          [class]="
+                            step.replacementMeetingStatus === 'cancelada'
+                              ? 'border-danger/30 text-danger'
+                              : step.isRedeemed
+                                ? 'border-success/30 text-success'
+                                : 'border-warning/30 text-warning'
+                          "
+                        >
+                          {{
+                            step.replacementMeetingStatus === 'cancelada'
+                              ? 'Cancelada'
+                              : step.isRedeemed
+                                ? 'Activa'
+                                : 'Pendiente de canje'
+                          }}
+                        </span>
+                      </div>
+                      <span class="text-xs text-muted font-inter-medium">
+                        {{
+                          (step.replacementMeetingStartTime || step.createdAt)
+                            | date: 'dd/MM/yyyy HH:mm'
+                        }}
+                      </span>
+                    </div>
+
+                    <p class="text-xs text-muted">
+                      {{ step.replacementMeetingTitle || trace.rootMeeting.title }}
+                      @if (step.promotionCode) {
+                        <span class="text-muted/60"> · Cupón: {{ step.promotionCode }}</span>
+                      }
+                    </p>
+
+                    @if (
+                      step.replacementMeetingStatus === 'cancelada' &&
+                      step.cancellationReason &&
+                      step.cancellationReason !== trace.rootMeeting.cancellationReason
+                    ) {
+                      <div
+                        class="mt-2 flex items-start gap-2 rounded-lg bg-background-50 px-3.5 py-2.5 text-xs"
+                      >
+                        <i
+                          class="fas fa-circle-info mt-0.5 shrink-0 text-[10px] text-muted"
+                        ></i>
+                        <p class="text-muted">
+                          <span class="font-inter-semibold text-text">Motivo de cancelación:</span>
+                          {{ step.cancellationReason }}
+                        </p>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- Botones de Acción -->
+        <div class="flex items-center justify-end gap-3 pt-1">
+          <button
+            type="button"
+            (click)="closeTraceabilityModal()"
+            class="h-10 rounded-lg border border-border px-5 text-sm font-inter-medium text-text transition hover:bg-background-50 cursor-pointer"
+          >
+            Cerrar
+          </button>
+          @if (trace.payout.status === 'pending') {
+            <button
+              type="button"
+              (click)="openPaymentModalFromTraceability()"
+              class="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-secondary px-5 text-sm font-inter-semibold text-fixed-background-50 shadow-sm transition hover:bg-secondary/90 cursor-pointer"
+            >
+              <i class="fas fa-check"></i>
+              Registrar depósito a consultor
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </app-modal-form>
+}

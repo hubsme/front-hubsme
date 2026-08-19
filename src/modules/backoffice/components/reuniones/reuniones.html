@@ -1,164 +1,199 @@
 <main class="max-w-7xl mx-auto p-5 md:p-8">
-  <div class="mb-7">
-    <p class="text-xs font-inter-semibold uppercase text-secondary mb-2">Administración</p>
-    <h1 class="font-anton text-2xl md:text-3xl lowercase text-text">Reuniones</h1>
-    <p class="text-muted mt-2">
-      Revisa las sesiones agendadas y filtra por PYME, consultor o estado.
-    </p>
-  </div>
-
-  <section class="grid sm:grid-cols-3 gap-3 mb-6">
-    <article class="bg-surface border border-border rounded-lg p-4">
-      <p class="text-xs uppercase font-inter-semibold text-muted">Reuniones registradas</p>
-      <p class="text-2xl font-inter-bold mt-1">{{ totalMeetings() }}</p>
-    </article>
-    <article class="bg-surface border border-border rounded-lg p-4">
-      <p class="text-xs uppercase font-inter-semibold text-muted">Confirmadas en esta página</p>
-      <p class="text-2xl font-inter-bold text-success mt-1">{{ confirmedOnPage() }}</p>
-    </article>
-    <article class="bg-surface border border-border rounded-lg p-4">
-      <p class="text-xs uppercase font-inter-semibold text-muted">Finalizadas en esta página</p>
-      <p class="text-2xl font-inter-bold text-secondary mt-1">{{ finalizedOnPage() }}</p>
-    </article>
-  </section>
-
-  <section class="bg-surface border border-border rounded-lg overflow-hidden">
-    <div class="p-4 border-b border-border">
-      <div class="grid lg:grid-cols-[1.2fr_1fr_1fr_180px_auto] gap-3 items-end">
-        <label class="block">
-          <span class="block text-xs uppercase font-inter-semibold text-muted mb-2">Buscar</span>
-          <span class="relative block">
-            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted"></i>
-            <input
-              [ngModel]="search()"
-              (ngModelChange)="onSearchChange($event)"
-              placeholder="Título de la reunión"
-              class="w-full h-10 pl-10 pr-4 rounded-lg bg-background-50 border border-border text-text outline-none focus:border-secondary"
-            />
-          </span>
-        </label>
-
-        <label class="block">
-          <span class="block text-xs uppercase font-inter-semibold text-muted mb-2">PYME</span>
-          <app-pyme-input-search
-            [options]="pymeOptions()"
-            [showClear]="true"
-            [ngModel]="selectedPyme()"
-            (ngModelChange)="onPymeSelected($event)"
-          />
-        </label>
-
-        <label class="block">
-          <span class="block text-xs uppercase font-inter-semibold text-muted mb-2">Consultor</span>
-          <app-consultant-input-search
-            [options]="consultantOptions()"
-            [showClear]="true"
-            [ngModel]="selectedConsultant()"
-            (ngModelChange)="onConsultantSelected($event)"
-          />
-        </label>
-
-        <label class="block">
-          <span class="block text-xs uppercase font-inter-semibold text-muted mb-2">Estado</span>
-          <span class="relative block">
-            <select
-              [ngModel]="status()"
-              (change)="onStatusSelect($event)"
-              class="appearance-none w-full h-10 pl-3 pr-10 rounded-lg bg-background-50 border border-border text-sm text-text outline-none focus:border-secondary"
-            >
-              <option value="">Todos</option>
-              <option value="confirmada">Confirmada</option>
-              <option value="finalizada">Finalizada</option>
-              <option value="cancelada">Cancelada</option>
-            </select>
-            <i
-              class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted"
-            ></i>
-          </span>
-        </label>
-
-        <button
-          type="button"
-          (click)="clearFilters()"
-          class="h-10 px-3 rounded-lg border border-border text-muted hover:text-text hover:bg-background-50"
-          title="Limpiar filtros"
-        >
-          <i class="fas fa-eraser"></i>
-        </button>
-      </div>
+  <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div class="min-w-0 flex-1">
+      <p class="text-xs font-inter-semibold uppercase text-secondary mb-1">Administración</p>
+      <h1 class="font-anton text-2xl md:text-3xl lowercase text-text">Reuniones</h1>
+      <p class="text-muted text-sm mt-1">
+        Revisa las sesiones agendadas y los depósitos pendientes a consultores.
+      </p>
     </div>
 
-    @if (loading()) {
-      <div class="h-64 grid place-items-center text-muted">
-        <span><i class="fas fa-circle-notch fa-spin mr-2"></i>Cargando reuniones...</span>
-      </div>
-    } @else if (!meetings().length) {
-      <div class="h-64 grid place-items-center text-center p-6">
-        <div>
-          <i class="fas fa-video text-3xl text-secondary/40 mb-3"></i>
-          <p class="font-inter-semibold">No hay reuniones para mostrar</p>
-          <p class="text-sm text-muted mt-1">Prueba cambiando los filtros seleccionados.</p>
+    <div class="inline-flex shrink-0 w-full rounded-xl border border-border bg-background-50 p-1 sm:w-auto">
+      <button
+        type="button"
+        (click)="activeSection.set('meetings')"
+        class="flex h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3.5 sm:px-4 text-xs sm:text-sm font-inter-semibold transition sm:flex-none"
+        [class.bg-surface]="activeSection() === 'meetings'"
+        [class.text-secondary]="activeSection() === 'meetings'"
+        [class.shadow-sm]="activeSection() === 'meetings'"
+        [class.text-muted]="activeSection() !== 'meetings'"
+      >
+        <i class="fas fa-video"></i>
+        Reuniones
+      </button>
+      <button
+        type="button"
+        (click)="activeSection.set('payouts')"
+        class="flex h-10 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3.5 sm:px-4 text-xs sm:text-sm font-inter-semibold transition sm:flex-none"
+        [class.bg-surface]="activeSection() === 'payouts'"
+        [class.text-secondary]="activeSection() === 'payouts'"
+        [class.shadow-sm]="activeSection() === 'payouts'"
+        [class.text-muted]="activeSection() !== 'payouts'"
+      >
+        <i class="fas fa-money-bill-transfer"></i>
+        Pagos a consultores
+      </button>
+    </div>
+  </div>
+
+  @if (activeSection() === 'meetings') {
+    <section class="grid sm:grid-cols-3 gap-3 mb-6">
+      <article class="bg-surface border border-border rounded-lg p-4">
+        <p class="text-xs uppercase font-inter-semibold text-muted">Reuniones registradas</p>
+        <p class="text-2xl font-inter-bold mt-1">{{ totalMeetings() }}</p>
+      </article>
+      <article class="bg-surface border border-border rounded-lg p-4">
+        <p class="text-xs uppercase font-inter-semibold text-muted">Confirmadas en esta página</p>
+        <p class="text-2xl font-inter-bold text-success mt-1">{{ confirmedOnPage() }}</p>
+      </article>
+      <article class="bg-surface border border-border rounded-lg p-4">
+        <p class="text-xs uppercase font-inter-semibold text-muted">Finalizadas en esta página</p>
+        <p class="text-2xl font-inter-bold text-secondary mt-1">{{ finalizedOnPage() }}</p>
+      </article>
+    </section>
+
+    <section class="bg-surface border border-border rounded-lg overflow-hidden">
+      <div class="p-4 border-b border-border">
+        <div class="grid lg:grid-cols-[1.2fr_1fr_1fr_180px_auto] gap-3 items-end">
+          <label class="block">
+            <span class="block text-xs uppercase font-inter-semibold text-muted mb-2">Buscar</span>
+            <span class="relative block">
+              <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted"></i>
+              <input
+                [ngModel]="search()"
+                (ngModelChange)="onSearchChange($event)"
+                placeholder="Título de la reunión"
+                class="w-full h-10 pl-10 pr-4 rounded-lg bg-background-50 border border-border text-text outline-none focus:border-secondary"
+              />
+            </span>
+          </label>
+
+          <label class="block">
+            <span class="block text-xs uppercase font-inter-semibold text-muted mb-2">PYME</span>
+            <app-pyme-input-search
+              [options]="pymeOptions()"
+              [showClear]="true"
+              [ngModel]="selectedPyme()"
+              (ngModelChange)="onPymeSelected($event)"
+            />
+          </label>
+
+          <label class="block">
+            <span class="block text-xs uppercase font-inter-semibold text-muted mb-2"
+              >Consultor</span
+            >
+            <app-consultant-input-search
+              [options]="consultantOptions()"
+              [showClear]="true"
+              [ngModel]="selectedConsultant()"
+              (ngModelChange)="onConsultantSelected($event)"
+            />
+          </label>
+
+          <label class="block">
+            <span class="block text-xs uppercase font-inter-semibold text-muted mb-2">Estado</span>
+            <span class="relative block">
+              <select
+                [ngModel]="status()"
+                (change)="onStatusSelect($event)"
+                class="appearance-none w-full h-10 pl-3 pr-10 rounded-lg bg-background-50 border border-border text-sm text-text outline-none focus:border-secondary"
+              >
+                <option value="">Todos</option>
+                <option value="confirmada">Confirmada</option>
+                <option value="finalizada">Finalizada</option>
+                <option value="cancelada">Cancelada</option>
+              </select>
+              <i
+                class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted"
+              ></i>
+            </span>
+          </label>
+
+          <button
+            type="button"
+            (click)="clearFilters()"
+            class="h-10 px-3 rounded-lg border border-border text-muted hover:text-text hover:bg-background-50"
+            title="Limpiar filtros"
+          >
+            <i class="fas fa-eraser"></i>
+          </button>
         </div>
       </div>
-    } @else {
-      <div class="overflow-x-auto">
-        <table class="w-full min-w-[1040px] text-sm">
-          <thead class="bg-background-50 border-b border-border">
-            <tr class="text-left text-xs uppercase font-inter-semibold text-muted">
-              <th class="px-4 py-3">Reunión</th>
-              <th class="px-4 py-3">PYME</th>
-              <th class="px-4 py-3">Consultor</th>
-              <th class="px-4 py-3">Fecha</th>
-              <th class="px-4 py-3 text-right">Duración</th>
-              <th class="px-4 py-3">Estado</th>
-              <th class="px-4 py-3">Solicitada por</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-border">
-            @for (meeting of meetings(); track meeting.id) {
-              <tr
-                (click)="openDetail(meeting)"
-                class="hover:bg-background-50 cursor-pointer"
-                title="Ver detalle de la reunión"
-              >
-                <td class="px-4 py-4">
-                  <p class="font-inter-semibold text-text">{{ meeting.title }}</p>
-                  <p class="text-xs text-muted">Reunión #{{ meeting.id }}</p>
-                </td>
-                <td class="px-4 py-4 text-muted">{{ pymeName(meeting.pymeId) }}</td>
-                <td class="px-4 py-4 text-muted">{{ consultantName(meeting.consultantId) }}</td>
-                <td class="px-4 py-4 text-muted">
-                  {{ meeting.startTime | date: 'dd/MM/yyyy HH:mm' }}
-                </td>
-                <td class="px-4 py-4 text-right text-muted">{{ meeting.durationMinutes }} min</td>
-                <td class="px-4 py-4">
-                  <span
-                    class="px-2 py-1 rounded-full text-xs font-inter-semibold"
-                    [class]="statusClass(meeting.status)"
-                  >
-                    {{ statusLabel(meeting.status) }}
-                  </span>
-                </td>
-                <td class="px-4 py-4 text-muted">
-                  {{ meeting.requestedBy === 'pyme' ? 'PYME' : 'Consultor' }}
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    }
 
-    @if (meta(); as paginationMeta) {
-      <app-pagination
-        [meta]="paginationMeta"
-        [currentPage]="page()"
-        [pageSize]="pageSize"
-        [showPageSizeSelector]="false"
-        (pageChange)="changePage($event)"
-      />
-    }
-  </section>
+      @if (loading()) {
+        <div class="h-64 grid place-items-center text-muted">
+          <span><i class="fas fa-circle-notch fa-spin mr-2"></i>Cargando reuniones...</span>
+        </div>
+      } @else if (!meetings().length) {
+        <div class="h-64 grid place-items-center text-center p-6">
+          <div>
+            <i class="fas fa-video text-3xl text-secondary/40 mb-3"></i>
+            <p class="font-inter-semibold">No hay reuniones para mostrar</p>
+            <p class="text-sm text-muted mt-1">Prueba cambiando los filtros seleccionados.</p>
+          </div>
+        </div>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[1040px] text-sm">
+            <thead class="bg-background-50 border-b border-border">
+              <tr class="text-left text-xs uppercase font-inter-semibold text-muted">
+                <th class="px-4 py-3">Reunión</th>
+                <th class="px-4 py-3">PYME</th>
+                <th class="px-4 py-3">Consultor</th>
+                <th class="px-4 py-3">Fecha</th>
+                <th class="px-4 py-3 text-right">Duración</th>
+                <th class="whitespace-nowrap px-4 py-3">Estado</th>
+                <th class="px-4 py-3">Solicitada por</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+              @for (meeting of meetings(); track meeting.id) {
+                <tr
+                  (click)="openDetail(meeting)"
+                  class="hover:bg-background-50 cursor-pointer"
+                  title="Ver detalle de la reunión"
+                >
+                  <td class="px-4 py-4">
+                    <p class="font-inter-semibold text-text">{{ meeting.title }}</p>
+                    <p class="text-xs text-muted">Reunión #{{ meeting.id }}</p>
+                  </td>
+                  <td class="px-4 py-4 text-muted">{{ pymeName(meeting.pymeId) }}</td>
+                  <td class="px-4 py-4 text-muted">{{ consultantName(meeting.consultantId) }}</td>
+                  <td class="px-4 py-4 text-muted">
+                    {{ meeting.startTime | date: 'dd/MM/yyyy HH:mm' }}
+                  </td>
+                  <td class="px-4 py-4 text-right text-muted">{{ meeting.durationMinutes }} min</td>
+                  <td class="whitespace-nowrap px-4 py-4">
+                    <span
+                      class="inline-flex whitespace-nowrap rounded-full px-2 py-1 text-xs font-inter-semibold"
+                      [class]="statusClass(meeting.status)"
+                    >
+                      {{ statusLabel(meeting.status) }}
+                    </span>
+                  </td>
+                  <td class="px-4 py-4 text-muted">
+                    {{ meeting.requestedBy === 'pyme' ? 'PYME' : 'Consultor' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (meta(); as paginationMeta) {
+        <app-pagination
+          [meta]="paginationMeta"
+          [currentPage]="page()"
+          [pageSize]="pageSize"
+          [showPageSizeSelector]="false"
+          (pageChange)="changePage($event)"
+        />
+      }
+    </section>
+  } @else {
+    <app-consultant-payouts />
+  }
 </main>
 
 @if (showDetailModal()) {
@@ -196,49 +231,67 @@
         </div>
 
         <section class="grid sm:grid-cols-4 gap-3 mb-6">
-          <article class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-secondary">
+          <article
+            class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-secondary"
+          >
             <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">PYME</p>
             <p class="text-sm font-inter-bold mt-2.5 text-text">{{ pymeName(meeting.pymeId) }}</p>
           </article>
-          <article class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-primary">
+          <article
+            class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-primary"
+          >
             <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Consultor</p>
             <p class="text-sm font-inter-bold mt-2.5 text-text">
               {{ consultantName(meeting.consultantId) }}
             </p>
           </article>
-          <article class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-accent">
+          <article
+            class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-accent"
+          >
             <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Inicio</p>
             <p class="text-sm font-inter-semibold mt-2.5 text-text">
               {{ meeting.startTime | date: 'dd/MM/yyyy HH:mm' }}
             </p>
           </article>
-          <article class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-success">
+          <article
+            class="bg-background-50 border border-border rounded-xl p-4 border-l-4 border-l-success"
+          >
             <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Duración</p>
-            <p class="text-sm font-inter-bold mt-2.5 text-text">{{ meeting.durationMinutes }} min</p>
+            <p class="text-sm font-inter-bold mt-2.5 text-text">
+              {{ meeting.durationMinutes }} min
+            </p>
           </article>
         </section>
 
         <div class="grid lg:grid-cols-[1fr_1.2fr] gap-4">
           <section class="border border-border rounded-xl overflow-hidden">
-            <div class="px-5 py-3.5 bg-background-50 border-b border-border flex items-center gap-2">
+            <div
+              class="px-5 py-3.5 bg-background-50 border-b border-border flex items-center gap-2"
+            >
               <i class="fas fa-info-circle text-secondary/60 text-sm"></i>
               <p class="font-inter-semibold text-text">Información</p>
             </div>
             <div class="p-5 space-y-4 text-sm">
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Solicitada por</p>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">
+                  Solicitada por
+                </p>
                 <p class="text-text mt-1.5">
                   {{ meeting.requestedBy === 'pyme' ? 'PYME' : 'Consultor' }}
                 </p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Completada</p>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">
+                  Completada
+                </p>
                 <p class="text-text mt-1.5">
                   {{ meeting.completedAt ? (meeting.completedAt | date: 'dd/MM/yyyy HH:mm') : '-' }}
                 </p>
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Acceso virtual</p>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">
+                  Acceso virtual
+                </p>
                 @if (meeting.meetingUrl) {
                   <a
                     [href]="meeting.meetingUrl"
@@ -272,14 +325,18 @@
                 }
               </div>
               <div>
-                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">Última actualización</p>
+                <p class="text-xs uppercase font-inter-semibold text-muted tracking-wide">
+                  Última actualización
+                </p>
                 <p class="text-text mt-1.5">{{ meeting.updatedAt | date: 'dd/MM/yyyy HH:mm' }}</p>
               </div>
             </div>
           </section>
 
           <section class="border border-border rounded-xl overflow-hidden">
-            <div class="px-5 py-3.5 bg-background-50 border-b border-border flex items-center gap-2">
+            <div
+              class="px-5 py-3.5 bg-background-50 border-b border-border flex items-center gap-2"
+            >
               <i class="fas fa-list-check text-secondary/60 text-sm"></i>
               <p class="font-inter-semibold text-text">Tareas asociadas</p>
             </div>
@@ -287,7 +344,9 @@
               <div class="overflow-x-auto">
                 <table class="w-full min-w-[560px] text-sm">
                   <thead class="bg-background-50 border-b border-border">
-                    <tr class="text-left text-xs uppercase font-inter-semibold text-muted tracking-wide">
+                    <tr
+                      class="text-left text-xs uppercase font-inter-semibold text-muted tracking-wide"
+                    >
                       <th class="px-5 py-3">Tarea</th>
                       <th class="px-5 py-3">Asignada a</th>
                       <th class="px-5 py-3">Prioridad</th>
@@ -318,11 +377,15 @@
             } @else {
               <div class="h-48 grid place-items-center text-center p-6">
                 <div>
-                  <div class="w-10 h-10 mx-auto mb-3 rounded-full bg-secondary/10 grid place-items-center">
+                  <div
+                    class="w-10 h-10 mx-auto mb-3 rounded-full bg-secondary/10 grid place-items-center"
+                  >
                     <i class="fas fa-list-check text-secondary/50"></i>
                   </div>
                   <p class="font-inter-semibold text-text">Sin tareas asociadas</p>
-                  <p class="text-sm text-muted mt-1">Esta reunión aún no tiene tareas registradas.</p>
+                  <p class="text-sm text-muted mt-1">
+                    Esta reunión aún no tiene tareas registradas.
+                  </p>
                 </div>
               </div>
             }

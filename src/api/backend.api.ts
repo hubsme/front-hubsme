@@ -889,6 +889,175 @@ export interface WhatsappWebhookAcceptedDto {
   received: boolean;
 }
 
+export interface MeetingConsultantPayoutResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  meetingId: number;
+  checkoutId: number;
+  pymeId: number;
+  consultantId: number;
+  amount: string;
+  currency: string;
+  status: "pending" | "paid";
+  paymentReference: string | null;
+  evidenceFileUrl: string | null;
+  evidenceStoragePath: string | null;
+  evidenceOriginalName: string | null;
+  evidenceMimeType: string | null;
+  evidenceSizeBytes: number | null;
+  notes: string | null;
+  /** @format date-time */
+  paidAt: string | null;
+  processedByAdmin: string | null;
+  meetingTitle: string;
+  /** @format date-time */
+  meetingStartTime: string | null;
+  meetingStatus:
+    | "solicitada"
+    | "por_confirmar"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada";
+  pymeName: string;
+  consultantName: string;
+  mercadoPagoPaymentId: string | null;
+  checkoutExternalReference: string;
+  /** Total que la PYME pagó y que ingresó a la cuenta de Hubsme */
+  grossAmount: string;
+  /** Comisión contable retenida por Hubsme */
+  platformCommissionAmount: string;
+  /** Número de reagendamientos asociados a esta reunión */
+  rescheduleCount: number;
+  /** ID de la última reunión activa o más reciente en la cadena */
+  latestMeetingId: number;
+  /** Título de la última reunión activa en la cadena */
+  latestMeetingTitle: string;
+  /**
+   * Fecha y hora de inicio de la última reunión
+   * @format date-time
+   */
+  latestMeetingStartTime: string | null;
+  /** Estado de la última reunión en la cadena */
+  latestMeetingStatus:
+    | "solicitada"
+    | "por_confirmar"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada";
+}
+
+export interface MeetingConsultantPayoutListDto {
+  data: MeetingConsultantPayoutResultDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface MeetingTraceabilityPayoutSummaryDto {
+  id: number;
+  amount: string;
+  currency: string;
+  status: "pending" | "paid";
+  paymentReference: string | null;
+  evidenceFileUrl: string | null;
+  evidenceOriginalName: string | null;
+  evidenceMimeType: string | null;
+  notes: string | null;
+  /** @format date-time */
+  paidAt: string | null;
+  processedByAdmin: string | null;
+  grossAmount: string;
+  platformCommissionAmount: string;
+  mercadoPagoPaymentId: string | null;
+  checkoutExternalReference: string;
+}
+
+export interface MeetingTraceabilityMeetingSummaryDto {
+  id: number;
+  title: string;
+  /** @format date-time */
+  startTime: string | null;
+  status:
+    | "solicitada"
+    | "por_confirmar"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada";
+  durationMinutes: number;
+  meetingUrl: string | null;
+  hasMeetingLink: boolean;
+  /** @format date-time */
+  completedAt: string | null;
+  cancellationReason: string | null;
+  pymeName: string;
+  consultantName: string;
+}
+
+export interface MeetingRescheduleStepDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** Índice o número de orden del paso de reagendamiento */
+  stepIndex: number;
+  sourceMeetingId: number;
+  sourceMeetingTitle: string;
+  /** @format date-time */
+  sourceMeetingStartTime: string | null;
+  sourceMeetingStatus:
+    | "solicitada"
+    | "por_confirmar"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada";
+  cancellationReason: string | null;
+  cancelledByName: string | null;
+  promotionCode: string;
+  /** @format date-time */
+  promotionCodeExpiresAt: string | null;
+  promotionCodeIsActive: boolean;
+  isRedeemed: boolean;
+  /** @format date-time */
+  redeemedAt: string | null;
+  replacementMeetingId: number | null;
+  replacementMeetingTitle: string | null;
+  /** @format date-time */
+  replacementMeetingStartTime: string | null;
+  replacementMeetingStatus:
+    | "solicitada"
+    | "por_confirmar"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada"
+    | null;
+  /** @format date-time */
+  replacementMeetingCompletedAt: string | null;
+}
+
+export interface MeetingRescheduleTraceabilityDto {
+  payout: MeetingTraceabilityPayoutSummaryDto;
+  rootMeeting: MeetingTraceabilityMeetingSummaryDto;
+  latestMeeting: MeetingTraceabilityMeetingSummaryDto;
+  /** Total de veces que la reunión fue cancelada y reagendada */
+  rescheduleCount: number;
+  history: MeetingRescheduleStepDto[];
+}
+
+export interface MeetingConsultantPayoutMarkPaidMultipartDto {
+  /**
+   * @maxLength 180
+   * @example "TRANSFERENCIA-MP-123456"
+   */
+  paymentReference: string;
+  /** @maxLength 2000 */
+  notes?: string;
+  /**
+   * Constancia PDF, JPG, PNG o WEBP de máximo 10 MB
+   * @format binary
+   */
+  evidence: File;
+}
+
 export interface TaskResultDto {
   id: number;
   /** @format date-time */
@@ -988,6 +1157,41 @@ export interface MeetingAdminResultDto {
   meetingUrl: string | null;
 }
 
+export interface MeetingRecordingOrganizerUserDto {
+  id: string;
+  displayName: string | null;
+  userIdentityType: string;
+  tenantId: string;
+}
+
+export interface MeetingRecordingOrganizerDto {
+  application: object | null;
+  device: object | null;
+  user: MeetingRecordingOrganizerUserDto | null;
+}
+
+export interface MeetingRecordingDto {
+  id: string;
+  meetingId: string;
+  callId: string;
+  contentCorrelationId: string;
+  /** @format date-time */
+  createdDateTime: string;
+  /** @format date-time */
+  endDateTime: string;
+  recordingContentUrl: string;
+  /** OneDrive/SharePoint browser URL for the recording file. It can still require Microsoft sign-in. */
+  webUrl: string | null;
+  /** Anonymous read-only sharing URL for the recording file, when tenant sharing policy allows it. */
+  publicUrl: string | null;
+  /** Short-lived preauthenticated download URL generated by Microsoft Graph for immediate playback. */
+  downloadUrl: string | null;
+  driveId: string | null;
+  driveItemId: string | null;
+  fileName: string | null;
+  meetingOrganizer: MeetingRecordingOrganizerDto | null;
+}
+
 export interface MeetingCalendarItemDto {
   id: number;
   /** @format date-time */
@@ -1077,41 +1281,6 @@ export interface MeetingCreateDto {
 export interface MeetingConfirmOptionDto {
   /** @example "2026-05-10T15:00:00.000Z" */
   selectedStartTime: string;
-}
-
-export interface MeetingRecordingOrganizerUserDto {
-  id: string;
-  displayName: string | null;
-  userIdentityType: string;
-  tenantId: string;
-}
-
-export interface MeetingRecordingOrganizerDto {
-  application: object | null;
-  device: object | null;
-  user: MeetingRecordingOrganizerUserDto | null;
-}
-
-export interface MeetingRecordingDto {
-  id: string;
-  meetingId: string;
-  callId: string;
-  contentCorrelationId: string;
-  /** @format date-time */
-  createdDateTime: string;
-  /** @format date-time */
-  endDateTime: string;
-  recordingContentUrl: string;
-  /** OneDrive/SharePoint browser URL for the recording file. It can still require Microsoft sign-in. */
-  webUrl: string | null;
-  /** Anonymous read-only sharing URL for the recording file, when tenant sharing policy allows it. */
-  publicUrl: string | null;
-  /** Short-lived preauthenticated download URL generated by Microsoft Graph for immediate playback. */
-  downloadUrl: string | null;
-  driveId: string | null;
-  driveItemId: string | null;
-  fileName: string | null;
-  meetingOrganizer: MeetingRecordingOrganizerDto | null;
 }
 
 export interface TaskSuggestionDto {
@@ -1565,6 +1734,16 @@ export interface ConsultantGoogleCalendarBusyItemDto {
 
 export interface ConsultantGoogleCalendarBusyMonthResponseDto {
   data: ConsultantGoogleCalendarBusyItemDto[];
+}
+
+export interface StorageResultDto {
+  publicId: string;
+  url: string;
+  secureUrl: string;
+  format: string;
+  bytes: number;
+  resourceType: string;
+  createdAt: string;
 }
 
 export interface ConsultantResultDto {
@@ -2209,16 +2388,6 @@ export interface DashboardResponseDto {
   upcomingMeetings: DashboardMeetingDto[];
   workloadByClient: DashboardWorkloadClientDto[];
   alerts: DashboardAlertDto[];
-}
-
-export interface StorageResultDto {
-  publicId: string;
-  url: string;
-  secureUrl: string;
-  format: string;
-  bytes: number;
-  resourceType: string;
-  createdAt: string;
 }
 
 export interface MercadoPagoAuthUrlResponseDto {
@@ -3430,6 +3599,45 @@ export type WhatsappVerifyWebhookData = string;
 
 export type WhatsappReceiveWebhookData = WhatsappWebhookAcceptedDto;
 
+export interface MeetingadminFindAllPayoutsParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Busca por reunión, PYME, consultor, referencia o pago de Mercado Pago */
+  search?: string;
+  /** @example 2 */
+  consultantId?: number;
+  status?: "pending" | "paid";
+}
+
+export type MeetingadminFindAllPayoutsData = MeetingConsultantPayoutListDto;
+
+export type MeetingadminFindAllPayoutsError = HttpErrorDto;
+
+export interface MeetingadminGetPayoutTraceabilityParams {
+  id: number;
+}
+
+export type MeetingadminGetPayoutTraceabilityData =
+  MeetingRescheduleTraceabilityDto;
+
+export type MeetingadminGetPayoutTraceabilityError = HttpErrorDto;
+
+export interface MeetingadminMarkPayoutPaidParams {
+  id: number;
+}
+
+export type MeetingadminMarkPayoutPaidData = MeetingConsultantPayoutResultDto;
+
+export type MeetingadminMarkPayoutPaidError = HttpErrorDto;
+
 export interface MeetingadminFindAllParams {
   /**
    * Page number
@@ -3466,6 +3674,14 @@ export interface MeetingadminFindOneParams {
 export type MeetingadminFindOneData = MeetingAdminResultDto;
 
 export type MeetingadminFindOneError = HttpErrorDto;
+
+export interface MeetingadminGetRecordingsParams {
+  id: number;
+}
+
+export type MeetingadminGetRecordingsData = MeetingRecordingDto[];
+
+export type MeetingadminGetRecordingsError = HttpErrorDto;
 
 export interface MeetingCalendarParams {
   /**
@@ -3776,6 +3992,29 @@ export type ConsultantgooglecalendarDisconnectData =
   ConsultantGoogleCalendarStatusDto;
 
 export type ConsultantgooglecalendarDisconnectError = HttpErrorDto;
+
+export interface StorageUploadPayload {
+  /** @format binary */
+  file?: File;
+}
+
+export interface StorageUploadParams {
+  folder: string;
+}
+
+export type StorageUploadData = StorageResultDto;
+
+export interface StorageDeleteParams {
+  publicId: string;
+}
+
+export type StorageDeleteData = any;
+
+export interface StorageDownloadParams {
+  path: string;
+}
+
+export type StorageDownloadData = any;
 
 export interface ConsultantadminFindAllParams {
   /**
@@ -4186,29 +4425,6 @@ export interface DashboardSummaryParams {
 export type DashboardSummaryData = DashboardResponseDto;
 
 export type DashboardSummaryError = HttpErrorDto;
-
-export interface StorageUploadPayload {
-  /** @format binary */
-  file?: File;
-}
-
-export interface StorageUploadParams {
-  folder: string;
-}
-
-export type StorageUploadData = StorageResultDto;
-
-export interface StorageDeleteParams {
-  publicId: string;
-}
-
-export type StorageDeleteData = any;
-
-export interface StorageDownloadParams {
-  path: string;
-}
-
-export type StorageDownloadData = any;
 
 export interface MercadopagoAuthUrlParams {
   /** @example 3 */
@@ -5499,6 +5715,80 @@ export namespace MeetingAdmin {
   /**
    * No description
    * @tags meetingAdmin
+   * @name MeetingadminFindAllPayouts
+   * @summary List consultant payouts generated from consultation meetings
+   * @request GET:/admin/backoffice/meeting/payout/find-all
+   * @secure
+   * @response `200` `MeetingadminFindAllPayoutsData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MeetingadminFindAllPayouts {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Busca por reunión, PYME, consultor, referencia o pago de Mercado Pago */
+      search?: string;
+      /** @example 2 */
+      consultantId?: number;
+      status?: "pending" | "paid";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingadminFindAllPayoutsData;
+  }
+
+  /**
+   * No description
+   * @tags meetingAdmin
+   * @name MeetingadminGetPayoutTraceability
+   * @summary Get full reschedule and payment traceability for a consultant payout
+   * @request GET:/admin/backoffice/meeting/payout/{id}/traceability
+   * @secure
+   * @response `200` `MeetingadminGetPayoutTraceabilityData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MeetingadminGetPayoutTraceability {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingadminGetPayoutTraceabilityData;
+  }
+
+  /**
+   * No description
+   * @tags meetingAdmin
+   * @name MeetingadminMarkPayoutPaid
+   * @summary Register a manual consultant payout with its evidence
+   * @request POST:/admin/backoffice/meeting/payout/{id}/mark-paid
+   * @secure
+   * @response `200` `MeetingadminMarkPayoutPaidData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MeetingadminMarkPayoutPaid {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = MeetingConsultantPayoutMarkPaidMultipartDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingadminMarkPayoutPaidData;
+  }
+
+  /**
+   * No description
+   * @tags meetingAdmin
    * @name MeetingadminFindAll
    * @summary List meetings for the internal admin panel
    * @request GET:/admin/backoffice/meeting/find-all
@@ -5555,6 +5845,26 @@ export namespace MeetingAdmin {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = MeetingadminFindOneData;
+  }
+
+  /**
+   * No description
+   * @tags meetingAdmin
+   * @name MeetingadminGetRecordings
+   * @summary List Microsoft Graph recordings for a meeting in the backoffice
+   * @request GET:/admin/backoffice/meeting/recordings/{id}
+   * @secure
+   * @response `200` `MeetingadminGetRecordingsData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MeetingadminGetRecordings {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingadminGetRecordingsData;
   }
 }
 
@@ -6258,6 +6568,63 @@ export namespace ConsultantGoogleCalendar {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = ConsultantgooglecalendarDisconnectData;
+  }
+}
+
+export namespace Storage {
+  /**
+   * No description
+   * @tags storage
+   * @name StorageUpload
+   * @summary Subir un archivo a Azure Storage
+   * @request POST:/storage
+   * @response `200` `StorageUploadData`
+   */
+  export namespace StorageUpload {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      folder: string;
+    };
+    export type RequestBody = StorageUploadPayload;
+    export type RequestHeaders = {};
+    export type ResponseBody = StorageUploadData;
+  }
+
+  /**
+   * No description
+   * @tags storage
+   * @name StorageDelete
+   * @summary Eliminar un archivo de Azure Storage
+   * @request DELETE:/storage/{publicId}
+   * @secure
+   * @response `200` `StorageDeleteData`
+   */
+  export namespace StorageDelete {
+    export type RequestParams = {
+      publicId: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = StorageDeleteData;
+  }
+
+  /**
+   * No description
+   * @tags storage
+   * @name StorageDownload
+   * @summary Visualizar o descargar archivo de Azure Storage
+   * @request GET:/storage/download-file
+   * @response `200` `StorageDownloadData`
+   */
+  export namespace StorageDownload {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      path: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = StorageDownloadData;
   }
 }
 
@@ -7150,63 +7517,6 @@ export namespace Dashboard {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = DashboardSummaryData;
-  }
-}
-
-export namespace Storage {
-  /**
-   * No description
-   * @tags storage
-   * @name StorageUpload
-   * @summary Subir un archivo a Azure Storage
-   * @request POST:/storage
-   * @response `200` `StorageUploadData`
-   */
-  export namespace StorageUpload {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      folder: string;
-    };
-    export type RequestBody = StorageUploadPayload;
-    export type RequestHeaders = {};
-    export type ResponseBody = StorageUploadData;
-  }
-
-  /**
-   * No description
-   * @tags storage
-   * @name StorageDelete
-   * @summary Eliminar un archivo de Azure Storage
-   * @request DELETE:/storage/{publicId}
-   * @secure
-   * @response `200` `StorageDeleteData`
-   */
-  export namespace StorageDelete {
-    export type RequestParams = {
-      publicId: string;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = StorageDeleteData;
-  }
-
-  /**
-   * No description
-   * @tags storage
-   * @name StorageDownload
-   * @summary Visualizar o descargar archivo de Azure Storage
-   * @request GET:/storage/download-file
-   * @response `200` `StorageDownloadData`
-   */
-  export namespace StorageDownload {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      path: string;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = StorageDownloadData;
   }
 }
 
@@ -9427,6 +9737,88 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags meetingAdmin
+     * @name MeetingadminFindAllPayouts
+     * @summary List consultant payouts generated from consultation meetings
+     * @request GET:/admin/backoffice/meeting/payout/find-all
+     * @secure
+     * @response `200` `MeetingadminFindAllPayoutsData`
+     * @response `400` `HttpErrorDto`
+     */
+    meetingadminFindAllPayouts: (
+      query: MeetingadminFindAllPayoutsParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MeetingadminFindAllPayoutsData,
+        MeetingadminFindAllPayoutsError
+      >({
+        path: `/admin/backoffice/meeting/payout/find-all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetingAdmin
+     * @name MeetingadminGetPayoutTraceability
+     * @summary Get full reschedule and payment traceability for a consultant payout
+     * @request GET:/admin/backoffice/meeting/payout/{id}/traceability
+     * @secure
+     * @response `200` `MeetingadminGetPayoutTraceabilityData`
+     * @response `400` `HttpErrorDto`
+     */
+    meetingadminGetPayoutTraceability: (
+      { id }: MeetingadminGetPayoutTraceabilityParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MeetingadminGetPayoutTraceabilityData,
+        MeetingadminGetPayoutTraceabilityError
+      >({
+        path: `/admin/backoffice/meeting/payout/${id}/traceability`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetingAdmin
+     * @name MeetingadminMarkPayoutPaid
+     * @summary Register a manual consultant payout with its evidence
+     * @request POST:/admin/backoffice/meeting/payout/{id}/mark-paid
+     * @secure
+     * @response `200` `MeetingadminMarkPayoutPaidData`
+     * @response `400` `HttpErrorDto`
+     */
+    meetingadminMarkPayoutPaid: (
+      { id }: MeetingadminMarkPayoutPaidParams,
+      data: MeetingConsultantPayoutMarkPaidMultipartDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MeetingadminMarkPayoutPaidData,
+        MeetingadminMarkPayoutPaidError
+      >({
+        path: `/admin/backoffice/meeting/payout/${id}/mark-paid`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetingAdmin
      * @name MeetingadminFindAll
      * @summary List meetings for the internal admin panel
      * @request GET:/admin/backoffice/meeting/find-all
@@ -9464,6 +9856,32 @@ export class Api<SecurityDataType extends unknown> {
     ) =>
       this.http.request<MeetingadminFindOneData, MeetingadminFindOneError>({
         path: `/admin/backoffice/meeting/find-one/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetingAdmin
+     * @name MeetingadminGetRecordings
+     * @summary List Microsoft Graph recordings for a meeting in the backoffice
+     * @request GET:/admin/backoffice/meeting/recordings/{id}
+     * @secure
+     * @response `200` `MeetingadminGetRecordingsData`
+     * @response `400` `HttpErrorDto`
+     */
+    meetingadminGetRecordings: (
+      { id }: MeetingadminGetRecordingsParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MeetingadminGetRecordingsData,
+        MeetingadminGetRecordingsError
+      >({
+        path: `/admin/backoffice/meeting/recordings/${id}`,
         method: "GET",
         secure: true,
         format: "json",
@@ -10262,6 +10680,72 @@ export class Api<SecurityDataType extends unknown> {
         query: query,
         secure: true,
         format: "json",
+        ...params,
+      }),
+  };
+  storage = {
+    /**
+     * No description
+     *
+     * @tags storage
+     * @name StorageUpload
+     * @summary Subir un archivo a Azure Storage
+     * @request POST:/storage
+     * @response `200` `StorageUploadData`
+     */
+    upload: (
+      query: StorageUploadParams,
+      data: StorageUploadPayload,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<StorageUploadData, any>({
+        path: `/storage`,
+        method: "POST",
+        query: query,
+        body: data,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags storage
+     * @name StorageDelete
+     * @summary Eliminar un archivo de Azure Storage
+     * @request DELETE:/storage/{publicId}
+     * @secure
+     * @response `200` `StorageDeleteData`
+     */
+    delete: (
+      { publicId }: StorageDeleteParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<StorageDeleteData, any>({
+        path: `/storage/${publicId}`,
+        method: "DELETE",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags storage
+     * @name StorageDownload
+     * @summary Visualizar o descargar archivo de Azure Storage
+     * @request GET:/storage/download-file
+     * @response `200` `StorageDownloadData`
+     */
+    download: (
+      query: StorageDownloadParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<StorageDownloadData, any>({
+        path: `/storage/download-file`,
+        method: "GET",
+        query: query,
         ...params,
       }),
   };
@@ -11207,72 +11691,6 @@ export class Api<SecurityDataType extends unknown> {
         query: query,
         secure: true,
         format: "json",
-        ...params,
-      }),
-  };
-  storage = {
-    /**
-     * No description
-     *
-     * @tags storage
-     * @name StorageUpload
-     * @summary Subir un archivo a Azure Storage
-     * @request POST:/storage
-     * @response `200` `StorageUploadData`
-     */
-    upload: (
-      query: StorageUploadParams,
-      data: StorageUploadPayload,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<StorageUploadData, any>({
-        path: `/storage`,
-        method: "POST",
-        query: query,
-        body: data,
-        type: ContentType.FormData,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags storage
-     * @name StorageDelete
-     * @summary Eliminar un archivo de Azure Storage
-     * @request DELETE:/storage/{publicId}
-     * @secure
-     * @response `200` `StorageDeleteData`
-     */
-    delete: (
-      { publicId }: StorageDeleteParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<StorageDeleteData, any>({
-        path: `/storage/${publicId}`,
-        method: "DELETE",
-        secure: true,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags storage
-     * @name StorageDownload
-     * @summary Visualizar o descargar archivo de Azure Storage
-     * @request GET:/storage/download-file
-     * @response `200` `StorageDownloadData`
-     */
-    download: (
-      query: StorageDownloadParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<StorageDownloadData, any>({
-        path: `/storage/download-file`,
-        method: "GET",
-        query: query,
         ...params,
       }),
   };

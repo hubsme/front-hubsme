@@ -17,8 +17,12 @@ import {
   PymeListItemDto,
 } from 'api/backend.api';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { ConsultantPayouts } from './components/consultant-payouts/consultant-payouts';
 
-type MeetingStatus = NonNullable<ApiResponse<'meetingAdmin', 'meetingadminFindAll'>['data'][number]['status']>;
+type MeetingStatus = NonNullable<
+  ApiResponse<'meetingAdmin', 'meetingadminFindAll'>['data'][number]['status']
+>;
+type MeetingAdminSection = 'meetings' | 'payouts';
 
 @Component({
   selector: 'app-reuniones',
@@ -29,6 +33,7 @@ type MeetingStatus = NonNullable<ApiResponse<'meetingAdmin', 'meetingadminFindAl
     ModalForm,
     PaginationComponent,
     PymeInputSearch,
+    ConsultantPayouts,
   ],
   templateUrl: './reuniones.html',
 })
@@ -37,6 +42,7 @@ export class Reuniones {
   private readonly toastService = inject(ToastService);
 
   readonly meetings = signal<MeetingResultDto[]>([]);
+  readonly activeSection = signal<MeetingAdminSection>('meetings');
   readonly loading = signal(false);
   readonly detailLoading = signal(false);
   readonly showDetailModal = signal(false);

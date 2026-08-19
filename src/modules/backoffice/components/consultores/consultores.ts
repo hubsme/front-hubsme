@@ -16,6 +16,13 @@ import {
   PaginationMetaDto,
 } from 'api/backend.api';
 
+type LongTextKey = 'bio' | 'specialties' | 'sectors' | 'services' | 'certifications';
+type FinancialReportGenerationStatus = {
+  status: 'processing';
+  taskId: string | null;
+  message: string;
+};
+
 @Component({
   selector: 'app-consultores',
   imports: [DatePipe, FormsModule, ModalForm, PaginationComponent],
@@ -31,8 +38,11 @@ export class Consultores {
   readonly loading = signal(false);
   readonly detailLoading = signal(false);
   readonly showDetailModal = signal(false);
+  readonly showMercadoPagoProfileModal = signal(false);
   readonly selectedConsultant = signal<ConsultantResultDto | null>(null);
   readonly mercadoPagoDetails = signal<ConsultantMercadoPagoAdminDto | null>(null);
+  readonly financialDownloadLoading = signal(false);
+  readonly expandedLongText = signal<Set<LongTextKey>>(new Set());
   readonly search = signal('');
   readonly activeFilter = signal<'' | 'true' | 'false'>('');
   readonly validatedFilter = signal<'' | 'true' | 'false'>('');
@@ -49,6 +59,9 @@ export class Consultores {
   readonly actionLoading = signal(false);
   private readonly searchTerms = new Subject<string>();
   private requestSequence = 0;
+  private financialReportPollSequence = 0;
+  private readonly financialReportPollAttempts = 24;
+  private readonly financialReportPollIntervalMs = 5000;
 
   constructor() {
     this.searchTerms
@@ -109,8 +122,10 @@ export class Consultores {
   }
 
   async openDetail(consultant: ConsultantListItemDto) {
+    this.cancelFinancialReportPolling();
     this.showDetailModal.set(true);
     this.selectedConsultant.set(null);
+    this.expandedLongText.set(new Set());
     this.mercadoPagoDetails.set(null);
     this.detailLoading.set(true);
     try {
@@ -129,9 +144,190 @@ export class Consultores {
   }
 
   closeDetailModal() {
+    this.cancelFinancialReportPolling();
     this.showDetailModal.set(false);
+    this.showMercadoPagoProfileModal.set(false);
     this.selectedConsultant.set(null);
     this.mercadoPagoDetails.set(null);
+  }
+
+  openMercadoPagoProfile() {
+    if (!this.mercadoPagoDetails()) {
+      this.toastService.error('No hay información de perfil disponible para esta cuenta.');
+      return;
+    }
+
+    this.showMercadoPagoProfileModal.set(true);
+  }
+
+  closeMercadoPagoProfile() {
+    this.showMercadoPagoProfileModal.set(false);
+  }
+
+  async downloadMercadoPagoReport() {
+    const consultantId = this.selectedConsultant()?.id;
+    if (!consultantId || !this.mercadoPagoDetails()?.connected || this.financialDownloadLoading()) {
+      return;
+    }
+
+    const pollSequence = ++this.financialReportPollSequence;
+    this.financialDownloadLoading.set(true);
+
+    try {
+      await this.pollMercadoPagoReport(consultantId, pollSequence);
+    } catch {
+      this.toastService.error(
+        'No se pudo consultar el reporte. Al reintentar continuaremos con la misma solicitud.',
+      );
+    } finally {
+      if (pollSequence === this.financialReportPollSequence) {
+        this.financialDownloadLoading.set(false);
+      }
+    }
+  }
+
+  private async pollMercadoPagoReport(consultantId: number, pollSequence: number) {
+    let taskId = this.readFinancialReportTaskId(consultantId);
+
+    for (let attempt = 0; attempt < this.financialReportPollAttempts; attempt += 1) {
+      if (!this.canContinueFinancialReportPolling(consultantId, pollSequence)) return;
+
+      const response =
+        await this.adminApi.api.consultantAdmin.consultantadminMercadoPagoFinancialDownload(
+          { id: consultantId, taskId: taskId ?? undefined },
+          { format: 'blob' },
+        );
+      const blob = response.data as unknown as Blob;
+      const contentType = response.headers.get('content-type') ?? blob.type;
+
+      if (!contentType.includes('json')) {
+        this.clearFinancialReportTaskId(consultantId);
+        this.downloadFinancialReportBlob(
+          blob,
+          response.headers.get('content-disposition'),
+          consultantId,
+        );
+        this.toastService.success('Reporte financiero descargado.');
+        return;
+      }
+
+      const status = JSON.parse(await blob.text()) as FinancialReportGenerationStatus;
+      const wasTrackingTask = Boolean(taskId);
+      if (status.taskId) {
+        taskId = status.taskId;
+        this.storeFinancialReportTaskId(consultantId, status.taskId);
+      }
+
+      if (attempt === 0) {
+        this.toastService.info(
+          wasTrackingTask
+            ? 'Continuamos consultando el reporte solicitado anteriormente.'
+            : 'Reporte solicitado. Esperaremos a que Mercado Pago termine de generarlo.',
+          6000,
+        );
+      }
+
+      if (attempt === this.financialReportPollAttempts - 1) {
+        this.toastService.info(
+          'Mercado Pago todavía está procesando el reporte. Puedes reintentar luego y continuaremos la misma solicitud.',
+          8000,
+        );
+        return;
+      }
+
+      await this.wait(this.financialReportPollIntervalMs);
+    }
+  }
+
+  private downloadFinancialReportBlob(
+    blob: Blob,
+    contentDisposition: string | null,
+    consultantId: number,
+  ) {
+    const fileName =
+      this.extractDownloadFileName(contentDisposition) ??
+      `reporte-mercado-pago-${consultantId}.csv`;
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = fileName;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+  }
+
+  private canContinueFinancialReportPolling(consultantId: number, pollSequence: number) {
+    return (
+      pollSequence === this.financialReportPollSequence &&
+      this.showDetailModal() &&
+      this.selectedConsultant()?.id === consultantId
+    );
+  }
+
+  private cancelFinancialReportPolling() {
+    this.financialReportPollSequence += 1;
+    this.financialDownloadLoading.set(false);
+  }
+
+  private financialReportTaskStorageKey(consultantId: number) {
+    return `backoffice_mercado_pago_report_task_${consultantId}`;
+  }
+
+  private readFinancialReportTaskId(consultantId: number) {
+    try {
+      return sessionStorage.getItem(this.financialReportTaskStorageKey(consultantId));
+    } catch {
+      return null;
+    }
+  }
+
+  private storeFinancialReportTaskId(consultantId: number, taskId: string) {
+    try {
+      sessionStorage.setItem(this.financialReportTaskStorageKey(consultantId), taskId);
+    } catch {
+      // El seguimiento continúa mientras el modal permanezca abierto aunque el navegador bloquee el storage.
+    }
+  }
+
+  private clearFinancialReportTaskId(consultantId: number) {
+    try {
+      sessionStorage.removeItem(this.financialReportTaskStorageKey(consultantId));
+    } catch {
+      // No hay estado local que limpiar cuando el navegador bloquea el storage.
+    }
+  }
+
+  private wait(milliseconds: number) {
+    return new Promise<void>((resolve) => window.setTimeout(resolve, milliseconds));
+  }
+
+  private extractDownloadFileName(contentDisposition: string | null) {
+    const match = contentDisposition?.match(/filename="?([^";]+)"?/i);
+    return match?.[1]?.trim() || null;
+  }
+
+  listText(values: string[]) {
+    return values.join(', ') || '-';
+  }
+
+  shouldShowLongTextToggle(value: string | null | undefined) {
+    return Boolean(value?.trim() && value.trim().length > 100);
+  }
+
+  isLongTextExpanded(key: LongTextKey) {
+    return this.expandedLongText().has(key);
+  }
+
+  toggleLongText(key: LongTextKey) {
+    const expanded = new Set(this.expandedLongText());
+    if (expanded.has(key)) {
+      expanded.delete(key);
+    } else {
+      expanded.add(key);
+    }
+    this.expandedLongText.set(expanded);
   }
 
   requestApprovalChange(validated: boolean) {
@@ -176,7 +372,9 @@ export class Consultores {
         { validated: validated ? 'true' : 'false' },
       );
       this.selectedConsultant.set(response.data);
-      this.toastService.success(validated ? 'Consultor aprobado correctamente.' : 'Aprobación retirada.');
+      this.toastService.success(
+        validated ? 'Consultor aprobado correctamente.' : 'Aprobación retirada.',
+      );
       await this.loadConsultants();
     } catch {
       this.toastService.error('No se pudo actualizar la aprobación del consultor.');
@@ -193,7 +391,9 @@ export class Consultores {
         { active: active ? 'true' : 'false' },
       );
       this.selectedConsultant.set(response.data);
-      this.toastService.success(active ? 'Consultor activado correctamente.' : 'Consultor desactivado.');
+      this.toastService.success(
+        active ? 'Consultor activado correctamente.' : 'Consultor desactivado.',
+      );
       await this.loadConsultants();
     } catch {
       this.toastService.error('No se pudo actualizar la disponibilidad del consultor.');

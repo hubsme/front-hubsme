@@ -111,7 +111,9 @@
                   {{ consultant.headline || consultant.specialties[0] || '-' }}
                 </td>
                 <td class="px-4 py-4 text-muted">{{ consultant.location || '-' }}</td>
-                <td class="px-4 py-4 text-muted">{{ consultantWorkModalityLabel(consultant.workModality) }}</td>
+                <td class="px-4 py-4 text-muted">
+                  {{ consultantWorkModalityLabel(consultant.workModality) }}
+                </td>
                 <td class="px-4 py-4 text-right text-muted">
                   {{ consultant.yearsExperience }} años
                 </td>
@@ -302,7 +304,9 @@
         </div>
 
         @if (mercadoPagoDetails(); as mercadoPago) {
-          <section class="mb-6 overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+          <section
+            class="mb-6 overflow-hidden rounded-2xl border border-border bg-surface shadow-sm"
+          >
             <div
               class="flex flex-col gap-3 border-b border-border bg-background px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
             >
@@ -313,7 +317,9 @@
                   <i class="fas fa-credit-card text-sm"></i>
                 </span>
                 <div>
-                  <p class="text-[0.68rem] font-inter-bold uppercase tracking-[0.14em] text-primary">
+                  <p
+                    class="text-[0.68rem] font-inter-bold uppercase tracking-[0.14em] text-primary"
+                  >
                     Integración de pagos
                   </p>
                   <p class="mt-0.5 font-inter-semibold text-text">Cuenta de Mercado Pago</p>
@@ -322,9 +328,7 @@
               <span
                 class="inline-flex w-fit items-center gap-2 rounded-full px-3 py-1.5 text-xs font-inter-semibold"
                 [class]="
-                  mercadoPago.connected
-                    ? 'bg-success/10 text-success'
-                    : 'bg-text/5 text-muted'
+                  mercadoPago.connected ? 'bg-success/10 text-success' : 'bg-text/5 text-muted'
                 "
               >
                 <i
@@ -366,7 +370,11 @@
                     Conectada desde
                   </p>
                   <p class="mt-1.5 leading-5 text-text">
-                    {{ mercadoPago.connectedAt ? (mercadoPago.connectedAt | date: 'dd/MM/yyyy HH:mm') : '-' }}
+                    {{
+                      mercadoPago.connectedAt
+                        ? (mercadoPago.connectedAt | date: 'dd/MM/yyyy HH:mm')
+                        : '-'
+                    }}
                   </p>
                 </div>
                 <div class="sm:col-span-2 lg:col-span-4">
@@ -374,10 +382,80 @@
                     Última actualización de la conexión
                   </p>
                   <p class="mt-1.5 leading-5 text-text">
-                    {{ mercadoPago.lastUpdatedAt ? (mercadoPago.lastUpdatedAt | date: 'dd/MM/yyyy HH:mm') : '-' }}
+                    {{
+                      mercadoPago.lastUpdatedAt
+                        ? (mercadoPago.lastUpdatedAt | date: 'dd/MM/yyyy HH:mm')
+                        : '-'
+                    }}
                   </p>
                 </div>
               </div>
+              <div
+                class="flex flex-col gap-3 border-t border-border bg-background/40 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div>
+                  <p class="text-sm font-inter-semibold text-text">Información de la cuenta</p>
+                  <p class="mt-1 text-xs text-muted">
+                    Consulta los datos autorizados cuando los necesites.
+                  </p>
+                </div>
+                <div class="flex flex-wrap gap-2 sm:justify-end">
+                  <button
+                    type="button"
+                    (click)="openMercadoPagoProfile()"
+                    class="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-xs font-inter-semibold text-primary transition hover:border-primary/40 hover:bg-primary/5"
+                  >
+                    <i class="fas fa-user-circle"></i>
+                    Ver perfil
+                  </button>
+                  <button
+                    type="button"
+                    (click)="downloadMercadoPagoReport()"
+                    [disabled]="financialDownloadLoading()"
+                    class="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-xs font-inter-semibold text-fixed-text-50 transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <i
+                      class="fas"
+                      [class.fa-download]="!financialDownloadLoading()"
+                      [class.fa-circle-notch]="financialDownloadLoading()"
+                      [class.fa-spin]="financialDownloadLoading()"
+                    ></i>
+                    {{ financialDownloadLoading() ? 'Generando reporte...' : 'Descargar reporte' }}
+                  </button>
+                </div>
+              </div>
+              <div
+                class="flex flex-wrap gap-x-6 gap-y-2 border-t border-border px-5 py-3 text-xs text-muted"
+              >
+                <span>
+                  Token válido hasta:
+                  <strong class="font-inter-semibold text-text">
+                    {{
+                      mercadoPago.tokenExpiresAt
+                        ? (mercadoPago.tokenExpiresAt | date: 'dd/MM/yyyy HH:mm')
+                        : 'Renovación requerida'
+                    }}
+                  </strong>
+                </span>
+                <span>
+                  Última consulta:
+                  <strong class="font-inter-semibold text-text">
+                    {{
+                      mercadoPago.profileLastCheckedAt
+                        ? (mercadoPago.profileLastCheckedAt | date: 'dd/MM/yyyy HH:mm')
+                        : '-'
+                    }}
+                  </strong>
+                </span>
+              </div>
+              @if (mercadoPago.profileError) {
+                <div
+                  class="flex items-start gap-3 border-t border-warning/20 bg-warning/5 px-5 py-4 text-sm text-warning"
+                >
+                  <i class="fas fa-triangle-exclamation mt-0.5"></i>
+                  <p>{{ mercadoPago.profileError }}</p>
+                </div>
+              }
             } @else {
               <div class="flex items-center gap-3 p-5 text-sm text-muted">
                 <i class="fas fa-circle-info text-muted/70"></i>
@@ -538,7 +616,23 @@
                 <p class="mb-2 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
                   Bio
                 </p>
-                <p class="leading-6 text-text">{{ consultant.bio || '-' }}</p>
+                <p
+                  class="leading-6 text-text"
+                  [class.line-clamp-2]="
+                    shouldShowLongTextToggle(consultant.bio) && !isLongTextExpanded('bio')
+                  "
+                >
+                  {{ consultant.bio || '-' }}
+                </p>
+                @if (shouldShowLongTextToggle(consultant.bio)) {
+                  <button
+                    type="button"
+                    class="mt-1 text-xs font-inter-semibold text-primary hover:underline"
+                    (click)="toggleLongText('bio')"
+                  >
+                    {{ isLongTextExpanded('bio') ? 'Ver menos' : 'Ver más' }}
+                  </button>
+                }
               </div>
               <div>
                 <p class="mb-2.5 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
@@ -561,27 +655,93 @@
                   <p class="mb-2 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
                     Especialidades
                   </p>
-                  <p class="leading-6 text-text">{{ consultant.specialties.join(', ') || '-' }}</p>
+                  <p
+                    class="leading-6 text-text"
+                    [class.line-clamp-2]="
+                      shouldShowLongTextToggle(listText(consultant.specialties)) &&
+                      !isLongTextExpanded('specialties')
+                    "
+                  >
+                    {{ listText(consultant.specialties) }}
+                  </p>
+                  @if (shouldShowLongTextToggle(listText(consultant.specialties))) {
+                    <button
+                      type="button"
+                      class="mt-1 text-xs font-inter-semibold text-primary hover:underline"
+                      (click)="toggleLongText('specialties')"
+                    >
+                      {{ isLongTextExpanded('specialties') ? 'Ver menos' : 'Ver más' }}
+                    </button>
+                  }
                 </div>
                 <div>
                   <p class="mb-2 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
                     Sectores
                   </p>
-                  <p class="leading-6 text-text">{{ consultant.sectors.join(', ') || '-' }}</p>
+                  <p
+                    class="leading-6 text-text"
+                    [class.line-clamp-2]="
+                      shouldShowLongTextToggle(listText(consultant.sectors)) &&
+                      !isLongTextExpanded('sectors')
+                    "
+                  >
+                    {{ listText(consultant.sectors) }}
+                  </p>
+                  @if (shouldShowLongTextToggle(listText(consultant.sectors))) {
+                    <button
+                      type="button"
+                      class="mt-1 text-xs font-inter-semibold text-primary hover:underline"
+                      (click)="toggleLongText('sectors')"
+                    >
+                      {{ isLongTextExpanded('sectors') ? 'Ver menos' : 'Ver más' }}
+                    </button>
+                  }
                 </div>
                 <div>
                   <p class="mb-2 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
                     Servicios
                   </p>
-                  <p class="leading-6 text-text">{{ consultant.services.join(', ') || '-' }}</p>
+                  <p
+                    class="leading-6 text-text"
+                    [class.line-clamp-2]="
+                      shouldShowLongTextToggle(listText(consultant.services)) &&
+                      !isLongTextExpanded('services')
+                    "
+                  >
+                    {{ listText(consultant.services) }}
+                  </p>
+                  @if (shouldShowLongTextToggle(listText(consultant.services))) {
+                    <button
+                      type="button"
+                      class="mt-1 text-xs font-inter-semibold text-primary hover:underline"
+                      (click)="toggleLongText('services')"
+                    >
+                      {{ isLongTextExpanded('services') ? 'Ver menos' : 'Ver más' }}
+                    </button>
+                  }
                 </div>
                 <div>
                   <p class="mb-2 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
                     Certificaciones
                   </p>
-                  <p class="leading-6 text-text">
-                    {{ consultant.certifications.join(', ') || '-' }}
+                  <p
+                    class="leading-6 text-text"
+                    [class.line-clamp-2]="
+                      shouldShowLongTextToggle(listText(consultant.certifications)) &&
+                      !isLongTextExpanded('certifications')
+                    "
+                  >
+                    {{ listText(consultant.certifications) }}
                   </p>
+                  @if (shouldShowLongTextToggle(listText(consultant.certifications))) {
+                    <button
+                      type="button"
+                      class="mt-1 text-xs font-inter-semibold text-primary hover:underline"
+                      (click)="toggleLongText('certifications')"
+                    >
+                      {{ isLongTextExpanded('certifications') ? 'Ver menos' : 'Ver más' }}
+                    </button>
+                  }
                 </div>
               </div>
             </div>
@@ -623,6 +783,128 @@
             }
           </div>
         </section>
+      }
+    </div>
+  </app-modal-form>
+}
+
+@if (showMercadoPagoProfileModal()) {
+  <app-modal-form
+    title="Perfil de Mercado Pago"
+    maxWidth="2xl"
+    [showFooter]="false"
+    (onClose)="closeMercadoPagoProfile()"
+  >
+    <div class="p-5 sm:p-6">
+      @if (mercadoPagoDetails(); as mercadoPago) {
+        @if (mercadoPago.accountProfile; as profile) {
+          <div
+            class="mb-5 flex items-center gap-3 rounded-xl border border-border bg-background px-4 py-3"
+          >
+            <span class="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
+              <i class="fas fa-user"></i>
+            </span>
+            <div class="min-w-0">
+              <p class="font-inter-semibold text-text">
+                {{
+                  profile.firstName || profile.lastName
+                    ? (profile.firstName || '') + (profile.lastName ? ' ' + profile.lastName : '')
+                    : profile.nickname || 'Cuenta de Mercado Pago'
+                }}
+              </p>
+              <p class="mt-1 truncate text-xs text-muted">
+                ID {{ profile.id || mercadoPago.mercadoPagoUserId || '-' }}
+              </p>
+            </div>
+          </div>
+          <div class="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+            <div>
+              <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                Correo
+              </p>
+              <p class="mt-1.5 break-all text-text">
+                {{ profile.email || mercadoPago.email || '-' }}
+              </p>
+            </div>
+            <div>
+              <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                Tipo de cuenta
+              </p>
+              <p class="mt-1.5 text-text">{{ profile.userType || '-' }}</p>
+            </div>
+            <div>
+              <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">País</p>
+              <p class="mt-1.5 text-text">{{ profile.countryId || '-' }}</p>
+            </div>
+            <div>
+              <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">Sitio</p>
+              <p class="mt-1.5 text-text">{{ profile.siteId || '-' }}</p>
+            </div>
+            <div>
+              <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                Registro
+              </p>
+              <p class="mt-1.5 text-text">
+                {{
+                  profile.registrationDate
+                    ? (profile.registrationDate | date: 'dd/MM/yyyy HH:mm')
+                    : '-'
+                }}
+              </p>
+            </div>
+            <div>
+              <p class="text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted">
+                Última consulta
+              </p>
+              <p class="mt-1.5 text-text">
+                {{
+                  mercadoPago.profileLastCheckedAt
+                    ? (mercadoPago.profileLastCheckedAt | date: 'dd/MM/yyyy HH:mm')
+                    : '-'
+                }}
+              </p>
+            </div>
+          </div>
+          <div
+            class="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4"
+          >
+            <p class="text-xs text-muted">
+              Mercado Pago no siempre entrega un enlace público para esta cuenta.
+            </p>
+            @if (profile.permalink) {
+              <a
+                [href]="profile.permalink"
+                target="_blank"
+                rel="noreferrer"
+                class="inline-flex h-9 items-center gap-2 rounded-lg bg-primary px-3 text-xs font-inter-semibold text-fixed-text-50 transition hover:bg-primary/90"
+              >
+                Abrir perfil externo
+                <i class="fas fa-arrow-up-right-from-square"></i>
+              </a>
+            } @else {
+              <span
+                class="inline-flex h-9 items-center gap-2 rounded-lg border border-border px-3 text-xs font-inter-semibold text-muted"
+              >
+                Perfil externo no disponible
+              </span>
+            }
+          </div>
+        } @else {
+          <div
+            class="flex items-start gap-3 rounded-xl border border-warning/20 bg-warning/5 px-4 py-4 text-sm text-warning"
+          >
+            <i class="fas fa-triangle-exclamation mt-0.5"></i>
+            <div>
+              <p class="font-inter-semibold">Perfil externo no disponible</p>
+              <p class="mt-1 text-xs leading-5">
+                Mercado Pago no devolvió información de perfil pública. La conexión sigue registrada
+                con el alias
+                {{ mercadoPago.nickname || '-' }} y el ID
+                {{ mercadoPago.mercadoPagoUserId || '-' }}.
+              </p>
+            </div>
+          </div>
+        }
       }
     </div>
   </app-modal-form>

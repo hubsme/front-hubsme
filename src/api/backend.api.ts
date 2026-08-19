@@ -1634,6 +1634,37 @@ export interface ConsultantResultDto {
   validated: "true" | "false";
 }
 
+export interface MercadoPagoAccountProfileDto {
+  /** @example "123456789" */
+  id: string | null;
+  /** @example "consultor_mp" */
+  nickname: string | null;
+  /** @example "consultor@mail.com" */
+  email: string | null;
+  /** @example "Miguel" */
+  firstName: string | null;
+  /** @example "Salinas" */
+  lastName: string | null;
+  /** @example "MPE" */
+  siteId: string | null;
+  /** @example "PE" */
+  countryId: string | null;
+  /** @example "normal" */
+  userType: string | null;
+  /** @example "https://www.mercadolibre.com.pe/perfil/consultor_mp" */
+  permalink: string | null;
+  /**
+   * @format date-time
+   * @example "2026-06-17T15:00:00.000Z"
+   */
+  registrationDate: string | null;
+  /**
+   * @format date-time
+   * @example "2026-06-17T15:00:00.000Z"
+   */
+  dateCreated: string | null;
+}
+
 export interface ConsultantMercadoPagoAdminDto {
   /** @example true */
   connected: boolean;
@@ -1653,6 +1684,62 @@ export interface ConsultantMercadoPagoAdminDto {
    * @example "2026-06-17T15:00:00.000Z"
    */
   lastUpdatedAt: string | null;
+  accountProfile: MercadoPagoAccountProfileDto | null;
+  /**
+   * @format date-time
+   * @example "2026-06-17T15:00:00.000Z"
+   */
+  tokenExpiresAt: string | null;
+  /**
+   * @format date-time
+   * @example "2026-08-19T15:30:00.000Z"
+   */
+  profileLastCheckedAt: string | null;
+  /** @example null */
+  profileError: string | null;
+}
+
+export interface MercadoPagoFinancialReportDto {
+  /** @example "123456789" */
+  id: string | null;
+  /**
+   * @format date-time
+   * @example "2026-08-01T00:00:00.000Z"
+   */
+  beginDate: string | null;
+  /**
+   * @format date-time
+   * @example "2026-08-19T23:59:59.000Z"
+   */
+  endDate: string | null;
+  /** @example "settlement_report_20260819.csv" */
+  fileName: string | null;
+  /**
+   * @format date-time
+   * @example "2026-08-19T15:30:00.000Z"
+   */
+  createdAt: string | null;
+}
+
+export interface ConsultantMercadoPagoFinancialAdminDto {
+  /** @example true */
+  connected: boolean;
+  /** @example "available" */
+  status: "available" | "not_available" | "error";
+  /** @example "PEN" */
+  currency: string | null;
+  /** @example false */
+  balanceAvailable: boolean;
+  /** @example 4 */
+  reportCount: number;
+  latestReport: MercadoPagoFinancialReportDto | null;
+  /**
+   * @format date-time
+   * @example "2026-08-19T15:30:00.000Z"
+   */
+  lastUpdatedAt: string | null;
+  /** @example "Se encontró el último reporte financiero disponible." */
+  message: string;
 }
 
 export interface ConsultantApprovalDto {
@@ -3728,6 +3815,28 @@ export interface ConsultantadminMercadoPagoParams {
 export type ConsultantadminMercadoPagoData = ConsultantMercadoPagoAdminDto;
 
 export type ConsultantadminMercadoPagoError = HttpErrorDto;
+
+export interface ConsultantadminMercadoPagoFinancialParams {
+  id: number;
+}
+
+export type ConsultantadminMercadoPagoFinancialData =
+  ConsultantMercadoPagoFinancialAdminDto;
+
+export type ConsultantadminMercadoPagoFinancialError = HttpErrorDto;
+
+export interface ConsultantadminMercadoPagoFinancialDownloadParams {
+  /**
+   * Mercado Pago report generation task to continue tracking instead of creating a new report.
+   * @example "99336983670"
+   */
+  taskId?: string;
+  id: number;
+}
+
+export type ConsultantadminMercadoPagoFinancialDownloadData = any;
+
+export type ConsultantadminMercadoPagoFinancialDownloadError = HttpErrorDto;
 
 export interface ConsultantadminApproveParams {
   id: number;
@@ -6212,7 +6321,7 @@ export namespace ConsultantAdmin {
    * No description
    * @tags consultantAdmin
    * @name ConsultantadminMercadoPago
-   * @summary Get a consultant Mercado Pago connection for the internal admin panel
+   * @summary Get Mercado Pago account details for a consultant in the internal admin panel
    * @request GET:/admin/backoffice/consultant/mercado-pago/{id}
    * @secure
    * @response `200` `ConsultantadminMercadoPagoData`
@@ -6226,6 +6335,52 @@ export namespace ConsultantAdmin {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = ConsultantadminMercadoPagoData;
+  }
+
+  /**
+   * No description
+   * @tags consultantAdmin
+   * @name ConsultantadminMercadoPagoFinancial
+   * @summary Get a consultant Mercado Pago financial report status in the internal admin panel
+   * @request GET:/admin/backoffice/consultant/mercado-pago/{id}/financial
+   * @secure
+   * @response `200` `ConsultantadminMercadoPagoFinancialData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantadminMercadoPagoFinancial {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantadminMercadoPagoFinancialData;
+  }
+
+  /**
+   * No description
+   * @tags consultantAdmin
+   * @name ConsultantadminMercadoPagoFinancialDownload
+   * @summary Download the latest consultant Mercado Pago financial report
+   * @request GET:/admin/backoffice/consultant/mercado-pago/{id}/financial/download
+   * @secure
+   * @response `200` `ConsultantadminMercadoPagoFinancialDownloadData` Downloads the report or returns its generation status.
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ConsultantadminMercadoPagoFinancialDownload {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {
+      /**
+       * Mercado Pago report generation task to continue tracking instead of creating a new report.
+       * @example "99336983670"
+       */
+      taskId?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantadminMercadoPagoFinancialDownloadData;
   }
 
   /**
@@ -10169,7 +10324,7 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags consultantAdmin
      * @name ConsultantadminMercadoPago
-     * @summary Get a consultant Mercado Pago connection for the internal admin panel
+     * @summary Get Mercado Pago account details for a consultant in the internal admin panel
      * @request GET:/admin/backoffice/consultant/mercado-pago/{id}
      * @secure
      * @response `200` `ConsultantadminMercadoPagoData`
@@ -10187,6 +10342,58 @@ export class Api<SecurityDataType extends unknown> {
         method: "GET",
         secure: true,
         format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultantAdmin
+     * @name ConsultantadminMercadoPagoFinancial
+     * @summary Get a consultant Mercado Pago financial report status in the internal admin panel
+     * @request GET:/admin/backoffice/consultant/mercado-pago/{id}/financial
+     * @secure
+     * @response `200` `ConsultantadminMercadoPagoFinancialData`
+     * @response `400` `HttpErrorDto`
+     */
+    consultantadminMercadoPagoFinancial: (
+      { id }: ConsultantadminMercadoPagoFinancialParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantadminMercadoPagoFinancialData,
+        ConsultantadminMercadoPagoFinancialError
+      >({
+        path: `/admin/backoffice/consultant/mercado-pago/${id}/financial`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultantAdmin
+     * @name ConsultantadminMercadoPagoFinancialDownload
+     * @summary Download the latest consultant Mercado Pago financial report
+     * @request GET:/admin/backoffice/consultant/mercado-pago/{id}/financial/download
+     * @secure
+     * @response `200` `ConsultantadminMercadoPagoFinancialDownloadData` Downloads the report or returns its generation status.
+     * @response `400` `HttpErrorDto`
+     */
+    consultantadminMercadoPagoFinancialDownload: (
+      { id, ...query }: ConsultantadminMercadoPagoFinancialDownloadParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantadminMercadoPagoFinancialDownloadData,
+        ConsultantadminMercadoPagoFinancialDownloadError
+      >({
+        path: `/admin/backoffice/consultant/mercado-pago/${id}/financial/download`,
+        method: "GET",
+        query: query,
+        secure: true,
         ...params,
       }),
 

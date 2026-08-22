@@ -1,0 +1,227 @@
+<main
+  class="flex min-h-screen items-center justify-center bg-background p-4 font-inter-regular text-text"
+>
+  <section
+    class="w-full max-w-lg overflow-hidden rounded-2xl border border-text/10 bg-surface shadow-lg"
+  >
+    <header class="border-b border-border px-6 py-7 text-center sm:px-7">
+      <a href="/" aria-label="Ir a la página principal" class="inline-flex">
+        <img
+          src="/avif/logo_completo.avif"
+          alt="HUBSME"
+          class="h-11 w-auto dark:brightness-0 dark:invert"
+        />
+      </a>
+    </header>
+
+    <div class="px-6 py-10 sm:px-8 sm:py-11">
+      @if (loading()) {
+        <div class="flex min-h-64 flex-col items-center justify-center gap-4 text-muted">
+          <i class="fas fa-circle-notch fa-spin text-3xl text-secondary"></i>
+          <p>Validando invitación...</p>
+        </div>
+      } @else if (error()) {
+        <div class="flex min-h-64 flex-col items-center justify-center text-center">
+          <span
+            class="flex h-14 w-14 items-center justify-center rounded-full bg-danger/10 text-danger"
+          >
+            <i class="fas fa-link-slash text-xl"></i>
+          </span>
+          <h1 class="mt-5 font-plus-jakarta-sans text-2xl font-bold">Invitación no disponible</h1>
+          <p class="mt-2 max-w-sm text-sm text-muted">{{ error() }}</p>
+          <a href="/" class="mt-6 text-sm font-inter-bold text-secondary hover:underline"
+            >Volver a HUBSME</a
+          >
+        </div>
+      } @else if (invitation(); as invite) {
+        <div class="text-center">
+          <span
+            class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/10 text-secondary"
+          >
+            <i class="fas fa-building-user text-xl"></i>
+          </span>
+          <p class="mt-5 text-xs font-inter-bold uppercase tracking-[0.16em] text-secondary">
+            Invitación de equipo
+          </p>
+          <h1 class="mt-2 font-plus-jakarta-sans text-2xl font-bold">
+            Únete a {{ invite.organizationName }}
+          </h1>
+          <p class="mt-4 text-sm leading-5 text-muted">
+            Accederás a los diagnósticos, reuniones, calendario, tareas y documentos compartidos de
+            esta empresa.
+          </p>
+        </div>
+
+        @if (session()) {
+          <div class="mt-7 rounded-xl border border-border bg-background p-4">
+            <p class="text-xs font-inter-semibold uppercase tracking-wide text-muted">
+              Sesión actual
+            </p>
+            <p class="mt-1 font-inter-semibold">{{ session()!.user.name }}</p>
+            <p class="text-sm text-muted">{{ session()!.user.email }}</p>
+          </div>
+
+          @if (signedInWithInvitationEmail()) {
+            <button
+              type="button"
+              (click)="acceptWithCurrentAccount()"
+              [disabled]="submitting()"
+              class="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm font-inter-bold text-background hover:bg-secondary/90 disabled:opacity-50"
+            >
+              @if (submitting()) {
+                <i class="fas fa-circle-notch fa-spin"></i>
+              } @else {
+                <i class="fas fa-check"></i>
+              }
+              Aceptar invitación
+            </button>
+          } @else {
+            <div class="mt-5 rounded-xl border border-warning/30 bg-warning/5 p-4 text-sm">
+              Esta invitación corresponde a <strong>{{ invite.email }}</strong
+              >. Ingresa con esa cuenta para continuar.
+            </div>
+            <button
+              type="button"
+              (click)="useAnotherAccount()"
+              class="mt-4 h-11 w-full rounded-xl border border-border font-inter-semibold hover:bg-text/5"
+            >
+              Cambiar de cuenta
+            </button>
+          }
+        } @else if (invite.hasAccount) {
+          <div class="mt-7 rounded-xl border border-border bg-background p-4 text-sm text-muted">
+            Ya existe una cuenta HUBSME para <strong class="text-text">{{ invite.email }}</strong
+            >.
+          </div>
+          <button
+            type="button"
+            (click)="startGoogleJoin()"
+            [disabled]="googleLoading()"
+            class="mt-5 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-text/15 bg-surface px-5 text-sm font-inter-bold text-text hover:border-secondary/50 hover:text-secondary disabled:opacity-50"
+          >
+            @if (googleLoading()) {
+              <i class="fas fa-circle-notch fa-spin text-secondary"></i>
+              Esperando a Google...
+            } @else {
+              <i class="fab fa-google text-secondary"></i>
+              Continuar con Google
+            }
+          </button>
+          <button
+            type="button"
+            (click)="signIn()"
+            class="mt-4 h-12 w-full rounded-xl bg-secondary px-5 text-sm font-inter-bold text-background hover:bg-secondary/90"
+          >
+            Iniciar sesión para aceptar
+          </button>
+        } @else {
+          @if (!showEmailPasswordForm()) {
+            <div class="mt-8 space-y-4">
+              <button
+                type="button"
+                (click)="startGoogleJoin()"
+                [disabled]="googleLoading()"
+                class="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-text/15 bg-surface px-5 text-sm font-inter-bold text-text hover:border-secondary/50 hover:text-secondary disabled:opacity-50"
+              >
+                @if (googleLoading()) {
+                  <i class="fas fa-circle-notch fa-spin text-secondary"></i>
+                  Esperando a Google...
+                } @else {
+                  <i class="fab fa-google text-secondary"></i>
+                  Unirme con Google
+                }
+              </button>
+              <p class="text-center text-xs text-muted">
+                Usa la cuenta de Google invitada:
+                <strong class="text-text">{{ invite.email }}</strong>
+              </p>
+              <button
+                type="button"
+                (click)="useEmailPassword()"
+                class="flex h-12 w-full items-center justify-center rounded-xl bg-secondary px-5 text-sm font-inter-bold text-background hover:bg-secondary/90"
+              >
+                Usar correo y contraseña
+              </button>
+            </div>
+          } @else {
+            <form class="mt-8 space-y-4" (ngSubmit)="createAccount()">
+              <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <label class="block space-y-2 text-sm font-inter-semibold text-muted">
+                  <span class="block">Nombres</span>
+                  <input
+                    name="firstName"
+                    [ngModel]="firstName()"
+                    (ngModelChange)="firstName.set($event)"
+                    autocomplete="given-name"
+                    class="h-11 w-full rounded-xl border border-border bg-background px-3 text-text outline-none focus:border-secondary"
+                  />
+                </label>
+                <label class="block space-y-2 text-sm font-inter-semibold text-muted">
+                  <span class="block">Apellidos</span>
+                  <input
+                    name="lastName"
+                    [ngModel]="lastName()"
+                    (ngModelChange)="lastName.set($event)"
+                    autocomplete="family-name"
+                    class="h-11 w-full rounded-xl border border-border bg-background px-3 text-text outline-none focus:border-secondary"
+                  />
+                </label>
+              </div>
+              <label class="block space-y-2 text-sm font-inter-semibold text-muted">
+                <span class="block">Correo</span>
+                <input
+                  [value]="invite.email"
+                  disabled
+                  class="h-11 w-full rounded-xl border border-border bg-text/5 px-3 text-muted"
+                />
+              </label>
+              <label class="block space-y-2 text-sm font-inter-semibold text-muted">
+                <span class="block">Contraseña</span>
+                <div class="relative">
+                  <input
+                    name="password"
+                    [type]="showPassword() ? 'text' : 'password'"
+                    [ngModel]="password()"
+                    (ngModelChange)="password.set($event)"
+                    autocomplete="new-password"
+                    class="h-11 w-full rounded-xl border border-border bg-background px-3 pr-10 text-text outline-none focus:border-secondary"
+                  />
+                  <button
+                    type="button"
+                    (click)="togglePassword()"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-secondary"
+                  >
+                    <i [class]="showPassword() ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                  </button>
+                </div>
+              </label>
+              <label class="block space-y-2 text-sm font-inter-semibold text-muted">
+                <span class="block">Repite la contraseña</span>
+                <input
+                  name="passwordConfirmation"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  [ngModel]="passwordConfirmation()"
+                  (ngModelChange)="passwordConfirmation.set($event)"
+                  autocomplete="new-password"
+                  class="h-11 w-full rounded-xl border border-border bg-background px-3 text-text outline-none focus:border-secondary"
+                />
+              </label>
+              <button
+                type="submit"
+                [disabled]="submitting()"
+                class="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm font-inter-bold text-background hover:bg-secondary/90 disabled:opacity-50"
+              >
+                @if (submitting()) {
+                  <i class="fas fa-circle-notch fa-spin"></i>
+                  Creando cuenta...
+                } @else {
+                  Crear cuenta y unirme
+                }
+              </button>
+            </form>
+          }
+        }
+      }
+    </div>
+  </section>
+</main>

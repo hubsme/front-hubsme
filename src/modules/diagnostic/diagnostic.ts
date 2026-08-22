@@ -339,7 +339,7 @@ export class Diagnostic implements OnInit {
     try {
       const user = this.hubsme.currentUser();
       if (user.role === 'pyme') {
-        this.pymeId.set(user.id);
+        this.pymeId.set(this.hubsme.currentPymeId());
       } else {
         this.router.navigate(['/']);
         return;

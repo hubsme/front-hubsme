@@ -183,7 +183,7 @@ export class ConsultantPayouts {
   }
 
   statusLabel(status: PayoutStatus) {
-    return status === 'paid' ? 'Depositado' : 'Pendiente de depósito';
+    return status === 'paid' ? 'Depositado' : 'Pendiente';
   }
 
   meetingStatusLabel(status?: string | null) {
@@ -218,6 +218,19 @@ export class ConsultantPayouts {
     }
   }
 
+  feePercentLabel(value: string | null | undefined) {
+    if (value === null || value === undefined) return 'No disponible';
+    return `${Number(value).toFixed(2)}%`;
+  }
+
+  platformCommissionPercent(grossAmount: string, commissionAmount: string) {
+    const gross = Number(grossAmount);
+    const commission = Number(commissionAmount);
+    if (!Number.isFinite(gross) || gross <= 0 || !Number.isFinite(commission))
+      return 'No disponible';
+    return `${((commission / gross) * 100).toFixed(2)}%`;
+  }
+
   toggleStepDetails(stepId: number) {
     this.expandedStepIds.update((set) => {
       const next = new Set(set);
@@ -246,7 +259,9 @@ export class ConsultantPayouts {
     if (this.recordingsLoading()) return;
     this.recordingsLoading.set(true);
     try {
-      const response = await this.adminApi.api.meetingAdmin.meetingadminGetRecordings({ id: meetingId });
+      const response = await this.adminApi.api.meetingAdmin.meetingadminGetRecordings({
+        id: meetingId,
+      });
       this.recordings.set(response.data);
       if (!response.data.length) {
         this.toastService.info('No se encontraron grabaciones para esta reunión.');
@@ -327,6 +342,8 @@ export class ConsultantPayouts {
         checkoutExternalReference: data.payout.checkoutExternalReference,
         grossAmount: data.payout.grossAmount,
         platformCommissionAmount: data.payout.platformCommissionAmount,
+        mercadoPagoFeeAmount: data.payout.mercadoPagoFeeAmount,
+        mercadoPagoFeePercent: data.payout.mercadoPagoFeePercent,
         rescheduleCount: data.rescheduleCount,
         latestMeetingId: data.latestMeeting.id,
         latestMeetingTitle: data.latestMeeting.title,

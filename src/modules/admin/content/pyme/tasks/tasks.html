@@ -2,7 +2,9 @@
   <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
     <div>
       <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold">Mi tablero</h1>
-      <p class="mt-1 text-[0.92rem] text-muted">Seguimiento de acciones estratégicas acordadas en consultoría.</p>
+      <p class="mt-1 text-[0.92rem] text-muted">
+        Seguimiento de acciones estratégicas acordadas en consultoría.
+      </p>
     </div>
 
     <div class="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:justify-end">
@@ -18,183 +20,234 @@
 
       <div class="min-w-0 flex-1 sm:w-64 sm:flex-none">
         <span class="sr-only">Consultor</span>
-          <app-consultant-input-search
-            [ngModel]="selectedConsultantId() === 'all' ? null : selectedConsultantId()"
-            [filters]="consultantFilters"
-            [options]="consultants()"
-            (onSelected)="selectConsultant($event?.userId ?? null)"
-          />
+        <app-consultant-input-search
+          [ngModel]="selectedConsultantId() === 'all' ? null : selectedConsultantId()"
+          [filters]="consultantFilters"
+          [options]="consultants()"
+          (onSelected)="selectConsultant($event?.userId ?? null)"
+        />
       </div>
 
-      <button
-        type="button"
-        (click)="startCreate()"
-        class="inline-flex h-10 items-center gap-2 rounded-full bg-secondary px-4 text-[0.82rem] text-background font-inter-bold shadow-sm transition-colors hover:bg-secondary/90"
-      >
-        <i class="fas fa-plus text-xs"></i>
-        Nueva Tarea
-      </button>
+      @if (canManage()) {
+        <button
+          type="button"
+          (click)="startCreate()"
+          class="inline-flex h-10 items-center gap-2 rounded-full bg-secondary px-4 text-[0.82rem] text-background font-inter-bold shadow-sm transition-colors hover:bg-secondary/90"
+        >
+          <i class="fas fa-plus text-xs"></i>
+          Nueva Tarea
+        </button>
+      }
     </div>
   </div>
 
   @if (showCreate()) {
-  <app-modal-form
-    [title]="editingTaskId() ? 'Editar tarea' : 'Nueva tarea'"
-    [submitText]="editingTaskId() ? 'Guardar cambios' : 'Crear tarea'"
-    [loading]="creating()"
-    maxWidth="4xl"
-    (onSubmit)="submit()"
-    (onClose)="closeForm()"
-  >
-    <div class="p-5">
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
-          <span class="mb-2 block">Consultor</span>
-          @if (consultants().length) {
-            <app-consultant-input-search
-              [ngModel]="form().consultantId"
-              [filters]="consultantFilters"
-              [options]="consultants()"
-              [showClear]="true"
-              (onSelected)="updateForm('consultantId', $event?.userId ?? 0)"
+    <app-modal-form
+      [title]="editingTaskId() ? 'Editar tarea' : 'Nueva tarea'"
+      [submitText]="editingTaskId() ? 'Guardar cambios' : 'Crear tarea'"
+      [loading]="creating()"
+      maxWidth="4xl"
+      (onSubmit)="submit()"
+      (onClose)="closeForm()"
+    >
+      <div class="p-5">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+            <span class="mb-2 block">Consultor</span>
+            @if (consultants().length) {
+              <app-consultant-input-search
+                [ngModel]="form().consultantId"
+                [filters]="consultantFilters"
+                [options]="consultants()"
+                [showClear]="true"
+                (onSelected)="updateForm('consultantId', $event?.userId ?? 0)"
+              />
+            } @else {
+              <div
+                class="rounded-xl border border-dashed border-border bg-surface px-4 py-4 text-sm text-muted"
+              >
+                No hay consultores disponibles para crear tareas.
+              </div>
+            }
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+            <span class="mb-2 block">Titulo</span>
+            <input
+              [ngModel]="form().title"
+              (ngModelChange)="updateForm('title', $event)"
+              class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary"
             />
-          } @else {
-            <div
-              class="rounded-xl border border-dashed border-border bg-surface px-4 py-4 text-sm text-muted"
-            >
-              No hay consultores disponibles para crear tareas.
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Asignado a</span>
+            <div class="relative">
+              <select
+                [ngModel]="form().assignedTo"
+                (ngModelChange)="updateForm('assignedTo', $event)"
+                class="h-10 w-full appearance-none rounded-xl border border-border bg-surface pl-3 pr-10 text-sm text-text outline-none focus:border-secondary"
+              >
+                <option value="pyme">PYME</option>
+                <option value="consultor">Consultor</option>
+              </select>
+              <i
+                class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text/40"
+              ></i>
             </div>
-          }
-        </label>
-        <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
-          <span class="mb-2 block">Titulo</span>
-          <input [ngModel]="form().title" (ngModelChange)="updateForm('title', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
-        </label>
-        <label class="block text-xs text-muted font-inter-semibold">
-          <span class="mb-2 block">Asignado a</span>
-          <div class="relative">
-            <select [ngModel]="form().assignedTo" (ngModelChange)="updateForm('assignedTo', $event)" class="h-10 w-full appearance-none rounded-xl border border-border bg-surface pl-3 pr-10 text-sm text-text outline-none focus:border-secondary">
-              <option value="pyme">PYME</option>
-              <option value="consultor">Consultor</option>
-            </select>
-            <i class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text/40"></i>
-          </div>
-        </label>
-        <label class="block text-xs text-muted font-inter-semibold">
-          <span class="mb-2 block">Prioridad</span>
-          <div class="relative">
-            <select [ngModel]="form().priority" (ngModelChange)="updateForm('priority', $event)" class="h-10 w-full appearance-none rounded-xl border border-border bg-surface pl-3 pr-10 text-sm text-text outline-none focus:border-secondary">
-              <option value="alta">Alta</option>
-              <option value="media">Media</option>
-              <option value="baja">Baja</option>
-            </select>
-            <i class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text/40"></i>
-          </div>
-        </label>
-        <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
-          <span class="mb-2 block">Fecha limite</span>
-          <input type="date" [ngModel]="form().dueDate" (ngModelChange)="updateForm('dueDate', $event)" class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary" />
-        </label>
-        <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
-          <span class="mb-2 block">Descripcion</span>
-          <textarea [ngModel]="form().description" (ngModelChange)="updateForm('description', $event)" class="min-h-24 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-secondary"></textarea>
-        </label>
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold">
+            <span class="mb-2 block">Prioridad</span>
+            <div class="relative">
+              <select
+                [ngModel]="form().priority"
+                (ngModelChange)="updateForm('priority', $event)"
+                class="h-10 w-full appearance-none rounded-xl border border-border bg-surface pl-3 pr-10 text-sm text-text outline-none focus:border-secondary"
+              >
+                <option value="alta">Alta</option>
+                <option value="media">Media</option>
+                <option value="baja">Baja</option>
+              </select>
+              <i
+                class="fas fa-chevron-down pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-text/40"
+              ></i>
+            </div>
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+            <span class="mb-2 block">Fecha limite</span>
+            <input
+              type="date"
+              [ngModel]="form().dueDate"
+              (ngModelChange)="updateForm('dueDate', $event)"
+              class="h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text outline-none focus:border-secondary"
+            />
+          </label>
+          <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+            <span class="mb-2 block">Descripcion</span>
+            <textarea
+              [ngModel]="form().description"
+              (ngModelChange)="updateForm('description', $event)"
+              class="min-h-24 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text outline-none focus:border-secondary"
+            ></textarea>
+          </label>
+        </div>
       </div>
-    </div>
-  </app-modal-form>
+    </app-modal-form>
   }
 
   @if (loading()) {
-  <div class="grid grid-cols-1 gap-5 xl:grid-cols-4" aria-label="Cargando tareas">
-    @for (column of [1, 2, 3, 4]; track column) {
-    <section class="min-h-[34rem] animate-pulse border-r border-border/70 pr-5 last:border-r-0">
-      <header class="mb-4 flex items-center gap-2">
-        <div class="h-6 w-28 rounded bg-text/5"></div>
-        <div class="h-5 w-8 rounded-full bg-text/5"></div>
-      </header>
-      <div class="min-h-[28rem] rounded-2xl border border-border bg-surface p-3">
-        @for (card of [1, 2, 3]; track card) {
-        <div class="mb-3 rounded-2xl border border-dashed border-border bg-background p-4">
-          <div class="h-4 w-3/4 rounded bg-text/10"></div>
-          <div class="mt-3 h-3 w-full rounded bg-text/5"></div>
-          <div class="mt-2 h-3 w-2/3 rounded bg-text/5"></div>
-        </div>
-        }
-      </div>
-    </section>
-    }
-  </div>
-  } @else {
-  <div class="grid grid-cols-1 gap-5 xl:grid-cols-4">
-    @for (column of columns; track column.id) {
-    <section class="min-h-[34rem] border-r border-border/70 pr-5 last:border-r-0">
-      <header class="mb-4 flex items-center gap-2">
-        <h2 class="text-xl text-text-700 font-anton lowercase text-text">{{ column.label }}</h2>
-        <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-text/5 px-2 text-[0.72rem] text-text/70 font-inter-semibold">
-          {{ tasksByStatus(column.id).length }}
-        </span>
-      </header>
-
-      <div class="min-h-[28rem] rounded-2xl border border-border bg-surface p-3">
-        <div #taskList [attr.data-status]="column.id" class="min-h-[26rem] space-y-3">
-          @for (task of tasksByStatus(column.id); track task.id) {
-          <article
-            [attr.data-task-id]="task.id"
-            class="cursor-grab rounded-2xl border border-dashed border-border bg-background/40 p-4 active:cursor-grabbing"
-          >
-            <div class="flex items-center justify-between gap-3">
-              <div class="flex items-center gap-2">
-                <span class="rounded-full px-2.5 py-1 text-[0.65rem] uppercase font-inter-bold" [class]="priorityClass(task.priority)">
-                  {{ task.priority }}
-                </span>
-                <span class="inline-flex items-center gap-1.5 text-[0.7rem] text-muted">
-                  <i class="far fa-user text-[0.65rem]"></i>
-                  {{ responsibleLabel(task.assignedTo) }}
-                </span>
+    <div class="grid grid-cols-1 gap-5 xl:grid-cols-4" aria-label="Cargando tareas">
+      @for (column of [1, 2, 3, 4]; track column) {
+        <section class="min-h-[34rem] animate-pulse border-r border-border/70 pr-5 last:border-r-0">
+          <header class="mb-4 flex items-center gap-2">
+            <div class="h-6 w-28 rounded bg-text/5"></div>
+            <div class="h-5 w-8 rounded-full bg-text/5"></div>
+          </header>
+          <div class="min-h-[28rem] rounded-2xl border border-border bg-surface p-3">
+            @for (card of [1, 2, 3]; track card) {
+              <div class="mb-3 rounded-2xl border border-dashed border-border bg-background p-4">
+                <div class="h-4 w-3/4 rounded bg-text/10"></div>
+                <div class="mt-3 h-3 w-full rounded bg-text/5"></div>
+                <div class="mt-2 h-3 w-2/3 rounded bg-text/5"></div>
               </div>
-              <button
-                type="button"
-                (click)="$event.stopPropagation(); startEdit(task)"
-                class="grid h-7 w-7 cursor-pointer place-items-center rounded-full bg-surface text-muted transition-colors hover:bg-secondary-50 hover:text-secondary"
-                aria-label="Editar tarea"
-              >
-                <i class="fas fa-pen text-[0.7rem]"></i>
-              </button>
-            </div>
-
-            <h3 class="mt-3 text-[0.9rem] leading-snug font-inter-bold">{{ task.title }}</h3>
-            <p class="mt-3 line-clamp-3 text-[0.78rem] leading-5 text-text-600">{{ task.description }}</p>
-            <div class="mt-3 flex items-center gap-2 rounded-xl bg-secondary/5 px-2.5 py-2 text-secondary">
-              <i class="far fa-calendar text-[0.7rem]"></i>
-              <span class="min-w-0 truncate text-[0.68rem] font-inter-semibold">
-                {{ meetingDateTime(task) }}
-              </span>
-            </div>
-
-            <div class="mt-5 flex items-center justify-between text-[0.72rem] text-muted">
-              <span class="inline-flex items-center gap-1.5">
-                <i class="far fa-clock"></i>
-                {{ task.dueDate ? 'Vence ' + (task.dueDate | date : 'dd MMM yyyy') : 'Sin vencimiento' }}
-              </span>
-              <div class="relative">
-                <select [ngModel]="task.status" (ngModelChange)="moveTask(task.id, $event)" class="appearance-none rounded-lg border border-border bg-surface py-1 pl-2 pr-7 text-xs outline-none">
-                  @for (option of columns; track option.id) {
-                  <option [value]="option.id">{{ option.label }}</option>
-                  }
-                </select>
-                <i class="fas fa-chevron-down pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[0.6rem] text-text/40"></i>
-              </div>
-            </div>
-          </article>
-          } @empty {
-          <div class="is-empty flex h-24 items-center justify-center rounded-2xl border border-dashed border-border text-[0.76rem] text-muted">
-            Sin tareas
+            }
           </div>
-          }
-        </div>
-      </div>
-    </section>
-    }
-  </div>
+        </section>
+      }
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 gap-5 xl:grid-cols-4">
+      @for (column of columns; track column.id) {
+        <section class="min-h-[34rem] border-r border-border/70 pr-5 last:border-r-0">
+          <header class="mb-4 flex items-center gap-2">
+            <h2 class="text-xl text-text-700 font-anton lowercase text-text">{{ column.label }}</h2>
+            <span
+              class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-text/5 px-2 text-[0.72rem] text-text/70 font-inter-semibold"
+            >
+              {{ tasksByStatus(column.id).length }}
+            </span>
+          </header>
+
+          <div class="min-h-[28rem] rounded-2xl border border-border bg-surface p-3">
+            <div #taskList [attr.data-status]="column.id" class="min-h-[26rem] space-y-3">
+              @for (task of tasksByStatus(column.id); track task.id) {
+                <article
+                  [attr.data-task-id]="task.id"
+                  class="cursor-grab rounded-2xl border border-dashed border-border bg-background/40 p-4 active:cursor-grabbing"
+                >
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2">
+                      <span
+                        class="rounded-full px-2.5 py-1 text-[0.65rem] uppercase font-inter-bold"
+                        [class]="priorityClass(task.priority)"
+                      >
+                        {{ task.priority }}
+                      </span>
+                      <span class="inline-flex items-center gap-1.5 text-[0.7rem] text-muted">
+                        <i class="far fa-user text-[0.65rem]"></i>
+                        {{ responsibleLabel(task.assignedTo) }}
+                      </span>
+                    </div>
+                    @if (canManage()) {
+                      <button
+                        type="button"
+                        (click)="$event.stopPropagation(); startEdit(task)"
+                        class="grid h-7 w-7 cursor-pointer place-items-center rounded-full bg-surface text-muted transition-colors hover:bg-secondary-50 hover:text-secondary"
+                        aria-label="Editar tarea"
+                      >
+                        <i class="fas fa-pen text-[0.7rem]"></i>
+                      </button>
+                    }
+                  </div>
+
+                  <h3 class="mt-3 text-[0.9rem] leading-snug font-inter-bold">{{ task.title }}</h3>
+                  <p class="mt-3 line-clamp-3 text-[0.78rem] leading-5 text-text-600">
+                    {{ task.description }}
+                  </p>
+                  <div
+                    class="mt-3 flex items-center gap-2 rounded-xl bg-secondary/5 px-2.5 py-2 text-secondary"
+                  >
+                    <i class="far fa-calendar text-[0.7rem]"></i>
+                    <span class="min-w-0 truncate text-[0.68rem] font-inter-semibold">
+                      {{ meetingDateTime(task) }}
+                    </span>
+                  </div>
+
+                  <div class="mt-5 flex items-center justify-between text-[0.72rem] text-muted">
+                    <span class="inline-flex items-center gap-1.5">
+                      <i class="far fa-clock"></i>
+                      {{
+                        task.dueDate
+                          ? 'Vence ' + (task.dueDate | date: 'dd MMM yyyy')
+                          : 'Sin vencimiento'
+                      }}
+                    </span>
+                    <div class="relative">
+                      <select
+                        [disabled]="!canManage()"
+                        [ngModel]="task.status"
+                        (ngModelChange)="moveTask(task.id, $event)"
+                        class="appearance-none rounded-lg border border-border bg-surface py-1 pl-2 pr-7 text-xs outline-none disabled:opacity-70"
+                      >
+                        @for (option of columns; track option.id) {
+                          <option [value]="option.id">{{ option.label }}</option>
+                        }
+                      </select>
+                      <i
+                        class="fas fa-chevron-down pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[0.6rem] text-text/40"
+                      ></i>
+                    </div>
+                  </div>
+                </article>
+              } @empty {
+                <div
+                  class="is-empty flex h-24 items-center justify-center rounded-2xl border border-dashed border-border text-[0.76rem] text-muted"
+                >
+                  Sin tareas
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+      }
+    </div>
   }
 </div>

@@ -1,8 +1,26 @@
 <div class="space-y-6 font-inter-regular text-text">
   <div class="flex flex-col gap-2">
     <h1 class="text-3xl font-plus-jakarta-sans font-bold capitalize">mi perfil</h1>
-    <p class="text-[0.82rem] text-muted">Actualiza la informacion publica de tu empresa.</p>
+    <p class="text-[0.82rem] text-muted">
+      @if (canEdit()) {
+        Actualiza la informacion publica de tu empresa.
+      } @else {
+        Consulta la información de tu empresa y tus datos de empleado.
+      }
+    </p>
   </div>
+
+  @if (!canEdit()) {
+    <div
+      class="flex items-start gap-3 rounded-2xl border border-secondary/30 bg-secondary/5 p-4 text-sm"
+    >
+      <i class="fas fa-eye mt-0.5 text-secondary"></i>
+      <p>
+        Estás viendo el perfil compartido de la empresa. Solo el propietario puede modificar esta
+        información.
+      </p>
+    </div>
+  }
 
   @if (loading()) {
     <section class="grid grid-cols-1 gap-6 lg:grid-cols-[20rem_1fr]" aria-label="Cargando perfil">
@@ -41,111 +59,231 @@
   } @else {
     <section class="grid grid-cols-1 gap-6 lg:grid-cols-[20rem_1fr]">
       <aside class="rounded-xl border border-border bg-surface p-6">
-        <div class="mx-auto h-28 w-28 overflow-hidden rounded-2xl border border-border bg-text/5 shadow-inner">
+        <div
+          class="mx-auto h-28 w-28 overflow-hidden rounded-2xl border border-border bg-text/5 shadow-inner"
+        >
           @if (form().logoUrl && !imageError()) {
-            <img [src]="form().logoUrl" alt="Logo de empresa" (error)="onImageError()" class="h-full w-full object-cover" />
+            <img
+              [src]="form().logoUrl"
+              alt="Logo de empresa"
+              (error)="onImageError()"
+              class="h-full w-full object-cover"
+            />
           } @else {
-            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-secondary/60 font-plus-jakarta-sans text-4xl font-bold text-background uppercase select-none">
+            <div
+              class="flex h-full w-full items-center justify-center bg-gradient-to-br from-secondary to-secondary/60 font-plus-jakarta-sans text-4xl font-bold text-background uppercase select-none"
+            >
               {{ form().name ? form().name.charAt(0) : 'H' }}
             </div>
           }
         </div>
-        <label class="mt-6 flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-border text-[0.82rem] font-inter-semibold transition-colors hover:bg-text/5">
-          @if (uploadingLogo()) {
-            <i class="fas fa-spinner fa-spin"></i>
-          } @else {
-            <i class="fas fa-upload"></i>
-          }
-          Subir logo
-          <input type="file" accept="image/*" class="hidden" (change)="uploadLogo($event)" />
-        </label>
-        <p class="mt-4 text-center text-[0.72rem] text-muted lg:text-left">Formatos: PNG, JPG o SVG. Máx. 2MB</p>
+        @if (canEdit()) {
+          <label
+            class="mt-6 flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-border text-[0.82rem] font-inter-semibold transition-colors hover:bg-text/5"
+          >
+            @if (uploadingLogo()) {
+              <i class="fas fa-spinner fa-spin"></i>
+            } @else {
+              <i class="fas fa-upload"></i>
+            }
+            Subir logo
+            <input type="file" accept="image/*" class="hidden" (change)="uploadLogo($event)" />
+          </label>
+          <p class="mt-4 text-center text-[0.72rem] text-muted lg:text-left">
+            Formatos: PNG, JPG o SVG. Máx. 2MB
+          </p>
+        }
       </aside>
 
       <form (ngSubmit)="save()" class="rounded-xl border border-border bg-surface p-6 lg:p-8">
-        <h2 class="mb-6 font-anton text-xl lowercase text-text">información de la empresa</h2>
-        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <label class="block text-xs text-muted font-inter-semibold">
-            <span class="mb-2 block">Empresa</span>
-            <input [ngModel]="form().name" name="pymeName" (ngModelChange)="updateForm('name', $event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary" />
-          </label>
-          <label class="block text-xs text-muted font-inter-semibold">
-            <span class="mb-2 block">RUC</span>
-            <input [ngModel]="form().ruc" name="ruc" (ngModelChange)="updateForm('ruc', $event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary" />
-          </label>
-          <label class="block text-xs text-muted font-inter-semibold">
-            <span class="mb-2 block">Sector</span>
-            <div class="relative">
-              <select [ngModel]="form().sector" name="sector" (ngModelChange)="updateForm('sector', $event)" class="h-10 w-full appearance-none rounded-xl border border-border bg-background pl-3 pr-10 text-[0.82rem] text-text outline-none focus:border-secondary">
-                <option value="" disabled>Selecciona un sector</option>
-                <option value="Manufactura">Manufactura</option>
-                <option value="Tecnología">Tecnología</option>
-                <option value="Comercio">Comercio</option>
-                <option value="Servicios">Servicios</option>
-                <option value="Finanzas">Finanzas</option>
-                <option value="Logística">Logística</option>
-                <option value="Salud">Salud</option>
-                <option value="Educación">Educación</option>
-                <option value="Otro">Otro</option>
-              </select>
-              <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[0.65rem] text-muted"></i>
+        <fieldset [disabled]="!canEdit()">
+          <h2 class="mb-6 font-anton text-xl lowercase text-text">información de la empresa</h2>
+          <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <label class="block text-xs text-muted font-inter-semibold">
+              <span class="mb-2 block">Empresa</span>
+              <input
+                [ngModel]="form().name"
+                name="pymeName"
+                (ngModelChange)="updateForm('name', $event)"
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary"
+              />
+            </label>
+            <label class="block text-xs text-muted font-inter-semibold">
+              <span class="mb-2 block">RUC</span>
+              <input
+                [ngModel]="form().ruc"
+                name="ruc"
+                (ngModelChange)="updateForm('ruc', $event)"
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary"
+              />
+            </label>
+            <label class="block text-xs text-muted font-inter-semibold">
+              <span class="mb-2 block">Sector</span>
+              <div class="relative">
+                <select
+                  [ngModel]="form().sector"
+                  name="sector"
+                  (ngModelChange)="updateForm('sector', $event)"
+                  class="h-10 w-full appearance-none rounded-xl border border-border bg-background pl-3 pr-10 text-[0.82rem] text-text outline-none focus:border-secondary"
+                >
+                  <option value="" disabled>Selecciona un sector</option>
+                  <option value="Manufactura">Manufactura</option>
+                  <option value="Tecnología">Tecnología</option>
+                  <option value="Comercio">Comercio</option>
+                  <option value="Servicios">Servicios</option>
+                  <option value="Finanzas">Finanzas</option>
+                  <option value="Logística">Logística</option>
+                  <option value="Salud">Salud</option>
+                  <option value="Educación">Educación</option>
+                  <option value="Otro">Otro</option>
+                </select>
+                <i
+                  class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[0.65rem] text-muted"
+                ></i>
+              </div>
+            </label>
+            <label class="block text-xs text-muted font-inter-semibold">
+              <span class="mb-2 block">Empleados</span>
+              <input
+                type="number"
+                [ngModel]="form().numEmployees"
+                name="numEmployees"
+                (ngModelChange)="updateForm('numEmployees', +$event)"
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary"
+              />
+            </label>
+            <label class="block text-xs text-muted font-inter-semibold">
+              <span class="mb-2 block">Años operando</span>
+              <input
+                type="number"
+                [ngModel]="form().yearsInOperation"
+                name="yearsInOperation"
+                (ngModelChange)="updateForm('yearsInOperation', +$event)"
+                class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary"
+              />
+            </label>
+            <label class="relative block text-xs text-muted font-inter-semibold md:col-span-2">
+              <span class="mb-2 block">Descripción</span>
+              <textarea
+                maxlength="500"
+                [ngModel]="form().description"
+                name="description"
+                (ngModelChange)="updateForm('description', $event)"
+                class="min-h-[6rem] w-full resize-none rounded-xl border border-border bg-background px-3 py-2 pb-6 text-[0.82rem] text-text outline-none focus:border-secondary"
+              ></textarea>
+              <span class="absolute bottom-2 right-3 text-[0.65rem] text-muted"
+                >{{ form().description.length || 0 }}/500</span
+              >
+            </label>
+          </div>
+
+          @if (canEdit()) {
+            <div class="my-6 border-t border-border"></div>
+            <h2 class="mb-6 font-anton text-xl lowercase text-text">información del dueño</h2>
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <label class="block text-xs text-muted font-inter-semibold">
+                <span class="mb-2 block">Nombres del dueño</span>
+                <input
+                  [ngModel]="form().ownerFirstName"
+                  name="ownerFirstName"
+                  (ngModelChange)="updateForm('ownerFirstName', $event)"
+                  class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary"
+                />
+              </label>
+              <label class="block text-xs text-muted font-inter-semibold">
+                <span class="mb-2 block">Apellidos del dueño</span>
+                <input
+                  [ngModel]="form().ownerLastName"
+                  name="ownerLastName"
+                  (ngModelChange)="updateForm('ownerLastName', $event)"
+                  class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary"
+                />
+              </label>
+              <label class="block text-xs text-muted font-inter-semibold">
+                <span class="mb-2 block">Email del dueño</span>
+                <input
+                  type="email"
+                  [ngModel]="form().ownerEmail"
+                  name="ownerEmail"
+                  (ngModelChange)="updateForm('ownerEmail', $event)"
+                  class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary"
+                />
+              </label>
+              <label class="block text-xs text-muted font-inter-semibold">
+                <span class="mb-2 block">Celular del dueño</span>
+                <app-phone-input
+                  [ngModel]="form().ownerPhone"
+                  name="ownerPhone"
+                  (ngModelChange)="updateForm('ownerPhone', $event)"
+                />
+              </label>
+              <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+                <span class="mb-2 block">Cargo del dueño</span>
+                <input
+                  [ngModel]="form().ownerPosition"
+                  name="ownerPosition"
+                  (ngModelChange)="updateForm('ownerPosition', $event)"
+                  class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary"
+                />
+              </label>
             </div>
-          </label>
-          <label class="block text-xs text-muted font-inter-semibold">
-            <span class="mb-2 block">Empleados</span>
-            <input type="number" [ngModel]="form().numEmployees" name="numEmployees" (ngModelChange)="updateForm('numEmployees', +$event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary" />
-          </label>
-          <label class="block text-xs text-muted font-inter-semibold">
-            <span class="mb-2 block">Años operando</span>
-            <input type="number" [ngModel]="form().yearsInOperation" name="yearsInOperation" (ngModelChange)="updateForm('yearsInOperation', +$event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary" />
-          </label>
-          <label class="relative block text-xs text-muted font-inter-semibold md:col-span-2">
-            <span class="mb-2 block">Descripción</span>
-            <textarea maxlength="500" [ngModel]="form().description" name="description" (ngModelChange)="updateForm('description', $event)" class="min-h-[6rem] w-full resize-none rounded-xl border border-border bg-background px-3 py-2 pb-6 text-[0.82rem] text-text outline-none focus:border-secondary"></textarea>
-            <span class="absolute bottom-2 right-3 text-[0.65rem] text-muted">{{ form().description.length || 0 }}/500</span>
-          </label>
-        </div>
-
-        <div class="my-6 border-t border-border"></div>
-        <h2 class="mb-6 font-anton text-xl lowercase text-text">información del dueño</h2>
-        <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-          <label class="block text-xs text-muted font-inter-semibold">
-            <span class="mb-2 block">Nombres del dueño</span>
-            <input [ngModel]="form().ownerFirstName" name="ownerFirstName" (ngModelChange)="updateForm('ownerFirstName', $event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary" />
-          </label>
-          <label class="block text-xs text-muted font-inter-semibold">
-            <span class="mb-2 block">Apellidos del dueño</span>
-            <input [ngModel]="form().ownerLastName" name="ownerLastName" (ngModelChange)="updateForm('ownerLastName', $event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary" />
-          </label>
-          <label class="block text-xs text-muted font-inter-semibold">
-            <span class="mb-2 block">Email del dueño</span>
-            <input type="email" [ngModel]="form().ownerEmail" name="ownerEmail" (ngModelChange)="updateForm('ownerEmail', $event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary" />
-          </label>
-          <label class="block text-xs text-muted font-inter-semibold">
-            <span class="mb-2 block">Celular del dueño</span>
-            <app-phone-input [ngModel]="form().ownerPhone" name="ownerPhone" (ngModelChange)="updateForm('ownerPhone', $event)" />
-          </label>
-          <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
-            <span class="mb-2 block">Cargo del dueño</span>
-            <input [ngModel]="form().ownerPosition" name="ownerPosition" (ngModelChange)="updateForm('ownerPosition', $event)" class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text outline-none focus:border-secondary" />
-          </label>
-        </div>
-
-        <div class="mt-8 flex flex-col items-end">
-          <button type="submit" [disabled]="saving()" class="flex h-10 items-center justify-center gap-2 rounded-xl bg-secondary px-6 text-[0.82rem] text-background font-inter-bold transition-colors hover:bg-secondary/90 disabled:opacity-50">
-            @if (saving()) {
-              <i class="fas fa-spinner fa-spin"></i> Guardando...
-            } @else {
-              <i class="far fa-check-circle"></i> Guardar perfil
-            }
-          </button>
-          @if (lastUpdatedText()) {
-            <div class="mt-3 flex items-center gap-2 text-[0.72rem] text-muted">
-              <span class="h-1.5 w-1.5 rounded-full bg-success"></span>
-              Última actualización: {{ lastUpdatedText() }}
+          } @else {
+            <div class="my-6 border-t border-border"></div>
+            <h2 class="mb-2 font-anton text-xl lowercase text-text">información del empleado</h2>
+            <p class="mb-6 text-sm text-muted">
+              Estos son los datos de tu cuenta dentro de la organización.
+            </p>
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+              <label class="block text-xs text-muted font-inter-semibold">
+                <span class="mb-2 block">Nombres</span>
+                <input
+                  [value]="employeeFirstName()"
+                  class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text"
+                  readonly
+                />
+              </label>
+              <label class="block text-xs text-muted font-inter-semibold">
+                <span class="mb-2 block">Apellidos</span>
+                <input
+                  [value]="employeeLastName()"
+                  class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text"
+                  readonly
+                />
+              </label>
+              <label class="block text-xs text-muted font-inter-semibold md:col-span-2">
+                <span class="mb-2 block">Correo electrónico</span>
+                <input
+                  type="email"
+                  [value]="employeeEmail()"
+                  class="h-10 w-full rounded-xl border border-border bg-background px-3 text-[0.82rem] text-text"
+                  readonly
+                />
+              </label>
             </div>
           }
-        </div>
+
+          <div class="mt-8 flex flex-col items-end">
+            @if (canEdit()) {
+              <button
+                type="submit"
+                [disabled]="saving()"
+                class="flex h-10 items-center justify-center gap-2 rounded-xl bg-secondary px-6 text-[0.82rem] text-background font-inter-bold transition-colors hover:bg-secondary/90 disabled:opacity-50"
+              >
+                @if (saving()) {
+                  <i class="fas fa-spinner fa-spin"></i> Guardando...
+                } @else {
+                  <i class="far fa-check-circle"></i> Guardar perfil
+                }
+              </button>
+            }
+            @if (lastUpdatedText()) {
+              <div class="mt-3 flex items-center gap-2 text-[0.72rem] text-muted">
+                <span class="h-1.5 w-1.5 rounded-full bg-success"></span>
+                Última actualización: {{ lastUpdatedText() }}
+              </div>
+            }
+          </div>
+        </fieldset>
       </form>
     </section>
   }

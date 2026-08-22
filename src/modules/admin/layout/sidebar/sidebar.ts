@@ -50,6 +50,7 @@ export class Sidebar {
     const pymeItems: MenuItem[] = [
       { label: 'Dashboard', path: buildPath(pymePath.dashboard), icon: 'fas fa-table-cells-large' },
       { label: 'Perfil', path: buildPath(pymePath.profile), icon: 'fas fa-user-gear' },
+      { label: 'Equipo', path: buildPath(pymePath.team), icon: 'fas fa-users' },
       {
         label: 'Diagnósticos',
         path: buildPath(pymePath.diagnostics),

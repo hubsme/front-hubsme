@@ -42,6 +42,18 @@ export class Profile implements OnInit {
   uploadingLogo = signal(false);
   pyme = signal<PymeProfileData | null>(null);
   imageError = signal(false);
+  canEdit = computed(() => this.hubsme.canManageOrganization());
+  employeeFirstName = computed(() => {
+    const user = this.sessionService.session()?.user;
+    const nameParts = user?.name.trim().split(/\s+/) ?? [];
+    return user?.firstName?.trim() || nameParts[0] || '—';
+  });
+  employeeLastName = computed(() => {
+    const user = this.sessionService.session()?.user;
+    const nameParts = user?.name.trim().split(/\s+/) ?? [];
+    return user?.lastName?.trim() || nameParts.slice(1).join(' ') || '—';
+  });
+  employeeEmail = computed(() => this.sessionService.session()?.user.email ?? '—');
 
   lastUpdatedText = computed(() => {
     const p = this.pyme();
@@ -80,13 +92,14 @@ export class Profile implements OnInit {
   }
 
   load() {
-    const user = this.hubsme.currentUser();
+    const pymeId = this.hubsme.currentPymeId();
     this.loading.set(true);
     this.api.pyme
-      .findByUser({ userId: user.id })
+      .findByUser({ userId: pymeId })
       .then((response) => {
         const data = response.data;
         this.pyme.set(data);
+        this.sessionService.updateOrganization({ name: data.name, logoUrl: data.logoUrl });
         this.imageError.set(false);
         this.sessionService.profilePicture.set(data.logoUrl || null);
         this.form.set({
@@ -109,10 +122,11 @@ export class Profile implements OnInit {
   }
 
   save() {
-    const user = this.hubsme.currentUser();
+    if (!this.canEdit()) return;
+    const pymeId = this.hubsme.currentPymeId();
     const form = this.form();
     const payload: ApiBody<'pyme', 'create'> = {
-      userId: user.id,
+      userId: pymeId,
       name: form.name,
       ruc: form.ruc || undefined,
       sector: form.sector || undefined,
@@ -129,7 +143,9 @@ export class Profile implements OnInit {
     const current = this.pyme();
 
     this.saving.set(true);
-    const request = current ? this.api.pyme.update({ id: current.id }, payload) : this.api.pyme.create(payload);
+    const request = current
+      ? this.api.pyme.update({ id: current.id }, payload)
+      : this.api.pyme.create(payload);
     request
       .then(() => {
         this.toastService.success('Perfil actualizado');
@@ -140,6 +156,7 @@ export class Profile implements OnInit {
   }
 
   uploadLogo(event: Event) {
+    if (!this.canEdit()) return;
     const file = this.getFile(event);
     if (!file) return;
 

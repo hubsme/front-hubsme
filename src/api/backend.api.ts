@@ -43,6 +43,13 @@ export interface UserResultDto {
   isActive: "true" | "false";
 }
 
+export interface OrganizationSummaryDto {
+  id: number;
+  name: string;
+  logoUrl?: string | null;
+  membershipRole: "owner" | "member";
+}
+
 export interface LoginResponseDto {
   /**
    * JWT access token
@@ -51,6 +58,7 @@ export interface LoginResponseDto {
   accessToken: string;
   /** User information */
   user: UserResultDto;
+  organization: OrganizationSummaryDto | null;
 }
 
 export interface HttpErrorDto {
@@ -94,6 +102,8 @@ export interface ConsultantCaseStudyDto {
 }
 
 export interface RegisterDto {
+  /** Token de invitación para unirse a una PYME existente */
+  invitationToken?: string;
   /**
    * User email address
    * @example "maria@empresa.com"
@@ -205,6 +215,18 @@ export interface RegisterDto {
   cvUrl?: string;
   /** @default "pyme" */
   role: "pyme" | "consultor";
+}
+
+export interface InvitationPreviewDto {
+  email: string;
+  organizationName: string;
+  /** @format date-time */
+  expiresAt: string;
+  hasAccount: boolean;
+}
+
+export interface InvitationTokenDto {
+  token: string;
 }
 
 export interface GoogleAuthUrlResponseDto {
@@ -582,6 +604,42 @@ export interface PymeDiagnosticDocumentsDto {
   meta: PaginationMetaDto;
 }
 
+export interface PymeMemberResultDto {
+  userId: number;
+  name: string;
+  email: string;
+  role: "owner" | "member";
+  status: "active" | "suspended";
+  /** @format date-time */
+  joinedAt: string;
+  isCurrentUser: boolean;
+}
+
+export interface PymeInvitationResultDto {
+  id: number;
+  email: string;
+  role: "member";
+  status: "pending" | "accepted" | "revoked";
+  /** @format date-time */
+  expiresAt: string;
+  /** @format date-time */
+  createdAt: string;
+}
+
+export interface PymeTeamResultDto {
+  members: PymeMemberResultDto[];
+  pendingInvitations: PymeInvitationResultDto[];
+}
+
+export interface CreatePymeInvitationDto {
+  /** @example "colaborador@empresa.com" */
+  email: string;
+}
+
+export interface MessageResultDto {
+  message: string;
+}
+
 export interface PymeCreateDto {
   /** @example 2 */
   userId: number;
@@ -900,6 +958,10 @@ export interface MeetingConsultantPayoutResultDto {
   pymeId: number;
   consultantId: number;
   amount: string;
+  /** Cargo retenido por Mercado Pago */
+  mercadoPagoFeeAmount: string | null;
+  /** Porcentaje efectivo retenido por Mercado Pago sobre el cobro bruto */
+  mercadoPagoFeePercent: string | null;
   currency: string;
   status: "pending" | "paid";
   paymentReference: string | null;
@@ -969,6 +1031,10 @@ export interface MeetingTraceabilityPayoutSummaryDto {
   processedByAdmin: string | null;
   grossAmount: string;
   platformCommissionAmount: string;
+  /** Cargo retenido por Mercado Pago */
+  mercadoPagoFeeAmount: string | null;
+  /** Porcentaje efectivo retenido por Mercado Pago sobre el cobro bruto */
+  mercadoPagoFeePercent: string | null;
   mercadoPagoPaymentId: string | null;
   checkoutExternalReference: string;
 }
@@ -3315,11 +3381,25 @@ export type AuthRegisterData = LoginResponseDto;
 
 export type AuthRegisterError = HttpErrorDto;
 
+export interface AuthInvitationParams {
+  token: string;
+}
+
+export type AuthInvitationData = InvitationPreviewDto;
+
+export type AuthInvitationError = HttpErrorDto;
+
+export type AuthAcceptInvitationData = LoginResponseDto;
+
+export type AuthAcceptInvitationError = HttpErrorDto;
+
 export interface AuthGoogleUrlParams {
   /** @default "login" */
-  flow?: "login" | "register";
+  flow?: "login" | "register" | "invitation";
   /** @default "pyme" */
   role?: "pyme" | "consultor";
+  /** Token de invitación para unirse a una PYME existente */
+  invitationToken?: string;
 }
 
 export type AuthGoogleUrlData = GoogleAuthUrlResponseDto;
@@ -3517,6 +3597,22 @@ export interface PymeDiagnosticDocumentsParams {
 export type PymeDiagnosticDocumentsData = PymeDiagnosticDocumentsDto;
 
 export type PymeDiagnosticDocumentsError = HttpErrorDto;
+
+export type PymeTeamData = PymeTeamResultDto;
+
+export type PymeCreateInvitationData = PymeInvitationResultDto;
+
+export interface PymeRevokeInvitationParams {
+  id: string;
+}
+
+export type PymeRevokeInvitationData = MessageResultDto;
+
+export interface PymeRemoveMemberParams {
+  userId: string;
+}
+
+export type PymeRemoveMemberData = MessageResultDto;
 
 export interface PymeFindOneParams {
   id: number;
@@ -4964,6 +5060,43 @@ export namespace Auth {
   /**
    * No description
    * @tags auth
+   * @name AuthInvitation
+   * @summary Validate a PYME invitation token
+   * @request GET:/auth/invitation
+   * @response `200` `AuthInvitationData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace AuthInvitation {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      token: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthInvitationData;
+  }
+
+  /**
+   * No description
+   * @tags auth
+   * @name AuthAcceptInvitation
+   * @summary Accept a PYME invitation with the current account
+   * @request POST:/auth/invitation/accept
+   * @secure
+   * @response `200` `AuthAcceptInvitationData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace AuthAcceptInvitation {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = InvitationTokenDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthAcceptInvitationData;
+  }
+
+  /**
+   * No description
+   * @tags auth
    * @name AuthGoogleUrl
    * @summary Get Google OAuth URL generated by backend
    * @request GET:/auth/google/url
@@ -4974,9 +5107,11 @@ export namespace Auth {
     export type RequestParams = {};
     export type RequestQuery = {
       /** @default "login" */
-      flow?: "login" | "register";
+      flow?: "login" | "register" | "invitation";
       /** @default "pyme" */
       role?: "pyme" | "consultor";
+      /** Token de invitación para unirse a una PYME existente */
+      invitationToken?: string;
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
@@ -5412,6 +5547,78 @@ export namespace Pyme {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = PymeDiagnosticDocumentsData;
+  }
+
+  /**
+   * No description
+   * @tags pyme
+   * @name PymeTeam
+   * @summary Get members and pending invitations for the current PYME
+   * @request GET:/admin/pyme/team
+   * @secure
+   * @response `200` `PymeTeamData`
+   */
+  export namespace PymeTeam {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeTeamData;
+  }
+
+  /**
+   * No description
+   * @tags pyme
+   * @name PymeCreateInvitation
+   * @summary Invite a user to the current PYME
+   * @request POST:/admin/pyme/invitations
+   * @secure
+   * @response `200` `PymeCreateInvitationData`
+   */
+  export namespace PymeCreateInvitation {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = CreatePymeInvitationDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeCreateInvitationData;
+  }
+
+  /**
+   * No description
+   * @tags pyme
+   * @name PymeRevokeInvitation
+   * @summary Revoke a pending PYME invitation
+   * @request DELETE:/admin/pyme/invitations/{id}
+   * @secure
+   * @response `200` `PymeRevokeInvitationData`
+   */
+  export namespace PymeRevokeInvitation {
+    export type RequestParams = {
+      id: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeRevokeInvitationData;
+  }
+
+  /**
+   * No description
+   * @tags pyme
+   * @name PymeRemoveMember
+   * @summary Remove a member from the current PYME
+   * @request DELETE:/admin/pyme/members/{userId}
+   * @secure
+   * @response `200` `PymeRemoveMemberData`
+   */
+  export namespace PymeRemoveMember {
+    export type RequestParams = {
+      userId: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeRemoveMemberData;
   }
 
   /**
@@ -8924,6 +9131,50 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags auth
+     * @name AuthInvitation
+     * @summary Validate a PYME invitation token
+     * @request GET:/auth/invitation
+     * @response `200` `AuthInvitationData`
+     * @response `400` `HttpErrorDto`
+     */
+    invitation: (query: AuthInvitationParams, params: RequestParams = {}) =>
+      this.http.request<AuthInvitationData, AuthInvitationError>({
+        path: `/auth/invitation`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthAcceptInvitation
+     * @summary Accept a PYME invitation with the current account
+     * @request POST:/auth/invitation/accept
+     * @secure
+     * @response `200` `AuthAcceptInvitationData`
+     * @response `400` `HttpErrorDto`
+     */
+    acceptInvitation: (
+      data: InvitationTokenDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<AuthAcceptInvitationData, AuthAcceptInvitationError>({
+        path: `/auth/invitation/accept`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags auth
      * @name AuthGoogleUrl
      * @summary Get Google OAuth URL generated by backend
      * @request GET:/auth/google/url
@@ -9353,6 +9604,93 @@ export class Api<SecurityDataType extends unknown> {
         path: `/admin/pyme/documents/diagnostics`,
         method: "GET",
         query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pyme
+     * @name PymeTeam
+     * @summary Get members and pending invitations for the current PYME
+     * @request GET:/admin/pyme/team
+     * @secure
+     * @response `200` `PymeTeamData`
+     */
+    team: (params: RequestParams = {}) =>
+      this.http.request<PymeTeamData, any>({
+        path: `/admin/pyme/team`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pyme
+     * @name PymeCreateInvitation
+     * @summary Invite a user to the current PYME
+     * @request POST:/admin/pyme/invitations
+     * @secure
+     * @response `200` `PymeCreateInvitationData`
+     */
+    createInvitation: (
+      data: CreatePymeInvitationDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PymeCreateInvitationData, any>({
+        path: `/admin/pyme/invitations`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pyme
+     * @name PymeRevokeInvitation
+     * @summary Revoke a pending PYME invitation
+     * @request DELETE:/admin/pyme/invitations/{id}
+     * @secure
+     * @response `200` `PymeRevokeInvitationData`
+     */
+    revokeInvitation: (
+      { id }: PymeRevokeInvitationParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PymeRevokeInvitationData, any>({
+        path: `/admin/pyme/invitations/${id}`,
+        method: "DELETE",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pyme
+     * @name PymeRemoveMember
+     * @summary Remove a member from the current PYME
+     * @request DELETE:/admin/pyme/members/{userId}
+     * @secure
+     * @response `200` `PymeRemoveMemberData`
+     */
+    removeMember: (
+      { userId }: PymeRemoveMemberParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PymeRemoveMemberData, any>({
+        path: `/admin/pyme/members/${userId}`,
+        method: "DELETE",
         secure: true,
         format: "json",
         ...params,

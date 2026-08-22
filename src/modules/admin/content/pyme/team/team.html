@@ -1,0 +1,186 @@
+<div class="space-y-5 font-inter-regular text-text">
+  <header class="flex flex-col gap-2">
+    <h1 class="font-plus-jakarta-sans text-3xl font-bold">Equipo de {{ organizationName() }}</h1>
+    <p class="max-w-2xl text-sm leading-6 text-muted">
+      Las personas del equipo comparten los diagnósticos, reuniones, calendario, tareas y documentos
+      de la empresa.
+    </p>
+  </header>
+
+  @if (isOwner()) {
+    <section class="rounded-lg border border-border bg-surface p-5 md:p-6">
+      <div class="flex flex-col gap-1">
+        <h2 class="font-plus-jakarta-sans text-lg font-bold">Invitar a una persona</h2>
+        <p class="text-sm text-muted">La invitación llegará por correo y vencerá en 7 días.</p>
+      </div>
+      <form class="mt-5 flex flex-col gap-3 sm:flex-row" (ngSubmit)="invite()">
+        <label class="flex-1">
+          <span class="sr-only">Correo electrónico</span>
+          <input
+            type="email"
+            name="invitationEmail"
+            autocomplete="email"
+            [ngModel]="email()"
+            (ngModelChange)="email.set($event)"
+            placeholder="colaborador@empresa.com"
+            class="h-11 w-full rounded-md border border-border bg-background px-3 text-sm outline-none transition-colors focus:border-secondary"
+          />
+        </label>
+        <button
+          type="submit"
+          [disabled]="inviting()"
+          class="flex h-11 items-center justify-center gap-2 rounded-md bg-secondary px-5 text-sm font-inter-bold text-background transition-colors hover:bg-secondary/90 disabled:opacity-50"
+        >
+          @if (inviting()) {
+            <i class="fas fa-spinner fa-spin"></i>
+          } @else {
+            <i class="fas fa-paper-plane"></i>
+          }
+          Enviar invitación
+        </button>
+      </form>
+    </section>
+  } @else {
+    <div
+      class="flex items-start gap-3 rounded-lg border border-secondary/30 bg-secondary/5 px-4 py-3 text-sm"
+    >
+      <i class="fas fa-eye mt-0.5 text-secondary"></i>
+      <p>
+        Tu acceso es de solo lectura. El propietario administra las invitaciones y los miembros.
+      </p>
+    </div>
+  }
+
+  <section class="overflow-hidden rounded-lg border border-border bg-surface">
+    <header class="border-b border-border px-6 py-4">
+      <h2 class="font-plus-jakarta-sans text-lg font-bold">Miembros</h2>
+      <p class="mt-0.5 text-xs text-muted">
+        {{ members().length }} {{ members().length === 1 ? 'miembro' : 'miembros' }}
+      </p>
+    </header>
+
+    @if (loading()) {
+      <div class="space-y-2 p-6">
+        @for (item of [1, 2]; track item) {
+          <div class="h-14 animate-pulse rounded-md bg-text/5"></div>
+        }
+      </div>
+    } @else {
+      <div
+        class="hidden grid-cols-[minmax(0,1fr)_9rem_10rem_4.5rem] items-center gap-4 border-b border-border bg-background px-6 py-3 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted sm:grid"
+      >
+        <span>Persona</span>
+        <span>Rol</span>
+        <span>Se unió</span>
+        <span class="sr-only">Acciones</span>
+      </div>
+
+      <div class="divide-y divide-border">
+        @for (member of members(); track member.userId) {
+          <article
+            class="grid grid-cols-1 gap-3 px-6 py-4 sm:grid-cols-[minmax(0,1fr)_9rem_10rem_4.5rem] sm:items-center sm:gap-4"
+          >
+            <div class="flex min-w-0 items-center gap-3">
+              <span
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary/10 font-inter-bold uppercase text-secondary"
+              >
+                {{ member.name.charAt(0) }}
+              </span>
+              <div class="min-w-0">
+                <p class="truncate font-inter-semibold">{{ member.name }}</p>
+                <p class="truncate text-sm text-muted">{{ member.email }}</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-muted sm:hidden">Rol:</span>
+              <span
+                class="inline-flex rounded-md border px-2 py-1 text-[0.68rem] font-inter-semibold"
+                [class.border-secondary/30]="member.role === 'owner'"
+                [class.bg-secondary/5]="member.role === 'owner'"
+                [class.text-secondary]="member.role === 'owner'"
+                [class.border-border]="member.role === 'member'"
+                [class.text-muted]="member.role === 'member'"
+                >{{ member.role === 'owner' ? 'Propietario' : 'Miembro' }}</span
+              >
+              @if (member.isCurrentUser) {
+                <span class="text-xs text-muted">Tú</span>
+              }
+            </div>
+
+            <p class="text-sm text-muted">
+              <span class="sm:hidden">Se unió: </span>{{ joinedAt(member.joinedAt) }}
+            </p>
+
+            <div class="sm:text-right">
+              @if (isOwner() && member.role === 'member') {
+                <button
+                  type="button"
+                  (click)="remove(member)"
+                  [disabled]="processingKey() === 'member:' + member.userId"
+                  class="h-8 rounded-md border border-danger/30 px-3 text-xs font-inter-semibold text-danger transition-colors hover:bg-danger/5 disabled:opacity-50"
+                >
+                  @if (processingKey() === 'member:' + member.userId) {
+                    <i class="fas fa-spinner fa-spin"></i>
+                  } @else {
+                    Quitar
+                  }
+                </button>
+              }
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+
+  @if (isOwner() && pendingInvitations().length) {
+    <section class="overflow-hidden rounded-lg border border-border bg-surface">
+      <header class="border-b border-border px-6 py-4">
+        <h2 class="font-plus-jakarta-sans text-lg font-bold">Invitaciones pendientes</h2>
+        <p class="mt-0.5 text-xs text-muted">{{ pendingInvitations().length }} pendientes</p>
+      </header>
+
+      <div
+        class="hidden grid-cols-[minmax(0,1fr)_7rem_10rem_4.5rem] items-center gap-4 border-b border-border bg-background px-6 py-3 text-[0.68rem] font-inter-bold uppercase tracking-wide text-muted sm:grid"
+      >
+        <span>Correo electrónico</span>
+        <span>Estado</span>
+        <span>Vencimiento</span>
+        <span class="sr-only">Acciones</span>
+      </div>
+
+      <div class="divide-y divide-border">
+        @for (invitation of pendingInvitations(); track invitation.id) {
+          <article
+            class="grid grid-cols-1 gap-3 px-6 py-4 sm:grid-cols-[minmax(0,1fr)_7rem_10rem_4.5rem] sm:items-center sm:gap-4"
+          >
+            <p class="truncate font-inter-semibold">{{ invitation.email }}</p>
+            <span
+              class="w-fit rounded-md border border-warning/30 bg-warning/5 px-2 py-1 text-[0.68rem] font-inter-semibold text-warning"
+            >
+              Pendiente
+            </span>
+            <p class="text-sm text-muted">
+              <span class="sm:hidden">Vence: </span>{{ expiresAt(invitation.expiresAt) }}
+            </p>
+            <div class="sm:text-right">
+              <button
+                type="button"
+                (click)="revoke(invitation)"
+                [disabled]="processingKey() === 'invitation:' + invitation.id"
+                class="h-8 rounded-md border border-border px-3 text-xs font-inter-semibold text-muted transition-colors hover:bg-text/5 disabled:opacity-50"
+              >
+                @if (processingKey() === 'invitation:' + invitation.id) {
+                  <i class="fas fa-spinner fa-spin"></i>
+                } @else {
+                  Revocar
+                }
+              </button>
+            </div>
+          </article>
+        }
+      </div>
+    </section>
+  }
+</div>

@@ -17,9 +17,31 @@ export class HubsmeService {
     return session.user;
   }
 
+  currentOrganization(): NonNullable<ApiResponse<'auth', 'login'>['organization']> {
+    const organization = this.sessionService.session()?.organization;
+    if (!organization) {
+      throw new Error('No hay una empresa asociada a la sesion');
+    }
+    return organization;
+  }
+
+  currentPymeId(): number {
+    const session = this.sessionService.session();
+    if (session?.organization) return session.organization.id;
+    if (session?.user.role === 'pyme') return session.user.id;
+    throw new Error('No hay una empresa asociada a la sesion');
+  }
+
+  canManageOrganization(): boolean {
+    return this.sessionService.session()?.organization?.membershipRole === 'owner';
+  }
+
   dashboardSummary() {
     const user = this.currentUser();
-    return this.api.dashboard.summary({ userId: user.id, role: user.role });
+    return this.api.dashboard.summary({
+      userId: user.role === 'pyme' ? this.currentPymeId() : user.id,
+      role: user.role,
+    });
   }
 
   listPymes(search = '', page = 1, limit = 10) {
@@ -47,7 +69,7 @@ export class HubsmeService {
     return this.api.meeting.findAll({
       page,
       limit,
-      pymeId: user.role === 'pyme' ? user.id : undefined,
+      pymeId: user.role === 'pyme' ? this.currentPymeId() : undefined,
       consultantId: user.role === 'consultor' ? user.id : undefined,
     });
   }
@@ -76,8 +98,6 @@ export class HubsmeService {
     return this.api.meeting.finalize({ id }, data);
   }
 
-
-
   getMeetingRecordings(id: number) {
     return this.api.meeting.getRecordings({ id });
   }
@@ -91,7 +111,7 @@ export class HubsmeService {
     return this.api.task.findAll({
       page,
       limit,
-      pymeId: user.role === 'pyme' ? user.id : undefined,
+      pymeId: user.role === 'pyme' ? this.currentPymeId() : undefined,
       consultantId: user.role === 'consultor' ? user.id : undefined,
       status,
     });
@@ -114,7 +134,7 @@ export class HubsmeService {
     return this.api.diagnostic.findAll({
       page,
       limit,
-      pymeId: user.role === 'pyme' ? user.id : pymeId,
+      pymeId: user.role === 'pyme' ? this.currentPymeId() : pymeId,
     });
   }
 
@@ -127,7 +147,7 @@ export class HubsmeService {
     return this.api.diagnosticDocument.diagnosticdocumentFindAll({
       page,
       limit,
-      pymeId: user.role === 'pyme' ? user.id : pymeId,
+      pymeId: user.role === 'pyme' ? this.currentPymeId() : pymeId,
       diagnosticId,
     });
   }

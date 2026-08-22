@@ -20,13 +20,13 @@
       </button>
     </div>
 
-    <!-- Custom footer. It is projected before the default slot so it stays outside the scroll body. -->
-    <ng-content select="[modalFooter]"></ng-content>
-
     <!-- Body (Scrollable) -->
     <div class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto bg-surface">
       <ng-content></ng-content>
     </div>
+
+    <!-- Custom footer stays outside the scrollable body. -->
+    <ng-content select="[modalFooter]"></ng-content>
 
     <!-- Footer -->
     @if (showFooter()) {

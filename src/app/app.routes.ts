@@ -115,6 +115,10 @@ export const routes: Routes = [
               import('@module/admin/content/pyme/profile/profile').then((m) => m.Profile),
           },
           {
+            path: getPath(PATH.admin.pyme.team),
+            loadComponent: () => import('@module/admin/content/pyme/team/team').then((m) => m.Team),
+          },
+          {
             path: getPath(PATH.admin.pyme.diagnostics),
             loadComponent: () =>
               import('@module/admin/content/pyme/diagnostics/diagnostics').then(
@@ -335,6 +339,13 @@ export const routes: Routes = [
       {
         path: getPath(PATH.auth.signUp),
         loadComponent: () => import('@module/auth/sing-up/sing-up').then((m) => m.SingUp),
+      },
+      {
+        path: getPath(PATH.auth.join),
+        loadComponent: () =>
+          import('@module/auth/join-organization/join-organization').then(
+            (m) => m.JoinOrganization,
+          ),
       },
       {
         path: getPath(PATH.auth.forgotPassword),

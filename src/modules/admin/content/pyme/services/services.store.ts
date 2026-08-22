@@ -61,6 +61,7 @@ export class PymeServicesStore {
   private paymentPlanDraftSnapshot = '';
 
   readonly pageSize = 9;
+  readonly canManage = computed(() => this.hubsme.canManageOrganization());
   readonly consultantSearchFilters: ConsultantInputSearchFilters = {
     active: 'true',
     validated: 'true',
@@ -247,11 +248,19 @@ export class PymeServicesStore {
   }
 
   openCreate() {
+    if (!this.canManage()) {
+      this.toastService.error('Tu acceso a la empresa es de solo lectura');
+      return;
+    }
     this.resetCreateFlow();
     this.showCreate.set(true);
   }
 
   openCreateFromOffer(offer: ConsultantServiceOfferResultDto) {
+    if (!this.canManage()) {
+      this.toastService.error('Tu acceso a la empresa es de solo lectura');
+      return;
+    }
     this.resetCreateFlow();
     this.selectedOffer.set(offer);
     const deadlineValue = addDaysToDateOnly(dateKeyInPeru(), offer.estimatedDurationDays);
@@ -300,6 +309,10 @@ export class PymeServicesStore {
   }
 
   async openCreateFromTask(taskId: number) {
+    if (!this.canManage()) {
+      this.toastService.error('Tu acceso a la empresa es de solo lectura');
+      return;
+    }
     if (!Number.isInteger(taskId) || taskId <= 0) {
       this.toastService.error('La tarea seleccionada no es válida');
       return;
@@ -1106,5 +1119,4 @@ export class PymeServicesStore {
       return false;
     }
   }
-
 }

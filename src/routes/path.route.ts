@@ -49,6 +49,7 @@ export const PATH = {
     _path: 'auth',
     signIn: { _path: 'sign-in' },
     signUp: { _path: 'sign-up' },
+    join: { _path: 'join' },
     adminLogin: { _path: 'admin-login' },
     forgotPassword: { _path: 'forgot-password' },
     resetPassword: { _path: 'reset-password' },
@@ -67,6 +68,7 @@ export const PATH = {
       _path: 'pyme',
       dashboard: { _path: 'dashboard' },
       profile: { _path: 'profile' },
+      team: { _path: 'team' },
       diagnostics: { _path: 'diagnostics' },
       consultants: {
         _path: 'consultants',
@@ -108,6 +110,7 @@ export const ROUTE_CONFIG = {
     [buildPath(PATH.diagnostic)]: ['pyme'],
     [buildPath(PATH.admin.pyme.dashboard)]: ['pyme'],
     [buildPath(PATH.admin.pyme.profile)]: ['pyme'],
+    [buildPath(PATH.admin.pyme.team)]: ['pyme'],
     [buildPath(PATH.admin.pyme.diagnostics)]: ['pyme'],
     [buildPath(PATH.admin.pyme.consultants)]: ['pyme'],
     [buildPath(PATH.admin.pyme.consultants.agendar)]: ['pyme'],

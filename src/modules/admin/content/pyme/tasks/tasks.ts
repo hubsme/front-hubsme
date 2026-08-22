@@ -1,5 +1,16 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, QueryList, ViewChildren, computed, inject, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  QueryList,
+  ViewChildren,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiResponse } from 'api/backend.api';
 import Sortable from 'sortablejs';
@@ -47,6 +58,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   private toastService = inject(ToastService);
   private pymeService = inject(PymeService);
   private sortables: Sortable[] = [];
+  readonly canManage = computed(() => this.hubsme.canManageOrganization());
 
   @ViewChildren('taskList') taskLists!: QueryList<ElementRef<HTMLElement>>;
 
@@ -85,7 +97,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
     const user = this.hubsme.currentUser();
     this.form.update((current) => ({
       ...current,
-      pymeId: user.role === 'pyme' ? user.id : current.pymeId,
+      pymeId: user.role === 'pyme' ? this.hubsme.currentPymeId() : current.pymeId,
       consultantId: user.role === 'consultor' ? user.id : current.consultantId,
     }));
     this.loadLookups();
@@ -137,6 +149,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   }
 
   startCreate() {
+    if (!this.canManage()) return;
     this.editingTaskId.set(null);
     this.form.update((current) => ({
       ...current,
@@ -150,6 +163,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
   }
 
   startEdit(task: Task) {
+    if (!this.canManage()) return;
     this.editingTaskId.set(task.id);
     this.form.set({
       pymeId: task.pymeId,
@@ -231,14 +245,14 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
 
   moveTask(id: number, status: TaskStatus) {
     const previousTasks = this.tasks();
-    this.tasks.update((tasks) => tasks.map((task) => (task.id === id ? { ...task, status } : task)));
+    this.tasks.update((tasks) =>
+      tasks.map((task) => (task.id === id ? { ...task, status } : task)),
+    );
 
-    this.hubsme
-      .updateTaskStatus(id, status)
-      .catch((error) => {
-        this.tasks.set(previousTasks);
-        this.toastService.error(this.hubsme.getErrorMessage(error));
-      });
+    this.hubsme.updateTaskStatus(id, status).catch((error) => {
+      this.tasks.set(previousTasks);
+      this.toastService.error(this.hubsme.getErrorMessage(error));
+    });
   }
 
   scopedTasks = computed(() => {
@@ -322,6 +336,7 @@ export class Tasks implements OnInit, AfterViewInit, OnDestroy {
       this.destroySortables();
       this.sortables = this.taskLists.map((list) =>
         Sortable.create(list.nativeElement, {
+          disabled: !this.canManage(),
           group: 'pyme-tasks',
           animation: 180,
           easing: 'cubic-bezier(0.2, 0, 0, 1)',

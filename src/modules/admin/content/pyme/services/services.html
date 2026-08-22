@@ -7,14 +7,16 @@
         propuesta.
       </p>
     </div>
-    <button
-      type="button"
-      (click)="store.openCreate()"
-      class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm font-inter-bold text-fixed-text-50 shadow-md shadow-secondary/20 transition hover:-translate-y-0.5 hover:bg-secondary/90"
-    >
-      <i class="fas fa-plus"></i>
-      {{ store.activeTab() === 'catalog' ? 'Solicitud a medida' : 'Solicitar servicio' }}
-    </button>
+    @if (store.canManage()) {
+      <button
+        type="button"
+        (click)="store.openCreate()"
+        class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm font-inter-bold text-fixed-text-50 shadow-md shadow-secondary/20 transition hover:-translate-y-0.5 hover:bg-secondary/90"
+      >
+        <i class="fas fa-plus"></i>
+        {{ store.activeTab() === 'catalog' ? 'Solicitud a medida' : 'Solicitar servicio' }}
+      </button>
+    }
   </header>
 
   <div class="mt-7">

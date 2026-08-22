@@ -1,29 +1,46 @@
 <div class="space-y-7 font-inter-regular text-text">
   <header>
-    <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold">Diagnóstico empresarial</h1>
-    <p class="mt-1 text-[0.92rem] text-muted">Evalúa el estado actual de tu empresa y descubre oportunidades de mejora.</p>
+    <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold">
+      Diagnóstico empresarial
+    </h1>
+    <p class="mt-1 text-[0.92rem] text-muted">
+      Evalúa el estado actual de tu empresa y descubre oportunidades de mejora.
+    </p>
   </header>
 
-  <section class="flex min-h-[28rem] items-center justify-center rounded-2xl border border-border bg-surface px-6 py-14 shadow-soft">
+  <section
+    class="flex min-h-[28rem] items-center justify-center rounded-2xl border border-border bg-surface px-6 py-14 shadow-soft"
+  >
     <div class="flex max-w-xl flex-col items-center text-center">
-      <span class="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary/10 text-secondary">
+      <span
+        class="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary/10 text-secondary"
+      >
         <i class="fas fa-clipboard-question text-2xl"></i>
       </span>
 
-      <h2 class="mt-6 text-xl font-plus-jakarta-sans font-bold text-text">Realiza un nuevo diagnóstico</h2>
+      <h2 class="mt-6 text-xl font-plus-jakarta-sans font-bold text-text">
+        {{ canManage() ? 'Realiza un nuevo diagnóstico' : 'Diagnósticos de la empresa' }}
+      </h2>
       <p class="mt-3 text-sm leading-6 text-muted">
-        Responde una evaluación guiada para obtener un análisis empresarial, áreas críticas y recomendaciones
-        personalizadas con Inteligencia Artificial.
+        @if (canManage()) {
+          Responde una evaluación guiada para obtener un análisis empresarial, áreas críticas y
+          recomendaciones personalizadas con Inteligencia Artificial.
+        } @else {
+          Tu acceso es de solo lectura. Puedes consultar los diagnósticos compartidos en Mis
+          documentos.
+        }
       </p>
 
-      <button
-        type="button"
-        (click)="takeTest()"
-        class="mt-8 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-secondary px-6 text-sm font-inter-bold text-background transition hover:bg-secondary/90 hover:shadow-md"
-      >
-        <i class="fas fa-plus text-xs"></i>
-        Tomar nuevo diagnóstico
-      </button>
+      @if (canManage()) {
+        <button
+          type="button"
+          (click)="takeTest()"
+          class="mt-8 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-secondary px-6 text-sm font-inter-bold text-background transition hover:bg-secondary/90 hover:shadow-md"
+        >
+          <i class="fas fa-plus text-xs"></i>
+          Tomar nuevo diagnóstico
+        </button>
+      }
 
       <a
         [routerLink]="['/' + buildPath(PATH.admin.pyme.documents)]"

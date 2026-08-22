@@ -8,7 +8,7 @@ import { Api, ApiResponse } from 'api/backend.api';
 export class SessionService {
   private readonly STORAGE_KEY = 'user_session';
   private api = inject(Api);
-  session = signal<ApiResponse<"auth","login"> | null>(null);
+  session = signal<ApiResponse<'auth', 'login'> | null>(null);
   profilePicture = signal<string | null>(null);
   private restored = false;
   private profilePictureUserId: number | null = null;
@@ -25,7 +25,7 @@ export class SessionService {
     }
   }
 
-  setSession(data: ApiResponse<"auth","login">): void {
+  setSession(data: ApiResponse<'auth', 'login'>): void {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
       this.session.set(data);
@@ -43,6 +43,27 @@ export class SessionService {
       this.restored = false;
       this.profilePictureUserId = null;
       this.profilePictureRequest = null;
+    }
+  }
+
+  updateOrganization(
+    data: Partial<NonNullable<ApiResponse<'auth', 'login'>['organization']>>,
+  ): void {
+    const current = this.session();
+    if (!current || current.user.role !== 'pyme') return;
+    const organization = current.organization ?? {
+      id: current.user.id,
+      name: current.user.name,
+      logoUrl: null,
+      membershipRole: 'owner' as const,
+    };
+    const next = {
+      ...current,
+      organization: { ...organization, ...data },
+    };
+    this.session.set(next);
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(next));
     }
   }
 
@@ -71,10 +92,21 @@ export class SessionService {
     if (this.profilePictureRequest) return;
 
     if (user.role === 'pyme') {
+      const organization = s.organization;
+      if (organization?.logoUrl) {
+        this.profilePicture.set(organization.logoUrl);
+        this.profilePictureUserId = user.id;
+        return;
+      }
       this.profilePictureRequest = this.api.pyme
-        .findByUser({ userId: user.id })
+        .findByUser({ userId: organization?.id ?? user.id })
         .then((res) => {
           this.profilePicture.set(res.data.logoUrl || null);
+          this.updateOrganization({
+            id: res.data.id,
+            name: res.data.name,
+            logoUrl: res.data.logoUrl,
+          });
           this.profilePictureUserId = user.id;
         })
         .catch(() => this.profilePicture.set(null))
@@ -98,7 +130,7 @@ export class SessionService {
     }
   }
 
-  private getSessionFromStorage(): ApiResponse<"auth","login"> | null {
+  private getSessionFromStorage(): ApiResponse<'auth', 'login'> | null {
     try {
       const data = localStorage.getItem(this.STORAGE_KEY);
       return data ? JSON.parse(data) : null;

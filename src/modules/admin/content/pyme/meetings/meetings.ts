@@ -131,13 +131,13 @@ export class Meetings implements OnInit {
   finalizingId = signal<number | null>(null);
   finalDescription = signal('');
   finalTasks = signal<FinalizeTask[]>([]);
-  
+
   quillModules = {
     toolbar: [
       ['bold', 'italic', 'underline'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      ['clean']
-    ]
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['clean'],
+    ],
   };
   viewingActaId = signal<number | null>(null);
   selectedMeeting = signal<Meeting | null>(null);
@@ -151,7 +151,7 @@ export class Meetings implements OnInit {
     const user = this.hubsme.currentUser();
     this.form.update((current) => ({
       ...current,
-      pymeId: user.role === 'pyme' ? user.id : current.pymeId,
+      pymeId: user.role === 'pyme' ? this.hubsme.currentPymeId() : current.pymeId,
       consultantId: user.role === 'consultor' ? user.id : current.consultantId,
     }));
     this.load();
@@ -202,11 +202,7 @@ export class Meetings implements OnInit {
     this.calendarMeeting.set(null);
   }
 
-  openMonthDay(
-    date: Date,
-    events: CalendarEvent<MeetingEventMeta>[],
-    sourceEvent: MouseEvent,
-  ) {
+  openMonthDay(date: Date, events: CalendarEvent<MeetingEventMeta>[], sourceEvent: MouseEvent) {
     sourceEvent.stopPropagation();
     this.expandedMonthDay.set({
       date: new Date(date),
@@ -269,14 +265,12 @@ export class Meetings implements OnInit {
 
   updatingId = signal<number | null>(null);
 
-  updateMeetingStatus(
-    id: number,
-    status: Meeting['status'],
-  ) {
+  updateMeetingStatus(id: number, status: Meeting['status']) {
     this.updatingId.set(id);
-    const request = status === 'confirmada'
-      ? this.hubsme.confirmMeeting(id)
-      : this.hubsme.updateMeeting(id, { status });
+    const request =
+      status === 'confirmada'
+        ? this.hubsme.confirmMeeting(id)
+        : this.hubsme.updateMeeting(id, { status });
 
     request
       .then(() => {
@@ -391,17 +385,24 @@ export class Meetings implements OnInit {
     return formatDateForDatetimeLocal(date);
   }
 
-
   month(startTime: string) {
-    return formatInPeru(startTime, {
-      month: 'short',
-    }, 'en-US').toUpperCase();
+    return formatInPeru(
+      startTime,
+      {
+        month: 'short',
+      },
+      'en-US',
+    ).toUpperCase();
   }
 
   day(startTime: string) {
-    return formatInPeru(startTime, {
-      day: '2-digit',
-    }, 'en-US');
+    return formatInPeru(
+      startTime,
+      {
+        day: '2-digit',
+      },
+      'en-US',
+    );
   }
 
   time(startTime: string) {
@@ -442,8 +443,10 @@ export class Meetings implements OnInit {
   }
 
   meetingColor(meeting: Meeting) {
-    if (meeting.status === 'confirmada') return { primary: '#0e9f6e', secondary: 'rgba(14,159,110,0.16)' };
-    if (meeting.status === 'por_confirmar') return { primary: '#f59e0b', secondary: 'rgba(245,158,11,0.16)' };
+    if (meeting.status === 'confirmada')
+      return { primary: '#0e9f6e', secondary: 'rgba(14,159,110,0.16)' };
+    if (meeting.status === 'por_confirmar')
+      return { primary: '#f59e0b', secondary: 'rgba(245,158,11,0.16)' };
     return { primary: '#2563eb', secondary: 'rgba(37,99,235,0.16)' };
   }
 
@@ -474,17 +477,18 @@ export class Meetings implements OnInit {
   }
 
   proposedTimes(meeting: Meeting) {
-    return (meeting.proposedStartTimes?.length ? meeting.proposedStartTimes : [meeting.startTime]).filter(
-      (value): value is string => Boolean(value),
-    );
+    return (
+      meeting.proposedStartTimes?.length ? meeting.proposedStartTimes : [meeting.startTime]
+    ).filter((value): value is string => Boolean(value));
   }
 
   private meetingCalendarEvents(meeting: Meeting): CalendarEvent<MeetingEventMeta>[] {
-    const proposedStarts = meeting.status === 'por_confirmar'
-      ? this.proposedTimes(meeting)
-          .map((value) => parseApiDate(value))
-          .filter((value) => !Number.isNaN(value.getTime()))
-      : [];
+    const proposedStarts =
+      meeting.status === 'por_confirmar'
+        ? this.proposedTimes(meeting)
+            .map((value) => parseApiDate(value))
+            .filter((value) => !Number.isNaN(value.getTime()))
+        : [];
     const isProposedOption = proposedStarts.length > 0;
     const starts = isProposedOption ? proposedStarts : [this.meetingDisplayStart(meeting)];
 

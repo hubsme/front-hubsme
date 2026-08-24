@@ -26,7 +26,7 @@ import { ToastService } from '@service/toast.service';
 import { ThemeService } from '@service/theme.service';
 import { ConsultantService } from '@service/admin/consultant.service';
 import { PATH, buildPath } from '@route/path.route';
-import { monthKeyInPeru, parseApiDate } from '@function/date.function';
+import { formatToPartsInPeru, monthKeyInPeru, parseApiDate } from '@function/date.function';
 import { PymeInputSearch } from '@module/admin/components/input-search/pyme-input-search/pyme-input-search';
 
 type DashboardSummary = ApiResponse<'dashboard', 'summary'>;
@@ -687,6 +687,26 @@ export class Dashboard implements OnInit, OnDestroy {
   }));
 
   upcomingMeetings = computed(() => this.summary()?.upcomingMeetings ?? []);
+
+  formatMeetingDateTime(startTime: string): string {
+    const date = parseApiDate(startTime);
+    if (!Number.isFinite(date.getTime())) return 'Horario no disponible';
+
+    const parts = formatToPartsInPeru(date, {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+    const part = (type: Intl.DateTimeFormatPartTypes) =>
+      parts.find((item) => item.type === type)?.value ?? '';
+
+    return `${part('weekday')} ${part('day')} ${part('month')} · ${part('hour')}:${part(
+      'minute',
+    )} ${part('dayPeriod')}`.trim();
+  }
 
   ngOnInit() {
     this.loadSummary();

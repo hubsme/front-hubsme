@@ -143,7 +143,7 @@ export class Meetings implements OnInit {
   selectedMeeting = signal<Meeting | null>(null);
   calendarEvents = computed<CalendarEvent<MeetingEventMeta>[]>(() =>
     this.meetings()
-      .filter((meeting) => ['confirmada', 'por_confirmar'].includes(meeting.status))
+      .filter((meeting) => ['confirmada', 'por_confirmar', 'finalizada'].includes(meeting.status))
       .flatMap((meeting) => this.meetingCalendarEvents(meeting)),
   );
 
@@ -447,6 +447,8 @@ export class Meetings implements OnInit {
       return { primary: '#0e9f6e', secondary: 'rgba(14,159,110,0.16)' };
     if (meeting.status === 'por_confirmar')
       return { primary: '#f59e0b', secondary: 'rgba(245,158,11,0.16)' };
+    if (meeting.status === 'finalizada')
+      return { primary: '#2563eb', secondary: 'rgba(37,99,235,0.16)' };
     return { primary: '#2563eb', secondary: 'rgba(37,99,235,0.16)' };
   }
 

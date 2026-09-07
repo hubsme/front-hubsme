@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "NG_ALLOWED_HOSTS='*.trycloudflare.com' ng serve",
     "build": "ng build && cp dist/front-hubsme/browser/index.csr.html dist/front-hubsme/browser/index.html",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",

@@ -383,43 +383,53 @@ export class SingUp implements OnInit, OnDestroy {
       });
   }
 
-  onConsultantCvSelected(event: Event) {
-    const file = this.getFile(event);
-    if (!file) return;
+  onConsultantCvSelected(event: Event): void {
+    const selectedFile = this.getFile(event);
+    if (!selectedFile) return;
 
-    if (file.type !== 'application/pdf') {
+    void this.processConsultantCv(selectedFile);
+  }
+
+  private async processConsultantCv(selectedFile: File): Promise<void> {
+    if (selectedFile.type !== 'application/pdf') {
       this.cvError.set('Sube un archivo PDF valido');
       this.consultantProfile.set(null);
       return;
     }
 
-    this.cvFileName.set(file.name);
-    this.cvError.set('');
-    this.cvProcessing.set(true);
-    this.consultantProfile.set(null);
+    try {
+      // Android puede entregar el PDF desde un URI temporal. Copiarlo a memoria
+      // antes de cambiar la vista evita ERR_UPLOAD_FILE_CHANGED al reemplazar
+      // el input type="file" mediante el @if de la plantilla.
+      const fileBytes = await selectedFile.arrayBuffer();
+      const file = new File([fileBytes], selectedFile.name, {
+        type: selectedFile.type,
+        lastModified: selectedFile.lastModified,
+      });
 
-    this.api.storage
-      .upload({ folder: 'consultants/cvs' }, { file })
-      .then((uploadRes) => {
-        this.cvUrl.set(uploadRes.data.secureUrl);
-        return this.extractPdfText(file);
-      })
-      .then((text) => {
-        if (text.length < 40) {
-          throw new Error('No se pudo leer suficiente texto del PDF');
-        }
-        this.cvText.set(text);
-        return this.api.ia.runConsultantCv({ text });
-      })
-      .then((profile) => {
-        this.consultantProfile.set(profile.data);
-        this.prefillConsultantFromProfile(profile.data);
-        this.toastService.success('CV subido y procesado correctamente');
-      })
-      .catch((error) => {
-        this.cvError.set(this.getErrorMessage(error, 'No se pudo procesar el CV'));
-      })
-      .finally(() => this.cvProcessing.set(false));
+      this.cvFileName.set(file.name);
+      this.cvError.set('');
+      this.cvProcessing.set(true);
+      this.consultantProfile.set(null);
+
+      const uploadRes = await this.api.storage.upload({ folder: 'consultants/cvs' }, { file });
+      this.cvUrl.set(uploadRes.data.secureUrl);
+
+      const text = await this.extractPdfText(file);
+      if (text.length < 40) {
+        throw new Error('No se pudo leer suficiente texto del PDF');
+      }
+      this.cvText.set(text);
+
+      const profile = await this.api.ia.runConsultantCv({ text });
+      this.consultantProfile.set(profile.data);
+      this.prefillConsultantFromProfile(profile.data);
+      this.toastService.success('CV subido y procesado correctamente');
+    } catch (error) {
+      this.cvError.set(this.getErrorMessage(error, 'No se pudo procesar el CV'));
+    } finally {
+      this.cvProcessing.set(false);
+    }
   }
 
   toggleDiagnosticArea(area: ConsultantDiagnosticArea): void {

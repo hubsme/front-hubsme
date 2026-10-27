@@ -1,15 +1,16 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Component, DestroyRef, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DiagnosticReport } from '@component/diagnostic-report/diagnostic-report';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { DiagnosticResultDto } from 'api/backend.api';
 import { RecommendedConsultant } from '@module/admin/functions/recommend-consultants';
+import { PATH, buildPath } from '@route/path.route';
 
 @Component({
   selector: 'app-diagnostic-detail',
-  imports: [DiagnosticReport],
+  imports: [DiagnosticReport, RouterLink],
   templateUrl: './diagnostic-detail.html',
 })
 export class DiagnosticDetail implements OnInit {
@@ -24,6 +25,8 @@ export class DiagnosticDetail implements OnInit {
   readonly consultants = signal<RecommendedConsultant[]>([]);
   readonly consultantsLoading = signal(false);
   readonly autoDownloadPdf = this.route.snapshot.queryParamMap.get('download') === 'true';
+  readonly consultantView = this.route.snapshot.data['consultantView'] === true;
+  readonly consultantDocumentsPath = '/' + buildPath(PATH.admin.consultor.documents);
 
   async ngOnInit() {
     const id = Number(this.route.snapshot.paramMap.get('id'));

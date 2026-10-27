@@ -471,6 +471,63 @@ export interface PymeResultDto {
   logoUrl: string | null;
 }
 
+export interface DiagnosticAreaDto {
+  area: string;
+  puntaje: number;
+  estado: string;
+  hallazgo: string;
+}
+
+export interface DiagnosticProblemDto {
+  problema: string;
+  impacto: string;
+  urgencia: "alta" | "media" | "baja";
+}
+
+export interface DiagnosticRecommendationDto {
+  accion: string;
+  beneficioEsperado: string;
+  plazo: string;
+  prioridad: "alta" | "media" | "baja";
+}
+
+export interface DiagnosticFodaDto {
+  fortalezas: string[];
+  oportunidades: string[];
+  debilidades: string[];
+  amenazas: string[];
+}
+
+export interface DiagnosticPayloadDto {
+  resumenEjecutivo: string;
+  puntajeGeneral: number;
+  feedbackIa: string;
+  areasEvaluadas: DiagnosticAreaDto[];
+  problemasCriticos: DiagnosticProblemDto[];
+  recomendaciones: DiagnosticRecommendationDto[];
+  foda?: DiagnosticFodaDto;
+}
+
+export interface DiagnosticResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  pymeId: number;
+  responses: object;
+  result: DiagnosticPayloadDto;
+  score: number;
+  summary: string;
+}
+
+export interface DiagnosticListDto {
+  data: DiagnosticResultDto[];
+  meta: PaginationMetaDto;
+}
+
 export interface ConsultantListItemDto {
   id: number;
   userId: number;
@@ -548,43 +605,6 @@ export interface PymeMeetingDocumentDto {
 export interface PymeMeetingDocumentsDto {
   data: PymeMeetingDocumentDto[];
   meta: PaginationMetaDto;
-}
-
-export interface DiagnosticAreaDto {
-  area: string;
-  puntaje: number;
-  estado: string;
-  hallazgo: string;
-}
-
-export interface DiagnosticProblemDto {
-  problema: string;
-  impacto: string;
-  urgencia: "alta" | "media" | "baja";
-}
-
-export interface DiagnosticRecommendationDto {
-  accion: string;
-  beneficioEsperado: string;
-  plazo: string;
-  prioridad: "alta" | "media" | "baja";
-}
-
-export interface DiagnosticFodaDto {
-  fortalezas: string[];
-  oportunidades: string[];
-  debilidades: string[];
-  amenazas: string[];
-}
-
-export interface DiagnosticPayloadDto {
-  resumenEjecutivo: string;
-  puntajeGeneral: number;
-  feedbackIa: string;
-  areasEvaluadas: DiagnosticAreaDto[];
-  problemasCriticos: DiagnosticProblemDto[];
-  recomendaciones: DiagnosticRecommendationDto[];
-  foda?: DiagnosticFodaDto;
 }
 
 export interface PymeDiagnosticDocumentDto {
@@ -2271,26 +2291,6 @@ export interface TaskStatusDto {
   status: "pendiente" | "en_progreso" | "completada" | "bloqueada";
 }
 
-export interface DiagnosticResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  /** @format date-time */
-  deletedAt: string | null;
-  pymeId: number;
-  responses: object;
-  result: DiagnosticPayloadDto;
-  score: number;
-  summary: string;
-}
-
-export interface DiagnosticListDto {
-  data: DiagnosticResultDto[];
-  meta: PaginationMetaDto;
-}
-
 export interface DiagnosticGenerateDto {
   /** @example 2 */
   pymeId: number;
@@ -3516,6 +3516,24 @@ export type PymeadminFindOneData = PymeResultDto;
 
 export type PymeadminFindOneError = HttpErrorDto;
 
+export interface PymeadminDiagnosticsParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  id: number;
+}
+
+export type PymeadminDiagnosticsData = DiagnosticListDto;
+
+export type PymeadminDiagnosticsError = HttpErrorDto;
+
 export interface PymeFindAllParams {
   /**
    * Page number
@@ -4580,7 +4598,7 @@ export interface MercadopagoFindPaymentsParams {
   year?: number;
   /**
    * Month used to filter the payment date
-   * @default 8
+   * @default 10
    */
   month?: number;
   /** Type of operation */
@@ -5415,6 +5433,39 @@ export namespace PymeAdmin {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = PymeadminFindOneData;
+  }
+
+  /**
+   * No description
+   * @tags pymeAdmin
+   * @name PymeadminDiagnostics
+   * @summary List AI diagnostics for a PYME in the internal admin panel
+   * @request GET:/admin/backoffice/pyme/{id}/diagnostics
+   * @secure
+   * @response `200` `PymeadminDiagnosticsData`
+   * @response `400` `HttpErrorDto`
+   * @response `401` `HttpErrorDto`
+   * @response `404` `HttpErrorDto`
+   */
+  export namespace PymeadminDiagnostics {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PymeadminDiagnosticsData;
   }
 }
 
@@ -7860,7 +7911,7 @@ export namespace MercadoPago {
       year?: number;
       /**
        * Month used to filter the payment date
-       * @default 8
+       * @default 10
        */
       month?: number;
       /** Type of operation */
@@ -9504,6 +9555,32 @@ export class Api<SecurityDataType extends unknown> {
       this.http.request<PymeadminFindOneData, PymeadminFindOneError>({
         path: `/admin/backoffice/pyme/find-one/${id}`,
         method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags pymeAdmin
+     * @name PymeadminDiagnostics
+     * @summary List AI diagnostics for a PYME in the internal admin panel
+     * @request GET:/admin/backoffice/pyme/{id}/diagnostics
+     * @secure
+     * @response `200` `PymeadminDiagnosticsData`
+     * @response `400` `HttpErrorDto`
+     * @response `401` `HttpErrorDto`
+     * @response `404` `HttpErrorDto`
+     */
+    pymeadminDiagnostics: (
+      { id, ...query }: PymeadminDiagnosticsParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PymeadminDiagnosticsData, PymeadminDiagnosticsError>({
+        path: `/admin/backoffice/pyme/${id}/diagnostics`,
+        method: "GET",
+        query: query,
         secure: true,
         format: "json",
         ...params,

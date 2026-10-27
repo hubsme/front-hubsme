@@ -8,10 +8,11 @@ import { AdminApiService } from '@service/admin-api.service';
 import { ToastService } from '@service/toast.service';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { PaginationMetaDto, PymeListItemDto, PymeResultDto } from 'api/backend.api';
+import { PymeDiagnostics } from './components/pyme-diagnostics/pyme-diagnostics';
 
 @Component({
   selector: 'app-backoffice-pymes',
-  imports: [DatePipe, FormsModule, ModalForm, PaginationComponent],
+  imports: [DatePipe, FormsModule, ModalForm, PaginationComponent, PymeDiagnostics],
   templateUrl: './pymes.html',
 })
 export class Pymes {
@@ -23,6 +24,7 @@ export class Pymes {
   readonly detailLoading = signal(false);
   readonly showDetailModal = signal(false);
   readonly selectedPyme = signal<PymeResultDto | null>(null);
+  readonly detailTab = signal<'profile' | 'diagnostics'>('profile');
   readonly search = signal('');
   readonly page = signal(1);
   readonly pageSize = 10;
@@ -30,6 +32,7 @@ export class Pymes {
   readonly totalPymes = computed(() => this.meta()?.total ?? 0);
   private readonly searchTerms = new Subject<string>();
   private requestSequence = 0;
+  private detailRequestSequence = 0;
 
   constructor() {
     this.searchTerms
@@ -76,23 +79,30 @@ export class Pymes {
   }
 
   async openDetail(pyme: PymeListItemDto) {
+    const requestId = ++this.detailRequestSequence;
     this.showDetailModal.set(true);
     this.selectedPyme.set(null);
+    this.detailTab.set('profile');
     this.detailLoading.set(true);
     try {
       const response = await this.adminApi.api.pymeAdmin.pymeadminFindOne({
         id: pyme.id,
       });
+      if (requestId !== this.detailRequestSequence) return;
       this.selectedPyme.set(response.data);
     } catch {
+      if (requestId !== this.detailRequestSequence) return;
       this.showDetailModal.set(false);
       this.toastService.error('No se pudo cargar el detalle de la PYME.');
     } finally {
-      this.detailLoading.set(false);
+      if (requestId === this.detailRequestSequence) {
+        this.detailLoading.set(false);
+      }
     }
   }
 
   closeDetailModal() {
+    ++this.detailRequestSequence;
     this.showDetailModal.set(false);
     this.selectedPyme.set(null);
   }

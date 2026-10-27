@@ -1,4 +1,7 @@
 import { formatInPeru } from '@function/date.function';
+import type { DiagnosticResultDto } from 'api/backend.api';
+
+type DiagnosticReportData = Pick<DiagnosticResultDto, 'id' | 'createdAt' | 'score' | 'result'>;
 
 interface ChartImages { barChart?: string; radarChart?: string }
 
@@ -9,7 +12,7 @@ function formatDate(value: string | Date | null | undefined): string {
   return formatInPeru(value, { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-function buildReportHtml(diagnostic: any, chartImages?: ChartImages, format: 'pdf' | 'word' = 'pdf'): string {
+function buildReportHtml(diagnostic: DiagnosticReportData, chartImages?: ChartImages, format: 'pdf' | 'word' = 'pdf'): string {
   if (!diagnostic) return '';
 
   const score = diagnostic.score ?? 50;
@@ -74,7 +77,7 @@ function buildReportHtml(diagnostic: any, chartImages?: ChartImages, format: 'pd
 
   // Area cards row (Lowest 3 areas to highlight critical domains)
   const mainAreas = [...(diagnostic.result.areasEvaluadas || [])]
-    .sort((a: any, b: any) => a.puntaje - b.puntaje)
+    .sort((a, b) => a.puntaje - b.puntaje)
     .slice(0, 3);
 
   const cardColors = ['#0870f7', '#0e9f6e', '#c27803', '#7e3af2'];
@@ -252,7 +255,7 @@ function buildReportHtml(diagnostic: any, chartImages?: ChartImages, format: 'pd
   return content;
 }
 
-export function downloadWord(diagnostic: any, chartImages?: ChartImages) {
+export function downloadWord(diagnostic: DiagnosticReportData, chartImages?: ChartImages) {
   if (!diagnostic) return;
 
   const content = buildReportHtml(diagnostic, chartImages, 'word');
@@ -310,7 +313,7 @@ export function downloadWord(diagnostic: any, chartImages?: ChartImages) {
  * Reuses the same HTML template as downloadWord but renders it
  * in a hidden iframe and triggers the browser print dialog (Save as PDF).
  */
-export function downloadPdf(diagnostic: any, chartImages?: ChartImages) {
+export function downloadPdf(diagnostic: DiagnosticReportData, chartImages?: ChartImages) {
   if (!diagnostic) return;
 
   // Re-use the same HTML generation logic by calling a shared builder

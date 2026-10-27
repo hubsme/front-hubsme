@@ -282,6 +282,14 @@ export const routes: Routes = [
               import('@module/admin/content/consultor/tasks/tasks').then((m) => m.Tasks),
           },
           {
+            path: `${getPath(PATH.admin.consultor.documents)}/${getPath(PATH.admin.consultor.documents.diagnostics)}/:id`,
+            data: { consultantView: true },
+            loadComponent: () =>
+              import('@module/admin/content/shared/diagnostic-detail/diagnostic-detail').then(
+                (m) => m.DiagnosticDetail,
+              ),
+          },
+          {
             path: `${getPath(PATH.admin.consultor.documents)}/diagnostic/:id`,
             loadComponent: () =>
               import('@module/admin/content/shared/diagnostic-document-detail/diagnostic-document-detail').then(

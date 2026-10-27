@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ApiResponse, PaginationMetaDto } from 'api/backend.api';
 import { PaginationComponent } from '@module/admin/components/pagination/pagination';
 import { ConsultantService } from '@service/admin/consultant.service';
@@ -18,6 +19,9 @@ export class Documents implements OnDestroy, OnInit {
   private hubsme = inject(HubsmeService);
   private consultantService = inject(ConsultantService);
   private toastService = inject(ToastService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   readonly PATH = PATH;
   readonly buildPath = buildPath;
 
@@ -40,6 +44,9 @@ export class Documents implements OnDestroy, OnInit {
   private searchTimeout: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit() {
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      this.activeTab.set(params.get('type') === 'diagnosticos' ? 'diagnostics' : 'meetings');
+    });
     this.load();
   }
 
@@ -86,6 +93,12 @@ export class Documents implements OnDestroy, OnInit {
 
   selectTab(tab: 'meetings' | 'diagnostics') {
     this.activeTab.set(tab);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { type: tab === 'diagnostics' ? 'diagnosticos' : 'actas' },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
   }
 
   changeMeetingPage(page: number) {

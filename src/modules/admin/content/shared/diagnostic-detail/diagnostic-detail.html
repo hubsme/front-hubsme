@@ -1,8 +1,18 @@
+@if (consultantView) {
+  <a
+    [routerLink]="consultantDocumentsPath"
+    [queryParams]="{ type: 'diagnosticos' }"
+    class="mb-5 inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-secondary"
+  >
+    <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>Volver a documentos
+  </a>
+}
 <app-diagnostic-report
   [diagnostic]="diagnostic()"
   [loading]="loading()"
   [consultants]="consultants()"
   [consultantsLoading]="consultantsLoading()"
+  [allowConsultantActions]="!consultantView"
   [autoDownloadPdf]="autoDownloadPdf"
   (automaticDownloadComplete)="closeDownloadWindow()"
 />

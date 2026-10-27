@@ -241,6 +241,8 @@
                 </td>
                 <td class="px-5 py-4 text-right">
                   <button type="button"
+                    [routerLink]="['/' + buildPath(PATH.admin.consultor.documents.diagnostics), diagnostic.id]"
+                    [attr.aria-label]="'Ver diagnóstico de ' + diagnostic.pymeName + ' del ' + (diagnostic.createdAt | date: 'dd/MM/yyyy')"
                     class="inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-secondary px-4 text-[0.78rem] text-fixed-background-50 font-inter-semibold transition-colors hover:bg-secondary/90">
                     <i class="far fa-file-lines text-xs"></i>
                     Ver Diagnóstico

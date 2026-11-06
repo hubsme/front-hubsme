@@ -13,46 +13,50 @@
   >
     <div class="grid w-full gap-3 sm:grid-cols-3">
       <label class="block min-w-0">
-          <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Tipo</span>
-          <span class="relative block">
-            <select
-              [value]="operationType()"
-              (change)="changeOperationType($event)"
-              class="h-11 w-full appearance-none rounded-xl border border-border bg-background-50 px-3 pr-10 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
-            >
-              @for (option of operationTypeOptions; track option.value) {
-                <option [value]="option.value">{{ option.label }}</option>
-              }
-            </select>
-            <i class="fas fa-chevron-down pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.65rem] text-muted"></i>
-          </span>
+        <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Tipo</span>
+        <span class="relative block">
+          <select
+            [value]="operationType()"
+            (change)="changeOperationType($event)"
+            class="h-11 w-full appearance-none rounded-xl border border-border bg-background-50 px-3 pr-10 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+          >
+            @for (option of operationTypeOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+          <i
+            class="fas fa-chevron-down pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.65rem] text-muted"
+          ></i>
+        </span>
       </label>
 
       <label class="block min-w-0">
-          <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Tipo de pago</span>
-          <span class="relative block">
-            <select
-              [value]="paymentType()"
-              (change)="changePaymentType($event)"
-              class="h-11 w-full appearance-none rounded-xl border border-border bg-background-50 px-3 pr-10 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
-            >
-              @for (option of paymentTypeOptions; track option.value) {
-                <option [value]="option.value">{{ option.label }}</option>
-              }
-            </select>
-            <i class="fas fa-chevron-down pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.65rem] text-muted"></i>
-          </span>
+        <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Tipo de pago</span>
+        <span class="relative block">
+          <select
+            [value]="paymentType()"
+            (change)="changePaymentType($event)"
+            class="h-11 w-full appearance-none rounded-xl border border-border bg-background-50 px-3 pr-10 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+          >
+            @for (option of paymentTypeOptions; track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+          <i
+            class="fas fa-chevron-down pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-[0.65rem] text-muted"
+          ></i>
+        </span>
       </label>
 
       <label class="block min-w-0">
-          <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Mes y año</span>
-          <input
-            type="month"
-            [value]="monthInputValue()"
-            (change)="changeMonth($event)"
-            class="h-11 w-full rounded-xl border border-border bg-background-50 px-3 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
-            aria-label="Seleccionar mes y año"
-          />
+        <span class="mb-1.5 block text-xs font-inter-semibold text-muted">Mes y año</span>
+        <input
+          type="month"
+          [value]="monthInputValue()"
+          (change)="changeMonth($event)"
+          class="h-11 w-full rounded-xl border border-border bg-background-50 px-3 text-sm outline-none transition focus:border-secondary focus:ring-4 focus:ring-secondary/10"
+          aria-label="Seleccionar mes y año"
+        />
       </label>
     </div>
   </section>
@@ -66,13 +70,27 @@
         <table class="w-full min-w-[1280px] table-fixed">
           <thead class="border-b border-border bg-surface">
             <tr>
-              <th class="w-[21%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Operación</th>
-              <th class="w-[12%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Consultor</th>
-              <th class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha de agenda</th>
-              <th class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha de reunión</th>
-              <th class="w-[10%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Estado</th>
-              <th class="w-[14%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Medio</th>
-              <th class="w-[11%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted">Importe</th>
+              <th class="w-[21%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">
+                Operación
+              </th>
+              <th class="w-[12%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">
+                Consultor
+              </th>
+              <th class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">
+                Fecha de agenda
+              </th>
+              <th class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">
+                Fecha de reunión
+              </th>
+              <th class="w-[10%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">
+                Estado
+              </th>
+              <th class="w-[14%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">
+                Medio
+              </th>
+              <th class="w-[11%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted">
+                Importe
+              </th>
               <th class="w-[6%] px-5 py-3.5"><span class="sr-only">Acciones</span></th>
             </tr>
           </thead>
@@ -85,7 +103,9 @@
                 <td class="px-5 py-4"><div class="h-4 w-2/3 rounded-full bg-text/10"></div></td>
                 <td class="px-5 py-4"><div class="h-6 w-20 rounded-full bg-text/10"></div></td>
                 <td class="px-5 py-4"><div class="h-6 w-20 rounded-full bg-text/10"></div></td>
-                <td class="px-5 py-4"><div class="ml-auto h-5 w-24 rounded-full bg-text/10"></div></td>
+                <td class="px-5 py-4">
+                  <div class="ml-auto h-5 w-24 rounded-full bg-text/10"></div>
+                </td>
                 <td class="px-5 py-4"><div class="ml-auto size-9 rounded-xl bg-text/10"></div></td>
               </tr>
             }
@@ -115,14 +135,51 @@
           <table class="w-full min-w-[1280px] table-fixed">
             <thead class="border-b border-border bg-surface">
               <tr>
-                <th scope="col" class="w-[21%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Operación</th>
-                <th scope="col" class="w-[12%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Consultor</th>
-                <th scope="col" class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha de agenda</th>
-                <th scope="col" class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha de reunión</th>
-                <th scope="col" class="w-[10%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Estado</th>
-                <th scope="col" class="w-[14%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Medio</th>
-                <th scope="col" class="w-[11%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted">Importe</th>
-                <th scope="col" class="w-[6%] px-5 py-3.5"><span class="sr-only">Acciones</span></th>
+                <th
+                  scope="col"
+                  class="w-[21%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted"
+                >
+                  Operación
+                </th>
+                <th
+                  scope="col"
+                  class="w-[12%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted"
+                >
+                  Consultor
+                </th>
+                <th
+                  scope="col"
+                  class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted"
+                >
+                  Fecha de agenda
+                </th>
+                <th
+                  scope="col"
+                  class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted"
+                >
+                  Fecha de reunión
+                </th>
+                <th
+                  scope="col"
+                  class="w-[10%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted"
+                >
+                  Estado
+                </th>
+                <th
+                  scope="col"
+                  class="w-[14%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted"
+                >
+                  Medio
+                </th>
+                <th
+                  scope="col"
+                  class="w-[11%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted"
+                >
+                  Importe
+                </th>
+                <th scope="col" class="w-[6%] px-5 py-3.5">
+                  <span class="sr-only">Acciones</span>
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-border">
@@ -140,10 +197,15 @@
                       </span>
                       <div class="min-w-0">
                         <p class="truncate text-sm font-inter-bold text-text">
-                          {{ payment.serviceTitle || payment.meetingDetails?.title || 'Pago de consultoría' }}
+                          {{
+                            payment.serviceTitle ||
+                              payment.meetingDetails?.title ||
+                              'Pago de consultoría'
+                          }}
                         </p>
                         <p class="mt-1 text-xs text-muted">
-                          #{{ payment.id }} · {{ payment.serviceRequestId ? 'Servicio' : 'Reunión' }}
+                          #{{ payment.id }} ·
+                          {{ payment.serviceRequestId ? 'Servicio' : 'Reunión' }}
                         </p>
                       </div>
                     </div>
@@ -152,15 +214,23 @@
                     <span class="block truncate">{{ counterparty(payment) }}</span>
                   </td>
                   <td class="px-5 py-4 align-middle">
-                    <p class="whitespace-nowrap text-sm font-inter-semibold">{{ historyDate(payment.meetingCreatedAt) }}</p>
+                    <p class="whitespace-nowrap text-sm font-inter-semibold">
+                      {{ historyDate(payment.meetingCreatedAt) }}
+                    </p>
                     @if (payment.meetingCreatedAt) {
-                      <p class="mt-1 whitespace-nowrap text-xs text-muted">{{ historyTime(payment.meetingCreatedAt) }}</p>
+                      <p class="mt-1 whitespace-nowrap text-xs text-muted">
+                        {{ historyTime(payment.meetingCreatedAt) }}
+                      </p>
                     }
                   </td>
                   <td class="px-5 py-4 align-middle">
-                    <p class="whitespace-nowrap text-sm font-inter-semibold">{{ historyDate(payment.meetingStartTime) }}</p>
+                    <p class="whitespace-nowrap text-sm font-inter-semibold">
+                      {{ historyDate(payment.meetingStartTime) }}
+                    </p>
                     @if (payment.meetingStartTime) {
-                      <p class="mt-1 whitespace-nowrap text-xs text-muted">{{ historyTime(payment.meetingStartTime) }}</p>
+                      <p class="mt-1 whitespace-nowrap text-xs text-muted">
+                        {{ historyTime(payment.meetingStartTime) }}
+                      </p>
                     }
                   </td>
                   <td class="px-5 py-4 align-middle">
@@ -173,12 +243,16 @@
                   </td>
                   <td class="px-5 py-4 align-middle">
                     @if (payment.paymentMethod === 'promotion_code') {
-                      <span class="inline-flex items-center gap-1.5 rounded-full bg-warning/15 px-2.5 py-1 text-[0.68rem] font-inter-bold uppercase tracking-wide text-warning">
+                      <span
+                        class="inline-flex items-center gap-1.5 rounded-full bg-warning/15 px-2.5 py-1 text-[0.68rem] font-inter-bold uppercase tracking-wide text-warning"
+                      >
                         <i class="fas fa-ticket"></i>
                         Cupón
                       </span>
                     } @else {
-                      <span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-secondary/10 px-2.5 py-1 text-[0.68rem] font-inter-bold text-secondary">
+                      <span
+                        class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-secondary/10 px-2.5 py-1 text-[0.68rem] font-inter-bold text-secondary"
+                      >
                         <i class="fas" [ngClass]="paymentMethodIcon(payment)"></i>
                         {{ paymentMethodLabel(payment) }}
                       </span>
@@ -187,7 +261,9 @@
                   <td class="px-5 py-4 text-right align-middle">
                     @if (payment.paymentMethod === 'promotion_code') {
                       <p class="whitespace-nowrap text-sm font-inter-bold text-warning">Sin pago</p>
-                      <p class="mt-1 whitespace-nowrap text-xs text-muted">Valor {{ payment.currency }} {{ payment.amount }}</p>
+                      <p class="mt-1 whitespace-nowrap text-xs text-muted">
+                        Valor {{ payment.currency }} {{ payment.amount }}
+                      </p>
                     } @else {
                       <p class="whitespace-nowrap text-sm font-inter-bold text-secondary">
                         {{ payment.currency }} {{ payment.amount }}
@@ -231,7 +307,9 @@
       >
         <i class="fas fa-receipt"></i>
       </span>
-      <h2 class="mt-5 font-plus-jakarta-sans text-xl font-bold">No hay operaciones en este periodo</h2>
+      <h2 class="mt-5 font-plus-jakarta-sans text-xl font-bold">
+        No hay operaciones en este periodo
+      </h2>
       <p class="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
         Prueba con otro tipo, medio de pago o periodo para consultar más operaciones.
       </p>
@@ -242,7 +320,9 @@
 @if (showDetail()) {
   @if (selectedPayment(); as payment) {
     <app-modal-form
-      [title]="payment.paymentMethod === 'promotion_code' ? 'Detalle del cupón' : 'Detalle del pago'"
+      [title]="
+        payment.paymentMethod === 'promotion_code' ? 'Detalle del cupón' : 'Detalle del pago'
+      "
       maxWidth="lg"
       [showFooter]="false"
       (onClose)="closeDetail()"
@@ -256,14 +336,26 @@
               class="grid size-12 place-items-center rounded-2xl text-fixed-background-50"
               [ngClass]="payment.paymentMethod === 'promotion_code' ? 'bg-warning' : 'bg-secondary'"
             >
-              <i class="fas" [class.fa-ticket]="payment.paymentMethod === 'promotion_code'" [class.fa-check]="payment.paymentMethod === 'payment'"></i>
+              <i
+                class="fas"
+                [class.fa-ticket]="payment.paymentMethod === 'promotion_code'"
+                [class.fa-check]="payment.paymentMethod === 'payment'"
+              ></i>
             </span>
             <div>
               <p class="text-xs font-inter-bold uppercase tracking-[0.14em] text-muted">
-                {{ payment.paymentMethod === 'promotion_code' ? 'Tipo de operación' : 'Estado del pago' }}
+                {{
+                  payment.paymentMethod === 'promotion_code'
+                    ? 'Tipo de operación'
+                    : 'Estado del pago'
+                }}
               </p>
               <p class="mt-1 text-lg font-inter-bold">
-                {{ payment.paymentMethod === 'promotion_code' ? 'Canje con cupón' : paymentStatusLabel(payment.status) }}
+                {{
+                  payment.paymentMethod === 'promotion_code'
+                    ? 'Canje con cupón'
+                    : paymentStatusLabel(payment.status)
+                }}
               </p>
             </div>
           </div>
@@ -271,7 +363,9 @@
             @if (payment.paymentMethod === 'promotion_code') {
               <p class="text-xs text-muted">Importe pagado</p>
               <p class="mt-1 text-2xl font-inter-bold text-warning">{{ payment.currency }} 0.00</p>
-              <p class="mt-1 text-xs text-muted">Valor cubierto: {{ payment.currency }} {{ payment.amount }}</p>
+              <p class="mt-1 text-xs text-muted">
+                Valor cubierto: {{ payment.currency }} {{ payment.amount }}
+              </p>
             } @else {
               <p class="text-xs text-muted">Importe total</p>
               <p class="mt-1 text-2xl font-inter-bold text-secondary">
@@ -291,13 +385,18 @@
           @if (payment.meetingStatus === 'cancelada') {
             <div class="rounded-2xl border border-danger/20 bg-danger/5 p-4">
               <div class="flex items-start gap-3">
-                <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-danger/10 text-danger">
+                <span
+                  class="grid size-9 shrink-0 place-items-center rounded-xl bg-danger/10 text-danger"
+                >
                   <i class="fas fa-calendar-xmark"></i>
                 </span>
                 <div>
                   <p class="font-inter-bold text-danger">Reunión cancelada</p>
                   <p class="mt-1 text-sm leading-relaxed text-muted">
-                    {{ payment.meetingCancellationReason || 'La reunión asociada a esta operación fue cancelada.' }}
+                    {{
+                      payment.meetingCancellationReason ||
+                        'La reunión asociada a esta operación fue cancelada.'
+                    }}
                   </p>
                 </div>
               </div>
@@ -341,10 +440,18 @@
             </div>
             <div class="rounded-2xl border border-border bg-background-50 p-4">
               <p class="text-xs text-muted">
-                {{ payment.paymentMethod === 'promotion_code' ? 'Cupón aplicado' : 'Código de operación' }}
+                {{
+                  payment.paymentMethod === 'promotion_code'
+                    ? 'Cupón aplicado'
+                    : 'Código de operación'
+                }}
               </p>
               <p class="mt-1 break-all font-inter-semibold">
-                {{ payment.paymentMethod === 'promotion_code' ? payment.promotionCode || 'Cupón promocional' : payment.mercadoPagoPaymentId || 'Pendiente de confirmación' }}
+                {{
+                  payment.paymentMethod === 'promotion_code'
+                    ? payment.promotionCode || 'Cupón promocional'
+                    : payment.paymentId || payment.externalReference
+                }}
               </p>
             </div>
           </div>

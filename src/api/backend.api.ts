@@ -10,17 +10,87 @@
  * ---------------------------------------------------------------
  */
 
-export interface LoginDto {
+export interface HttpErrorDto {
   /**
-   * User email address
-   * @example "miguel.salinas@hubsme.com"
+   * Error message(s)
+   * @example ["password must be longer than or equal to 6 characters"]
    */
+  message: string | string[];
+  /**
+   * Error type
+   * @example "Bad Request"
+   */
+  error: string;
+  /**
+   * Status code
+   * @example 400
+   */
+  statusCode: number;
+}
+
+export interface PublicConsultantListItemDto {
+  id: number;
+  userId: number;
+  fullName: string;
+  firstName: string | null;
+  lastName: string | null;
+  bio: string | null;
+  diagnosticAreas: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
+  specialties: string[];
+  sectors: string[];
+  photoUrl: string | null;
+  videoUrl: string | null;
+  pricePerHour: string;
+  rating: string;
+  totalReviews: number;
+  active: "true" | "false";
+  validated: "true" | "false";
+  /** @format date-time */
+  createdAt: string;
+}
+
+export interface PaginationMetaDto {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface PublicConsultantListDto {
+  data: PublicConsultantListItemDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface UserListItemDto {
+  id: number;
   email: string;
-  /**
-   * User password
-   * @example "123456"
-   */
-  password: string;
+  name: string;
+  firstName: string | null;
+  lastName: string | null;
+  role: "admin" | "pyme" | "consultor";
+  authProvider: "local" | "google";
+  isActive: "true" | "false";
+  /** @format date-time */
+  createdAt: string;
+}
+
+export interface UserListDto {
+  data: UserListItemDto[];
+  meta: PaginationMetaDto;
 }
 
 export interface UserResultDto {
@@ -41,353 +111,6 @@ export interface UserResultDto {
   authProvider: "local" | "google";
   googleId: string | null;
   isActive: "true" | "false";
-}
-
-export interface OrganizationSummaryDto {
-  id: number;
-  name: string;
-  logoUrl?: string | null;
-  membershipRole: "owner" | "member";
-}
-
-export interface LoginResponseDto {
-  /**
-   * JWT access token
-   * @example "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-   */
-  accessToken: string;
-  /** User information */
-  user: UserResultDto;
-  organization: OrganizationSummaryDto | null;
-}
-
-export interface HttpErrorDto {
-  /**
-   * Error message(s)
-   * @example ["password must be longer than or equal to 6 characters"]
-   */
-  message: string | string[];
-  /**
-   * Error type
-   * @example "Bad Request"
-   */
-  error: string;
-  /**
-   * Status code
-   * @example 400
-   */
-  statusCode: number;
-}
-
-export interface ConsultantEducationDto {
-  /** @example "Contabilidad y Finanzas" */
-  degree: string;
-  /** @example "Universidad de Lima" */
-  institution?: string;
-  /** @example "2014" */
-  year?: string;
-}
-
-export interface ConsultantCaseStudyDto {
-  /** @example "Orden financiero para cadena gastronómica" */
-  title: string;
-  /** @example "No contaban con flujo de caja proyectado." */
-  problem?: string;
-  /** @example "Implementó tablero financiero y control semanal." */
-  action?: string;
-  /** @example "Reducción de quiebres de caja en 35%." */
-  result?: string;
-  /** @example "Gastronomía" */
-  sector?: string;
-}
-
-export interface RegisterDto {
-  /** Token de invitación para unirse a una PYME existente */
-  invitationToken?: string;
-  /**
-   * User email address
-   * @example "maria@empresa.com"
-   */
-  email: string;
-  /**
-   * User password, minimum 6 characters
-   * @example "123456"
-   */
-  password: string;
-  /**
-   * User or business display name
-   * @example "Textiles del Sur SAC"
-   */
-  name: string;
-  /**
-   * Consultant first name or PYME owner first name
-   * @example "Maria"
-   */
-  firstName?: string;
-  /**
-   * Consultant last name or PYME owner last name
-   * @example "Torres"
-   */
-  lastName?: string;
-  /**
-   * DNI validado del consultor
-   * @example "72750623"
-   */
-  documentNumber?: string;
-  /**
-   * Apellido paterno usado en la validación de identidad
-   * @example "Pérez"
-   */
-  paternalLastName?: string;
-  /**
-   * Apellido materno usado en la validación de identidad
-   * @example "Gómez"
-   */
-  maternalLastName?: string;
-  /**
-   * Fecha de nacimiento usada en la validación de identidad
-   * @example "1990-05-21"
-   */
-  birthDate?: string;
-  /**
-   * PYME RUC
-   * @example "20600000001"
-   */
-  ruc?: string;
-  /**
-   * PYME owner phone
-   * @example "+51999888777"
-   */
-  ownerPhone?: string;
-  /**
-   * PYME owner position
-   * @example "Gerente general"
-   */
-  ownerPosition?: string;
-  /** @example "Consultor financiero y tributario para PYMES" */
-  headline?: string;
-  /** @example "Lima, Perú" */
-  location?: string;
-  /**
-   * @default "remote"
-   * @example "remote"
-   */
-  workModality?: "remote";
-  /** @example "https://www.linkedin.com/in/carlos-mendoza" */
-  linkedinUrl?: string;
-  /** @example "Consultor en finanzas para PYMES." */
-  bio?: string;
-  /** @example ["Financiera","Tributario / Contable"] */
-  diagnosticAreas?: (
-    | "Estratégica"
-    | "Financiera"
-    | "Comercial / Ventas"
-    | "Marketing"
-    | "Servicio al cliente"
-    | "Operaciones"
-    | "Organizacional / RRHH"
-    | "Tecnología"
-    | "Legal"
-    | "Laboral"
-    | "Tributario / Contable"
-  )[];
-  /** @example ["Finanzas","Tributario"] */
-  specialties?: string[];
-  /** @example ["Retail","Manufactura"] */
-  sectors?: string[];
-  /** @example ["Comercio","Gastronomia"] */
-  industries?: string[];
-  /** @example ["Microempresa","Pequeña empresa"] */
-  companyTypes?: string[];
-  /** @example ["Diagnóstico","Implementación"] */
-  services?: string[];
-  /** @example 12 */
-  yearsExperience?: number;
-  education?: ConsultantEducationDto[];
-  /** @example ["NIIF para PYMES"] */
-  certifications?: string[];
-  /** @example ["Retail","Logistica"] */
-  workedSectors?: string[];
-  caseStudies?: ConsultantCaseStudyDto[];
-  /** @example "Texto extraido del CV del consultor..." */
-  cvText?: string;
-  /** @example "https://storage.example.com/consultants/cv.pdf" */
-  cvUrl?: string;
-  /** @default "pyme" */
-  role: "pyme" | "consultor";
-}
-
-export interface InvitationPreviewDto {
-  email: string;
-  organizationName: string;
-  /** @format date-time */
-  expiresAt: string;
-  hasAccount: boolean;
-}
-
-export interface InvitationTokenDto {
-  token: string;
-}
-
-export interface GoogleAuthUrlResponseDto {
-  /** @example "https://accounts.google.com/o/oauth2/v2/auth?..." */
-  url: string;
-}
-
-export interface ForgotPasswordDto {
-  /**
-   * Correo electrónico del usuario
-   * @example "usuario@hubsme.com"
-   */
-  email: string;
-}
-
-export interface MessageResponseDto {
-  /**
-   * Mensaje de respuesta
-   * @example "Operación realizada con éxito"
-   */
-  message: string;
-}
-
-export interface ResetPasswordDto {
-  /** Token de restablecimiento enviado por correo electrónico */
-  token: string;
-  /**
-   * Nueva contraseña elegida por el usuario
-   * @example "NuevaContrasena123"
-   */
-  password: string;
-}
-
-export interface EmailSendDto {
-  /**
-   * Correo del destinatario
-   * @example "cliente@hubsme.net"
-   */
-  to: string;
-  /**
-   * Asunto del correo
-   * @example "Bienvenido a Hubsme"
-   */
-  subject: string;
-  /**
-   * Mensaje en texto plano
-   * @example "Contenido del correo en texto plano"
-   */
-  text: string;
-  /**
-   * Mensaje en formato HTML
-   * @example "<p>Contenido del correo en HTML</p>"
-   */
-  html?: string;
-}
-
-export interface EmailSendResultDto {
-  /** @example "Correo enviado exitosamente" */
-  message: string;
-  /** @example "<abc123@mail.gmail.com>" */
-  messageId: string;
-}
-
-export interface DniVerificationDto {
-  /**
-   * Número de DNI peruano de 8 dígitos
-   * @example "72750623"
-   */
-  documentNumber: string;
-  /** @example "Juan" */
-  firstName: string;
-  /** @example "Pérez" */
-  paternalLastName: string;
-  /** @example "Gómez" */
-  maternalLastName: string;
-  /**
-   * Fecha en formato ISO: YYYY-MM-DD
-   * @example "1990-05-21"
-   */
-  birthDate: string;
-}
-
-export interface DniVerificationMatchesDto {
-  /** Coincide el número de DNI consultado con el registro devuelto */
-  documentNumber: boolean;
-  firstName: boolean;
-  paternalLastName: boolean;
-  maternalLastName: boolean;
-  birthDate: boolean;
-}
-
-export interface DniVerificationIdentityDto {
-  id: string;
-  nombres: string;
-  apellido_paterno: string;
-  apellido_materno: string;
-  nombre_completo: string;
-  genero: string;
-  fecha_nacimiento: string;
-  codigo_verificacion: string;
-}
-
-export interface DniVerificationResultDto {
-  /** Indica si todos los datos enviados coinciden */
-  verified: boolean;
-  /** Indica si PeruDevs encontró un registro para el DNI */
-  providerFound: boolean;
-  matches: DniVerificationMatchesDto;
-  /** Datos devueltos por el proveedor para conservarlos internamente al crear la cuenta */
-  identity: DniVerificationIdentityDto | null;
-  /** @example "Los datos coinciden con el registro consultado." */
-  message: string;
-}
-
-export interface RucVerificationDto {
-  /**
-   * Número de RUC peruano de 11 dígitos
-   * @example "20123456789"
-   */
-  ruc: string;
-}
-
-export interface RucVerificationResultDto {
-  /** Indica si el RUC existe en el registro consultado */
-  verified: boolean;
-  /** Indica si PeruDevs encontró información para el RUC */
-  providerFound: boolean;
-  /**
-   * Nombre comercial asociado al RUC; usa la razón social cuando el proveedor no informa un nombre comercial
-   * @example "Textiles del Sur SAC"
-   */
-  nombreComercial: string | null;
-  /** @example "El RUC existe en el registro consultado." */
-  message: string;
-}
-
-export interface UserListItemDto {
-  id: number;
-  email: string;
-  name: string;
-  firstName: string | null;
-  lastName: string | null;
-  role: "admin" | "pyme" | "consultor";
-  authProvider: "local" | "google";
-  isActive: "true" | "false";
-  /** @format date-time */
-  createdAt: string;
-}
-
-export interface PaginationMetaDto {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
-
-export interface UserListDto {
-  data: UserListItemDto[];
-  meta: PaginationMetaDto;
 }
 
 export interface UserCreateDto {
@@ -426,6 +149,26 @@ export interface UserUpdateDto {
   isActive?: "true" | "false";
 }
 
+export interface UserRemoveResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  /** @example "consultor@hubsme.com" */
+  email: string;
+  /** @example "Carlos Mendoza" */
+  name: string;
+  firstName: string | null;
+  lastName: string | null;
+  role: "admin" | "pyme" | "consultor";
+  authProvider: "local" | "google";
+  googleId: string | null;
+  isActive: "true" | "false";
+}
+
 export interface PymeListItemDto {
   id: number;
   userId: number;
@@ -441,12 +184,12 @@ export interface PymeListItemDto {
   createdAt: string;
 }
 
-export interface PymeListDto {
+export interface PymeAdminFindAllResultDto {
   data: PymeListItemDto[];
   meta: PaginationMetaDto;
 }
 
-export interface PymeResultDto {
+export interface PymeAdminFindOneResultDto {
   id: number;
   /** @format date-time */
   createdAt: string;
@@ -523,9 +266,36 @@ export interface DiagnosticResultDto {
   summary: string;
 }
 
-export interface DiagnosticListDto {
+export interface PymeAdminDiagnosticsResultDto {
   data: DiagnosticResultDto[];
   meta: PaginationMetaDto;
+}
+
+export interface PymeListDto {
+  data: PymeListItemDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface ConsultantEducationDto {
+  /** @example "Contabilidad y Finanzas" */
+  degree: string;
+  /** @example "Universidad de Lima" */
+  institution?: string;
+  /** @example "2014" */
+  year?: string;
+}
+
+export interface ConsultantCaseStudyDto {
+  /** @example "Orden financiero para cadena gastronómica" */
+  title: string;
+  /** @example "No contaban con flujo de caja proyectado." */
+  problem?: string;
+  /** @example "Implementó tablero financiero y control semanal." */
+  action?: string;
+  /** @example "Reducción de quiebres de caja en 35%." */
+  result?: string;
+  /** @example "Gastronomía" */
+  sector?: string;
 }
 
 export interface ConsultantListItemDto {
@@ -660,6 +430,60 @@ export interface MessageResultDto {
   message: string;
 }
 
+export interface PymeRemoveMemberResultDto {
+  message: string;
+}
+
+export interface PymeResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  userId: number;
+  userEmail: string;
+  authProvider: "local" | "google";
+  name: string;
+  ruc: string | null;
+  ownerFirstName: string | null;
+  ownerLastName: string | null;
+  ownerEmail: string | null;
+  ownerPhone: string | null;
+  ownerPosition: string | null;
+  sector: string | null;
+  numEmployees: number | null;
+  yearsInOperation: number | null;
+  description: string | null;
+  logoUrl: string | null;
+}
+
+export interface PymeFindByUserResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  userId: number;
+  userEmail: string;
+  authProvider: "local" | "google";
+  name: string;
+  ruc: string | null;
+  ownerFirstName: string | null;
+  ownerLastName: string | null;
+  ownerEmail: string | null;
+  ownerPhone: string | null;
+  ownerPosition: string | null;
+  sector: string | null;
+  numEmployees: number | null;
+  yearsInOperation: number | null;
+  description: string | null;
+  logoUrl: string | null;
+}
+
 export interface PymeCreateDto {
   /** @example 2 */
   userId: number;
@@ -716,6 +540,31 @@ export interface PymeUpdateDto {
   description?: string;
   /** @example "https://storage.example.com/pymes/logo.jpg" */
   logoUrl?: string;
+}
+
+export interface PymeRemoveResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  userId: number;
+  userEmail: string;
+  authProvider: "local" | "google";
+  name: string;
+  ruc: string | null;
+  ownerFirstName: string | null;
+  ownerLastName: string | null;
+  ownerEmail: string | null;
+  ownerPhone: string | null;
+  ownerPosition: string | null;
+  sector: string | null;
+  numEmployees: number | null;
+  yearsInOperation: number | null;
+  description: string | null;
+  logoUrl: string | null;
 }
 
 export interface AdminLoginDto {
@@ -1202,7 +1051,7 @@ export interface MeetingResultDto {
   tasks?: TaskResultDto[];
 }
 
-export interface MeetingListDto {
+export interface MeetingAdminFindAllResultDto {
   data: MeetingResultDto[];
   meta: PaginationMetaDto;
 }
@@ -1256,7 +1105,7 @@ export interface MeetingRecordingOrganizerDto {
   user: MeetingRecordingOrganizerUserDto | null;
 }
 
-export interface MeetingRecordingDto {
+export interface MeetingAdminGetRecordingsResultDto {
   id: string;
   meetingId: string;
   callId: string;
@@ -1317,6 +1166,11 @@ export interface MeetingCalendarListDto {
   meta: PaginationMetaDto;
 }
 
+export interface MeetingListDto {
+  data: MeetingResultDto[];
+  meta: PaginationMetaDto;
+}
+
 export interface MeetingAccessResultDto {
   id: number;
   title: string;
@@ -1364,9 +1218,65 @@ export interface MeetingCreateDto {
   serviceMilestoneIndex?: number;
 }
 
+export interface MeetingConfirmResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  pymeId: number;
+  consultantId: number;
+  serviceRequestId: number | null;
+  serviceMilestoneIndex: number | null;
+  title: string;
+  /** @format date-time */
+  startTime: string | null;
+  proposedStartTimes: string[];
+  durationMinutes: number;
+  /** Indica si la reunión tiene un acceso virtual configurado */
+  hasMeetingLink: boolean;
+  status:
+    | "solicitada"
+    | "por_confirmar"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada";
+  requestedBy: "pyme" | "consultor";
+  meetingType: "consultoria" | "servicio";
+  description: string | null;
+  cancellationReason: string | null;
+  /** @format date-time */
+  completedAt: string | null;
+  tasks?: TaskResultDto[];
+}
+
 export interface MeetingConfirmOptionDto {
   /** @example "2026-05-10T15:00:00.000Z" */
   selectedStartTime: string;
+}
+
+export interface MeetingRecordingDto {
+  id: string;
+  meetingId: string;
+  callId: string;
+  contentCorrelationId: string;
+  /** @format date-time */
+  createdDateTime: string;
+  /** @format date-time */
+  endDateTime: string;
+  recordingContentUrl: string;
+  /** OneDrive/SharePoint browser URL for the recording file. It can still require Microsoft sign-in. */
+  webUrl: string | null;
+  /** Anonymous read-only sharing URL for the recording file, when tenant sharing policy allows it. */
+  publicUrl: string | null;
+  /** Short-lived preauthenticated download URL generated by Microsoft Graph for immediate playback. */
+  downloadUrl: string | null;
+  driveId: string | null;
+  driveItemId: string | null;
+  fileName: string | null;
+  meetingOrganizer: MeetingRecordingOrganizerDto | null;
 }
 
 export interface TaskSuggestionDto {
@@ -1465,6 +1375,40 @@ export interface MeetingFinalizeDto {
 export interface MeetingFinalizeResultDto {
   meeting: MeetingResultDto;
   tasks: TaskResultDto[];
+}
+
+export interface MeetingRemoveResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  pymeId: number;
+  consultantId: number;
+  serviceRequestId: number | null;
+  serviceMilestoneIndex: number | null;
+  title: string;
+  /** @format date-time */
+  startTime: string | null;
+  proposedStartTimes: string[];
+  durationMinutes: number;
+  /** Indica si la reunión tiene un acceso virtual configurado */
+  hasMeetingLink: boolean;
+  status:
+    | "solicitada"
+    | "por_confirmar"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada";
+  requestedBy: "pyme" | "consultor";
+  meetingType: "consultoria" | "servicio";
+  description: string | null;
+  cancellationReason: string | null;
+  /** @format date-time */
+  completedAt: string | null;
+  tasks?: TaskResultDto[];
 }
 
 export interface HubsmeAiRunDto {
@@ -1736,6 +1680,10 @@ export interface ConsultantAvailabilityMonthDto {
   data: ConsultantAvailabilityResultDto[];
 }
 
+export interface ConsultantAvailabilityVisibleMonthResultDto {
+  data: ConsultantAvailabilityResultDto[];
+}
+
 export interface ConsultantAvailabilityCreateDto {
   /** @example 3 */
   consultantId: number;
@@ -1780,6 +1728,24 @@ export interface ConsultantAvailabilityUpdateDto {
   availableSchedule?: Record<string, string[]>;
 }
 
+export interface ConsultantAvailabilityRemoveResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  consultantId: number;
+  /**
+   * @format date
+   * @example "2026-06-01"
+   */
+  month: string;
+  /** @example {"23":["08:00","08:30"]} */
+  availableSchedule: Record<string, string[]>;
+}
+
 export interface ConsultantGoogleCalendarAuthUrlResponseDto {
   /** @example "https://accounts.google.com/o/oauth2/v2/auth?..." */
   url: string;
@@ -1822,6 +1788,25 @@ export interface ConsultantGoogleCalendarBusyMonthResponseDto {
   data: ConsultantGoogleCalendarBusyItemDto[];
 }
 
+export interface ConsultantGoogleCalendarDisconnectResultDto {
+  /** @example true */
+  connected: boolean;
+  /** @example "consultor@gmail.com" */
+  googleEmail: string | null;
+  /** @example "primary" */
+  googleCalendarId: string | null;
+  /**
+   * @format date-time
+   * @example "2026-06-11T15:00:00.000Z"
+   */
+  connectedAt: string | null;
+}
+
+export interface StorageUploadBodyDto {
+  /** @format binary */
+  file?: File;
+}
+
 export interface StorageResultDto {
   publicId: string;
   url: string;
@@ -1832,7 +1817,42 @@ export interface StorageResultDto {
   createdAt: string;
 }
 
-export interface ConsultantResultDto {
+export interface EmailSendDto {
+  /**
+   * Correo del destinatario
+   * @example "cliente@hubsme.net"
+   */
+  to: string;
+  /**
+   * Asunto del correo
+   * @example "Bienvenido a Hubsme"
+   */
+  subject: string;
+  /**
+   * Mensaje en texto plano
+   * @example "Contenido del correo en texto plano"
+   */
+  text: string;
+  /**
+   * Mensaje en formato HTML
+   * @example "<p>Contenido del correo en HTML</p>"
+   */
+  html?: string;
+}
+
+export interface EmailSendResultDto {
+  /** @example "Correo enviado exitosamente" */
+  message: string;
+  /** @example "<abc123@mail.gmail.com>" */
+  messageId: string;
+}
+
+export interface ConsultantAdminFindAllResultDto {
+  data: ConsultantListItemDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface ConsultantAdminFindOneResultDto {
   id: number;
   /** @format date-time */
   createdAt: string;
@@ -2012,9 +2032,210 @@ export interface ConsultantApprovalDto {
   validated: "true" | "false";
 }
 
+export interface ConsultantResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  userId: number;
+  userEmail: string;
+  authProvider: "local" | "google";
+  fullName: string;
+  firstName: string | null;
+  lastName: string | null;
+  /** @example "72750623" */
+  dni: string | null;
+  /**
+   * @format date
+   * @example "1990-05-21"
+   */
+  birthDate: string | null;
+  ownerPhone: string | null;
+  headline: string | null;
+  location: string | null;
+  workModality: "remote";
+  linkedinUrl: string | null;
+  bio: string | null;
+  diagnosticAreas: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
+  specialties: string[];
+  sectors: string[];
+  industries: string[];
+  companyTypes: string[];
+  services: string[];
+  yearsExperience: number;
+  education: ConsultantEducationDto[];
+  certifications: string[];
+  workedSectors: string[];
+  caseStudies: ConsultantCaseStudyDto[];
+  cvText: string | null;
+  cvUrl: string | null;
+  photoUrl: string | null;
+  videoUrl: string | null;
+  pricePerHour: string;
+  /**
+   * Horas mínimas de anticipación para reservar.
+   * @default 48
+   * @example 48
+   */
+  minimumBookingNoticeHours: number;
+  rating: string;
+  totalReviews: number;
+  active: "true" | "false";
+  validated: "true" | "false";
+}
+
 export interface ConsultantActiveDto {
   /** Estado de disponibilidad del consultor */
   active: "true" | "false";
+}
+
+export interface ConsultantAdminSetActiveResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  userId: number;
+  userEmail: string;
+  authProvider: "local" | "google";
+  fullName: string;
+  firstName: string | null;
+  lastName: string | null;
+  /** @example "72750623" */
+  dni: string | null;
+  /**
+   * @format date
+   * @example "1990-05-21"
+   */
+  birthDate: string | null;
+  ownerPhone: string | null;
+  headline: string | null;
+  location: string | null;
+  workModality: "remote";
+  linkedinUrl: string | null;
+  bio: string | null;
+  diagnosticAreas: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
+  specialties: string[];
+  sectors: string[];
+  industries: string[];
+  companyTypes: string[];
+  services: string[];
+  yearsExperience: number;
+  education: ConsultantEducationDto[];
+  certifications: string[];
+  workedSectors: string[];
+  caseStudies: ConsultantCaseStudyDto[];
+  cvText: string | null;
+  cvUrl: string | null;
+  photoUrl: string | null;
+  videoUrl: string | null;
+  pricePerHour: string;
+  /**
+   * Horas mínimas de anticipación para reservar.
+   * @default 48
+   * @example 48
+   */
+  minimumBookingNoticeHours: number;
+  rating: string;
+  totalReviews: number;
+  active: "true" | "false";
+  validated: "true" | "false";
+}
+
+export interface ConsultantAdminRemoveResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  userId: number;
+  userEmail: string;
+  authProvider: "local" | "google";
+  fullName: string;
+  firstName: string | null;
+  lastName: string | null;
+  /** @example "72750623" */
+  dni: string | null;
+  /**
+   * @format date
+   * @example "1990-05-21"
+   */
+  birthDate: string | null;
+  ownerPhone: string | null;
+  headline: string | null;
+  location: string | null;
+  workModality: "remote";
+  linkedinUrl: string | null;
+  bio: string | null;
+  diagnosticAreas: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
+  specialties: string[];
+  sectors: string[];
+  industries: string[];
+  companyTypes: string[];
+  services: string[];
+  yearsExperience: number;
+  education: ConsultantEducationDto[];
+  certifications: string[];
+  workedSectors: string[];
+  caseStudies: ConsultantCaseStudyDto[];
+  cvText: string | null;
+  cvUrl: string | null;
+  photoUrl: string | null;
+  videoUrl: string | null;
+  pricePerHour: string;
+  /**
+   * Horas mínimas de anticipación para reservar.
+   * @default 48
+   * @example 48
+   */
+  minimumBookingNoticeHours: number;
+  rating: string;
+  totalReviews: number;
+  active: "true" | "false";
+  validated: "true" | "false";
 }
 
 export interface ConsultantMeetingDocumentDto {
@@ -2056,6 +2277,73 @@ export interface ConsultantDiagnosticDocumentDto {
 export interface ConsultantDiagnosticDocumentsDto {
   data: ConsultantDiagnosticDocumentDto[];
   meta: PaginationMetaDto;
+}
+
+export interface ConsultantFindByUserResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  userId: number;
+  userEmail: string;
+  authProvider: "local" | "google";
+  fullName: string;
+  firstName: string | null;
+  lastName: string | null;
+  /** @example "72750623" */
+  dni: string | null;
+  /**
+   * @format date
+   * @example "1990-05-21"
+   */
+  birthDate: string | null;
+  ownerPhone: string | null;
+  headline: string | null;
+  location: string | null;
+  workModality: "remote";
+  linkedinUrl: string | null;
+  bio: string | null;
+  diagnosticAreas: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
+  specialties: string[];
+  sectors: string[];
+  industries: string[];
+  companyTypes: string[];
+  services: string[];
+  yearsExperience: number;
+  education: ConsultantEducationDto[];
+  certifications: string[];
+  workedSectors: string[];
+  caseStudies: ConsultantCaseStudyDto[];
+  cvText: string | null;
+  cvUrl: string | null;
+  photoUrl: string | null;
+  videoUrl: string | null;
+  pricePerHour: string;
+  /**
+   * Horas mínimas de anticipación para reservar.
+   * @default 48
+   * @example 48
+   */
+  minimumBookingNoticeHours: number;
+  rating: string;
+  totalReviews: number;
+  active: "true" | "false";
+  validated: "true" | "false";
 }
 
 export interface ConsultantCreateDto {
@@ -2234,6 +2522,73 @@ export interface ConsultantUpdateDto {
   active?: "true" | "false";
 }
 
+export interface ConsultantRemoveResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  userId: number;
+  userEmail: string;
+  authProvider: "local" | "google";
+  fullName: string;
+  firstName: string | null;
+  lastName: string | null;
+  /** @example "72750623" */
+  dni: string | null;
+  /**
+   * @format date
+   * @example "1990-05-21"
+   */
+  birthDate: string | null;
+  ownerPhone: string | null;
+  headline: string | null;
+  location: string | null;
+  workModality: "remote";
+  linkedinUrl: string | null;
+  bio: string | null;
+  diagnosticAreas: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
+  specialties: string[];
+  sectors: string[];
+  industries: string[];
+  companyTypes: string[];
+  services: string[];
+  yearsExperience: number;
+  education: ConsultantEducationDto[];
+  certifications: string[];
+  workedSectors: string[];
+  caseStudies: ConsultantCaseStudyDto[];
+  cvText: string | null;
+  cvUrl: string | null;
+  photoUrl: string | null;
+  videoUrl: string | null;
+  pricePerHour: string;
+  /**
+   * Horas mínimas de anticipación para reservar.
+   * @default 48
+   * @example 48
+   */
+  minimumBookingNoticeHours: number;
+  rating: string;
+  totalReviews: number;
+  active: "true" | "false";
+  validated: "true" | "false";
+}
+
 export interface TaskListDto {
   data: TaskResultDto[];
   meta: PaginationMetaDto;
@@ -2291,6 +2646,35 @@ export interface TaskStatusDto {
   status: "pendiente" | "en_progreso" | "completada" | "bloqueada";
 }
 
+export interface TaskRemoveResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  meetingId: number | null;
+  /** @format date-time */
+  meetingStartTime?: string | null;
+  meetingTitle?: string | null;
+  serviceRequestId: number | null;
+  pymeId: number;
+  consultantId: number | null;
+  title: string;
+  description: string;
+  assignedTo: "pyme" | "consultor";
+  priority: "alta" | "media" | "baja";
+  status: "pendiente" | "en_progreso" | "completada" | "bloqueada";
+  /** @format date-time */
+  dueDate: string | null;
+}
+
+export interface DiagnosticListDto {
+  data: DiagnosticResultDto[];
+  meta: PaginationMetaDto;
+}
+
 export interface DiagnosticGenerateDto {
   /** @example 2 */
   pymeId: number;
@@ -2298,6 +2682,21 @@ export interface DiagnosticGenerateDto {
   pymeData?: object;
   /** @example {"revenue":"600000","techLevel":6,"challenges":"Falta de liquidez"} */
   responses: object;
+}
+
+export interface DiagnosticRemoveResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  pymeId: number;
+  responses: object;
+  result: DiagnosticPayloadDto;
+  score: number;
+  summary: string;
 }
 
 export interface DiagnosticDocumentResultDto {
@@ -2318,6 +2717,21 @@ export interface DiagnosticDocumentResultDto {
 export interface DiagnosticDocumentListDto {
   data: DiagnosticDocumentResultDto[];
   meta: PaginationMetaDto;
+}
+
+export interface DiagnosticDocumentRemoveResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  diagnosticId: number;
+  pymeId: number;
+  title: string;
+  type: "informe" | "plan_accion" | "respuestas";
+  content: string;
 }
 
 export interface PlanResultDto {
@@ -2348,6 +2762,23 @@ export interface SubscriptionResultDto {
 export interface SubscriptionListDto {
   data: SubscriptionResultDto[];
   meta: PaginationMetaDto;
+}
+
+export interface SubscriptionFindByUserResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  userId: number;
+  plan: "free" | "basic" | "pro" | "expert";
+  status: "active" | "paused" | "cancelled" | "expired";
+  /** @format date-time */
+  startedAt: string;
+  /** @format date-time */
+  expiresAt: string | null;
 }
 
 export interface SubscriptionUpsertDto {
@@ -2477,6 +2908,22 @@ export interface MercadoPagoStatusDto {
   connectedAt: string | null;
 }
 
+export interface MercadoPagoDisconnectResultDto {
+  /** @example true */
+  connected: boolean;
+  /** @example "123456789" */
+  mercadoPagoUserId: string | null;
+  /** @example "consultor_mp" */
+  nickname: string | null;
+  /** @example "consultor@mail.com" */
+  email: string | null;
+  /**
+   * @format date-time
+   * @example "2026-06-17T15:00:00.000Z"
+   */
+  connectedAt: string | null;
+}
+
 export interface MercadoPagoCreateCheckoutDto {
   /** @example 3 */
   consultantId: number;
@@ -2492,7 +2939,7 @@ export interface MercadoPagoCreateCheckoutDto {
   description?: string;
 }
 
-export interface CheckoutMeetingDetailsDto {
+export interface MonnetCheckoutMeetingDetailsDto {
   startTime: string;
   proposedStartTimes: string[];
   durationMinutes: number;
@@ -2500,17 +2947,11 @@ export interface CheckoutMeetingDetailsDto {
   description?: string;
 }
 
-export interface MercadoPagoCheckoutDto {
+export interface MonnetCheckoutResultDto {
   id: number;
   meetingId: number | null;
-  serviceRequestId: number | null;
-  serviceInstallmentIndex: number | null;
   pymeId: number;
   consultantId: number;
-  preferenceId: string | null;
-  initPoint: string | null;
-  sandboxInitPoint: string | null;
-  externalReference: string;
   status:
     | "created"
     | "pending"
@@ -2518,10 +2959,28 @@ export interface MercadoPagoCheckoutDto {
     | "rejected"
     | "cancelled"
     | "expired";
+  /** @example "120.00" */
   amount: string;
   marketplaceFee: string;
+  /** @example "PEN" */
   currency: string;
-  meetingDetails?: CheckoutMeetingDetailsDto | null;
+  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
+  paymentUrl: string | null;
+  /** Imagen PNG del QR en formato data:image/png;base64,... */
+  qrCode: string | null;
+  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
+  expiresAt: string | null;
+  environment: "cert" | "production" | null;
+  /** Indica si se puede generar un QR nuevo. Un intento incierto se verifica antes de volver a cobrar. */
+  canCreatePayment: boolean;
+}
+
+export interface CheckoutMeetingDetailsDto {
+  startTime: string;
+  proposedStartTimes: string[];
+  durationMinutes: number;
+  title: string;
+  description?: string;
 }
 
 export interface MercadoPagoPaymentHistoryItemDto {
@@ -2562,6 +3021,9 @@ export interface MercadoPagoPaymentHistoryItemDto {
   serviceTitle: string | null;
   serviceDescription: string | null;
   mercadoPagoPaymentId: string | null;
+  /** Identificador de la operación en el proveedor de pago. */
+  paymentId: string | null;
+  paymentProvider: "monnet" | "mercado_pago" | null;
   pymeName: string | null;
   consultantName: string | null;
   paymentMethod: "payment" | "promotion_code";
@@ -2577,6 +3039,112 @@ export interface MercadoPagoPaymentHistoryResponseDto {
   meta: PaginationMetaDto;
 }
 
+export interface MercadoPagoFindCheckoutResultDto {
+  id: number;
+  meetingId: number | null;
+  pymeId: number;
+  consultantId: number;
+  status:
+    | "created"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "expired";
+  /** @example "120.00" */
+  amount: string;
+  marketplaceFee: string;
+  /** @example "PEN" */
+  currency: string;
+  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
+  paymentUrl: string | null;
+  /** Imagen PNG del QR en formato data:image/png;base64,... */
+  qrCode: string | null;
+  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
+  expiresAt: string | null;
+  environment: "cert" | "production" | null;
+  /** Indica si se puede generar un QR nuevo. Un intento incierto se verifica antes de volver a cobrar. */
+  canCreatePayment: boolean;
+}
+
+export interface MonnetPrepareCheckoutPaymentDto {
+  /**
+   * @maxLength 30
+   * @example "Erick"
+   */
+  payinCustomerName: string;
+  /**
+   * @maxLength 30
+   * @example "Flores Santos"
+   */
+  payinCustomerLastName: string;
+  /**
+   * @maxLength 50
+   * @example "xerickcua@gmail.com"
+   */
+  payinCustomerEmail: string;
+  /**
+   * Celular peruano del cliente: nueve dígitos, sin el prefijo +51.
+   * @example "929073820"
+   */
+  payinCustomerPhone: string;
+  /**
+   * Tipo de documento habilitado por Monnet para el comercio.
+   * @example "DNI"
+   */
+  payinCustomerTypeDocument: "DNI";
+  /**
+   * DNI ilustrativo; usar el documento del pagador o el dato de prueba acordado con Monnet.
+   * @example "12345678"
+   */
+  payinCustomerDocument: string;
+  /**
+   * @maxLength 200
+   * @example "Avenida de pruebas 123"
+   */
+  payinCustomerAddress: string;
+  /**
+   * @maxLength 80
+   * @example "Lima"
+   */
+  payinCustomerCity: string;
+  /**
+   * @maxLength 80
+   * @example "Lima"
+   */
+  payinCustomerRegion: string;
+  /** @example "15073" */
+  payinCustomerZipCode: string;
+}
+
+export interface MercadoPagoPrepareCheckoutPaymentResultDto {
+  id: number;
+  meetingId: number | null;
+  pymeId: number;
+  consultantId: number;
+  status:
+    | "created"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "expired";
+  /** @example "120.00" */
+  amount: string;
+  marketplaceFee: string;
+  /** @example "PEN" */
+  currency: string;
+  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
+  paymentUrl: string | null;
+  /** Imagen PNG del QR en formato data:image/png;base64,... */
+  qrCode: string | null;
+  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
+  expiresAt: string | null;
+  environment: "cert" | "production" | null;
+  /** Indica si se puede generar un QR nuevo. Un intento incierto se verifica antes de volver a cobrar. */
+  canCreatePayment: boolean;
+}
+
 export interface MercadoPagoServicePaymentDto {
   /**
    * Índice de la cuota que se desea pagar. Si se omite, se usa la primera pendiente.
@@ -2584,6 +3152,839 @@ export interface MercadoPagoServicePaymentDto {
    * @example 0
    */
   installmentIndex?: number;
+}
+
+export interface MercadoPagoCheckoutDto {
+  id: number;
+  meetingId: number | null;
+  serviceRequestId: number | null;
+  serviceInstallmentIndex: number | null;
+  pymeId: number;
+  consultantId: number;
+  preferenceId: string | null;
+  initPoint: string | null;
+  sandboxInitPoint: string | null;
+  externalReference: string;
+  status:
+    | "created"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "expired";
+  amount: string;
+  marketplaceFee: string;
+  currency: string;
+  meetingDetails?: CheckoutMeetingDetailsDto | null;
+}
+
+export interface MercadoPagoSyncServicePaymentResultDto {
+  id: number;
+  meetingId: number | null;
+  serviceRequestId: number | null;
+  serviceInstallmentIndex: number | null;
+  pymeId: number;
+  consultantId: number;
+  preferenceId: string | null;
+  initPoint: string | null;
+  sandboxInitPoint: string | null;
+  externalReference: string;
+  status:
+    | "created"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "expired";
+  amount: string;
+  marketplaceFee: string;
+  currency: string;
+  meetingDetails?: CheckoutMeetingDetailsDto | null;
+}
+
+export interface MonnetCreateCheckoutDto {
+  /** @example 3 */
+  consultantId: number;
+  /** @example "2026-12-10T15:00:00.000Z" */
+  startTime?: string;
+  /** @example ["2026-12-10T15:00:00.000Z","2026-12-11T15:00:00.000Z","2026-12-12T15:00:00.000Z"] */
+  proposedStartTimes: string[];
+  /**
+   * @min 60
+   * @max 480
+   * @example 60
+   */
+  durationMinutes?: number;
+  /**
+   * @maxLength 200
+   * @example "Sesión de consultoría"
+   */
+  title: string;
+  /**
+   * @maxLength 2000
+   * @example "Revisión del plan comercial"
+   */
+  description?: string;
+}
+
+export interface MonnetFindCheckoutResultDto {
+  id: number;
+  meetingId: number | null;
+  pymeId: number;
+  consultantId: number;
+  status:
+    | "created"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "expired";
+  /** @example "120.00" */
+  amount: string;
+  marketplaceFee: string;
+  /** @example "PEN" */
+  currency: string;
+  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
+  paymentUrl: string | null;
+  /** Imagen PNG del QR en formato data:image/png;base64,... */
+  qrCode: string | null;
+  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
+  expiresAt: string | null;
+  environment: "cert" | "production" | null;
+  /** Indica si se puede generar un QR nuevo. Un intento incierto se verifica antes de volver a cobrar. */
+  canCreatePayment: boolean;
+}
+
+export interface MonnetPrepareCheckoutPaymentResultDto {
+  id: number;
+  meetingId: number | null;
+  pymeId: number;
+  consultantId: number;
+  status:
+    | "created"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "expired";
+  /** @example "120.00" */
+  amount: string;
+  marketplaceFee: string;
+  /** @example "PEN" */
+  currency: string;
+  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
+  paymentUrl: string | null;
+  /** Imagen PNG del QR en formato data:image/png;base64,... */
+  qrCode: string | null;
+  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
+  expiresAt: string | null;
+  environment: "cert" | "production" | null;
+  /** Indica si se puede generar un QR nuevo. Un intento incierto se verifica antes de volver a cobrar. */
+  canCreatePayment: boolean;
+}
+
+export interface MonnetSyncCheckoutPaymentResultDto {
+  id: number;
+  meetingId: number | null;
+  pymeId: number;
+  consultantId: number;
+  status:
+    | "created"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "expired";
+  /** @example "120.00" */
+  amount: string;
+  marketplaceFee: string;
+  /** @example "PEN" */
+  currency: string;
+  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
+  paymentUrl: string | null;
+  /** Imagen PNG del QR en formato data:image/png;base64,... */
+  qrCode: string | null;
+  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
+  expiresAt: string | null;
+  environment: "cert" | "production" | null;
+  /** Indica si se puede generar un QR nuevo. Un intento incierto se verifica antes de volver a cobrar. */
+  canCreatePayment: boolean;
+}
+
+export interface PayinCreateBankTransferDto {
+  /**
+   * Importe positivo como texto con exactamente dos decimales. Ejemplo: "120.00", con comillas.
+   * @pattern ^(?!0\.00$)(?:0|[1-9]\d*)\.\d{2}$
+   * @example "120.00"
+   */
+  payinAmount: string;
+  /**
+   * Si se omite, usa MONNET_PAYIN_CURRENCY.
+   * @example "PEN"
+   */
+  payinCurrency?: "PEN" | "USD";
+  /**
+   * Referencia única del comercio. Omitir o enviar null para generar HUBSME-<UUID> en cada llamada y repetir el ejemplo sin duplicar referencias.
+   * @maxLength 50
+   * @example null
+   */
+  payinMerchantOperationNumber?: string | null;
+  /**
+   * @maxLength 30
+   * @example "Erick"
+   */
+  payinCustomerName: string;
+  /**
+   * @maxLength 30
+   * @example "Flores Santos"
+   */
+  payinCustomerLastName: string;
+  /**
+   * @maxLength 50
+   * @example "xerickcua@gmail.com"
+   */
+  payinCustomerEmail: string;
+  /**
+   * Celular peruano del cliente: nueve dígitos, sin el prefijo +51.
+   * @example "929073820"
+   */
+  payinCustomerPhone: string;
+  /**
+   * Tipo de documento habilitado por Monnet para el comercio.
+   * @example "DNI"
+   */
+  payinCustomerTypeDocument: string;
+  /**
+   * Documento ilustrativo; reemplazar por los datos de certificación acordados con Monnet.
+   * @example "12345678"
+   */
+  payinCustomerDocument: string;
+  /**
+   * Minutos de vigencia. Si se omite, usa MONNET_PAYIN_EXPIRATION_MINUTES.
+   * @min 1
+   * @example 30
+   */
+  payinExpirationTime?: number;
+  /**
+   * @default "ES"
+   * @example "ES"
+   */
+  payinLanguage?: string;
+  /**
+   * Yape One Shot fija este campo a Mobile o Web según el endpoint.
+   * @example "Sesión de consultoría Hubsme"
+   */
+  payinProductDescription?: string;
+  /**
+   * @default "HUBSME-CONSULTORIA"
+   * @example "HUBSME-CONSULTORIA"
+   */
+  payinProductID?: string;
+  /**
+   * @default "CONSULTORIA-60"
+   * @example "CONSULTORIA-60"
+   */
+  payinProductSku?: string;
+  /**
+   * @default "1"
+   * @example "1"
+   */
+  payinProductQuantity?: string;
+  /**
+   * @default "Avenida de pruebas 123"
+   * @example "Avenida de pruebas 123"
+   */
+  payinCustomerAddress?: string;
+  /**
+   * @default "Lima"
+   * @example "Lima"
+   */
+  payinCustomerCity?: string;
+  /**
+   * @default "Lima"
+   * @example "Lima"
+   */
+  payinCustomerRegion?: string;
+  /**
+   * Código/valor requerido por la configuración de tu comercio en Monnet.
+   * @default "PER"
+   * @example "PER"
+   */
+  payinCustomerCountry?: string;
+  /**
+   * @default "15073"
+   * @example "15073"
+   */
+  payinCustomerZipCode?: string;
+  /**
+   * @default ""
+   * @example ""
+   */
+  payinRegularCustomer?: string;
+  /**
+   * @default ""
+   * @example ""
+   */
+  payinCustomerID?: string;
+  /**
+   * @default ""
+   * @example ""
+   */
+  payinDiscountCoupon?: string;
+  /**
+   * @default ""
+   * @example ""
+   */
+  payinFilterBy?: string;
+  /**
+   * Si se omite, usa el nombre y apellido del comprador.
+   * @example "Erick Flores Santos"
+   */
+  payinCustomerShippingName?: string;
+  /**
+   * Si se omite, usa el teléfono del comprador.
+   * @example "929073820"
+   */
+  payinCustomerShippingPhone?: string;
+  /**
+   * Si se omite, usa la dirección del comprador.
+   * @example "Avenida de pruebas 123"
+   */
+  payinCustomerShippingAddress?: string;
+  /**
+   * Si se omite, usa la ciudad del comprador.
+   * @example "Lima"
+   */
+  payinCustomerShippingCity?: string;
+  /**
+   * Si se omite, usa la región del comprador.
+   * @example "Lima"
+   */
+  payinCustomerShippingRegion?: string;
+  /**
+   * Si se omite, usa el país del comprador.
+   * @example "PER"
+   */
+  payinCustomerShippingCountry?: string;
+  /**
+   * Si se omite, usa el código postal del comprador.
+   * @example "15073"
+   */
+  payinCustomerShippingZipCode?: string;
+}
+
+export interface PayinTransactionResultDto {
+  /** @example "cert" */
+  environment: "cert" | "production";
+  /** @example "bank-transfer" */
+  flow: string;
+  /** @example "valid" */
+  scenario: string;
+  /** @example "HUBSME-00000000-0000-4000-8000-000000000001" */
+  payinMerchantOperationNumber: string;
+  /**
+   * HTTP recibido de Monnet. El HTTP 200 de Hubsme solo indica que se recibió una respuesta; revisar este campo y response.payinErrorCode. Crear la operación no confirma el pago.
+   * @example 200
+   */
+  upstreamHttpStatus: number;
+  /** JSON efectivamente enviado a Monnet, con payinVerification oculto. Permite comparar importe, tipo JSON, método y canal de cada operación. */
+  request: Record<string, any>;
+  /**
+   * Respuesta original de Monnet. Puede incluir url, payinErrorCode, payinErrorMessage, payinTrxOperation, experienceVoucher (instrucciones/QR) o deepLinks (Yape). Se conserva sin atribuirle un pago aprobado.
+   * @example {"url":"https://cert.monnetpayments.com/checkout/example","payinErrorCode":"0000","payinErrorMessage":"Successfull process","payinTrxOperation":"MONTRX-EXAMPLE"}
+   */
+  response: Record<string, any> | string | null;
+  /**
+   * response.url cuando Monnet lo proporciona. Abrir esta URL para ver la experiencia de pago. El enlace del ejemplo es ilustrativo.
+   * @example "https://cert.monnetpayments.com/checkout/example"
+   */
+  paymentUrl: string | null;
+}
+
+export interface PayinCreateQrDto {
+  /**
+   * Importe positivo como texto con exactamente dos decimales. Ejemplo: "49.85", con comillas.
+   * @pattern ^(?!0\.00$)(?:0|[1-9]\d*)\.\d{2}$
+   * @example "49.85"
+   */
+  payinAmount: string;
+  /**
+   * Si se omite, usa MONNET_PAYIN_CURRENCY.
+   * @example "PEN"
+   */
+  payinCurrency?: "PEN" | "USD";
+  /**
+   * Referencia única del comercio. Omitir o enviar null para generar HUBSME-<UUID> en cada llamada y repetir el ejemplo sin duplicar referencias.
+   * @maxLength 50
+   * @example null
+   */
+  payinMerchantOperationNumber?: string | null;
+  /**
+   * @maxLength 30
+   * @example "Erick"
+   */
+  payinCustomerName: string;
+  /**
+   * @maxLength 30
+   * @example "Flores Santos"
+   */
+  payinCustomerLastName: string;
+  /**
+   * @maxLength 50
+   * @example "xerickcua@gmail.com"
+   */
+  payinCustomerEmail: string;
+  /**
+   * Celular peruano del cliente: nueve dígitos, sin el prefijo +51.
+   * @example "929073820"
+   */
+  payinCustomerPhone: string;
+  /**
+   * Tipo de documento habilitado por Monnet para el comercio.
+   * @example "DNI"
+   */
+  payinCustomerTypeDocument: string;
+  /**
+   * Documento ilustrativo; reemplazar por los datos de certificación acordados con Monnet.
+   * @example "12345678"
+   */
+  payinCustomerDocument: string;
+  /**
+   * Minutos de vigencia. Si se omite, usa MONNET_PAYIN_EXPIRATION_MINUTES.
+   * @min 1
+   * @example 30
+   */
+  payinExpirationTime?: number;
+  /**
+   * @default "ES"
+   * @example "ES"
+   */
+  payinLanguage?: string;
+  /**
+   * Yape One Shot fija este campo a Mobile o Web según el endpoint.
+   * @example "Sesión de consultoría Hubsme"
+   */
+  payinProductDescription?: string;
+  /**
+   * @default "HUBSME-CONSULTORIA"
+   * @example "HUBSME-CONSULTORIA"
+   */
+  payinProductID?: string;
+  /**
+   * @default "CONSULTORIA-60"
+   * @example "CONSULTORIA-60"
+   */
+  payinProductSku?: string;
+  /**
+   * @default "1"
+   * @example "1"
+   */
+  payinProductQuantity?: string;
+  /**
+   * @default "Avenida de pruebas 123"
+   * @example "Avenida de pruebas 123"
+   */
+  payinCustomerAddress?: string;
+  /**
+   * @default "Lima"
+   * @example "Lima"
+   */
+  payinCustomerCity?: string;
+  /**
+   * @default "Lima"
+   * @example "Lima"
+   */
+  payinCustomerRegion?: string;
+  /**
+   * Código/valor requerido por la configuración de tu comercio en Monnet.
+   * @default "PER"
+   * @example "PER"
+   */
+  payinCustomerCountry?: string;
+  /**
+   * @default "15073"
+   * @example "15073"
+   */
+  payinCustomerZipCode?: string;
+  /**
+   * @default ""
+   * @example ""
+   */
+  payinRegularCustomer?: string;
+  /**
+   * @default ""
+   * @example ""
+   */
+  payinCustomerID?: string;
+  /**
+   * @default ""
+   * @example ""
+   */
+  payinDiscountCoupon?: string;
+  /**
+   * @default ""
+   * @example ""
+   */
+  payinFilterBy?: string;
+  /**
+   * Si se omite, usa el nombre y apellido del comprador.
+   * @example "Erick Flores Santos"
+   */
+  payinCustomerShippingName?: string;
+  /**
+   * Si se omite, usa el teléfono del comprador.
+   * @example "929073820"
+   */
+  payinCustomerShippingPhone?: string;
+  /**
+   * Si se omite, usa la dirección del comprador.
+   * @example "Avenida de pruebas 123"
+   */
+  payinCustomerShippingAddress?: string;
+  /**
+   * Si se omite, usa la ciudad del comprador.
+   * @example "Lima"
+   */
+  payinCustomerShippingCity?: string;
+  /**
+   * Si se omite, usa la región del comprador.
+   * @example "Lima"
+   */
+  payinCustomerShippingRegion?: string;
+  /**
+   * Si se omite, usa el país del comprador.
+   * @example "PER"
+   */
+  payinCustomerShippingCountry?: string;
+  /**
+   * Si se omite, usa el código postal del comprador.
+   * @example "15073"
+   */
+  payinCustomerShippingZipCode?: string;
+}
+
+export interface PayinCreateYapeMobileDto {
+  /**
+   * Importe positivo como texto con exactamente dos decimales. Ejemplo: "10.00", con comillas.
+   * @pattern ^(?!0\.00$)(?:0|[1-9]\d*)\.\d{2}$
+   * @example "10.00"
+   */
+  payinAmount: string;
+  /**
+   * Si se omite, usa MONNET_PAYIN_CURRENCY.
+   * @example "PEN"
+   */
+  payinCurrency?: "PEN" | "USD";
+  /**
+   * Referencia única del comercio. Omitir o enviar null para generar HUBSME-<UUID> en cada llamada y repetir el ejemplo sin duplicar referencias.
+   * @maxLength 50
+   * @example null
+   */
+  payinMerchantOperationNumber?: string | null;
+  /**
+   * @maxLength 30
+   * @example "Erick"
+   */
+  payinCustomerName: string;
+  /**
+   * @maxLength 30
+   * @example "Flores Santos"
+   */
+  payinCustomerLastName: string;
+  /**
+   * @maxLength 50
+   * @example "xerickcua@gmail.com"
+   */
+  payinCustomerEmail: string;
+  /**
+   * Celular peruano del cliente: nueve dígitos, sin el prefijo +51.
+   * @example "929073820"
+   */
+  payinCustomerPhone: string;
+  /**
+   * Tipo de documento habilitado por Monnet para el comercio.
+   * @example "DNI"
+   */
+  payinCustomerTypeDocument: string;
+  /**
+   * Documento ilustrativo; reemplazar por los datos de certificación acordados con Monnet.
+   * @example "12345678"
+   */
+  payinCustomerDocument: string;
+  /**
+   * Minutos de vigencia. Si se omite, usa MONNET_PAYIN_EXPIRATION_MINUTES.
+   * @min 1
+   * @example 30
+   */
+  payinExpirationTime?: number;
+  /**
+   * @default "ES"
+   * @example "ES"
+   */
+  payinLanguage?: string;
+  /**
+   * Este endpoint fija el canal de Yape One Shot a Mobile.
+   * @example "Mobile"
+   */
+  payinProductDescription?: string;
+  /**
+   * @default "HUBSME-CONSULTORIA"
+   * @example "HUBSME-CONSULTORIA"
+   */
+  payinProductID?: string;
+  /**
+   * @default "CONSULTORIA-60"
+   * @example "CONSULTORIA-60"
+   */
+  payinProductSku?: string;
+  /**
+   * @default "1"
+   * @example "1"
+   */
+  payinProductQuantity?: string;
+  /**
+   * @default "Avenida de pruebas 123"
+   * @example "Avenida de pruebas 123"
+   */
+  payinCustomerAddress?: string;
+  /**
+   * @default "Lima"
+   * @example "Lima"
+   */
+  payinCustomerCity?: string;
+  /**
+   * @default "Lima"
+   * @example "Lima"
+   */
+  payinCustomerRegion?: string;
+  /**
+   * Código/valor requerido por la configuración de tu comercio en Monnet.
+   * @default "PER"
+   * @example "PER"
+   */
+  payinCustomerCountry?: string;
+  /**
+   * @default "15073"
+   * @example "15073"
+   */
+  payinCustomerZipCode?: string;
+  /**
+   * @default ""
+   * @example ""
+   */
+  payinRegularCustomer?: string;
+  /**
+   * @default ""
+   * @example ""
+   */
+  payinCustomerID?: string;
+  /**
+   * @default ""
+   * @example ""
+   */
+  payinDiscountCoupon?: string;
+  /**
+   * @default ""
+   * @example ""
+   */
+  payinFilterBy?: string;
+  /**
+   * Si se omite, usa el nombre y apellido del comprador.
+   * @example "Erick Flores Santos"
+   */
+  payinCustomerShippingName?: string;
+  /**
+   * Si se omite, usa el teléfono del comprador.
+   * @example "929073820"
+   */
+  payinCustomerShippingPhone?: string;
+  /**
+   * Si se omite, usa la dirección del comprador.
+   * @example "Avenida de pruebas 123"
+   */
+  payinCustomerShippingAddress?: string;
+  /**
+   * Si se omite, usa la ciudad del comprador.
+   * @example "Lima"
+   */
+  payinCustomerShippingCity?: string;
+  /**
+   * Si se omite, usa la región del comprador.
+   * @example "Lima"
+   */
+  payinCustomerShippingRegion?: string;
+  /**
+   * Si se omite, usa el país del comprador.
+   * @example "PER"
+   */
+  payinCustomerShippingCountry?: string;
+  /**
+   * Si se omite, usa el código postal del comprador.
+   * @example "15073"
+   */
+  payinCustomerShippingZipCode?: string;
+}
+
+export interface PayinCreateYapeWebDto {
+  /**
+   * Importe positivo como texto con exactamente dos decimales. Ejemplo: "10.00", con comillas.
+   * @pattern ^(?!0\.00$)(?:0|[1-9]\d*)\.\d{2}$
+   * @example "10.00"
+   */
+  payinAmount: string;
+  /**
+   * Si se omite, usa MONNET_PAYIN_CURRENCY.
+   * @example "PEN"
+   */
+  payinCurrency?: "PEN" | "USD";
+  /**
+   * Referencia única del comercio. Omitir o enviar null para generar HUBSME-<UUID> en cada llamada y repetir el ejemplo sin duplicar referencias.
+   * @maxLength 50
+   * @example null
+   */
+  payinMerchantOperationNumber?: string | null;
+  /**
+   * @maxLength 30
+   * @example "Erick"
+   */
+  payinCustomerName: string;
+  /**
+   * @maxLength 30
+   * @example "Flores Santos"
+   */
+  payinCustomerLastName: string;
+  /**
+   * @maxLength 50
+   * @example "xerickcua@gmail.com"
+   */
+  payinCustomerEmail: string;
+  /**
+   * Celular peruano del cliente: nueve dígitos, sin el prefijo +51.
+   * @example "929073820"
+   */
+  payinCustomerPhone: string;
+  /**
+   * Tipo de documento habilitado por Monnet para el comercio.
+   * @example "DNI"
+   */
+  payinCustomerTypeDocument: string;
+  /**
+   * Documento ilustrativo; reemplazar por los datos de certificación acordados con Monnet.
+   * @example "12345678"
+   */
+  payinCustomerDocument: string;
+  /**
+   * Minutos de vigencia. Si se omite, usa MONNET_PAYIN_EXPIRATION_MINUTES.
+   * @min 1
+   * @example 30
+   */
+  payinExpirationTime?: number;
+  /**
+   * @default "ES"
+   * @example "ES"
+   */
+  payinLanguage?: string;
+  /**
+   * Este endpoint fija el canal de Yape One Shot a Web.
+   * @example "Web"
+   */
+  payinProductDescription?: string;
+  /**
+   * @default "HUBSME-CONSULTORIA"
+   * @example "HUBSME-CONSULTORIA"
+   */
+  payinProductID?: string;
+  /**
+   * @default "CONSULTORIA-60"
+   * @example "CONSULTORIA-60"
+   */
+  payinProductSku?: string;
+  /**
+   * @default "1"
+   * @example "1"
+   */
+  payinProductQuantity?: string;
+  /**
+   * @default "Avenida de pruebas 123"
+   * @example "Avenida de pruebas 123"
+   */
+  payinCustomerAddress?: string;
+  /**
+   * @default "Lima"
+   * @example "Lima"
+   */
+  payinCustomerCity?: string;
+  /**
+   * @default "Lima"
+   * @example "Lima"
+   */
+  payinCustomerRegion?: string;
+  /**
+   * Código/valor requerido por la configuración de tu comercio en Monnet.
+   * @default "PER"
+   * @example "PER"
+   */
+  payinCustomerCountry?: string;
+  /**
+   * @default "15073"
+   * @example "15073"
+   */
+  payinCustomerZipCode?: string;
+  /**
+   * @default ""
+   * @example ""
+   */
+  payinRegularCustomer?: string;
+  /**
+   * @default ""
+   * @example ""
+   */
+  payinCustomerID?: string;
+  /**
+   * @default ""
+   * @example ""
+   */
+  payinDiscountCoupon?: string;
+  /**
+   * @default ""
+   * @example ""
+   */
+  payinFilterBy?: string;
+  /**
+   * Si se omite, usa el nombre y apellido del comprador.
+   * @example "Erick Flores Santos"
+   */
+  payinCustomerShippingName?: string;
+  /**
+   * Si se omite, usa el teléfono del comprador.
+   * @example "929073820"
+   */
+  payinCustomerShippingPhone?: string;
+  /**
+   * Si se omite, usa la dirección del comprador.
+   * @example "Avenida de pruebas 123"
+   */
+  payinCustomerShippingAddress?: string;
+  /**
+   * Si se omite, usa la ciudad del comprador.
+   * @example "Lima"
+   */
+  payinCustomerShippingCity?: string;
+  /**
+   * Si se omite, usa la región del comprador.
+   * @example "Lima"
+   */
+  payinCustomerShippingRegion?: string;
+  /**
+   * Si se omite, usa el país del comprador.
+   * @example "PER"
+   */
+  payinCustomerShippingCountry?: string;
+  /**
+   * Si se omite, usa el código postal del comprador.
+   * @example "15073"
+   */
+  payinCustomerShippingZipCode?: string;
 }
 
 export interface ServiceRequestReferenceAttachmentResultDto {
@@ -2882,6 +4283,81 @@ export interface ServiceRequestDeclineDto {
   message?: string;
 }
 
+export interface ServiceRequestCompleteServiceResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  pymeId: number;
+  consultantId: number;
+  serviceOfferId?: number | null;
+  initialMeetingProposedStartTimes: string[];
+  /** @format date-time */
+  initialMeetingStartTime?: string | null;
+  pymeName: string | null;
+  consultantName: string | null;
+  consultantHeadline?: string | null;
+  consultantPhotoUrl?: string | null;
+  title: string;
+  category?:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+    | null;
+  subcategory?: string | null;
+  description: string;
+  expectedOutcome?: string | null;
+  requirements: string;
+  deliverables: string[];
+  exclusions?: string | null;
+  referenceUrls: string[];
+  referenceAttachments: ServiceRequestReferenceAttachmentResultDto[];
+  evidenceAttachments: ServiceRequestEvidenceAttachmentResultDto[];
+  budgetType?: "fixed" | "range" | null;
+  budgetMin?: string | null;
+  budgetMax?: string | null;
+  /** @example "2026-09-30" */
+  deadline?: string | null;
+  estimatedDuration?: string | null;
+  workModality: "remote";
+  workMethod?: string | null;
+  milestones: ServiceRequestMilestoneResultDto[];
+  paymentPlan: ServiceRequestPaymentPlanDto;
+  paymentSchedule: ServiceRequestPaymentScheduleItemDto[];
+  meetings: MeetingResultDto[];
+  details?: string | null;
+  status:
+    | "requested"
+    | "proposal_sent"
+    | "consultant_declined"
+    | "payment_pending"
+    | "paid"
+    | "completed"
+    | "pyme_declined"
+    | "cancelled";
+  proposedPrice?: string | null;
+  currency: string;
+  proposalMessage?: string | null;
+  pymeDecisionMessage?: string | null;
+  /** @format date-time */
+  respondedAt?: string | null;
+  /** @format date-time */
+  decidedAt?: string | null;
+  /** @format date-time */
+  paidAt?: string | null;
+  /** @format date-time */
+  completedAt?: string | null;
+}
+
 export interface ServiceRequestMilestoneMeetingDto {
   /**
    * @min 0
@@ -2901,6 +4377,81 @@ export interface ServiceRequestMilestoneUpdateDto {
   title: string;
   /** @example "2026-09-20" */
   dueDate: string;
+}
+
+export interface ServiceRequestRemoveMilestoneResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  pymeId: number;
+  consultantId: number;
+  serviceOfferId?: number | null;
+  initialMeetingProposedStartTimes: string[];
+  /** @format date-time */
+  initialMeetingStartTime?: string | null;
+  pymeName: string | null;
+  consultantName: string | null;
+  consultantHeadline?: string | null;
+  consultantPhotoUrl?: string | null;
+  title: string;
+  category?:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+    | null;
+  subcategory?: string | null;
+  description: string;
+  expectedOutcome?: string | null;
+  requirements: string;
+  deliverables: string[];
+  exclusions?: string | null;
+  referenceUrls: string[];
+  referenceAttachments: ServiceRequestReferenceAttachmentResultDto[];
+  evidenceAttachments: ServiceRequestEvidenceAttachmentResultDto[];
+  budgetType?: "fixed" | "range" | null;
+  budgetMin?: string | null;
+  budgetMax?: string | null;
+  /** @example "2026-09-30" */
+  deadline?: string | null;
+  estimatedDuration?: string | null;
+  workModality: "remote";
+  workMethod?: string | null;
+  milestones: ServiceRequestMilestoneResultDto[];
+  paymentPlan: ServiceRequestPaymentPlanDto;
+  paymentSchedule: ServiceRequestPaymentScheduleItemDto[];
+  meetings: MeetingResultDto[];
+  details?: string | null;
+  status:
+    | "requested"
+    | "proposal_sent"
+    | "consultant_declined"
+    | "payment_pending"
+    | "paid"
+    | "completed"
+    | "pyme_declined"
+    | "cancelled";
+  proposedPrice?: string | null;
+  currency: string;
+  proposalMessage?: string | null;
+  pymeDecisionMessage?: string | null;
+  /** @format date-time */
+  respondedAt?: string | null;
+  /** @format date-time */
+  decidedAt?: string | null;
+  /** @format date-time */
+  paidAt?: string | null;
+  /** @format date-time */
+  completedAt?: string | null;
 }
 
 export interface ServiceRequestExtraMilestoneMeetingDto {
@@ -2929,14 +4480,24 @@ export interface ServiceRequestEvidenceMultipartDto {
   milestoneIndex?: number;
 }
 
-export interface PublicConsultantListItemDto {
+export interface ServiceRequestDeleteEvidenceResultDto {
   id: number;
-  userId: number;
-  fullName: string;
-  firstName: string | null;
-  lastName: string | null;
-  bio: string | null;
-  diagnosticAreas: (
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  pymeId: number;
+  consultantId: number;
+  serviceOfferId?: number | null;
+  initialMeetingProposedStartTimes: string[];
+  /** @format date-time */
+  initialMeetingStartTime?: string | null;
+  pymeName: string | null;
+  consultantName: string | null;
+  consultantHeadline?: string | null;
+  consultantPhotoUrl?: string | null;
+  title: string;
+  category?:
     | "Estratégica"
     | "Financiera"
     | "Comercial / Ventas"
@@ -2948,23 +4509,50 @@ export interface PublicConsultantListItemDto {
     | "Legal"
     | "Laboral"
     | "Tributario / Contable"
-  )[];
-  specialties: string[];
-  sectors: string[];
-  photoUrl: string | null;
-  videoUrl: string | null;
-  pricePerHour: string;
-  rating: string;
-  totalReviews: number;
-  active: "true" | "false";
-  validated: "true" | "false";
+    | null;
+  subcategory?: string | null;
+  description: string;
+  expectedOutcome?: string | null;
+  requirements: string;
+  deliverables: string[];
+  exclusions?: string | null;
+  referenceUrls: string[];
+  referenceAttachments: ServiceRequestReferenceAttachmentResultDto[];
+  evidenceAttachments: ServiceRequestEvidenceAttachmentResultDto[];
+  budgetType?: "fixed" | "range" | null;
+  budgetMin?: string | null;
+  budgetMax?: string | null;
+  /** @example "2026-09-30" */
+  deadline?: string | null;
+  estimatedDuration?: string | null;
+  workModality: "remote";
+  workMethod?: string | null;
+  milestones: ServiceRequestMilestoneResultDto[];
+  paymentPlan: ServiceRequestPaymentPlanDto;
+  paymentSchedule: ServiceRequestPaymentScheduleItemDto[];
+  meetings: MeetingResultDto[];
+  details?: string | null;
+  status:
+    | "requested"
+    | "proposal_sent"
+    | "consultant_declined"
+    | "payment_pending"
+    | "paid"
+    | "completed"
+    | "pyme_declined"
+    | "cancelled";
+  proposedPrice?: string | null;
+  currency: string;
+  proposalMessage?: string | null;
+  pymeDecisionMessage?: string | null;
   /** @format date-time */
-  createdAt: string;
-}
-
-export interface PublicConsultantListDto {
-  data: PublicConsultantListItemDto[];
-  meta: PaginationMetaDto;
+  respondedAt?: string | null;
+  /** @format date-time */
+  decidedAt?: string | null;
+  /** @format date-time */
+  paidAt?: string | null;
+  /** @format date-time */
+  completedAt?: string | null;
 }
 
 export interface PromotionCodeResultDto {
@@ -3115,6 +4703,79 @@ export interface PromotionCodeRedeemServiceResultDto {
   message: string;
 }
 
+export interface DniVerificationDto {
+  /**
+   * Número de DNI peruano de 8 dígitos
+   * @example "72750623"
+   */
+  documentNumber: string;
+  /** @example "Juan" */
+  firstName: string;
+  /** @example "Pérez" */
+  paternalLastName: string;
+  /** @example "Gómez" */
+  maternalLastName: string;
+  /**
+   * Fecha en formato ISO: YYYY-MM-DD
+   * @example "1990-05-21"
+   */
+  birthDate: string;
+}
+
+export interface DniVerificationMatchesDto {
+  /** Coincide el número de DNI consultado con el registro devuelto */
+  documentNumber: boolean;
+  firstName: boolean;
+  paternalLastName: boolean;
+  maternalLastName: boolean;
+  birthDate: boolean;
+}
+
+export interface DniVerificationIdentityDto {
+  id: string;
+  nombres: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  nombre_completo: string;
+  genero: string;
+  fecha_nacimiento: string;
+  codigo_verificacion: string;
+}
+
+export interface DniVerificationResultDto {
+  /** Indica si todos los datos enviados coinciden */
+  verified: boolean;
+  /** Indica si PeruDevs encontró un registro para el DNI */
+  providerFound: boolean;
+  matches: DniVerificationMatchesDto;
+  /** Datos devueltos por el proveedor para conservarlos internamente al crear la cuenta */
+  identity: DniVerificationIdentityDto | null;
+  /** @example "Los datos coinciden con el registro consultado." */
+  message: string;
+}
+
+export interface RucVerificationDto {
+  /**
+   * Número de RUC peruano de 11 dígitos
+   * @example "20123456789"
+   */
+  ruc: string;
+}
+
+export interface RucVerificationResultDto {
+  /** Indica si el RUC existe en el registro consultado */
+  verified: boolean;
+  /** Indica si PeruDevs encontró información para el RUC */
+  providerFound: boolean;
+  /**
+   * Nombre comercial asociado al RUC; usa la razón social cuando el proveedor no informa un nombre comercial
+   * @example "Textiles del Sur SAC"
+   */
+  nombreComercial: string | null;
+  /** @example "El RUC existe en el registro consultado." */
+  message: string;
+}
+
 export interface FeedbackListItemDto {
   id: number;
   /** @format date-time */
@@ -3206,8 +4867,52 @@ export interface FeedbackReplyCreateDto {
   message: string;
 }
 
+export interface FeedbackAdminFindOneResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  userId: number;
+  userRole: "pyme" | "consultor";
+  userName: string;
+  userEmail: string;
+  title: string;
+  description: string;
+  status: "new" | "in_review" | "accepted" | "resolved" | "closed";
+  /** @format date-time */
+  statusUpdatedAt?: string | null;
+  statusUpdatedBy?: string | null;
+  attachmentCount: number;
+  replyCount: number;
+  attachments: FeedbackAttachmentResultDto[];
+  replies: FeedbackReplyResultDto[];
+}
+
 export interface FeedbackStatusUpdateDto {
   status: "new" | "in_review" | "accepted" | "resolved" | "closed";
+}
+
+export interface FeedbackAdminReplyResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  userId: number;
+  userRole: "pyme" | "consultor";
+  userName: string;
+  userEmail: string;
+  title: string;
+  description: string;
+  status: "new" | "in_review" | "accepted" | "resolved" | "closed";
+  /** @format date-time */
+  statusUpdatedAt?: string | null;
+  statusUpdatedBy?: string | null;
+  attachmentCount: number;
+  replyCount: number;
+  attachments: FeedbackAttachmentResultDto[];
+  replies: FeedbackReplyResultDto[];
 }
 
 export interface ConsultantServiceOfferResultDto {
@@ -3251,6 +4956,11 @@ export interface ConsultantServiceOfferResultDto {
 }
 
 export interface ConsultantServiceOfferListDto {
+  data: ConsultantServiceOfferResultDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface ServiceOfferFindMineResultDto {
   data: ConsultantServiceOfferResultDto[];
   meta: PaginationMetaDto;
 }
@@ -3371,72 +5081,326 @@ export interface ConsultantServiceOfferActiveDto {
   isActive: boolean;
 }
 
-export type AppGetHelloData = any;
+export interface ServiceOfferRemoveResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  consultantId: number;
+  consultantName: string;
+  consultantHeadline?: string | null;
+  consultantPhotoUrl?: string | null;
+  consultantRating: string;
+  consultantYearsExperience: number;
+  title: string;
+  category:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable";
+  subcategory: string;
+  description: string;
+  expectedOutcome: string;
+  requirements: string;
+  deliverables: string[];
+  exclusions?: string | null;
+  estimatedDurationDays: number;
+  workModality: "remote";
+  workMethod: string;
+  price: string;
+  currency: string;
+  pricePeriod: "one_time" | "monthly" | "hourly";
+  isActive: boolean;
+}
 
-export type AuthLoginData = LoginResponseDto;
+export interface MonnetPayinWebhookDto {
+  /**
+   * Estado notificado; Hubsme consulta el estado real en Monnet antes de confirmar.
+   * @example "5"
+   */
+  payinStateID: string;
+  /** @example "Autorizado" */
+  payinState?: string;
+  /** @example "1646" */
+  payinMerchantID: string;
+  /**
+   * Se verifica la firma con la representación recibida, sin redondear ni cambiar decimales.
+   * @example "120.00"
+   */
+  payinAmount: string;
+  /** @example "PEN" */
+  payinCurrency: string;
+  /** @example "HUBSME-00000000-0000-4000-8000-000000000001" */
+  payinMerchantOperationNumber: string;
+  /** @example "QR" */
+  payinMethod: string;
+  /** SHA-512 hexadecimal calculado por Monnet; no es un JWT. */
+  payinVerification: string;
+}
 
-export type AuthLoginError = HttpErrorDto;
+export interface MonnetPayinWebhookResultDto {
+  /** @example true */
+  received: boolean;
+}
 
-export type AuthRegisterData = LoginResponseDto;
+export interface LoginDto {
+  /**
+   * User email address
+   * @example "miguel.salinas@hubsme.com"
+   */
+  email: string;
+  /**
+   * User password
+   * @example "123456"
+   */
+  password: string;
+}
 
-export type AuthRegisterError = HttpErrorDto;
+export interface OrganizationSummaryDto {
+  id: number;
+  name: string;
+  logoUrl?: string | null;
+  membershipRole: "owner" | "member";
+}
 
-export interface AuthInvitationParams {
+export interface LoginResponseDto {
+  /**
+   * JWT access token
+   * @example "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+   */
+  accessToken: string;
+  /** User information */
+  user: UserResultDto;
+  organization: OrganizationSummaryDto | null;
+}
+
+export interface RegisterDto {
+  /** Token de invitación para unirse a una PYME existente */
+  invitationToken?: string;
+  /**
+   * User email address
+   * @example "maria@empresa.com"
+   */
+  email: string;
+  /**
+   * User password, minimum 6 characters
+   * @example "123456"
+   */
+  password: string;
+  /**
+   * User or business display name
+   * @example "Textiles del Sur SAC"
+   */
+  name: string;
+  /**
+   * Consultant first name or PYME owner first name
+   * @example "Maria"
+   */
+  firstName?: string;
+  /**
+   * Consultant last name or PYME owner last name
+   * @example "Torres"
+   */
+  lastName?: string;
+  /**
+   * DNI validado del consultor
+   * @example "72750623"
+   */
+  documentNumber?: string;
+  /**
+   * Apellido paterno usado en la validación de identidad
+   * @example "Pérez"
+   */
+  paternalLastName?: string;
+  /**
+   * Apellido materno usado en la validación de identidad
+   * @example "Gómez"
+   */
+  maternalLastName?: string;
+  /**
+   * Fecha de nacimiento usada en la validación de identidad
+   * @example "1990-05-21"
+   */
+  birthDate?: string;
+  /**
+   * PYME RUC
+   * @example "20600000001"
+   */
+  ruc?: string;
+  /**
+   * PYME owner phone
+   * @example "+51999888777"
+   */
+  ownerPhone?: string;
+  /**
+   * PYME owner position
+   * @example "Gerente general"
+   */
+  ownerPosition?: string;
+  /** @example "Consultor financiero y tributario para PYMES" */
+  headline?: string;
+  /** @example "Lima, Perú" */
+  location?: string;
+  /**
+   * @default "remote"
+   * @example "remote"
+   */
+  workModality?: "remote";
+  /** @example "https://www.linkedin.com/in/carlos-mendoza" */
+  linkedinUrl?: string;
+  /** @example "Consultor en finanzas para PYMES." */
+  bio?: string;
+  /** @example ["Financiera","Tributario / Contable"] */
+  diagnosticAreas?: (
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+  )[];
+  /** @example ["Finanzas","Tributario"] */
+  specialties?: string[];
+  /** @example ["Retail","Manufactura"] */
+  sectors?: string[];
+  /** @example ["Comercio","Gastronomia"] */
+  industries?: string[];
+  /** @example ["Microempresa","Pequeña empresa"] */
+  companyTypes?: string[];
+  /** @example ["Diagnóstico","Implementación"] */
+  services?: string[];
+  /** @example 12 */
+  yearsExperience?: number;
+  education?: ConsultantEducationDto[];
+  /** @example ["NIIF para PYMES"] */
+  certifications?: string[];
+  /** @example ["Retail","Logistica"] */
+  workedSectors?: string[];
+  caseStudies?: ConsultantCaseStudyDto[];
+  /** @example "Texto extraido del CV del consultor..." */
+  cvText?: string;
+  /** @example "https://storage.example.com/consultants/cv.pdf" */
+  cvUrl?: string;
+  /** @default "pyme" */
+  role: "pyme" | "consultor";
+}
+
+export interface InvitationPreviewDto {
+  email: string;
+  organizationName: string;
+  /** @format date-time */
+  expiresAt: string;
+  hasAccount: boolean;
+}
+
+export interface InvitationTokenDto {
   token: string;
 }
 
-export type AuthInvitationData = InvitationPreviewDto;
-
-export type AuthInvitationError = HttpErrorDto;
-
-export type AuthAcceptInvitationData = LoginResponseDto;
-
-export type AuthAcceptInvitationError = HttpErrorDto;
-
-export interface AuthGoogleUrlParams {
-  /** @default "login" */
-  flow?: "login" | "register" | "invitation";
-  /** @default "pyme" */
-  role?: "pyme" | "consultor";
-  /** Token de invitación para unirse a una PYME existente */
-  invitationToken?: string;
+export interface AuthAcceptInvitationResultDto {
+  /**
+   * JWT access token
+   * @example "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+   */
+  accessToken: string;
+  /** User information */
+  user: UserResultDto;
+  organization: OrganizationSummaryDto | null;
 }
 
-export type AuthGoogleUrlData = GoogleAuthUrlResponseDto;
-
-export type AuthGoogleUrlError = HttpErrorDto;
-
-export interface AuthGoogleCallbackParams {
-  code?: string;
-  state?: string;
-  error?: string;
+export interface GoogleAuthUrlResponseDto {
+  /** @example "https://accounts.google.com/o/oauth2/v2/auth?..." */
+  url: string;
 }
 
-export type AuthGoogleCallbackData = any;
+export interface AuthProfileResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  deletedAt: string | null;
+  /** @example "consultor@hubsme.com" */
+  email: string;
+  /** @example "Carlos Mendoza" */
+  name: string;
+  firstName: string | null;
+  lastName: string | null;
+  role: "admin" | "pyme" | "consultor";
+  authProvider: "local" | "google";
+  googleId: string | null;
+  isActive: "true" | "false";
+  pymeId: number | null;
+  membershipRole: "owner" | "member" | null;
+  organization: OrganizationSummaryDto | null;
+}
 
-export type AuthGetProfileData = any;
+export interface ForgotPasswordDto {
+  /**
+   * Correo electrónico del usuario
+   * @example "usuario@hubsme.com"
+   */
+  email: string;
+}
 
-export type AuthGetProfileError = HttpErrorDto;
+export interface MessageResponseDto {
+  /**
+   * Mensaje de respuesta
+   * @example "Operación realizada con éxito"
+   */
+  message: string;
+}
 
-export type AuthForgotPasswordData = MessageResponseDto;
+export interface ResetPasswordDto {
+  /** Token de restablecimiento enviado por correo electrónico */
+  token: string;
+  /**
+   * Nueva contraseña elegida por el usuario
+   * @example "NuevaContrasena123"
+   */
+  password: string;
+}
 
-export type AuthForgotPasswordError = HttpErrorDto;
+export type AppGetHelloData = string;
 
-export type AuthResetPasswordData = MessageResponseDto;
+export type AppGetHelloError = HttpErrorDto;
 
-export type AuthResetPasswordError = HttpErrorDto;
+export interface PublicconsultantFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /** Search by name, bio or specialty */
+  search?: string;
+  active?: "true" | "false";
+  validated?: "true" | "false";
+  /** Filter by sector */
+  sector?: string;
+}
 
-export type EmailSendEmailData = EmailSendResultDto;
+export type PublicconsultantFindAllData = PublicConsultantListDto;
 
-export type EmailSendEmailError = HttpErrorDto;
-
-export type IdentityverificationVerifyDniData = DniVerificationResultDto;
-
-export type IdentityverificationVerifyDniError = HttpErrorDto;
-
-export type IdentityverificationVerifyRucData = RucVerificationResultDto;
-
-export type IdentityverificationVerifyRucError = HttpErrorDto;
+export type PublicconsultantFindAllError = HttpErrorDto;
 
 export interface UserFindAllParams {
   /**
@@ -3483,7 +5447,7 @@ export interface UserRemoveParams {
   id: number;
 }
 
-export type UserRemoveData = UserResultDto;
+export type UserRemoveData = UserRemoveResultDto;
 
 export type UserRemoveError = HttpErrorDto;
 
@@ -3504,7 +5468,7 @@ export interface PymeadminFindAllParams {
   sector?: string;
 }
 
-export type PymeadminFindAllData = PymeListDto;
+export type PymeadminFindAllData = PymeAdminFindAllResultDto;
 
 export type PymeadminFindAllError = HttpErrorDto;
 
@@ -3512,7 +5476,7 @@ export interface PymeadminFindOneParams {
   id: number;
 }
 
-export type PymeadminFindOneData = PymeResultDto;
+export type PymeadminFindOneData = PymeAdminFindOneResultDto;
 
 export type PymeadminFindOneError = HttpErrorDto;
 
@@ -3530,7 +5494,7 @@ export interface PymeadminDiagnosticsParams {
   id: number;
 }
 
-export type PymeadminDiagnosticsData = DiagnosticListDto;
+export type PymeadminDiagnosticsData = PymeAdminDiagnosticsResultDto;
 
 export type PymeadminDiagnosticsError = HttpErrorDto;
 
@@ -3618,7 +5582,11 @@ export type PymeDiagnosticDocumentsError = HttpErrorDto;
 
 export type PymeTeamData = PymeTeamResultDto;
 
+export type PymeTeamError = HttpErrorDto;
+
 export type PymeCreateInvitationData = PymeInvitationResultDto;
+
+export type PymeCreateInvitationError = HttpErrorDto;
 
 export interface PymeRevokeInvitationParams {
   id: string;
@@ -3626,11 +5594,15 @@ export interface PymeRevokeInvitationParams {
 
 export type PymeRevokeInvitationData = MessageResultDto;
 
+export type PymeRevokeInvitationError = HttpErrorDto;
+
 export interface PymeRemoveMemberParams {
   userId: string;
 }
 
-export type PymeRemoveMemberData = MessageResultDto;
+export type PymeRemoveMemberData = PymeRemoveMemberResultDto;
+
+export type PymeRemoveMemberError = HttpErrorDto;
 
 export interface PymeFindOneParams {
   id: number;
@@ -3644,7 +5616,7 @@ export interface PymeFindByUserParams {
   userId: number;
 }
 
-export type PymeFindByUserData = PymeResultDto;
+export type PymeFindByUserData = PymeFindByUserResultDto;
 
 export type PymeFindByUserError = HttpErrorDto;
 
@@ -3664,7 +5636,7 @@ export interface PymeRemoveParams {
   id: number;
 }
 
-export type PymeRemoveData = PymeResultDto;
+export type PymeRemoveData = PymeRemoveResultDto;
 
 export type PymeRemoveError = HttpErrorDto;
 
@@ -3777,7 +5749,7 @@ export interface MeetingadminFindAllParams {
     | "cancelada";
 }
 
-export type MeetingadminFindAllData = MeetingListDto;
+export type MeetingadminFindAllData = MeetingAdminFindAllResultDto;
 
 export type MeetingadminFindAllError = HttpErrorDto;
 
@@ -3793,7 +5765,8 @@ export interface MeetingadminGetRecordingsParams {
   id: number;
 }
 
-export type MeetingadminGetRecordingsData = MeetingRecordingDto[];
+export type MeetingadminGetRecordingsData =
+  MeetingAdminGetRecordingsResultDto[];
 
 export type MeetingadminGetRecordingsError = HttpErrorDto;
 
@@ -3884,7 +5857,7 @@ export interface MeetingConfirmParams {
   id: number;
 }
 
-export type MeetingConfirmData = MeetingResultDto;
+export type MeetingConfirmData = MeetingConfirmResultDto;
 
 export type MeetingConfirmError = HttpErrorDto;
 
@@ -3940,7 +5913,7 @@ export interface MeetingRemoveParams {
   id: number;
 }
 
-export type MeetingRemoveData = MeetingResultDto;
+export type MeetingRemoveData = MeetingRemoveResultDto;
 
 export type MeetingRemoveError = HttpErrorDto;
 
@@ -4018,7 +5991,7 @@ export interface ConsultantAvailabilityVisibleMonthParams {
 }
 
 export type ConsultantAvailabilityVisibleMonthData =
-  ConsultantAvailabilityMonthDto;
+  ConsultantAvailabilityVisibleMonthResultDto;
 
 export type ConsultantAvailabilityVisibleMonthError = HttpErrorDto;
 
@@ -4051,7 +6024,8 @@ export interface ConsultantAvailabilityRemoveParams {
   id: number;
 }
 
-export type ConsultantAvailabilityRemoveData = ConsultantAvailabilityResultDto;
+export type ConsultantAvailabilityRemoveData =
+  ConsultantAvailabilityRemoveResultDto;
 
 export type ConsultantAvailabilityRemoveError = HttpErrorDto;
 
@@ -4072,6 +6046,8 @@ export interface ConsultantgooglecalendarCallbackParams {
 }
 
 export type ConsultantgooglecalendarCallbackData = any;
+
+export type ConsultantgooglecalendarCallbackError = HttpErrorDto;
 
 export interface ConsultantgooglecalendarStatusParams {
   /** @example 3 */
@@ -4103,14 +6079,9 @@ export interface ConsultantgooglecalendarDisconnectParams {
 }
 
 export type ConsultantgooglecalendarDisconnectData =
-  ConsultantGoogleCalendarStatusDto;
+  ConsultantGoogleCalendarDisconnectResultDto;
 
 export type ConsultantgooglecalendarDisconnectError = HttpErrorDto;
-
-export interface StorageUploadPayload {
-  /** @format binary */
-  file?: File;
-}
 
 export interface StorageUploadParams {
   folder: string;
@@ -4118,17 +6089,29 @@ export interface StorageUploadParams {
 
 export type StorageUploadData = StorageResultDto;
 
+export type StorageUploadError = HttpErrorDto;
+
 export interface StorageDeleteParams {
+  /** Ruta del archivo en Azure Storage */
   publicId: string;
 }
 
 export type StorageDeleteData = any;
 
+export type StorageDeleteError = HttpErrorDto;
+
 export interface StorageDownloadParams {
+  /** Ruta del archivo que se desea descargar */
   path: string;
 }
 
 export type StorageDownloadData = any;
+
+export type StorageDownloadError = HttpErrorDto;
+
+export type EmailSendEmailData = EmailSendResultDto;
+
+export type EmailSendEmailError = HttpErrorDto;
 
 export interface ConsultantadminFindAllParams {
   /**
@@ -4149,7 +6132,7 @@ export interface ConsultantadminFindAllParams {
   sector?: string;
 }
 
-export type ConsultantadminFindAllData = ConsultantListDto;
+export type ConsultantadminFindAllData = ConsultantAdminFindAllResultDto;
 
 export type ConsultantadminFindAllError = HttpErrorDto;
 
@@ -4157,7 +6140,7 @@ export interface ConsultantadminFindOneParams {
   id: number;
 }
 
-export type ConsultantadminFindOneData = ConsultantResultDto;
+export type ConsultantadminFindOneData = ConsultantAdminFindOneResultDto;
 
 export type ConsultantadminFindOneError = HttpErrorDto;
 
@@ -4203,7 +6186,7 @@ export interface ConsultantadminSetActiveParams {
   id: number;
 }
 
-export type ConsultantadminSetActiveData = ConsultantResultDto;
+export type ConsultantadminSetActiveData = ConsultantAdminSetActiveResultDto;
 
 export type ConsultantadminSetActiveError = HttpErrorDto;
 
@@ -4211,7 +6194,7 @@ export interface ConsultantadminRemoveParams {
   id: number;
 }
 
-export type ConsultantadminRemoveData = ConsultantResultDto;
+export type ConsultantadminRemoveData = ConsultantAdminRemoveResultDto;
 
 export type ConsultantadminRemoveError = HttpErrorDto;
 
@@ -4310,7 +6293,7 @@ export interface ConsultantFindByUserParams {
   userId: number;
 }
 
-export type ConsultantFindByUserData = ConsultantResultDto;
+export type ConsultantFindByUserData = ConsultantFindByUserResultDto;
 
 export type ConsultantFindByUserError = HttpErrorDto;
 
@@ -4338,7 +6321,7 @@ export interface ConsultantRemoveParams {
   id: number;
 }
 
-export type ConsultantRemoveData = ConsultantResultDto;
+export type ConsultantRemoveData = ConsultantRemoveResultDto;
 
 export type ConsultantRemoveError = HttpErrorDto;
 
@@ -4400,7 +6383,7 @@ export interface TaskRemoveParams {
   id: number;
 }
 
-export type TaskRemoveData = TaskResultDto;
+export type TaskRemoveData = TaskRemoveResultDto;
 
 export type TaskRemoveError = HttpErrorDto;
 
@@ -4439,7 +6422,7 @@ export interface DiagnosticRemoveParams {
   id: number;
 }
 
-export type DiagnosticRemoveData = DiagnosticResultDto;
+export type DiagnosticRemoveData = DiagnosticRemoveResultDto;
 
 export type DiagnosticRemoveError = HttpErrorDto;
 
@@ -4479,11 +6462,13 @@ export interface DiagnosticdocumentRemoveParams {
   id: number;
 }
 
-export type DiagnosticdocumentRemoveData = DiagnosticDocumentResultDto;
+export type DiagnosticdocumentRemoveData = DiagnosticDocumentRemoveResultDto;
 
 export type DiagnosticdocumentRemoveError = HttpErrorDto;
 
 export type SubscriptionPlansData = PlanResultDto[];
+
+export type SubscriptionPlansError = HttpErrorDto;
 
 export interface SubscriptionFindAllParams {
   /**
@@ -4518,7 +6503,7 @@ export interface SubscriptionFindByUserParams {
   userId: number;
 }
 
-export type SubscriptionFindByUserData = SubscriptionResultDto;
+export type SubscriptionFindByUserData = SubscriptionFindByUserResultDto;
 
 export type SubscriptionFindByUserError = HttpErrorDto;
 
@@ -4557,6 +6542,8 @@ export interface MercadopagoCallbackParams {
 
 export type MercadopagoCallbackData = any;
 
+export type MercadopagoCallbackError = HttpErrorDto;
+
 export interface MercadopagoStatusParams {
   /** @example 3 */
   consultantId: number;
@@ -4571,11 +6558,11 @@ export interface MercadopagoDisconnectParams {
   consultantId: number;
 }
 
-export type MercadopagoDisconnectData = MercadoPagoStatusDto;
+export type MercadopagoDisconnectData = MercadoPagoDisconnectResultDto;
 
 export type MercadopagoDisconnectError = HttpErrorDto;
 
-export type MercadopagoCreateCheckoutData = MercadoPagoCheckoutDto;
+export type MercadopagoCreateCheckoutData = MonnetCheckoutResultDto;
 
 export type MercadopagoCreateCheckoutError = HttpErrorDto;
 
@@ -4598,13 +6585,13 @@ export interface MercadopagoFindPaymentsParams {
   year?: number;
   /**
    * Month used to filter the payment date
-   * @default 10
+   * @default 11
    */
   month?: number;
   /** Type of operation */
   operationType?: "servicio" | "consultoria";
   /** Payment method category */
-  paymentType?: "cupon" | "mercado_pago" | "tarjeta" | "yape";
+  paymentType?: "cupon" | "mercado_pago" | "tarjeta" | "yape" | "monnet";
 }
 
 export type MercadopagoFindPaymentsData = MercadoPagoPaymentHistoryResponseDto;
@@ -4623,7 +6610,7 @@ export interface MercadopagoFindCheckoutParams {
   id: number;
 }
 
-export type MercadopagoFindCheckoutData = MercadoPagoCheckoutDto;
+export type MercadopagoFindCheckoutData = MercadoPagoFindCheckoutResultDto;
 
 export type MercadopagoFindCheckoutError = HttpErrorDto;
 
@@ -4631,7 +6618,8 @@ export interface MercadopagoPrepareCheckoutPaymentParams {
   id: number;
 }
 
-export type MercadopagoPrepareCheckoutPaymentData = MercadoPagoCheckoutDto;
+export type MercadopagoPrepareCheckoutPaymentData =
+  MercadoPagoPrepareCheckoutPaymentResultDto;
 
 export type MercadopagoPrepareCheckoutPaymentError = HttpErrorDto;
 
@@ -4647,7 +6635,8 @@ export interface MercadopagoSyncServicePaymentParams {
   id: number;
 }
 
-export type MercadopagoSyncServicePaymentData = MercadoPagoCheckoutDto;
+export type MercadopagoSyncServicePaymentData =
+  MercadoPagoSyncServicePaymentResultDto;
 
 export type MercadopagoSyncServicePaymentError = HttpErrorDto;
 
@@ -4671,6 +6660,54 @@ export interface MercadopagoWebhookParams {
 }
 
 export type MercadopagoWebhookData = any;
+
+export type MercadopagoWebhookError = HttpErrorDto;
+
+export type MonnetcheckoutCreateCheckoutData = MonnetCheckoutResultDto;
+
+export type MonnetcheckoutCreateCheckoutError = HttpErrorDto;
+
+export interface MonnetcheckoutFindCheckoutParams {
+  id: number;
+}
+
+export type MonnetcheckoutFindCheckoutData = MonnetFindCheckoutResultDto;
+
+export type MonnetcheckoutFindCheckoutError = HttpErrorDto;
+
+export interface MonnetcheckoutPrepareCheckoutPaymentParams {
+  id: number;
+}
+
+export type MonnetcheckoutPrepareCheckoutPaymentData =
+  MonnetPrepareCheckoutPaymentResultDto;
+
+export type MonnetcheckoutPrepareCheckoutPaymentError = HttpErrorDto;
+
+export interface MonnetcheckoutSyncCheckoutPaymentParams {
+  id: number;
+}
+
+export type MonnetcheckoutSyncCheckoutPaymentData =
+  MonnetSyncCheckoutPaymentResultDto;
+
+export type MonnetcheckoutSyncCheckoutPaymentError = HttpErrorDto;
+
+export type MonnetpayinCreateBankTransferData = PayinTransactionResultDto;
+
+export type MonnetpayinCreateBankTransferError = HttpErrorDto;
+
+export type MonnetpayinCreateQrData = PayinTransactionResultDto;
+
+export type MonnetpayinCreateQrError = HttpErrorDto;
+
+export type MonnetpayinCreateYapeMobileData = PayinTransactionResultDto;
+
+export type MonnetpayinCreateYapeMobileError = HttpErrorDto;
+
+export type MonnetpayinCreateYapeWebData = PayinTransactionResultDto;
+
+export type MonnetpayinCreateYapeWebError = HttpErrorDto;
 
 export interface ServiceFindAllParams {
   /**
@@ -4698,6 +6735,8 @@ export interface ServiceFindAllParams {
 }
 
 export type ServiceFindAllData = ServiceRequestListDto;
+
+export type ServiceFindAllError = HttpErrorDto;
 
 export interface ServiceFindOneParams {
   id: number;
@@ -4731,7 +6770,7 @@ export interface ServiceCompleteServiceParams {
   id: number;
 }
 
-export type ServiceCompleteServiceData = ServiceRequestResultDto;
+export type ServiceCompleteServiceData = ServiceRequestCompleteServiceResultDto;
 
 export type ServiceCompleteServiceError = HttpErrorDto;
 
@@ -4757,7 +6796,7 @@ export interface ServiceRemoveMilestoneParams {
   index: number;
 }
 
-export type ServiceRemoveMilestoneData = ServiceRequestResultDto;
+export type ServiceRemoveMilestoneData = ServiceRequestRemoveMilestoneResultDto;
 
 export type ServiceRemoveMilestoneError = HttpErrorDto;
 
@@ -4782,30 +6821,9 @@ export interface ServiceDeleteEvidenceParams {
   attachmentId: string;
 }
 
-export type ServiceDeleteEvidenceData = ServiceRequestResultDto;
+export type ServiceDeleteEvidenceData = ServiceRequestDeleteEvidenceResultDto;
 
 export type ServiceDeleteEvidenceError = HttpErrorDto;
-
-export interface PublicconsultantFindAllParams {
-  /**
-   * Page number
-   * @default 1
-   */
-  page?: number;
-  /**
-   * Items per page
-   * @default 10
-   */
-  limit?: number;
-  /** Search by name, bio or specialty */
-  search?: string;
-  active?: "true" | "false";
-  validated?: "true" | "false";
-  /** Filter by sector */
-  sector?: string;
-}
-
-export type PublicconsultantFindAllData = PublicConsultantListDto;
 
 export interface PromotioncodeadminFindAllParams {
   /**
@@ -4822,6 +6840,8 @@ export interface PromotioncodeadminFindAllParams {
 }
 
 export type PromotioncodeadminFindAllData = PromotionCodeListDto;
+
+export type PromotioncodeadminFindAllError = HttpErrorDto;
 
 export interface PromotioncodeadminFindOneParams {
   id: number;
@@ -4852,6 +6872,14 @@ export type PromotioncodeRedeemServiceData =
 
 export type PromotioncodeRedeemServiceError = HttpErrorDto;
 
+export type IdentityverificationVerifyDniData = DniVerificationResultDto;
+
+export type IdentityverificationVerifyDniError = HttpErrorDto;
+
+export type IdentityverificationVerifyRucData = RucVerificationResultDto;
+
+export type IdentityverificationVerifyRucError = HttpErrorDto;
+
 export interface FeedbackFindAllParams {
   /**
    * Page number
@@ -4867,6 +6895,8 @@ export interface FeedbackFindAllParams {
 }
 
 export type FeedbackFindAllData = FeedbackListDto;
+
+export type FeedbackFindAllError = HttpErrorDto;
 
 export interface FeedbackFindOneParams {
   id: number;
@@ -4907,11 +6937,13 @@ export interface FeedbackadminFindAllParams {
 
 export type FeedbackadminFindAllData = FeedbackListDto;
 
+export type FeedbackadminFindAllError = HttpErrorDto;
+
 export interface FeedbackadminFindOneParams {
   id: number;
 }
 
-export type FeedbackadminFindOneData = FeedbackResultDto;
+export type FeedbackadminFindOneData = FeedbackAdminFindOneResultDto;
 
 export type FeedbackadminFindOneError = HttpErrorDto;
 
@@ -4927,7 +6959,7 @@ export interface FeedbackadminReplyParams {
   id: number;
 }
 
-export type FeedbackadminReplyData = FeedbackResultDto;
+export type FeedbackadminReplyData = FeedbackAdminReplyResultDto;
 
 export type FeedbackadminReplyError = HttpErrorDto;
 
@@ -4963,6 +6995,8 @@ export interface ServiceofferFindAllParams {
 
 export type ServiceofferFindAllData = ConsultantServiceOfferListDto;
 
+export type ServiceofferFindAllError = HttpErrorDto;
+
 export interface ServiceofferFindMineParams {
   /**
    * Page number
@@ -4993,7 +7027,9 @@ export interface ServiceofferFindMineParams {
   isActive?: "true" | "false";
 }
 
-export type ServiceofferFindMineData = ConsultantServiceOfferListDto;
+export type ServiceofferFindMineData = ServiceOfferFindMineResultDto;
+
+export type ServiceofferFindMineError = HttpErrorDto;
 
 export interface ServiceofferFindOneParams {
   id: number;
@@ -5005,11 +7041,15 @@ export type ServiceofferFindOneError = HttpErrorDto;
 
 export type ServiceofferCreateData = ConsultantServiceOfferResultDto;
 
+export type ServiceofferCreateError = HttpErrorDto;
+
 export interface ServiceofferUpdateParams {
   id: number;
 }
 
 export type ServiceofferUpdateData = ConsultantServiceOfferResultDto;
+
+export type ServiceofferUpdateError = HttpErrorDto;
 
 export interface ServiceofferSetActiveParams {
   id: number;
@@ -5017,19 +7057,84 @@ export interface ServiceofferSetActiveParams {
 
 export type ServiceofferSetActiveData = ConsultantServiceOfferResultDto;
 
+export type ServiceofferSetActiveError = HttpErrorDto;
+
 export interface ServiceofferRemoveParams {
   id: number;
 }
 
-export type ServiceofferRemoveData = ConsultantServiceOfferResultDto;
+export type ServiceofferRemoveData = ServiceOfferRemoveResultDto;
+
+export type ServiceofferRemoveError = HttpErrorDto;
+
+export type MonnetwebhookPayinData = MonnetPayinWebhookResultDto;
+
+export type MonnetwebhookPayinError = HttpErrorDto;
+
+export type AuthLoginData = LoginResponseDto;
+
+export type AuthLoginError = HttpErrorDto;
+
+export type AuthRegisterData = LoginResponseDto;
+
+export type AuthRegisterError = HttpErrorDto;
+
+export interface AuthInvitationParams {
+  token: string;
+}
+
+export type AuthInvitationData = InvitationPreviewDto;
+
+export type AuthInvitationError = HttpErrorDto;
+
+export type AuthAcceptInvitationData = AuthAcceptInvitationResultDto;
+
+export type AuthAcceptInvitationError = HttpErrorDto;
+
+export interface AuthGoogleUrlParams {
+  /** @default "login" */
+  flow?: "login" | "register" | "invitation";
+  /** @default "pyme" */
+  role?: "pyme" | "consultor";
+  /** Token de invitación para unirse a una PYME existente */
+  invitationToken?: string;
+}
+
+export type AuthGoogleUrlData = GoogleAuthUrlResponseDto;
+
+export type AuthGoogleUrlError = HttpErrorDto;
+
+export interface AuthGoogleCallbackParams {
+  code?: string;
+  state?: string;
+  error?: string;
+}
+
+export type AuthGoogleCallbackData = any;
+
+export type AuthGoogleCallbackError = HttpErrorDto;
+
+export type AuthGetProfileData = AuthProfileResultDto;
+
+export type AuthGetProfileError = HttpErrorDto;
+
+export type AuthForgotPasswordData = MessageResponseDto;
+
+export type AuthForgotPasswordError = HttpErrorDto;
+
+export type AuthResetPasswordData = MessageResponseDto;
+
+export type AuthResetPasswordError = HttpErrorDto;
 
 export namespace App {
   /**
    * No description
    * @tags App
    * @name AppGetHello
+   * @summary Check API availability
    * @request GET:/
    * @response `200` `AppGetHelloData`
+   * @response `500` `HttpErrorDto`
    */
   export namespace AppGetHello {
     export type RequestParams = {};
@@ -5040,231 +7145,39 @@ export namespace App {
   }
 }
 
-export namespace Auth {
+export namespace PublicConsultant {
   /**
    * No description
-   * @tags auth
-   * @name AuthLogin
-   * @summary User login
-   * @request POST:/auth/login
-   * @response `200` `AuthLoginData`
+   * @tags publicConsultant
+   * @name PublicconsultantFindAll
+   * @summary Get public active consultants for landing
+   * @request GET:/public/consultant/find-all
+   * @response `200` `PublicconsultantFindAllData`
    * @response `400` `HttpErrorDto`
    */
-  export namespace AuthLogin {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = LoginDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = AuthLoginData;
-  }
-
-  /**
-   * No description
-   * @tags auth
-   * @name AuthRegister
-   * @summary Register a new PYME or consultant user
-   * @request POST:/auth/register
-   * @response `200` `AuthRegisterData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace AuthRegister {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = RegisterDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = AuthRegisterData;
-  }
-
-  /**
-   * No description
-   * @tags auth
-   * @name AuthInvitation
-   * @summary Validate a PYME invitation token
-   * @request GET:/auth/invitation
-   * @response `200` `AuthInvitationData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace AuthInvitation {
+  export namespace PublicconsultantFindAll {
     export type RequestParams = {};
     export type RequestQuery = {
-      token: string;
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /** Search by name, bio or specialty */
+      search?: string;
+      active?: "true" | "false";
+      validated?: "true" | "false";
+      /** Filter by sector */
+      sector?: string;
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = AuthInvitationData;
-  }
-
-  /**
-   * No description
-   * @tags auth
-   * @name AuthAcceptInvitation
-   * @summary Accept a PYME invitation with the current account
-   * @request POST:/auth/invitation/accept
-   * @secure
-   * @response `200` `AuthAcceptInvitationData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace AuthAcceptInvitation {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = InvitationTokenDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = AuthAcceptInvitationData;
-  }
-
-  /**
-   * No description
-   * @tags auth
-   * @name AuthGoogleUrl
-   * @summary Get Google OAuth URL generated by backend
-   * @request GET:/auth/google/url
-   * @response `200` `AuthGoogleUrlData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace AuthGoogleUrl {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /** @default "login" */
-      flow?: "login" | "register" | "invitation";
-      /** @default "pyme" */
-      role?: "pyme" | "consultor";
-      /** Token de invitación para unirse a una PYME existente */
-      invitationToken?: string;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = AuthGoogleUrlData;
-  }
-
-  /**
-   * No description
-   * @tags auth
-   * @name AuthGoogleCallback
-   * @summary Google OAuth callback for popup login
-   * @request GET:/auth/google/callback
-   * @response `200` `AuthGoogleCallbackData` HTML response that posts the session to the opener window
-   */
-  export namespace AuthGoogleCallback {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      code?: string;
-      state?: string;
-      error?: string;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = AuthGoogleCallbackData;
-  }
-
-  /**
-   * No description
-   * @tags auth
-   * @name AuthGetProfile
-   * @summary Get current user profile
-   * @request GET:/auth/profile
-   * @secure
-   * @response `200` `AuthGetProfileData` Returns current user information
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace AuthGetProfile {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = AuthGetProfileData;
-  }
-
-  /**
-   * No description
-   * @tags auth
-   * @name AuthForgotPassword
-   * @summary Request password reset link via email
-   * @request POST:/auth/forgot-password
-   * @response `200` `AuthForgotPasswordData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace AuthForgotPassword {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = ForgotPasswordDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = AuthForgotPasswordData;
-  }
-
-  /**
-   * No description
-   * @tags auth
-   * @name AuthResetPassword
-   * @summary Reset user password using token
-   * @request POST:/auth/reset-password
-   * @response `200` `AuthResetPasswordData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace AuthResetPassword {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = ResetPasswordDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = AuthResetPasswordData;
-  }
-}
-
-export namespace Email {
-  /**
-   * No description
-   * @tags email
-   * @name EmailSendEmail
-   * @summary Enviar un correo electrónico
-   * @request POST:/admin/email/send
-   * @secure
-   * @response `201` `EmailSendEmailData`
-   * @response `400` `HttpErrorDto`
-   * @response `500` `HttpErrorDto`
-   */
-  export namespace EmailSendEmail {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = EmailSendDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = EmailSendEmailData;
-  }
-}
-
-export namespace IdentityVerification {
-  /**
-   * No description
-   * @tags identityVerification
-   * @name IdentityverificationVerifyDni
-   * @summary Validar datos personales contra el registro de DNI de PeruDevs
-   * @request POST:/admin/identity-verification/dni
-   * @response `200` `IdentityverificationVerifyDniData`
-   * @response `400` `HttpErrorDto`
-   * @response `502` `HttpErrorDto`
-   */
-  export namespace IdentityverificationVerifyDni {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = DniVerificationDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = IdentityverificationVerifyDniData;
-  }
-
-  /**
-   * No description
-   * @tags identityVerification
-   * @name IdentityverificationVerifyRuc
-   * @summary Validar si un RUC existe en el registro de PeruDevs
-   * @request POST:/admin/identity-verification/ruc
-   * @response `200` `IdentityverificationVerifyRucData`
-   * @response `400` `HttpErrorDto`
-   * @response `502` `HttpErrorDto`
-   */
-  export namespace IdentityverificationVerifyRuc {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = RucVerificationDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = IdentityverificationVerifyRucData;
+    export type ResponseBody = PublicconsultantFindAllData;
   }
 }
 
@@ -5608,6 +7521,7 @@ export namespace Pyme {
    * @request GET:/admin/pyme/team
    * @secure
    * @response `200` `PymeTeamData`
+   * @response `400` `HttpErrorDto`
    */
   export namespace PymeTeam {
     export type RequestParams = {};
@@ -5625,6 +7539,7 @@ export namespace Pyme {
    * @request POST:/admin/pyme/invitations
    * @secure
    * @response `200` `PymeCreateInvitationData`
+   * @response `400` `HttpErrorDto`
    */
   export namespace PymeCreateInvitation {
     export type RequestParams = {};
@@ -5642,6 +7557,7 @@ export namespace Pyme {
    * @request DELETE:/admin/pyme/invitations/{id}
    * @secure
    * @response `200` `PymeRevokeInvitationData`
+   * @response `400` `HttpErrorDto`
    */
   export namespace PymeRevokeInvitation {
     export type RequestParams = {
@@ -5661,6 +7577,7 @@ export namespace Pyme {
    * @request DELETE:/admin/pyme/members/{userId}
    * @secure
    * @response `200` `PymeRemoveMemberData`
+   * @response `400` `HttpErrorDto`
    */
   export namespace PymeRemoveMember {
     export type RequestParams = {
@@ -6748,6 +8665,7 @@ export namespace ConsultantGoogleCalendar {
    * @summary Google Calendar OAuth callback for consultant connection
    * @request GET:/admin/consultant-google-calendar/callback
    * @response `200` `ConsultantgooglecalendarCallbackData` HTML response that posts the connection result to the opener window
+   * @response `400` `HttpErrorDto`
    */
   export namespace ConsultantgooglecalendarCallback {
     export type RequestParams = {};
@@ -6837,13 +8755,14 @@ export namespace Storage {
    * @summary Subir un archivo a Azure Storage
    * @request POST:/storage
    * @response `200` `StorageUploadData`
+   * @response `400` `HttpErrorDto`
    */
   export namespace StorageUpload {
     export type RequestParams = {};
     export type RequestQuery = {
       folder: string;
     };
-    export type RequestBody = StorageUploadPayload;
+    export type RequestBody = StorageUploadBodyDto;
     export type RequestHeaders = {};
     export type ResponseBody = StorageUploadData;
   }
@@ -6855,10 +8774,12 @@ export namespace Storage {
    * @summary Eliminar un archivo de Azure Storage
    * @request DELETE:/storage/{publicId}
    * @secure
-   * @response `200` `StorageDeleteData`
+   * @response `200` `StorageDeleteData` Operación completada
+   * @response `400` `HttpErrorDto`
    */
   export namespace StorageDelete {
     export type RequestParams = {
+      /** Ruta del archivo en Azure Storage */
       publicId: string;
     };
     export type RequestQuery = {};
@@ -6873,16 +8794,39 @@ export namespace Storage {
    * @name StorageDownload
    * @summary Visualizar o descargar archivo de Azure Storage
    * @request GET:/storage/download-file
-   * @response `200` `StorageDownloadData`
+   * @response `200` `StorageDownloadData` Operación completada
+   * @response `400` `HttpErrorDto`
    */
   export namespace StorageDownload {
     export type RequestParams = {};
     export type RequestQuery = {
+      /** Ruta del archivo que se desea descargar */
       path: string;
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = StorageDownloadData;
+  }
+}
+
+export namespace Email {
+  /**
+   * No description
+   * @tags email
+   * @name EmailSendEmail
+   * @summary Enviar un correo electrónico
+   * @request POST:/admin/email/send
+   * @secure
+   * @response `201` `EmailSendEmailData`
+   * @response `400` `HttpErrorDto`
+   * @response `500` `HttpErrorDto`
+   */
+  export namespace EmailSendEmail {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = EmailSendDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = EmailSendEmailData;
   }
 }
 
@@ -7635,6 +9579,7 @@ export namespace Subscription {
    * @request GET:/admin/subscription/plans
    * @secure
    * @response `200` `SubscriptionPlansData`
+   * @response `400` `HttpErrorDto`
    */
   export namespace SubscriptionPlans {
     export type RequestParams = {};
@@ -7807,6 +9752,7 @@ export namespace MercadoPago {
    * @summary Mercado Pago OAuth callback for consultant connection
    * @request GET:/admin/mercado-pago/callback
    * @response `200` `MercadopagoCallbackData` HTML response that posts the connection result to the opener window
+   * @response `400` `HttpErrorDto`
    */
   export namespace MercadopagoCallback {
     export type RequestParams = {};
@@ -7866,8 +9812,9 @@ export namespace MercadoPago {
    * No description
    * @tags mercadoPago
    * @name MercadopagoCreateCheckout
-   * @summary Create a Mercado Pago checkout for a pending meeting
+   * @summary Crear checkout Monnet (ruta anterior)
    * @request POST:/admin/mercado-pago/checkout
+   * @deprecated
    * @secure
    * @response `200` `MercadopagoCreateCheckoutData`
    * @response `400` `HttpErrorDto`
@@ -7911,13 +9858,13 @@ export namespace MercadoPago {
       year?: number;
       /**
        * Month used to filter the payment date
-       * @default 10
+       * @default 11
        */
       month?: number;
       /** Type of operation */
       operationType?: "servicio" | "consultoria";
       /** Payment method category */
-      paymentType?: "cupon" | "mercado_pago" | "tarjeta" | "yape";
+      paymentType?: "cupon" | "mercado_pago" | "tarjeta" | "yape" | "monnet";
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
@@ -7948,8 +9895,9 @@ export namespace MercadoPago {
    * No description
    * @tags mercadoPago
    * @name MercadopagoFindCheckout
-   * @summary Get a Mercado Pago checkout by ID
+   * @summary Consultar checkout Monnet (ruta anterior)
    * @request GET:/admin/mercado-pago/checkout/{id}
+   * @deprecated
    * @secure
    * @response `200` `MercadopagoFindCheckoutData`
    * @response `400` `HttpErrorDto`
@@ -7968,8 +9916,9 @@ export namespace MercadoPago {
    * No description
    * @tags mercadoPago
    * @name MercadopagoPrepareCheckoutPayment
-   * @summary Create the Mercado Pago preference when the PYME is ready to pay
+   * @summary Generar QR Monnet (ruta anterior)
    * @request POST:/admin/mercado-pago/checkout/{id}/payment
+   * @deprecated
    * @secure
    * @response `200` `MercadopagoPrepareCheckoutPaymentData`
    * @response `400` `HttpErrorDto`
@@ -7979,7 +9928,7 @@ export namespace MercadoPago {
       id: number;
     };
     export type RequestQuery = {};
-    export type RequestBody = never;
+    export type RequestBody = MonnetPrepareCheckoutPaymentDto;
     export type RequestHeaders = {};
     export type ResponseBody = MercadopagoPrepareCheckoutPaymentData;
   }
@@ -8031,6 +9980,7 @@ export namespace MercadoPago {
    * @summary Mercado Pago payment webhook
    * @request POST:/admin/mercado-pago/webhook
    * @response `200` `MercadopagoWebhookData` Webhook processed
+   * @response `400` `HttpErrorDto`
    */
   export namespace MercadopagoWebhook {
     export type RequestParams = {};
@@ -8058,6 +10008,160 @@ export namespace MercadoPago {
   }
 }
 
+export namespace MonnetCheckout {
+  /**
+   * No description
+   * @tags monnetCheckout
+   * @name MonnetcheckoutCreateCheckout
+   * @summary Crear checkout de reunión con Monnet QR
+   * @request POST:/admin/monnet/checkout
+   * @secure
+   * @response `200` `MonnetcheckoutCreateCheckoutData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetcheckoutCreateCheckout {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = MonnetCreateCheckoutDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetcheckoutCreateCheckoutData;
+  }
+
+  /**
+   * No description
+   * @tags monnetCheckout
+   * @name MonnetcheckoutFindCheckout
+   * @summary Consultar checkout y QR de la reunión
+   * @request GET:/admin/monnet/checkout/{id}
+   * @secure
+   * @response `200` `MonnetcheckoutFindCheckoutData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetcheckoutFindCheckout {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetcheckoutFindCheckoutData;
+  }
+
+  /**
+   * No description
+   * @tags monnetCheckout
+   * @name MonnetcheckoutPrepareCheckoutPayment
+   * @summary Generar QR de pago con el importe calculado por Hubsme
+   * @request POST:/admin/monnet/checkout/{id}/payment
+   * @secure
+   * @response `200` `MonnetcheckoutPrepareCheckoutPaymentData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetcheckoutPrepareCheckoutPayment {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = MonnetPrepareCheckoutPaymentDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetcheckoutPrepareCheckoutPaymentData;
+  }
+
+  /**
+   * No description
+   * @tags monnetCheckout
+   * @name MonnetcheckoutSyncCheckoutPayment
+   * @summary Verificar en Monnet y confirmar el pago de la reunión
+   * @request POST:/admin/monnet/checkout/{id}/payment/sync
+   * @secure
+   * @response `200` `MonnetcheckoutSyncCheckoutPaymentData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetcheckoutSyncCheckoutPayment {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetcheckoutSyncCheckoutPaymentData;
+  }
+}
+
+export namespace MonnetPayin {
+  /**
+   * No description
+   * @tags monnetPayin
+   * @name MonnetpayinCreateBankTransfer
+   * @summary PER · Válida · Monnet · Bank Transfer
+   * @request POST:/admin/monnet/payin/create-transaction/standard/bank-transfer
+   * @secure
+   * @response `200` `MonnetpayinCreateBankTransferData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetpayinCreateBankTransfer {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PayinCreateBankTransferDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetpayinCreateBankTransferData;
+  }
+
+  /**
+   * No description
+   * @tags monnetPayin
+   * @name MonnetpayinCreateQr
+   * @summary PER · Válida · QR (Ligo en la colección)
+   * @request POST:/admin/monnet/payin/create-transaction/standard/qr
+   * @secure
+   * @response `200` `MonnetpayinCreateQrData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetpayinCreateQr {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PayinCreateQrDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetpayinCreateQrData;
+  }
+
+  /**
+   * No description
+   * @tags monnetPayin
+   * @name MonnetpayinCreateYapeMobile
+   * @summary White Label · Válida · Yape One Shot Mobile
+   * @request POST:/admin/monnet/payin/create-transaction/white-label/yape/mobile
+   * @secure
+   * @response `200` `MonnetpayinCreateYapeMobileData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetpayinCreateYapeMobile {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PayinCreateYapeMobileDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetpayinCreateYapeMobileData;
+  }
+
+  /**
+   * No description
+   * @tags monnetPayin
+   * @name MonnetpayinCreateYapeWeb
+   * @summary White Label · Válida · Yape One Shot Web
+   * @request POST:/admin/monnet/payin/create-transaction/white-label/yape/web
+   * @secure
+   * @response `200` `MonnetpayinCreateYapeWebData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetpayinCreateYapeWeb {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PayinCreateYapeWebDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetpayinCreateYapeWebData;
+  }
+}
+
 export namespace Service {
   /**
    * No description
@@ -8067,6 +10171,7 @@ export namespace Service {
    * @request GET:/admin/service/find-all
    * @secure
    * @response `200` `ServiceFindAllData`
+   * @response `400` `HttpErrorDto`
    */
   export namespace ServiceFindAll {
     export type RequestParams = {};
@@ -8321,41 +10426,6 @@ export namespace Service {
   }
 }
 
-export namespace PublicConsultant {
-  /**
-   * No description
-   * @tags publicConsultant
-   * @name PublicconsultantFindAll
-   * @summary Get public active consultants for landing
-   * @request GET:/public/consultant/find-all
-   * @response `200` `PublicconsultantFindAllData`
-   */
-  export namespace PublicconsultantFindAll {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /**
-       * Page number
-       * @default 1
-       */
-      page?: number;
-      /**
-       * Items per page
-       * @default 10
-       */
-      limit?: number;
-      /** Search by name, bio or specialty */
-      search?: string;
-      active?: "true" | "false";
-      validated?: "true" | "false";
-      /** Filter by sector */
-      sector?: string;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = PublicconsultantFindAllData;
-  }
-}
-
 export namespace PromotionCodeAdmin {
   /**
    * No description
@@ -8365,6 +10435,7 @@ export namespace PromotionCodeAdmin {
    * @request GET:/admin/promotion-code/find-all
    * @secure
    * @response `200` `PromotioncodeadminFindAllData`
+   * @response `400` `HttpErrorDto`
    */
   export namespace PromotioncodeadminFindAll {
     export type RequestParams = {};
@@ -8483,6 +10554,44 @@ export namespace PromotionCode {
   }
 }
 
+export namespace IdentityVerification {
+  /**
+   * No description
+   * @tags identityVerification
+   * @name IdentityverificationVerifyDni
+   * @summary Validar datos personales contra el registro de DNI de PeruDevs
+   * @request POST:/admin/identity-verification/dni
+   * @response `200` `IdentityverificationVerifyDniData`
+   * @response `400` `HttpErrorDto`
+   * @response `502` `HttpErrorDto`
+   */
+  export namespace IdentityverificationVerifyDni {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = DniVerificationDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = IdentityverificationVerifyDniData;
+  }
+
+  /**
+   * No description
+   * @tags identityVerification
+   * @name IdentityverificationVerifyRuc
+   * @summary Validar si un RUC existe en el registro de PeruDevs
+   * @request POST:/admin/identity-verification/ruc
+   * @response `200` `IdentityverificationVerifyRucData`
+   * @response `400` `HttpErrorDto`
+   * @response `502` `HttpErrorDto`
+   */
+  export namespace IdentityverificationVerifyRuc {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = RucVerificationDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = IdentityverificationVerifyRucData;
+  }
+}
+
 export namespace Feedback {
   /**
    * No description
@@ -8492,6 +10601,7 @@ export namespace Feedback {
    * @request GET:/admin/feedback/find-all
    * @secure
    * @response `200` `FeedbackFindAllData`
+   * @response `400` `HttpErrorDto`
    */
   export namespace FeedbackFindAll {
     export type RequestParams = {};
@@ -8581,6 +10691,7 @@ export namespace FeedbackAdmin {
    * @request GET:/admin/backoffice/feedback/find-all
    * @secure
    * @response `200` `FeedbackadminFindAllData`
+   * @response `400` `HttpErrorDto`
    */
   export namespace FeedbackadminFindAll {
     export type RequestParams = {};
@@ -8675,6 +10786,7 @@ export namespace ServiceOffer {
    * @request GET:/admin/service-offer/find-all
    * @secure
    * @response `200` `ServiceofferFindAllData`
+   * @response `400` `HttpErrorDto`
    */
   export namespace ServiceofferFindAll {
     export type RequestParams = {};
@@ -8720,6 +10832,7 @@ export namespace ServiceOffer {
    * @request GET:/admin/service-offer/find-mine
    * @secure
    * @response `200` `ServiceofferFindMineData`
+   * @response `400` `HttpErrorDto`
    */
   export namespace ServiceofferFindMine {
     export type RequestParams = {};
@@ -8785,6 +10898,7 @@ export namespace ServiceOffer {
    * @request POST:/admin/service-offer/create
    * @secure
    * @response `201` `ServiceofferCreateData`
+   * @response `400` `HttpErrorDto`
    */
   export namespace ServiceofferCreate {
     export type RequestParams = {};
@@ -8802,6 +10916,7 @@ export namespace ServiceOffer {
    * @request PATCH:/admin/service-offer/update/{id}
    * @secure
    * @response `200` `ServiceofferUpdateData`
+   * @response `400` `HttpErrorDto`
    */
   export namespace ServiceofferUpdate {
     export type RequestParams = {
@@ -8821,6 +10936,7 @@ export namespace ServiceOffer {
    * @request PATCH:/admin/service-offer/active/{id}
    * @secure
    * @response `200` `ServiceofferSetActiveData`
+   * @response `400` `HttpErrorDto`
    */
   export namespace ServiceofferSetActive {
     export type RequestParams = {
@@ -8840,6 +10956,7 @@ export namespace ServiceOffer {
    * @request DELETE:/admin/service-offer/delete/{id}
    * @secure
    * @response `200` `ServiceofferRemoveData`
+   * @response `400` `HttpErrorDto`
    */
   export namespace ServiceofferRemove {
     export type RequestParams = {
@@ -8849,6 +10966,195 @@ export namespace ServiceOffer {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = ServiceofferRemoveData;
+  }
+}
+
+export namespace MonnetWebhook {
+  /**
+   * No description
+   * @tags monnetWebhook
+   * @name MonnetwebhookPayin
+   * @summary Recibir y verificar notificación Payin de Monnet
+   * @request POST:/admin/monnet/webhook/payin
+   * @response `200` `MonnetwebhookPayinData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetwebhookPayin {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = MonnetPayinWebhookDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetwebhookPayinData;
+  }
+}
+
+export namespace Auth {
+  /**
+   * No description
+   * @tags auth
+   * @name AuthLogin
+   * @summary User login
+   * @request POST:/auth/login
+   * @response `200` `AuthLoginData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace AuthLogin {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = LoginDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthLoginData;
+  }
+
+  /**
+   * No description
+   * @tags auth
+   * @name AuthRegister
+   * @summary Register a new PYME or consultant user
+   * @request POST:/auth/register
+   * @response `200` `AuthRegisterData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace AuthRegister {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = RegisterDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthRegisterData;
+  }
+
+  /**
+   * No description
+   * @tags auth
+   * @name AuthInvitation
+   * @summary Validate a PYME invitation token
+   * @request GET:/auth/invitation
+   * @response `200` `AuthInvitationData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace AuthInvitation {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      token: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthInvitationData;
+  }
+
+  /**
+   * No description
+   * @tags auth
+   * @name AuthAcceptInvitation
+   * @summary Accept a PYME invitation with the current account
+   * @request POST:/auth/invitation/accept
+   * @secure
+   * @response `200` `AuthAcceptInvitationData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace AuthAcceptInvitation {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = InvitationTokenDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthAcceptInvitationData;
+  }
+
+  /**
+   * No description
+   * @tags auth
+   * @name AuthGoogleUrl
+   * @summary Get Google OAuth URL generated by backend
+   * @request GET:/auth/google/url
+   * @response `200` `AuthGoogleUrlData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace AuthGoogleUrl {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @default "login" */
+      flow?: "login" | "register" | "invitation";
+      /** @default "pyme" */
+      role?: "pyme" | "consultor";
+      /** Token de invitación para unirse a una PYME existente */
+      invitationToken?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthGoogleUrlData;
+  }
+
+  /**
+   * No description
+   * @tags auth
+   * @name AuthGoogleCallback
+   * @summary Google OAuth callback for popup login
+   * @request GET:/auth/google/callback
+   * @response `200` `AuthGoogleCallbackData` HTML response that posts the session to the opener window
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace AuthGoogleCallback {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      code?: string;
+      state?: string;
+      error?: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthGoogleCallbackData;
+  }
+
+  /**
+   * No description
+   * @tags auth
+   * @name AuthGetProfile
+   * @summary Get current user profile
+   * @request GET:/auth/profile
+   * @secure
+   * @response `200` `AuthGetProfileData` Returns current user information
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace AuthGetProfile {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthGetProfileData;
+  }
+
+  /**
+   * No description
+   * @tags auth
+   * @name AuthForgotPassword
+   * @summary Request password reset link via email
+   * @request POST:/auth/forgot-password
+   * @response `200` `AuthForgotPasswordData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace AuthForgotPassword {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ForgotPasswordDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthForgotPasswordData;
+  }
+
+  /**
+   * No description
+   * @tags auth
+   * @name AuthResetPassword
+   * @summary Reset user password using token
+   * @request POST:/auth/reset-password
+   * @response `200` `AuthResetPasswordData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace AuthResetPassword {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ResetPasswordDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthResetPasswordData;
   }
 }
 
@@ -9127,277 +11433,41 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags App
      * @name AppGetHello
+     * @summary Check API availability
      * @request GET:/
      * @response `200` `AppGetHelloData`
-     */
-    getHello: (params: RequestParams = {}) =>
-      this.http.request<AppGetHelloData, any>({
-        path: `/`,
-        method: "GET",
-        ...params,
-      }),
-  };
-  auth = {
-    /**
-     * No description
-     *
-     * @tags auth
-     * @name AuthLogin
-     * @summary User login
-     * @request POST:/auth/login
-     * @response `200` `AuthLoginData`
-     * @response `400` `HttpErrorDto`
-     */
-    login: (data: LoginDto, params: RequestParams = {}) =>
-      this.http.request<AuthLoginData, AuthLoginError>({
-        path: `/auth/login`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags auth
-     * @name AuthRegister
-     * @summary Register a new PYME or consultant user
-     * @request POST:/auth/register
-     * @response `200` `AuthRegisterData`
-     * @response `400` `HttpErrorDto`
-     */
-    register: (data: RegisterDto, params: RequestParams = {}) =>
-      this.http.request<AuthRegisterData, AuthRegisterError>({
-        path: `/auth/register`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags auth
-     * @name AuthInvitation
-     * @summary Validate a PYME invitation token
-     * @request GET:/auth/invitation
-     * @response `200` `AuthInvitationData`
-     * @response `400` `HttpErrorDto`
-     */
-    invitation: (query: AuthInvitationParams, params: RequestParams = {}) =>
-      this.http.request<AuthInvitationData, AuthInvitationError>({
-        path: `/auth/invitation`,
-        method: "GET",
-        query: query,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags auth
-     * @name AuthAcceptInvitation
-     * @summary Accept a PYME invitation with the current account
-     * @request POST:/auth/invitation/accept
-     * @secure
-     * @response `200` `AuthAcceptInvitationData`
-     * @response `400` `HttpErrorDto`
-     */
-    acceptInvitation: (
-      data: InvitationTokenDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<AuthAcceptInvitationData, AuthAcceptInvitationError>({
-        path: `/auth/invitation/accept`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags auth
-     * @name AuthGoogleUrl
-     * @summary Get Google OAuth URL generated by backend
-     * @request GET:/auth/google/url
-     * @response `200` `AuthGoogleUrlData`
-     * @response `400` `HttpErrorDto`
-     */
-    googleUrl: (
-      query: AuthGoogleUrlParams = {},
-      params: RequestParams = {},
-    ) =>
-      this.http.request<AuthGoogleUrlData, AuthGoogleUrlError>({
-        path: `/auth/google/url`,
-        method: "GET",
-        query: query,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags auth
-     * @name AuthGoogleCallback
-     * @summary Google OAuth callback for popup login
-     * @request GET:/auth/google/callback
-     * @response `200` `AuthGoogleCallbackData` HTML response that posts the session to the opener window
-     */
-    googleCallback: (
-      query: AuthGoogleCallbackParams = {},
-      params: RequestParams = {},
-    ) =>
-      this.http.request<AuthGoogleCallbackData, any>({
-        path: `/auth/google/callback`,
-        method: "GET",
-        query: query,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags auth
-     * @name AuthGetProfile
-     * @summary Get current user profile
-     * @request GET:/auth/profile
-     * @secure
-     * @response `200` `AuthGetProfileData` Returns current user information
-     * @response `400` `HttpErrorDto`
-     */
-    getProfile: (params: RequestParams = {}) =>
-      this.http.request<AuthGetProfileData, AuthGetProfileError>({
-        path: `/auth/profile`,
-        method: "GET",
-        secure: true,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags auth
-     * @name AuthForgotPassword
-     * @summary Request password reset link via email
-     * @request POST:/auth/forgot-password
-     * @response `200` `AuthForgotPasswordData`
-     * @response `400` `HttpErrorDto`
-     */
-    forgotPassword: (data: ForgotPasswordDto, params: RequestParams = {}) =>
-      this.http.request<AuthForgotPasswordData, AuthForgotPasswordError>({
-        path: `/auth/forgot-password`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags auth
-     * @name AuthResetPassword
-     * @summary Reset user password using token
-     * @request POST:/auth/reset-password
-     * @response `200` `AuthResetPasswordData`
-     * @response `400` `HttpErrorDto`
-     */
-    resetPassword: (data: ResetPasswordDto, params: RequestParams = {}) =>
-      this.http.request<AuthResetPasswordData, AuthResetPasswordError>({
-        path: `/auth/reset-password`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-  };
-  email = {
-    /**
-     * No description
-     *
-     * @tags email
-     * @name EmailSendEmail
-     * @summary Enviar un correo electrónico
-     * @request POST:/admin/email/send
-     * @secure
-     * @response `201` `EmailSendEmailData`
-     * @response `400` `HttpErrorDto`
      * @response `500` `HttpErrorDto`
      */
-    sendEmail: (data: EmailSendDto, params: RequestParams = {}) =>
-      this.http.request<EmailSendEmailData, EmailSendEmailError>({
-        path: `/admin/email/send`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
+    getHello: (params: RequestParams = {}) =>
+      this.http.request<AppGetHelloData, AppGetHelloError>({
+        path: `/`,
+        method: "GET",
         format: "json",
         ...params,
       }),
   };
-  identityVerification = {
+  publicConsultant = {
     /**
      * No description
      *
-     * @tags identityVerification
-     * @name IdentityverificationVerifyDni
-     * @summary Validar datos personales contra el registro de DNI de PeruDevs
-     * @request POST:/admin/identity-verification/dni
-     * @response `200` `IdentityverificationVerifyDniData`
+     * @tags publicConsultant
+     * @name PublicconsultantFindAll
+     * @summary Get public active consultants for landing
+     * @request GET:/public/consultant/find-all
+     * @response `200` `PublicconsultantFindAllData`
      * @response `400` `HttpErrorDto`
-     * @response `502` `HttpErrorDto`
      */
-    identityverificationVerifyDni: (
-      data: DniVerificationDto,
+    publicconsultantFindAll: (
+      query: PublicconsultantFindAllParams = {},
       params: RequestParams = {},
     ) =>
       this.http.request<
-        IdentityverificationVerifyDniData,
-        IdentityverificationVerifyDniError
+        PublicconsultantFindAllData,
+        PublicconsultantFindAllError
       >({
-        path: `/admin/identity-verification/dni`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags identityVerification
-     * @name IdentityverificationVerifyRuc
-     * @summary Validar si un RUC existe en el registro de PeruDevs
-     * @request POST:/admin/identity-verification/ruc
-     * @response `200` `IdentityverificationVerifyRucData`
-     * @response `400` `HttpErrorDto`
-     * @response `502` `HttpErrorDto`
-     */
-    identityverificationVerifyRuc: (
-      data: RucVerificationDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        IdentityverificationVerifyRucData,
-        IdentityverificationVerifyRucError
-      >({
-        path: `/admin/identity-verification/ruc`,
-        method: "POST",
-        body: data,
-        type: ContentType.Json,
+        path: `/public/consultant/find-all`,
+        method: "GET",
+        query: query,
         format: "json",
         ...params,
       }),
@@ -9695,9 +11765,10 @@ export class Api<SecurityDataType extends unknown> {
      * @request GET:/admin/pyme/team
      * @secure
      * @response `200` `PymeTeamData`
+     * @response `400` `HttpErrorDto`
      */
     team: (params: RequestParams = {}) =>
-      this.http.request<PymeTeamData, any>({
+      this.http.request<PymeTeamData, PymeTeamError>({
         path: `/admin/pyme/team`,
         method: "GET",
         secure: true,
@@ -9714,12 +11785,13 @@ export class Api<SecurityDataType extends unknown> {
      * @request POST:/admin/pyme/invitations
      * @secure
      * @response `200` `PymeCreateInvitationData`
+     * @response `400` `HttpErrorDto`
      */
     createInvitation: (
       data: CreatePymeInvitationDto,
       params: RequestParams = {},
     ) =>
-      this.http.request<PymeCreateInvitationData, any>({
+      this.http.request<PymeCreateInvitationData, PymeCreateInvitationError>({
         path: `/admin/pyme/invitations`,
         method: "POST",
         body: data,
@@ -9738,12 +11810,13 @@ export class Api<SecurityDataType extends unknown> {
      * @request DELETE:/admin/pyme/invitations/{id}
      * @secure
      * @response `200` `PymeRevokeInvitationData`
+     * @response `400` `HttpErrorDto`
      */
     revokeInvitation: (
       { id }: PymeRevokeInvitationParams,
       params: RequestParams = {},
     ) =>
-      this.http.request<PymeRevokeInvitationData, any>({
+      this.http.request<PymeRevokeInvitationData, PymeRevokeInvitationError>({
         path: `/admin/pyme/invitations/${id}`,
         method: "DELETE",
         secure: true,
@@ -9760,12 +11833,13 @@ export class Api<SecurityDataType extends unknown> {
      * @request DELETE:/admin/pyme/members/{userId}
      * @secure
      * @response `200` `PymeRemoveMemberData`
+     * @response `400` `HttpErrorDto`
      */
     removeMember: (
       { userId }: PymeRemoveMemberParams,
       params: RequestParams = {},
     ) =>
-      this.http.request<PymeRemoveMemberData, any>({
+      this.http.request<PymeRemoveMemberData, PymeRemoveMemberError>({
         path: `/admin/pyme/members/${userId}`,
         method: "DELETE",
         secure: true,
@@ -11005,12 +13079,16 @@ export class Api<SecurityDataType extends unknown> {
      * @summary Google Calendar OAuth callback for consultant connection
      * @request GET:/admin/consultant-google-calendar/callback
      * @response `200` `ConsultantgooglecalendarCallbackData` HTML response that posts the connection result to the opener window
+     * @response `400` `HttpErrorDto`
      */
     consultantgooglecalendarCallback: (
       query: ConsultantgooglecalendarCallbackParams = {},
       params: RequestParams = {},
     ) =>
-      this.http.request<ConsultantgooglecalendarCallbackData, any>({
+      this.http.request<
+        ConsultantgooglecalendarCallbackData,
+        ConsultantgooglecalendarCallbackError
+      >({
         path: `/admin/consultant-google-calendar/callback`,
         method: "GET",
         query: query,
@@ -11107,13 +13185,14 @@ export class Api<SecurityDataType extends unknown> {
      * @summary Subir un archivo a Azure Storage
      * @request POST:/storage
      * @response `200` `StorageUploadData`
+     * @response `400` `HttpErrorDto`
      */
     upload: (
       query: StorageUploadParams,
-      data: StorageUploadPayload,
+      data: StorageUploadBodyDto,
       params: RequestParams = {},
     ) =>
-      this.http.request<StorageUploadData, any>({
+      this.http.request<StorageUploadData, StorageUploadError>({
         path: `/storage`,
         method: "POST",
         query: query,
@@ -11131,13 +13210,14 @@ export class Api<SecurityDataType extends unknown> {
      * @summary Eliminar un archivo de Azure Storage
      * @request DELETE:/storage/{publicId}
      * @secure
-     * @response `200` `StorageDeleteData`
+     * @response `200` `StorageDeleteData` Operación completada
+     * @response `400` `HttpErrorDto`
      */
     delete: (
       { publicId }: StorageDeleteParams,
       params: RequestParams = {},
     ) =>
-      this.http.request<StorageDeleteData, any>({
+      this.http.request<StorageDeleteData, StorageDeleteError>({
         path: `/storage/${publicId}`,
         method: "DELETE",
         secure: true,
@@ -11151,16 +13231,41 @@ export class Api<SecurityDataType extends unknown> {
      * @name StorageDownload
      * @summary Visualizar o descargar archivo de Azure Storage
      * @request GET:/storage/download-file
-     * @response `200` `StorageDownloadData`
+     * @response `200` `StorageDownloadData` Operación completada
+     * @response `400` `HttpErrorDto`
      */
     download: (
       query: StorageDownloadParams,
       params: RequestParams = {},
     ) =>
-      this.http.request<StorageDownloadData, any>({
+      this.http.request<StorageDownloadData, StorageDownloadError>({
         path: `/storage/download-file`,
         method: "GET",
         query: query,
+        ...params,
+      }),
+  };
+  email = {
+    /**
+     * No description
+     *
+     * @tags email
+     * @name EmailSendEmail
+     * @summary Enviar un correo electrónico
+     * @request POST:/admin/email/send
+     * @secure
+     * @response `201` `EmailSendEmailData`
+     * @response `400` `HttpErrorDto`
+     * @response `500` `HttpErrorDto`
+     */
+    sendEmail: (data: EmailSendDto, params: RequestParams = {}) =>
+      this.http.request<EmailSendEmailData, EmailSendEmailError>({
+        path: `/admin/email/send`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
   };
@@ -11948,9 +14053,10 @@ export class Api<SecurityDataType extends unknown> {
      * @request GET:/admin/subscription/plans
      * @secure
      * @response `200` `SubscriptionPlansData`
+     * @response `400` `HttpErrorDto`
      */
     plans: (params: RequestParams = {}) =>
-      this.http.request<SubscriptionPlansData, any>({
+      this.http.request<SubscriptionPlansData, SubscriptionPlansError>({
         path: `/admin/subscription/plans`,
         method: "GET",
         secure: true,
@@ -12142,12 +14248,13 @@ export class Api<SecurityDataType extends unknown> {
      * @summary Mercado Pago OAuth callback for consultant connection
      * @request GET:/admin/mercado-pago/callback
      * @response `200` `MercadopagoCallbackData` HTML response that posts the connection result to the opener window
+     * @response `400` `HttpErrorDto`
      */
     mercadopagoCallback: (
       query: MercadopagoCallbackParams = {},
       params: RequestParams = {},
     ) =>
-      this.http.request<MercadopagoCallbackData, any>({
+      this.http.request<MercadopagoCallbackData, MercadopagoCallbackError>({
         path: `/admin/mercado-pago/callback`,
         method: "GET",
         query: query,
@@ -12207,8 +14314,9 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags mercadoPago
      * @name MercadopagoCreateCheckout
-     * @summary Create a Mercado Pago checkout for a pending meeting
+     * @summary Crear checkout Monnet (ruta anterior)
      * @request POST:/admin/mercado-pago/checkout
+     * @deprecated
      * @secure
      * @response `200` `MercadopagoCreateCheckoutData`
      * @response `400` `HttpErrorDto`
@@ -12288,8 +14396,9 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags mercadoPago
      * @name MercadopagoFindCheckout
-     * @summary Get a Mercado Pago checkout by ID
+     * @summary Consultar checkout Monnet (ruta anterior)
      * @request GET:/admin/mercado-pago/checkout/{id}
+     * @deprecated
      * @secure
      * @response `200` `MercadopagoFindCheckoutData`
      * @response `400` `HttpErrorDto`
@@ -12314,14 +14423,16 @@ export class Api<SecurityDataType extends unknown> {
      *
      * @tags mercadoPago
      * @name MercadopagoPrepareCheckoutPayment
-     * @summary Create the Mercado Pago preference when the PYME is ready to pay
+     * @summary Generar QR Monnet (ruta anterior)
      * @request POST:/admin/mercado-pago/checkout/{id}/payment
+     * @deprecated
      * @secure
      * @response `200` `MercadopagoPrepareCheckoutPaymentData`
      * @response `400` `HttpErrorDto`
      */
     mercadopagoPrepareCheckoutPayment: (
       { id }: MercadopagoPrepareCheckoutPaymentParams,
+      data: MonnetPrepareCheckoutPaymentDto,
       params: RequestParams = {},
     ) =>
       this.http.request<
@@ -12330,7 +14441,9 @@ export class Api<SecurityDataType extends unknown> {
       >({
         path: `/admin/mercado-pago/checkout/${id}/payment`,
         method: "POST",
+        body: data,
         secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
@@ -12401,15 +14514,233 @@ export class Api<SecurityDataType extends unknown> {
      * @summary Mercado Pago payment webhook
      * @request POST:/admin/mercado-pago/webhook
      * @response `200` `MercadopagoWebhookData` Webhook processed
+     * @response `400` `HttpErrorDto`
      */
     mercadopagoWebhook: (
       query: MercadopagoWebhookParams = {},
       params: RequestParams = {},
     ) =>
-      this.http.request<MercadopagoWebhookData, any>({
+      this.http.request<MercadopagoWebhookData, MercadopagoWebhookError>({
         path: `/admin/mercado-pago/webhook`,
         method: "POST",
         query: query,
+        ...params,
+      }),
+  };
+  monnetCheckout = {
+    /**
+     * No description
+     *
+     * @tags monnetCheckout
+     * @name MonnetcheckoutCreateCheckout
+     * @summary Crear checkout de reunión con Monnet QR
+     * @request POST:/admin/monnet/checkout
+     * @secure
+     * @response `200` `MonnetcheckoutCreateCheckoutData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetcheckoutCreateCheckout: (
+      data: MonnetCreateCheckoutDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MonnetcheckoutCreateCheckoutData,
+        MonnetcheckoutCreateCheckoutError
+      >({
+        path: `/admin/monnet/checkout`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags monnetCheckout
+     * @name MonnetcheckoutFindCheckout
+     * @summary Consultar checkout y QR de la reunión
+     * @request GET:/admin/monnet/checkout/{id}
+     * @secure
+     * @response `200` `MonnetcheckoutFindCheckoutData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetcheckoutFindCheckout: (
+      { id }: MonnetcheckoutFindCheckoutParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MonnetcheckoutFindCheckoutData,
+        MonnetcheckoutFindCheckoutError
+      >({
+        path: `/admin/monnet/checkout/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags monnetCheckout
+     * @name MonnetcheckoutPrepareCheckoutPayment
+     * @summary Generar QR de pago con el importe calculado por Hubsme
+     * @request POST:/admin/monnet/checkout/{id}/payment
+     * @secure
+     * @response `200` `MonnetcheckoutPrepareCheckoutPaymentData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetcheckoutPrepareCheckoutPayment: (
+      { id }: MonnetcheckoutPrepareCheckoutPaymentParams,
+      data: MonnetPrepareCheckoutPaymentDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MonnetcheckoutPrepareCheckoutPaymentData,
+        MonnetcheckoutPrepareCheckoutPaymentError
+      >({
+        path: `/admin/monnet/checkout/${id}/payment`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags monnetCheckout
+     * @name MonnetcheckoutSyncCheckoutPayment
+     * @summary Verificar en Monnet y confirmar el pago de la reunión
+     * @request POST:/admin/monnet/checkout/{id}/payment/sync
+     * @secure
+     * @response `200` `MonnetcheckoutSyncCheckoutPaymentData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetcheckoutSyncCheckoutPayment: (
+      { id }: MonnetcheckoutSyncCheckoutPaymentParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MonnetcheckoutSyncCheckoutPaymentData,
+        MonnetcheckoutSyncCheckoutPaymentError
+      >({
+        path: `/admin/monnet/checkout/${id}/payment/sync`,
+        method: "POST",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
+  monnetPayin = {
+    /**
+     * No description
+     *
+     * @tags monnetPayin
+     * @name MonnetpayinCreateBankTransfer
+     * @summary PER · Válida · Monnet · Bank Transfer
+     * @request POST:/admin/monnet/payin/create-transaction/standard/bank-transfer
+     * @secure
+     * @response `200` `MonnetpayinCreateBankTransferData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetpayinCreateBankTransfer: (
+      data: PayinCreateBankTransferDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MonnetpayinCreateBankTransferData,
+        MonnetpayinCreateBankTransferError
+      >({
+        path: `/admin/monnet/payin/create-transaction/standard/bank-transfer`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags monnetPayin
+     * @name MonnetpayinCreateQr
+     * @summary PER · Válida · QR (Ligo en la colección)
+     * @request POST:/admin/monnet/payin/create-transaction/standard/qr
+     * @secure
+     * @response `200` `MonnetpayinCreateQrData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetpayinCreateQr: (data: PayinCreateQrDto, params: RequestParams = {}) =>
+      this.http.request<MonnetpayinCreateQrData, MonnetpayinCreateQrError>({
+        path: `/admin/monnet/payin/create-transaction/standard/qr`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags monnetPayin
+     * @name MonnetpayinCreateYapeMobile
+     * @summary White Label · Válida · Yape One Shot Mobile
+     * @request POST:/admin/monnet/payin/create-transaction/white-label/yape/mobile
+     * @secure
+     * @response `200` `MonnetpayinCreateYapeMobileData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetpayinCreateYapeMobile: (
+      data: PayinCreateYapeMobileDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MonnetpayinCreateYapeMobileData,
+        MonnetpayinCreateYapeMobileError
+      >({
+        path: `/admin/monnet/payin/create-transaction/white-label/yape/mobile`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags monnetPayin
+     * @name MonnetpayinCreateYapeWeb
+     * @summary White Label · Válida · Yape One Shot Web
+     * @request POST:/admin/monnet/payin/create-transaction/white-label/yape/web
+     * @secure
+     * @response `200` `MonnetpayinCreateYapeWebData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetpayinCreateYapeWeb: (
+      data: PayinCreateYapeWebDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MonnetpayinCreateYapeWebData,
+        MonnetpayinCreateYapeWebError
+      >({
+        path: `/admin/monnet/payin/create-transaction/white-label/yape/web`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
         ...params,
       }),
   };
@@ -12423,12 +14754,13 @@ export class Api<SecurityDataType extends unknown> {
      * @request GET:/admin/service/find-all
      * @secure
      * @response `200` `ServiceFindAllData`
+     * @response `400` `HttpErrorDto`
      */
     findAll: (
       query: ServiceFindAllParams = {},
       params: RequestParams = {},
     ) =>
-      this.http.request<ServiceFindAllData, any>({
+      this.http.request<ServiceFindAllData, ServiceFindAllError>({
         path: `/admin/service/find-all`,
         method: "GET",
         query: query,
@@ -12725,28 +15057,6 @@ export class Api<SecurityDataType extends unknown> {
         ...params,
       }),
   };
-  publicConsultant = {
-    /**
-     * No description
-     *
-     * @tags publicConsultant
-     * @name PublicconsultantFindAll
-     * @summary Get public active consultants for landing
-     * @request GET:/public/consultant/find-all
-     * @response `200` `PublicconsultantFindAllData`
-     */
-    publicconsultantFindAll: (
-      query: PublicconsultantFindAllParams = {},
-      params: RequestParams = {},
-    ) =>
-      this.http.request<PublicconsultantFindAllData, any>({
-        path: `/public/consultant/find-all`,
-        method: "GET",
-        query: query,
-        format: "json",
-        ...params,
-      }),
-  };
   promotionCodeAdmin = {
     /**
      * No description
@@ -12757,12 +15067,16 @@ export class Api<SecurityDataType extends unknown> {
      * @request GET:/admin/promotion-code/find-all
      * @secure
      * @response `200` `PromotioncodeadminFindAllData`
+     * @response `400` `HttpErrorDto`
      */
     promotioncodeadminFindAll: (
       query: PromotioncodeadminFindAllParams = {},
       params: RequestParams = {},
     ) =>
-      this.http.request<PromotioncodeadminFindAllData, any>({
+      this.http.request<
+        PromotioncodeadminFindAllData,
+        PromotioncodeadminFindAllError
+      >({
         path: `/admin/promotion-code/find-all`,
         method: "GET",
         query: query,
@@ -12908,6 +15222,61 @@ export class Api<SecurityDataType extends unknown> {
         ...params,
       }),
   };
+  identityVerification = {
+    /**
+     * No description
+     *
+     * @tags identityVerification
+     * @name IdentityverificationVerifyDni
+     * @summary Validar datos personales contra el registro de DNI de PeruDevs
+     * @request POST:/admin/identity-verification/dni
+     * @response `200` `IdentityverificationVerifyDniData`
+     * @response `400` `HttpErrorDto`
+     * @response `502` `HttpErrorDto`
+     */
+    identityverificationVerifyDni: (
+      data: DniVerificationDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        IdentityverificationVerifyDniData,
+        IdentityverificationVerifyDniError
+      >({
+        path: `/admin/identity-verification/dni`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags identityVerification
+     * @name IdentityverificationVerifyRuc
+     * @summary Validar si un RUC existe en el registro de PeruDevs
+     * @request POST:/admin/identity-verification/ruc
+     * @response `200` `IdentityverificationVerifyRucData`
+     * @response `400` `HttpErrorDto`
+     * @response `502` `HttpErrorDto`
+     */
+    identityverificationVerifyRuc: (
+      data: RucVerificationDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        IdentityverificationVerifyRucData,
+        IdentityverificationVerifyRucError
+      >({
+        path: `/admin/identity-verification/ruc`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
   feedback = {
     /**
      * No description
@@ -12918,12 +15287,13 @@ export class Api<SecurityDataType extends unknown> {
      * @request GET:/admin/feedback/find-all
      * @secure
      * @response `200` `FeedbackFindAllData`
+     * @response `400` `HttpErrorDto`
      */
     findAll: (
       query: FeedbackFindAllParams = {},
       params: RequestParams = {},
     ) =>
-      this.http.request<FeedbackFindAllData, any>({
+      this.http.request<FeedbackFindAllData, FeedbackFindAllError>({
         path: `/admin/feedback/find-all`,
         method: "GET",
         query: query,
@@ -13016,12 +15386,13 @@ export class Api<SecurityDataType extends unknown> {
      * @request GET:/admin/backoffice/feedback/find-all
      * @secure
      * @response `200` `FeedbackadminFindAllData`
+     * @response `400` `HttpErrorDto`
      */
     feedbackadminFindAll: (
       query: FeedbackadminFindAllParams = {},
       params: RequestParams = {},
     ) =>
-      this.http.request<FeedbackadminFindAllData, any>({
+      this.http.request<FeedbackadminFindAllData, FeedbackadminFindAllError>({
         path: `/admin/backoffice/feedback/find-all`,
         method: "GET",
         query: query,
@@ -13118,12 +15489,13 @@ export class Api<SecurityDataType extends unknown> {
      * @request GET:/admin/service-offer/find-all
      * @secure
      * @response `200` `ServiceofferFindAllData`
+     * @response `400` `HttpErrorDto`
      */
     serviceofferFindAll: (
       query: ServiceofferFindAllParams = {},
       params: RequestParams = {},
     ) =>
-      this.http.request<ServiceofferFindAllData, any>({
+      this.http.request<ServiceofferFindAllData, ServiceofferFindAllError>({
         path: `/admin/service-offer/find-all`,
         method: "GET",
         query: query,
@@ -13141,12 +15513,13 @@ export class Api<SecurityDataType extends unknown> {
      * @request GET:/admin/service-offer/find-mine
      * @secure
      * @response `200` `ServiceofferFindMineData`
+     * @response `400` `HttpErrorDto`
      */
     serviceofferFindMine: (
       query: ServiceofferFindMineParams = {},
       params: RequestParams = {},
     ) =>
-      this.http.request<ServiceofferFindMineData, any>({
+      this.http.request<ServiceofferFindMineData, ServiceofferFindMineError>({
         path: `/admin/service-offer/find-mine`,
         method: "GET",
         query: query,
@@ -13187,12 +15560,13 @@ export class Api<SecurityDataType extends unknown> {
      * @request POST:/admin/service-offer/create
      * @secure
      * @response `201` `ServiceofferCreateData`
+     * @response `400` `HttpErrorDto`
      */
     serviceofferCreate: (
       data: ConsultantServiceOfferCreateDto,
       params: RequestParams = {},
     ) =>
-      this.http.request<ServiceofferCreateData, any>({
+      this.http.request<ServiceofferCreateData, ServiceofferCreateError>({
         path: `/admin/service-offer/create`,
         method: "POST",
         body: data,
@@ -13211,13 +15585,14 @@ export class Api<SecurityDataType extends unknown> {
      * @request PATCH:/admin/service-offer/update/{id}
      * @secure
      * @response `200` `ServiceofferUpdateData`
+     * @response `400` `HttpErrorDto`
      */
     serviceofferUpdate: (
       { id }: ServiceofferUpdateParams,
       data: ConsultantServiceOfferUpdateDto,
       params: RequestParams = {},
     ) =>
-      this.http.request<ServiceofferUpdateData, any>({
+      this.http.request<ServiceofferUpdateData, ServiceofferUpdateError>({
         path: `/admin/service-offer/update/${id}`,
         method: "PATCH",
         body: data,
@@ -13236,13 +15611,14 @@ export class Api<SecurityDataType extends unknown> {
      * @request PATCH:/admin/service-offer/active/{id}
      * @secure
      * @response `200` `ServiceofferSetActiveData`
+     * @response `400` `HttpErrorDto`
      */
     serviceofferSetActive: (
       { id }: ServiceofferSetActiveParams,
       data: ConsultantServiceOfferActiveDto,
       params: RequestParams = {},
     ) =>
-      this.http.request<ServiceofferSetActiveData, any>({
+      this.http.request<ServiceofferSetActiveData, ServiceofferSetActiveError>({
         path: `/admin/service-offer/active/${id}`,
         method: "PATCH",
         body: data,
@@ -13261,15 +15637,228 @@ export class Api<SecurityDataType extends unknown> {
      * @request DELETE:/admin/service-offer/delete/{id}
      * @secure
      * @response `200` `ServiceofferRemoveData`
+     * @response `400` `HttpErrorDto`
      */
     serviceofferRemove: (
       { id }: ServiceofferRemoveParams,
       params: RequestParams = {},
     ) =>
-      this.http.request<ServiceofferRemoveData, any>({
+      this.http.request<ServiceofferRemoveData, ServiceofferRemoveError>({
         path: `/admin/service-offer/delete/${id}`,
         method: "DELETE",
         secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
+  monnetWebhook = {
+    /**
+     * No description
+     *
+     * @tags monnetWebhook
+     * @name MonnetwebhookPayin
+     * @summary Recibir y verificar notificación Payin de Monnet
+     * @request POST:/admin/monnet/webhook/payin
+     * @response `200` `MonnetwebhookPayinData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetwebhookPayin: (
+      data: MonnetPayinWebhookDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<MonnetwebhookPayinData, MonnetwebhookPayinError>({
+        path: `/admin/monnet/webhook/payin`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  auth = {
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthLogin
+     * @summary User login
+     * @request POST:/auth/login
+     * @response `200` `AuthLoginData`
+     * @response `400` `HttpErrorDto`
+     */
+    login: (data: LoginDto, params: RequestParams = {}) =>
+      this.http.request<AuthLoginData, AuthLoginError>({
+        path: `/auth/login`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthRegister
+     * @summary Register a new PYME or consultant user
+     * @request POST:/auth/register
+     * @response `200` `AuthRegisterData`
+     * @response `400` `HttpErrorDto`
+     */
+    register: (data: RegisterDto, params: RequestParams = {}) =>
+      this.http.request<AuthRegisterData, AuthRegisterError>({
+        path: `/auth/register`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthInvitation
+     * @summary Validate a PYME invitation token
+     * @request GET:/auth/invitation
+     * @response `200` `AuthInvitationData`
+     * @response `400` `HttpErrorDto`
+     */
+    invitation: (query: AuthInvitationParams, params: RequestParams = {}) =>
+      this.http.request<AuthInvitationData, AuthInvitationError>({
+        path: `/auth/invitation`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthAcceptInvitation
+     * @summary Accept a PYME invitation with the current account
+     * @request POST:/auth/invitation/accept
+     * @secure
+     * @response `200` `AuthAcceptInvitationData`
+     * @response `400` `HttpErrorDto`
+     */
+    acceptInvitation: (
+      data: InvitationTokenDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<AuthAcceptInvitationData, AuthAcceptInvitationError>({
+        path: `/auth/invitation/accept`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthGoogleUrl
+     * @summary Get Google OAuth URL generated by backend
+     * @request GET:/auth/google/url
+     * @response `200` `AuthGoogleUrlData`
+     * @response `400` `HttpErrorDto`
+     */
+    googleUrl: (
+      query: AuthGoogleUrlParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<AuthGoogleUrlData, AuthGoogleUrlError>({
+        path: `/auth/google/url`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthGoogleCallback
+     * @summary Google OAuth callback for popup login
+     * @request GET:/auth/google/callback
+     * @response `200` `AuthGoogleCallbackData` HTML response that posts the session to the opener window
+     * @response `400` `HttpErrorDto`
+     */
+    googleCallback: (
+      query: AuthGoogleCallbackParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<AuthGoogleCallbackData, AuthGoogleCallbackError>({
+        path: `/auth/google/callback`,
+        method: "GET",
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthGetProfile
+     * @summary Get current user profile
+     * @request GET:/auth/profile
+     * @secure
+     * @response `200` `AuthGetProfileData` Returns current user information
+     * @response `400` `HttpErrorDto`
+     */
+    getProfile: (params: RequestParams = {}) =>
+      this.http.request<AuthGetProfileData, AuthGetProfileError>({
+        path: `/auth/profile`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthForgotPassword
+     * @summary Request password reset link via email
+     * @request POST:/auth/forgot-password
+     * @response `200` `AuthForgotPasswordData`
+     * @response `400` `HttpErrorDto`
+     */
+    forgotPassword: (data: ForgotPasswordDto, params: RequestParams = {}) =>
+      this.http.request<AuthForgotPasswordData, AuthForgotPasswordError>({
+        path: `/auth/forgot-password`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthResetPassword
+     * @summary Reset user password using token
+     * @request POST:/auth/reset-password
+     * @response `200` `AuthResetPasswordData`
+     * @response `400` `HttpErrorDto`
+     */
+    resetPassword: (data: ResetPasswordDto, params: RequestParams = {}) =>
+      this.http.request<AuthResetPasswordData, AuthResetPasswordError>({
+        path: `/auth/reset-password`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),

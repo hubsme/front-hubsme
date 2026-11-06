@@ -51,6 +51,7 @@ export class PaymentHistory {
   readonly paymentTypeOptions: { value: PaymentTypeFilter; label: string }[] = [
     { value: 'all', label: 'Todos los pagos' },
     { value: 'cupon', label: 'Cupón' },
+    { value: 'monnet', label: 'QR · Monnet' },
     { value: 'mercado_pago', label: 'Mercado Pago' },
     { value: 'tarjeta', label: 'Tarjeta' },
     { value: 'yape', label: 'Yape' },
@@ -209,6 +210,7 @@ export class PaymentHistory {
     const methodId = payment.paymentMethodId?.toLowerCase();
     const typeId = payment.paymentTypeId?.toLowerCase();
 
+    if (methodId === 'qr') return 'QR · Monnet';
     if (methodId === 'yape') return 'Yape';
     if (methodId === 'account_money' || typeId === 'account_money') {
       return 'Saldo de Mercado Pago';
@@ -235,6 +237,7 @@ export class PaymentHistory {
 
     if (methodId === 'yape') return 'fa-mobile-screen-button';
     if (methodId === 'account_money' || typeId === 'account_money') return 'fa-wallet';
+    if (methodId === 'qr') return 'fa-qrcode';
     if (typeId === 'bank_transfer') return 'fa-building-columns';
     if (typeId === 'ticket' || typeId === 'atm') return 'fa-money-bill-wave';
     return 'fa-credit-card';
@@ -265,5 +268,4 @@ export class PaymentHistory {
     this.page.set(1);
     void this.loadPayments();
   }
-
 }

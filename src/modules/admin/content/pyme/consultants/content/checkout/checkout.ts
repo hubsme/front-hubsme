@@ -1,22 +1,24 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ApiResponse } from 'api/backend.api';
+import { ApiResponse, MonnetPrepareCheckoutPaymentDto } from 'api/backend.api';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { ConsultantService } from '@service/admin/consultant.service';
 import { MeetingService } from '@service/admin/meeting.service';
-import { MercadoPagoService } from '@service/admin/mercado-pago.service';
+import { MonnetCheckoutService } from '@service/admin/monnet-checkout.service';
 import { PromotionCodeService } from '@service/admin/promotion-code.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { PATH, buildPath } from '@route/path.route';
 import { formatInPeru } from '@function/date.function';
 
-type CheckoutData = ApiResponse<'mercadoPago', 'mercadopagoFindCheckout'>;
+type CheckoutData = ApiResponse<'monnetCheckout', 'monnetcheckoutFindCheckout'>;
 type MeetingData = ApiResponse<'meeting', 'findOne'>;
-type CheckoutMeetingData = Pick<MeetingData, 'startTime' | 'proposedStartTimes' | 'durationMinutes'>;
+type CheckoutMeetingData = Pick<
+  MeetingData,
+  'startTime' | 'proposedStartTimes' | 'durationMinutes'
+>;
 type ConsultantData = ApiResponse<'consultant', 'findByUser'>;
 
 @Component({
@@ -27,17 +29,17 @@ type ConsultantData = ApiResponse<'consultant', 'findByUser'>;
 export class Checkout implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private mercadoPagoService = inject(MercadoPagoService);
+  private monnetCheckoutService = inject(MonnetCheckoutService);
   private promotionCodeService = inject(PromotionCodeService);
   private meetingService = inject(MeetingService);
   private consultantService = inject(ConsultantService);
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
-  private sanitizer = inject(DomSanitizer);
   private paymentPolling: ReturnType<typeof setInterval> | null = null;
   private redirectingAfterPayment = false;
-  private readonly paymentPollingIntervalMs = 1500;
-  private readonly maxPollingDurationMs = 600000; // 10 minutos
+  private destroyed = false;
+  private readonly paymentPollingIntervalMs = 5000;
+  private readonly maxPollingDurationMs = 2100000; // 35 minutos
   private pollingStartTime = 0;
 
   checkout = signal<CheckoutData | null>(null);
@@ -50,13 +52,77 @@ export class Checkout implements OnInit, OnDestroy {
   redeemingPromotion = signal(false);
 
   checkoutId = computed(() => Number(this.route.snapshot.paramMap.get('id') ?? 0));
-  paymentUrl = computed(
-    () => this.checkout()?.initPoint ?? this.checkout()?.sandboxInitPoint ?? null,
-  );
-  paymentFrameUrl = computed<SafeResourceUrl | null>(() => {
-    const url = this.paymentUrl();
-    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
+  now = signal(Date.now());
+  checkingPayment = signal(false);
+  paymentUrl = computed(() => this.checkout()?.paymentUrl ?? null);
+  qrCode = computed(() => this.checkout()?.qrCode ?? null);
+  isExpired = computed(() => {
+    const expiresAt = this.checkout()?.expiresAt;
+    return (
+      this.checkout()?.status === 'expired' ||
+      Boolean(expiresAt && Date.parse(expiresAt) <= this.now())
+    );
   });
+  remainingTime = computed(() => {
+    const expiresAt = this.checkout()?.expiresAt;
+    if (!expiresAt) return '';
+    const seconds = Math.max(0, Math.ceil((Date.parse(expiresAt) - this.now()) / 1000));
+    return `${Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
+  });
+  billing = signal<MonnetPrepareCheckoutPaymentDto>({
+    payinCustomerName: this.hubsme.currentUser().firstName ?? '',
+    payinCustomerLastName: this.hubsme.currentUser().lastName ?? '',
+    payinCustomerEmail: this.hubsme.currentUser().email,
+    payinCustomerPhone: '',
+    payinCustomerTypeDocument: 'DNI',
+    payinCustomerDocument: '',
+    payinCustomerAddress: '',
+    payinCustomerCity: '',
+    payinCustomerRegion: '',
+    payinCustomerZipCode: '',
+  });
+  readonly billingFields: {
+    key: keyof Omit<MonnetPrepareCheckoutPaymentDto, 'payinCustomerTypeDocument'>;
+    label: string;
+    type: string;
+    maxLength: number;
+    pattern?: string;
+  }[] = [
+    { key: 'payinCustomerName', label: 'Nombres', type: 'text', maxLength: 30 },
+    { key: 'payinCustomerLastName', label: 'Apellidos', type: 'text', maxLength: 30 },
+    { key: 'payinCustomerEmail', label: 'Correo electrónico', type: 'email', maxLength: 50 },
+    {
+      key: 'payinCustomerPhone',
+      label: 'Celular (9 dígitos, sin +51)',
+      type: 'tel',
+      maxLength: 9,
+      pattern: '[0-9]{9}',
+    },
+    {
+      key: 'payinCustomerDocument',
+      label: 'DNI del pagador',
+      type: 'text',
+      maxLength: 8,
+      pattern: '[0-9]{8}',
+    },
+    { key: 'payinCustomerAddress', label: 'Dirección', type: 'text', maxLength: 200 },
+    { key: 'payinCustomerCity', label: 'Ciudad', type: 'text', maxLength: 80 },
+    { key: 'payinCustomerRegion', label: 'Región', type: 'text', maxLength: 80 },
+    {
+      key: 'payinCustomerZipCode',
+      label: 'Código postal',
+      type: 'text',
+      maxLength: 5,
+      pattern: '[0-9]{5}',
+    },
+  ];
+
+  updateBilling(key: keyof MonnetPrepareCheckoutPaymentDto, value: string) {
+    this.billing.update((billing) => ({ ...billing, [key]: value }));
+  }
+
   total = computed(() => Number(this.checkout()?.amount ?? 0));
   marketplaceFee = computed(() => Number(this.checkout()?.marketplaceFee ?? 0));
   isPaid = computed(() => {
@@ -69,6 +135,7 @@ export class Checkout implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.stopPaymentPolling();
   }
 
@@ -87,7 +154,7 @@ export class Checkout implements OnInit, OnDestroy {
   }
 
   private hydrateCheckout(checkoutId: number) {
-    return this.mercadoPagoService
+    return this.monnetCheckoutService
       .findCheckout(checkoutId)
       .then((checkout) => this.applyCheckout(checkout));
   }
@@ -120,26 +187,26 @@ export class Checkout implements OnInit, OnDestroy {
     return Promise.reject(new Error('Informacion de reunion no encontrada en el checkout'));
   }
 
-  private refreshPaymentStatus() {
-    if (!this.paymentModalOpen() || this.redirectingAfterPayment) return;
-
-    if (Date.now() - this.pollingStartTime > this.maxPollingDurationMs) {
+  async refreshPaymentStatus() {
+    if (this.redirectingAfterPayment || this.checkingPayment()) return;
+    this.now.set(Date.now());
+    if (this.paymentPolling && Date.now() - this.pollingStartTime > this.maxPollingDurationMs) {
       this.stopPaymentPolling();
-      this.toastService.warning(
-        'Tiempo de espera excedido. Si ya realizaste el pago, cierra el modal y ábrelo nuevamente para verificar.',
-      );
+      this.toastService.warning('La espera terminó. Puedes verificar el pago nuevamente.');
       return;
     }
-
-    this.mercadoPagoService
-      .findCheckout(this.checkoutId())
-      .then((checkout) => {
-        this.checkout.set(checkout);
-        if (checkout.meetingId) {
-          this.completePaidFlow(checkout.meetingId);
-        }
-      })
-      .catch(() => undefined);
+    this.checkingPayment.set(true);
+    try {
+      const checkout = await this.monnetCheckoutService.syncCheckoutPayment(this.checkoutId());
+      if (this.destroyed) return;
+      this.checkout.set(checkout);
+      if (checkout.status === 'approved' && checkout.meetingId)
+        this.completePaidFlow(checkout.meetingId);
+    } catch (error) {
+      if (!this.paymentPolling) this.toastService.error(this.hubsme.getErrorMessage(error));
+    } finally {
+      this.checkingPayment.set(false);
+    }
   }
 
   private startPaymentPolling() {
@@ -179,19 +246,30 @@ export class Checkout implements OnInit, OnDestroy {
       return;
     }
 
+    const current = this.checkout();
+    if (!current) return;
+    if (!current.canCreatePayment) {
+      this.paymentModalOpen.set(true);
+      this.startPaymentPolling();
+      return;
+    }
     this.opening.set(true);
-    this.mercadoPagoService
-      .prepareCheckoutPayment(this.checkoutId())
+    this.monnetCheckoutService
+      .prepareCheckoutPayment(this.checkoutId(), this.billing())
       .then((checkout) => {
+        if (this.destroyed) return;
         this.checkout.set(checkout);
-        if (!checkout.initPoint && !checkout.sandboxInitPoint) {
-          throw new Error('La pasarela de pago no devolvió un enlace válido');
+        if (checkout.status === 'approved' && checkout.meetingId) {
+          this.completePaidFlow(checkout.meetingId);
+          return;
         }
-
         this.paymentModalOpen.set(true);
         this.startPaymentPolling();
       })
-      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .catch((error) => {
+        this.toastService.error(this.hubsme.getErrorMessage(error));
+        this.hydrateCheckout(this.checkoutId()).catch(() => undefined);
+      })
       .finally(() => this.opening.set(false));
   }
 
@@ -208,7 +286,7 @@ export class Checkout implements OnInit, OnDestroy {
       this.toastService.warning('Ingresa un código promocional');
       return;
     }
-    if (this.isPaid() || this.redeemingPromotion()) return;
+    if (this.isPaid() || this.redeemingPromotion() || !this.checkout()?.canCreatePayment) return;
 
     this.redeemingPromotion.set(true);
     this.promotionCodeService
@@ -237,9 +315,9 @@ export class Checkout implements OnInit, OnDestroy {
   }
 
   proposedTimes(meeting: MeetingData | CheckoutMeetingData) {
-    return (meeting.proposedStartTimes?.length ? meeting.proposedStartTimes : [meeting.startTime]).filter(
-      (value): value is string => Boolean(value),
-    );
+    return (
+      meeting.proposedStartTimes?.length ? meeting.proposedStartTimes : [meeting.startTime]
+    ).filter((value): value is string => Boolean(value));
   }
 
   currency(value: number) {

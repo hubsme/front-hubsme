@@ -6,14 +6,17 @@ import { ApiBody, ApiResponse } from 'api/backend.api';
 import { ConsultantAvailabilityService } from '@service/admin/consultant-availability.service';
 import { ConsultantService } from '@service/admin/consultant.service';
 import { MeetingService } from '@service/admin/meeting.service';
-import { MercadoPagoService } from '@service/admin/mercado-pago.service';
+import { MonnetCheckoutService } from '@service/admin/monnet-checkout.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { PATH, buildPath } from '@route/path.route';
 import { dateKeyInPeru, formatInPeru, peruDateTimeToUtc } from '@function/date.function';
 
 type Consultant = ApiResponse<'consultant', 'findByUser'>;
-type AvailabilityMonth = ApiResponse<'consultantAvailability', 'consultant-availabilityVisibleMonth'>['data'][number];
+type AvailabilityMonth = ApiResponse<
+  'consultantAvailability',
+  'consultant-availabilityVisibleMonth'
+>['data'][number];
 type AvailabilitySlot = {
   startTime: Date;
   endTime: Date;
@@ -46,7 +49,7 @@ export class ConsultantDetail implements OnInit {
   private consultantService = inject(ConsultantService);
   private availabilityService = inject(ConsultantAvailabilityService);
   private meetingService = inject(MeetingService);
-  private mercadoPagoService = inject(MercadoPagoService);
+  private monnetCheckoutService = inject(MonnetCheckoutService);
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
 
@@ -74,7 +77,9 @@ export class ConsultantDetail implements OnInit {
       };
     }),
   );
-  selectedDateKeys = computed(() => new Set(this.selectedStartIsos().map((iso) => this.toDateKey(new Date(iso)))));
+  selectedDateKeys = computed(
+    () => new Set(this.selectedStartIsos().map((iso) => this.toDateKey(new Date(iso)))),
+  );
   selectedDaysCount = computed(() => this.selectedDateKeys().size);
   selectionProgressText = computed(() => {
     const count = this.selectedStartIsos().length;
@@ -90,12 +95,16 @@ export class ConsultantDetail implements OnInit {
     }),
   );
   calendarDays = computed<CalendarDay[]>(() => this.buildCalendarDays());
-  availableDates = computed(() => new Set(this.slots().map((slot) => this.toDateKey(new Date(slot.startTime)))));
+  availableDates = computed(
+    () => new Set(this.slots().map((slot) => this.toDateKey(new Date(slot.startTime)))),
+  );
   selectedDaySlots = computed(() => {
     const key = this.toDateKey(this.selectedDate());
     return this.slots()
       .filter((slot) => this.toDateKey(new Date(slot.startTime)) === key)
-      .sort((left, right) => new Date(left.startTime).getTime() - new Date(right.startTime).getTime());
+      .sort(
+        (left, right) => new Date(left.startTime).getTime() - new Date(right.startTime).getTime(),
+      );
   });
   timeOptions = computed<TimeOption[]>(() => this.buildTimeOptions());
   meetingTotal = computed(() => {
@@ -144,7 +153,9 @@ export class ConsultantDetail implements OnInit {
       if (current.includes(iso)) return current.filter((value) => value !== iso);
       const selectedDay = this.toDateKey(option.startTime);
       if (current.some((value) => this.toDateKey(new Date(value)) === selectedDay)) {
-        this.toastService.warning('Elige solo un horario por dia para darle alternativas reales al consultor');
+        this.toastService.warning(
+          'Elige solo un horario por dia para darle alternativas reales al consultor',
+        );
         return current;
       }
       if (current.length >= 3) {
@@ -182,7 +193,7 @@ export class ConsultantDetail implements OnInit {
     }
 
     this.scheduling.set(true);
-    this.mercadoPagoService
+    this.monnetCheckoutService
       .createCheckout({
         consultantId: consultant.userId,
         startTime: selectedStartIsos[0],
@@ -204,7 +215,10 @@ export class ConsultantDetail implements OnInit {
   }
 
   consultantPhoto(consultant: Consultant) {
-    return consultant.photoUrl || `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(consultant.fullName)}`;
+    return (
+      consultant.photoUrl ||
+      `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(consultant.fullName)}`
+    );
   }
 
   formatDate(date: Date) {
@@ -251,20 +265,23 @@ export class ConsultantDetail implements OnInit {
         consultantId: this.consultantUserId(),
         year: m.getFullYear(),
         month: m.getMonth() + 1,
-      })
+      }),
     );
 
-    return Promise.all(requests)
-      .then((responses) => {
-        const allMonths = responses.flatMap((response) => response.data);
-        const slots = this.expandAvailabilityMonths(allMonths);
-        this.slots.set(slots);
-        this.selectFirstAvailableDay(slots);
-      });
+    return Promise.all(requests).then((responses) => {
+      const allMonths = responses.flatMap((response) => response.data);
+      const slots = this.expandAvailabilityMonths(allMonths);
+      this.slots.set(slots);
+      this.selectFirstAvailableDay(slots);
+    });
   }
 
   private selectFirstAvailableDay(slots: AvailabilitySlot[]) {
-    if (slots.some((slot) => this.toDateKey(new Date(slot.startTime)) === this.toDateKey(this.selectedDate()))) {
+    if (
+      slots.some(
+        (slot) => this.toDateKey(new Date(slot.startTime)) === this.toDateKey(this.selectedDate()),
+      )
+    ) {
       return;
     }
 
@@ -312,7 +329,11 @@ export class ConsultantDetail implements OnInit {
       const slotStart = slot.startTime;
       const slotEnd = slot.endTime;
 
-      for (let start = new Date(slotStart); start.getTime() + durationMs <= slotEnd.getTime(); start = new Date(start.getTime() + 30 * 60 * 1000)) {
+      for (
+        let start = new Date(slotStart);
+        start.getTime() + durationMs <= slotEnd.getTime();
+        start = new Date(start.getTime() + 30 * 60 * 1000)
+      ) {
         const end = new Date(start.getTime() + durationMs);
         options.push({
           label: formatInPeru(start, { hour: '2-digit', minute: '2-digit' }),

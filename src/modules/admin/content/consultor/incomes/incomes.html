@@ -18,7 +18,9 @@
         </span>
         <div>
           <h2 class="font-inter-bold text-lg">Operaciones registradas</h2>
-          <p class="text-xs text-muted">Distingue ingresos monetarios y servicios cubiertos con cupón.</p>
+          <p class="text-xs text-muted">
+            Distingue ingresos monetarios y servicios cubiertos con cupón.
+          </p>
         </div>
       </div>
 
@@ -44,12 +46,22 @@
         <table class="w-full min-w-[1080px] table-fixed">
           <thead class="border-b border-border bg-surface">
             <tr>
-              <th class="w-[24%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Concepto</th>
+              <th class="w-[24%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">
+                Concepto
+              </th>
               <th class="w-[15%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">PYME</th>
-              <th class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha</th>
-              <th class="w-[11%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Estado</th>
-              <th class="w-[18%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Medio</th>
-              <th class="w-[12%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted">Ingreso</th>
+              <th class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">
+                Fecha
+              </th>
+              <th class="w-[11%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">
+                Estado
+              </th>
+              <th class="w-[18%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">
+                Medio
+              </th>
+              <th class="w-[12%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted">
+                Ingreso
+              </th>
               <th class="w-[7%] px-5 py-3.5"><span class="sr-only">Acciones</span></th>
             </tr>
           </thead>
@@ -61,7 +73,9 @@
                 <td class="px-5 py-4"><div class="h-4 w-2/3 rounded-full bg-text/10"></div></td>
                 <td class="px-5 py-4"><div class="h-6 w-20 rounded-full bg-text/10"></div></td>
                 <td class="px-5 py-4"><div class="h-6 w-20 rounded-full bg-text/10"></div></td>
-                <td class="px-5 py-4"><div class="ml-auto h-5 w-24 rounded-full bg-text/10"></div></td>
+                <td class="px-5 py-4">
+                  <div class="ml-auto h-5 w-24 rounded-full bg-text/10"></div>
+                </td>
                 <td class="px-5 py-4"><div class="ml-auto size-9 rounded-xl bg-text/10"></div></td>
               </tr>
             }
@@ -91,13 +105,45 @@
           <table class="w-full min-w-[1080px] table-fixed">
             <thead class="border-b border-border bg-surface">
               <tr>
-                <th scope="col" class="w-[24%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Concepto</th>
-                <th scope="col" class="w-[15%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">PYME</th>
-                <th scope="col" class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Fecha</th>
-                <th scope="col" class="w-[11%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Estado</th>
-                <th scope="col" class="w-[18%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted">Medio</th>
-                <th scope="col" class="w-[12%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted">Ingreso</th>
-                <th scope="col" class="w-[7%] px-5 py-3.5"><span class="sr-only">Acciones</span></th>
+                <th
+                  scope="col"
+                  class="w-[24%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted"
+                >
+                  Concepto
+                </th>
+                <th
+                  scope="col"
+                  class="w-[15%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted"
+                >
+                  PYME
+                </th>
+                <th
+                  scope="col"
+                  class="w-[13%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted"
+                >
+                  Fecha
+                </th>
+                <th
+                  scope="col"
+                  class="w-[11%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted"
+                >
+                  Estado
+                </th>
+                <th
+                  scope="col"
+                  class="w-[18%] px-5 py-3.5 text-left text-xs font-inter-bold text-muted"
+                >
+                  Medio
+                </th>
+                <th
+                  scope="col"
+                  class="w-[12%] px-5 py-3.5 text-right text-xs font-inter-bold text-muted"
+                >
+                  Ingreso
+                </th>
+                <th scope="col" class="w-[7%] px-5 py-3.5">
+                  <span class="sr-only">Acciones</span>
+                </th>
               </tr>
             </thead>
             <tbody class="divide-y divide-border">
@@ -115,7 +161,11 @@
                       </span>
                       <div class="min-w-0">
                         <p class="truncate text-sm font-inter-bold text-text">
-                          {{ income.serviceTitle || income.meetingDetails?.title || 'Ingreso por consultoría' }}
+                          {{
+                            income.serviceTitle ||
+                              income.meetingDetails?.title ||
+                              'Ingreso por consultoría'
+                          }}
                         </p>
                         <p class="mt-1 text-xs text-muted">
                           #{{ income.id }} · {{ income.serviceRequestId ? 'Servicio' : 'Reunión' }}
@@ -127,8 +177,12 @@
                     <span class="block truncate">{{ counterparty(income) }}</span>
                   </td>
                   <td class="px-5 py-4 align-middle">
-                    <p class="whitespace-nowrap text-sm font-inter-semibold">{{ income.createdAt | date: 'dd/MM/yyyy' }}</p>
-                    <p class="mt-1 whitespace-nowrap text-xs text-muted">{{ income.createdAt | date: 'HH:mm' }}</p>
+                    <p class="whitespace-nowrap text-sm font-inter-semibold">
+                      {{ income.createdAt | date: 'dd/MM/yyyy' }}
+                    </p>
+                    <p class="mt-1 whitespace-nowrap text-xs text-muted">
+                      {{ income.createdAt | date: 'HH:mm' }}
+                    </p>
                   </td>
                   <td class="px-5 py-4 align-middle">
                     <span
@@ -140,12 +194,16 @@
                   </td>
                   <td class="px-5 py-4 align-middle">
                     @if (income.paymentMethod === 'promotion_code') {
-                      <span class="inline-flex items-center gap-1.5 rounded-full bg-warning/15 px-2.5 py-1 text-[0.68rem] font-inter-bold uppercase tracking-wide text-warning">
+                      <span
+                        class="inline-flex items-center gap-1.5 rounded-full bg-warning/15 px-2.5 py-1 text-[0.68rem] font-inter-bold uppercase tracking-wide text-warning"
+                      >
                         <i class="fas fa-ticket"></i>
                         Cupón
                       </span>
                     } @else {
-                      <span class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-secondary/10 px-2.5 py-1 text-[0.68rem] font-inter-bold text-secondary">
+                      <span
+                        class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-secondary/10 px-2.5 py-1 text-[0.68rem] font-inter-bold text-secondary"
+                      >
                         <i class="fas" [ngClass]="paymentMethodIcon(income)"></i>
                         {{ paymentMethodLabel(income) }}
                       </span>
@@ -153,8 +211,12 @@
                   </td>
                   <td class="px-5 py-4 text-right align-middle">
                     @if (income.paymentMethod === 'promotion_code') {
-                      <p class="whitespace-nowrap text-sm font-inter-bold text-warning">Sin ingreso</p>
-                      <p class="mt-1 whitespace-nowrap text-xs text-muted">Valor {{ income.currency }} {{ income.amount }}</p>
+                      <p class="whitespace-nowrap text-sm font-inter-bold text-warning">
+                        Sin ingreso
+                      </p>
+                      <p class="mt-1 whitespace-nowrap text-xs text-muted">
+                        Valor {{ income.currency }} {{ income.amount }}
+                      </p>
                     } @else {
                       <p class="whitespace-nowrap text-sm font-inter-bold text-secondary">
                         {{ income.currency }} {{ income.amount }}
@@ -198,7 +260,9 @@
       >
         <i class="fas fa-dollar-sign"></i>
       </span>
-      <h2 class="mt-5 font-plus-jakarta-sans text-xl font-bold">No hay operaciones en este periodo</h2>
+      <h2 class="mt-5 font-plus-jakarta-sans text-xl font-bold">
+        No hay operaciones en este periodo
+      </h2>
       <p class="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted">
         Prueba con otro año o mes para consultar más ingresos o servicios con cupón.
       </p>
@@ -209,7 +273,9 @@
 @if (showDetail()) {
   @if (selectedIncome(); as income) {
     <app-modal-form
-      [title]="income.paymentMethod === 'promotion_code' ? 'Detalle del cupón' : 'Detalle del ingreso'"
+      [title]="
+        income.paymentMethod === 'promotion_code' ? 'Detalle del cupón' : 'Detalle del ingreso'
+      "
       maxWidth="lg"
       [showFooter]="false"
       (onClose)="closeDetail()"
@@ -223,14 +289,26 @@
               class="grid size-12 place-items-center rounded-2xl text-fixed-background-50"
               [ngClass]="income.paymentMethod === 'promotion_code' ? 'bg-warning' : 'bg-secondary'"
             >
-              <i class="fas" [class.fa-ticket]="income.paymentMethod === 'promotion_code'" [class.fa-check]="income.paymentMethod === 'payment'"></i>
+              <i
+                class="fas"
+                [class.fa-ticket]="income.paymentMethod === 'promotion_code'"
+                [class.fa-check]="income.paymentMethod === 'payment'"
+              ></i>
             </span>
             <div>
               <p class="text-xs font-inter-bold uppercase tracking-[0.14em] text-muted">
-                {{ income.paymentMethod === 'promotion_code' ? 'Tipo de operación' : 'Estado del ingreso' }}
+                {{
+                  income.paymentMethod === 'promotion_code'
+                    ? 'Tipo de operación'
+                    : 'Estado del ingreso'
+                }}
               </p>
               <p class="mt-1 text-lg font-inter-bold">
-                {{ income.paymentMethod === 'promotion_code' ? 'Servicio con cupón' : paymentStatusLabel(income.status) }}
+                {{
+                  income.paymentMethod === 'promotion_code'
+                    ? 'Servicio con cupón'
+                    : paymentStatusLabel(income.status)
+                }}
               </p>
             </div>
           </div>
@@ -238,7 +316,9 @@
             @if (income.paymentMethod === 'promotion_code') {
               <p class="text-xs text-muted">Ingreso monetario</p>
               <p class="mt-1 text-2xl font-inter-bold text-warning">{{ income.currency }} 0.00</p>
-              <p class="mt-1 text-xs text-muted">Valor cubierto: {{ income.currency }} {{ income.amount }}</p>
+              <p class="mt-1 text-xs text-muted">
+                Valor cubierto: {{ income.currency }} {{ income.amount }}
+              </p>
             } @else {
               <p class="text-xs text-muted">Ingreso total</p>
               <p class="mt-1 text-2xl font-inter-bold text-secondary">
@@ -292,10 +372,18 @@
             </div>
             <div class="rounded-2xl border border-border bg-background-50 p-4">
               <p class="text-xs text-muted">
-                {{ income.paymentMethod === 'promotion_code' ? 'Cupón aplicado' : 'Código de operación' }}
+                {{
+                  income.paymentMethod === 'promotion_code'
+                    ? 'Cupón aplicado'
+                    : 'Código de operación'
+                }}
               </p>
               <p class="mt-1 break-all font-inter-semibold">
-                {{ income.paymentMethod === 'promotion_code' ? income.promotionCode || 'Cupón promocional' : income.mercadoPagoPaymentId || 'Pendiente de confirmación' }}
+                {{
+                  income.paymentMethod === 'promotion_code'
+                    ? income.promotionCode || 'Cupón promocional'
+                    : income.paymentId || income.externalReference
+                }}
               </p>
             </div>
           </div>

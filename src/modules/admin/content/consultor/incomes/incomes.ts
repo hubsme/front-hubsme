@@ -161,6 +161,7 @@ export class Incomes {
     const methodId = income.paymentMethodId?.toLowerCase();
     const typeId = income.paymentTypeId?.toLowerCase();
 
+    if (methodId === 'qr') return 'QR · Monnet';
     if (methodId === 'yape') return 'Yape';
     if (methodId === 'account_money' || typeId === 'account_money') {
       return 'Saldo de Mercado Pago';
@@ -187,6 +188,7 @@ export class Incomes {
 
     if (methodId === 'yape') return 'fa-mobile-screen-button';
     if (methodId === 'account_money' || typeId === 'account_money') return 'fa-wallet';
+    if (methodId === 'qr') return 'fa-qrcode';
     if (typeId === 'bank_transfer') return 'fa-building-columns';
     if (typeId === 'ticket' || typeId === 'atm') return 'fa-money-bill-wave';
     return 'fa-credit-card';

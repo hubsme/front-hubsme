@@ -115,12 +115,18 @@
             Iniciar sesión para aceptar
           </button>
         } @else {
+          <app-registration-consent
+            class="mt-6 block"
+            role="pyme"
+            [(acceptedVersion)]="contractVersion"
+            [(marketingConsent)]="marketingConsent"
+          />
           @if (!showEmailPasswordForm()) {
             <div class="mt-8 space-y-4">
               <button
                 type="button"
                 (click)="startGoogleJoin()"
-                [disabled]="googleLoading()"
+                [disabled]="googleLoading() || !contractVersion()"
                 class="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-text/15 bg-surface px-5 text-sm font-inter-bold text-text hover:border-secondary/50 hover:text-secondary disabled:opacity-50"
               >
                 @if (googleLoading()) {
@@ -206,9 +212,10 @@
                   class="h-11 w-full rounded-xl border border-border bg-background px-3 text-text outline-none focus:border-secondary"
                 />
               </label>
+              <app-registration-email-verification [email]="invite.email" [(code)]="emailCode" />
               <button
                 type="submit"
-                [disabled]="submitting()"
+                [disabled]="submitting() || !contractVersion() || emailCode().length !== 8"
                 class="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm font-inter-bold text-background hover:bg-secondary/90 disabled:opacity-50"
               >
                 @if (submitting()) {

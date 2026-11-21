@@ -3,13 +3,13 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ApiResponse, PaginationMetaDto } from 'api/backend.api';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { PaginationComponent } from '@module/admin/components/pagination/pagination';
-import { MercadoPagoService } from '@service/admin/mercado-pago.service';
+import { PaymentHistoryService } from '@service/admin/payment-history.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 
-type IncomeResponse = ApiResponse<'mercadoPago', 'mercadopagoFindPayments'>;
+type IncomeResponse = ApiResponse<'paymentHistory', 'paymenthistoryFindAll'>;
 type IncomeItem = IncomeResponse['data'][number];
-type IncomeDetail = ApiResponse<'mercadoPago', 'mercadopagoFindPayment'>;
+type IncomeDetail = ApiResponse<'paymentHistory', 'paymenthistoryFindOne'>;
 
 @Component({
   selector: 'app-incomes',
@@ -17,7 +17,7 @@ type IncomeDetail = ApiResponse<'mercadoPago', 'mercadopagoFindPayment'>;
   templateUrl: './incomes.html',
 })
 export class Incomes {
-  private readonly mercadoPagoService = inject(MercadoPagoService);
+  private readonly paymentHistoryService = inject(PaymentHistoryService);
   private readonly hubsme = inject(HubsmeService);
   private readonly toastService = inject(ToastService);
   private requestSequence = 0;
@@ -66,7 +66,7 @@ export class Incomes {
     this.loading.set(true);
 
     try {
-      const result = await this.mercadoPagoService.findPayments({
+      const result = await this.paymentHistoryService.findPayments({
         page: this.page(),
         limit: this.pageSize,
         year: this.year(),
@@ -114,7 +114,7 @@ export class Incomes {
     this.detailLoading.set(true);
 
     try {
-      const detail = await this.mercadoPagoService.findPayment(income.id);
+      const detail = await this.paymentHistoryService.findPayment(income.id);
       if (requestId === this.detailRequestSequence) this.selectedIncome.set(detail);
     } catch (error) {
       if (requestId === this.detailRequestSequence) {
@@ -157,41 +157,16 @@ export class Incomes {
 
   paymentMethodLabel(income: IncomeItem) {
     if (income.paymentMethod === 'promotion_code') return 'Cupón';
-
-    const methodId = income.paymentMethodId?.toLowerCase();
-    const typeId = income.paymentTypeId?.toLowerCase();
-
-    if (methodId === 'qr') return 'QR · Monnet';
-    if (methodId === 'yape') return 'Yape';
-    if (methodId === 'account_money' || typeId === 'account_money') {
-      return 'Saldo de Mercado Pago';
-    }
-
-    const labels: Record<string, string> = {
-      credit_card: 'Tarjeta de crédito',
-      debit_card: 'Tarjeta de débito',
-      prepaid_card: 'Tarjeta prepago',
-      bank_transfer: 'Transferencia bancaria',
-      ticket: 'Pago en efectivo',
-      atm: 'Pago por cajero',
-      digital_currency: 'Billetera digital',
-    };
-
-    return (typeId && labels[typeId]) || 'Pago en línea';
+    if (income.paymentMethodId === 'qr') return 'QR · Monnet';
+    if (income.paymentMethodId === 'bank-transfer') return 'Código bancario · Monnet';
+    return 'Pago registrado';
   }
 
   paymentMethodIcon(income: IncomeItem) {
     if (income.paymentMethod === 'promotion_code') return 'fa-ticket';
-
-    const methodId = income.paymentMethodId?.toLowerCase();
-    const typeId = income.paymentTypeId?.toLowerCase();
-
-    if (methodId === 'yape') return 'fa-mobile-screen-button';
-    if (methodId === 'account_money' || typeId === 'account_money') return 'fa-wallet';
-    if (methodId === 'qr') return 'fa-qrcode';
-    if (typeId === 'bank_transfer') return 'fa-building-columns';
-    if (typeId === 'ticket' || typeId === 'atm') return 'fa-money-bill-wave';
-    return 'fa-credit-card';
+    if (income.paymentMethodId === 'qr') return 'fa-qrcode';
+    if (income.paymentMethodId === 'bank-transfer') return 'fa-building-columns';
+    return 'fa-wallet';
   }
 
   counterparty(income: IncomeItem) {

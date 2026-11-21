@@ -22,6 +22,7 @@ import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { MeetingService } from '@service/admin/meeting.service';
 import { PATH, buildPath } from '@route/path.route';
 import { MeetingList } from '@module/admin/content/shared/meeting-list/meeting-list';
+import { MeetingRating } from '@module/admin/content/shared/meeting-rating/meeting-rating';
 import {
   dateKeyInPeru,
   formatDateForDatetimeLocal,
@@ -71,6 +72,7 @@ type MonthDaySelection = {
     CalendarWeekViewComponent,
     CalendarDatePipe,
     MeetingList,
+    MeetingRating,
   ],
   providers: [
     provideCalendar({
@@ -92,6 +94,7 @@ export class Meetings implements OnInit {
   readonly CalendarView = CalendarView;
   readonly PATH = PATH;
   readonly buildPath = buildPath;
+  readonly canRate = computed(() => this.hubsme.canManageOrganization());
   readonly pageMode = computed<'calendar' | 'list'>(() =>
     this.queryParamMap().get('view') === 'list' ? 'list' : 'calendar',
   );

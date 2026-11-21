@@ -9,6 +9,7 @@ import { ConsultantService } from '@service/admin/consultant.service';
 import { PymeService } from '@service/admin/pyme.service';
 import { MeetingService } from '@service/admin/meeting.service';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
+import { MeetingRating } from '@module/admin/content/shared/meeting-rating/meeting-rating';
 import { PATH, buildPath } from '@route/path.route';
 import { formatInPeru, parseApiDate } from '@function/date.function';
 
@@ -18,7 +19,7 @@ type Pyme = ApiResponse<'pyme', 'findByUser'>;
 
 @Component({
   selector: 'app-meeting-detail',
-  imports: [CommonModule, FormsModule, ModalForm, RouterLink],
+  imports: [CommonModule, FormsModule, ModalForm, RouterLink, MeetingRating],
   templateUrl: './meeting-detail.html',
 })
 export class MeetingDetail implements OnInit {
@@ -52,12 +53,22 @@ export class MeetingDetail implements OnInit {
     }
   });
 
+  readonly showRating = computed(() => {
+    const meeting = this.meeting();
+    return meeting?.status === 'confirmada' || meeting?.status === 'finalizada';
+  });
+
+  readonly canRate = computed(
+    () => this.hubsme.currentUser().role === 'pyme' && this.hubsme.canManageOrganization(),
+  );
+
   actaLink = computed(() => {
     const meeting = this.meeting();
     if (!meeting) return [];
     try {
       const role = this.hubsme.currentUser().role;
-      return [role === 'consultor' ? buildPath(PATH.admin.consultor.documents) : buildPath(PATH.admin.pyme.documents), meeting.id];
+      const documents = role === 'consultor' ? PATH.admin.consultor.documents : PATH.admin.pyme.documents;
+      return ['/' + buildPath(documents), meeting.id];
     } catch {
       return [];
     }

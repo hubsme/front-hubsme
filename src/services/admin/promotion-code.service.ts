@@ -5,12 +5,14 @@ import { Api, ApiBody, ApiResponse } from 'api/backend.api';
 export class PromotionCodeService {
   private readonly api = inject(Api);
 
+  validate(data: ApiBody<'promotionCode', 'promotioncodeValidate'>) {
+    return this.api.promotionCode.promotioncodeValidate(data).then((response) => response.data);
+  }
+
   redeem(
     data: ApiBody<'promotionCode', 'promotioncodeRedeem'>,
   ): Promise<ApiResponse<'promotionCode', 'promotioncodeRedeem'>> {
-    return this.api.promotionCode
-      .promotioncodeRedeem(data)
-      .then((response) => response.data);
+    return this.api.promotionCode.promotioncodeRedeem(data).then((response) => response.data);
   }
 
   redeemService(

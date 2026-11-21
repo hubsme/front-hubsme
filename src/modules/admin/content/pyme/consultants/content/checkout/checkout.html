@@ -16,7 +16,10 @@
   </div>
 
   @if (loading()) {
-    <div class="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_25rem]" aria-label="Cargando checkout">
+    <div
+      class="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] xl:gap-7"
+      aria-label="Cargando checkout"
+    >
       <section class="animate-pulse rounded-xl border border-border bg-surface p-6 shadow-soft">
         <div class="flex items-center justify-between gap-4 border-b border-border pb-5">
           <div class="flex items-center gap-3">
@@ -33,7 +36,9 @@
         <div class="mt-6 h-12 rounded-xl bg-text/10"></div>
       </section>
 
-      <aside class="animate-pulse rounded-xl border border-border bg-surface p-6 shadow-soft">
+      <aside
+        class="order-first animate-pulse rounded-xl border border-border bg-surface p-6 shadow-soft lg:order-none"
+      >
         <div class="h-5 w-40 rounded-full bg-text/10"></div>
         <div class="mt-5 flex items-center gap-3 border-b border-border pb-5">
           <div class="h-14 w-14 rounded-full bg-text/10"></div>
@@ -57,164 +62,373 @@
       </aside>
     </div>
   } @else if (checkout(); as checkout) {
-    <div class="grid grid-cols-1 gap-5 lg:grid-cols-[1fr_25rem]">
-      <section class="rounded-xl border border-border bg-surface p-6 shadow-soft">
-        <div class="flex items-center justify-between gap-4 border-b border-border pb-5">
-          <div class="inline-flex items-center gap-3">
+    <div
+      class="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] xl:gap-7"
+    >
+      <section class="min-w-0 rounded-2xl border border-border bg-surface shadow-soft">
+        <header
+          class="flex flex-wrap items-center justify-between gap-3 border-b border-border p-5 sm:px-7"
+        >
+          <div class="flex min-w-0 items-center gap-3">
             <span
-              class="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary"
+              class="grid size-12 shrink-0 place-items-center rounded-xl bg-secondary text-fixed-text-50"
             >
-              <i class="fas fa-credit-card"></i>
+              <i class="fas fa-wallet text-xl" aria-hidden="true"></i>
             </span>
             <div>
-              <p class="text-xs uppercase text-muted font-inter-bold">Pasarela segura</p>
-              <p class="font-inter-bold text-text">Pago con QR · Monnet</p>
+              <p class="text-xs font-inter-semibold text-secondary">Pasarela segura · Monnet</p>
+              <h2 class="mt-1 text-lg font-inter-bold">Métodos de pago</h2>
             </div>
           </div>
-          <span class="rounded-full bg-success/10 px-3 py-1 text-xs text-success font-inter-bold"
-            >Pago protegido</span
+          <span
+            class="rounded-full border border-success/30 bg-success/10 px-3 py-1.5 text-xs font-inter-semibold text-success"
           >
-        </div>
+            <i class="fas fa-shield-halved mr-1" aria-hidden="true"></i> Pago protegido
+          </span>
+        </header>
 
-        <div class="mt-6 rounded-xl border border-border bg-background p-5">
-          <p class="text-xs uppercase text-muted font-inter-bold">Estado del pago</p>
-          <p class="mt-2 text-lg capitalize font-inter-bold">{{ checkout.status }}</p>
-          <p class="mt-1 text-sm text-muted">
-            Al pagar, la reunión quedará registrada por confirmación. El consultor escogerá uno de
-            tus horarios propuestos y se generará el enlace de Teams.
-          </p>
-        </div>
-
-        @if (!isPaid() && checkout.canCreatePayment) {
-          <div class="mt-5 rounded-xl border border-border bg-surface p-4">
-            <div class="flex items-center gap-2 mb-3">
-              <span
-                class="flex size-8 items-center justify-center rounded-lg bg-success/10 text-success"
-              >
-                <i class="fas fa-ticket"></i>
-              </span>
-              <div>
-                <p class="text-sm font-inter-bold">¿Tienes un código promocional?</p>
-                <p class="text-xs text-muted">Canjéalo para obtener una consultoría gratuita.</p>
+        <form #paymentForm="ngForm" (ngSubmit)="pay()" class="space-y-8 p-5 sm:p-7">
+          @if (!isPaid() && isExpired()) {
+            <p
+              class="rounded-xl border border-border bg-background px-4 py-3 text-sm text-muted"
+              role="status"
+            >
+              @if (checkout.canCreatePayment) {
+                El enlace anterior venció. Puedes elegir cómo pagar y generar uno nuevo.
+              } @else {
+                El tiempo del enlace terminó. Verifica su estado para poder generar otro.
+              }
+            </p>
+          }
+          @if (!isPaid() && checkout.canCreatePayment) {
+            @if (appliedPromotion()) {
+              <div class="rounded-xl border border-success/30 bg-success/10 p-4 text-sm">
+                <p class="font-inter-bold text-success">
+                  <i class="fas fa-circle-check mr-2" aria-hidden="true"></i>Cupón aplicado
+                </p>
+                <p class="mt-1 text-muted">El cupón se canjeará al confirmar tu reserva.</p>
               </div>
-            </div>
-            <div class="flex flex-col sm:flex-row gap-2">
-              <input
-                name="promotionCode"
-                [ngModel]="promotionCode()"
-                (ngModelChange)="promotionCode.set($event)"
-                (keyup.enter)="redeemPromotionCode()"
-                placeholder="Ingresa tu código"
-                class="h-11 flex-1 rounded-lg border border-border bg-background px-3 text-sm uppercase text-text outline-none focus:border-success"
-              />
-              <button
-                type="button"
-                (click)="redeemPromotionCode()"
-                [disabled]="redeemingPromotion() || !promotionCode().trim()"
-                class="h-11 rounded-lg border border-success/40 px-5 text-sm font-inter-bold text-success hover:bg-success/5 disabled:opacity-50"
-              >
-                @if (redeemingPromotion()) {
-                  <i class="fas fa-circle-notch fa-spin mr-2"></i>
-                }
-                Aplicar código
-              </button>
+            } @else {
+              <fieldset [disabled]="paymentBusy()" class="min-w-0 text-sm">
+                <legend class="mb-3 font-inter-semibold">Elige cómo pagar</legend>
+                <div class="grid gap-4 sm:grid-cols-2">
+                  @for (option of paymentOptions; track option.method) {
+                    <label
+                      class="flex min-w-0 cursor-pointer flex-col gap-5 rounded-xl border border-border p-4 has-checked:border-secondary has-checked:bg-secondary/5"
+                    >
+                      <span class="flex items-start gap-2">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          [value]="option.method"
+                          [checked]="selectedPaymentMethod() === option.method"
+                          [attr.aria-labelledby]="'payment-method-' + option.method"
+                          [attr.aria-describedby]="'payment-description-' + option.method"
+                          (change)="selectedPaymentMethod.set(option.method)"
+                          class="mt-1 shrink-0 accent-secondary"
+                        />
+                        <span>
+                          <span
+                            [id]="'payment-method-' + option.method"
+                            class="block font-inter-semibold"
+                          >
+                            {{ option.label }}
+                          </span>
+                          <span
+                            [id]="'payment-description-' + option.method"
+                            class="text-xs text-muted"
+                          >
+                            {{ option.description }}
+                          </span>
+                        </span>
+                      </span>
+
+                      <span
+                        class="mt-auto min-w-0 items-center self-center rounded-md dark:bg-fixed-background-50 dark:p-1.5"
+                        [class]="
+                          option.additionalBrands
+                            ? 'grid w-full max-w-64 grid-cols-[repeat(3,minmax(0,1fr))_auto] gap-4'
+                            : 'flex gap-4'
+                        "
+                      >
+                        @for (brand of option.brands; track brand.asset) {
+                          <img
+                            [src]="'/images/payment/' + brand.asset"
+                            [alt]="brand.name"
+                            [title]="brand.name"
+                            class="min-w-0 object-contain"
+                            [class]="option.additionalBrands ? 'h-9 w-full' : 'size-9'"
+                          />
+                        }
+                        @if (option.additionalBrands; as brands) {
+                          <span
+                            class="inline-flex h-7 min-w-7 items-center justify-center rounded-md bg-background px-1 text-xs font-inter-semibold text-muted dark:bg-fixed-background-100 dark:text-fixed-text-700"
+                            [title]="brands.join(', ')"
+                          >
+                            <span aria-hidden="true">+{{ brands.length }}</span>
+                            <span class="sr-only"
+                              >También puedes pagar con {{ brands.join(', ') }}</span
+                            >
+                          </span>
+                        }
+                      </span>
+                    </label>
+                  }
+                </div>
+              </fieldset>
+
+              <div class="grid gap-x-6 gap-y-5 sm:grid-cols-[10rem_minmax(0,1fr)]">
+                <label class="block w-full max-w-40 text-sm">
+                  <span class="mb-2 block font-inter-semibold">DNI del pagador</span>
+                  <span class="relative block">
+                    <i
+                      class="fas fa-id-card pointer-events-none absolute left-3 top-4 text-muted"
+                      aria-hidden="true"
+                    ></i>
+                    <input
+                      name="payerDni"
+                      type="text"
+                      inputmode="numeric"
+                      maxlength="8"
+                      pattern="[0-9]{8}"
+                      required
+                      placeholder="8 dígitos"
+                      [ngModel]="payerDni()"
+                      (ngModelChange)="updatePayerDni($event)"
+                      [disabled]="paymentBusy()"
+                      class="h-12 w-full rounded-xl border border-border bg-background pl-10 pr-3 font-inter-semibold text-text outline-none focus:border-secondary"
+                    />
+                  </span>
+                </label>
+
+                <div class="min-w-0 text-sm" aria-live="polite">
+                  <p class="mb-2 font-inter-semibold">Titular identificado</p>
+                  @if (lookingUpDni()) {
+                    <p
+                      class="flex min-h-12 items-center gap-2 rounded-xl border border-border bg-background px-3 text-muted"
+                    >
+                      <i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Consultando DNI…
+                    </p>
+                  } @else if (payer(); as identity) {
+                    <p
+                      class="flex min-h-12 items-center gap-2 rounded-xl border border-success/30 bg-success/10 px-3 py-2 font-inter-semibold"
+                    >
+                      <i class="fas fa-circle-check shrink-0 text-success" aria-hidden="true"></i>
+                      <span class="break-words"
+                        >{{ identity.firstName }} {{ identity.lastName }}</span
+                      >
+                    </p>
+                  } @else if (dniLookupError()) {
+                    <p class="rounded-xl border border-danger/30 bg-danger/5 px-3 py-2 text-danger">
+                      {{ dniLookupError() }}
+                    </p>
+                    <button
+                      type="button"
+                      (click)="lookupPayerDni()"
+                      [disabled]="paymentBusy()"
+                      class="mt-2 text-secondary underline"
+                    >
+                      Reintentar consulta
+                    </button>
+                  } @else {
+                    <p
+                      class="flex min-h-12 items-center rounded-xl border border-border bg-background px-3 text-muted"
+                    >
+                      Completa el DNI para consultar
+                    </p>
+                  }
+                </div>
+              </div>
+            }
+          }
+
+          <div
+            class="flex items-start gap-3 rounded-xl border border-secondary/20 bg-secondary/5 p-4 text-sm"
+          >
+            <span
+              class="grid size-9 shrink-0 place-items-center rounded-lg bg-secondary/10 text-secondary"
+            >
+              <i class="fas fa-video" aria-hidden="true"></i>
+            </span>
+            <div>
+              <p class="font-inter-bold">Reserva por confirmar</p>
+              <p class="mt-1 leading-relaxed text-muted">
+                Al completar el pago, el consultor elegirá uno de los horarios propuestos. Te
+                enviaremos el enlace de Microsoft Teams por correo cuando confirme.
+              </p>
             </div>
           </div>
-        }
 
-        <form #paymentForm="ngForm" (ngSubmit)="pay()" class="mt-6">
-          @if (!isPaid() && checkout.canCreatePayment) {
-            <h2 class="text-lg font-inter-bold">Datos del pagador</h2>
-            <p class="mt-1 text-sm text-muted">
-              Completa tus datos para generar el QR de esta sesión.
-            </p>
-            <div class="mt-4 grid gap-4 sm:grid-cols-2">
-              @for (field of billingFields; track field.key) {
-                <label class="block text-sm">
-                  <span class="mb-2 block font-inter-semibold">{{ field.label }}</span>
-                  <input
-                    [name]="field.key"
-                    [type]="field.type"
-                    [ngModel]="billing()[field.key]"
-                    (ngModelChange)="updateBilling(field.key, $event)"
-                    required
-                    [email]="field.type === 'email'"
-                    [maxlength]="field.maxLength"
-                    [pattern]="field.pattern || '.*\\S.*'"
-                    [disabled]="opening()"
-                    [attr.inputmode]="field.pattern ? 'numeric' : null"
-                    class="h-11 w-full rounded-lg border border-border bg-background px-3 text-text outline-none focus:border-secondary"
-                  />
-                </label>
-              }
-            </div>
-          }
           <button
             type="submit"
-            [disabled]="isPaid() || opening() || (checkout.canCreatePayment && paymentForm.invalid)"
-            class="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-secondary px-5 text-sm text-fixed-text-50 transition hover:bg-secondary/90 disabled:opacity-50 font-inter-bold"
+            [disabled]="
+              isPaid() ||
+              paymentBusy() ||
+              (checkout.canCreatePayment &&
+                !appliedPromotion() &&
+                (paymentForm.invalid || !payer()))
+            "
+            class="inline-flex min-h-13 w-full items-center justify-center gap-2 rounded-xl bg-secondary px-5 py-3 text-center font-inter-bold text-fixed-text-50 shadow-soft transition hover:bg-secondary/90 disabled:opacity-50"
           >
             @if (isPaid()) {
-              <i class="fas fa-check-circle"></i> Pago confirmado
+              <i class="fas fa-circle-check" aria-hidden="true"></i> Pago confirmado
+            } @else if (redeemingPromotion()) {
+              <i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Confirmando reserva…
             } @else if (opening()) {
-              <i class="fas fa-spinner fa-spin"></i> Generando QR...
+              <i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Preparando pago…
+            } @else if (appliedPromotion()) {
+              <i class="fas fa-calendar-check" aria-hidden="true"></i>
+              Confirmar reserva · {{ currencySymbol() }} {{ currency(total()) }}
             } @else if (checkout.canCreatePayment) {
-              <i class="fas fa-qrcode"></i> Generar QR para pagar
+              @if (selectedPaymentMethod() === 'bank-transfer') {
+                <i class="fas fa-building-columns" aria-hidden="true"></i> Generar código de pago
+              } @else {
+                <i class="fas fa-qrcode" aria-hidden="true"></i> Generar QR
+              }
+              · {{ currencySymbol() }} {{ currency(total()) }}
+            } @else if (isExpired()) {
+              <i class="fas fa-clock" aria-hidden="true"></i> Verificar vencimiento
             } @else {
-              <i class="fas fa-qrcode"></i> Ver QR y verificar pago
+              <i class="fas fa-wallet" aria-hidden="true"></i> Ver instrucciones y verificar pago
             }
           </button>
         </form>
       </section>
 
-      <aside class="rounded-xl border border-border bg-surface p-6 shadow-soft">
-        <h2 class="text-lg font-inter-bold text-text">Resumen del pago</h2>
+      <aside
+        class="order-first min-w-0 space-y-5 rounded-2xl border border-border bg-surface p-5 shadow-soft sm:p-7 lg:order-none"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-lg font-inter-bold">Resumen del pago</h2>
+          <span class="text-xs text-muted">ID #{{ checkout.id }}</span>
+        </div>
 
         @if (consultant(); as consultant) {
-          <div class="mt-5 flex items-center gap-3 border-b border-border pb-5">
+          <div class="flex items-center gap-3 rounded-xl border border-border bg-background p-3.5">
             <img
               [src]="consultantPhoto(consultant)"
               [alt]="consultant.fullName"
-              class="h-14 w-14 rounded-full border border-border object-cover object-top"
+              class="size-14 shrink-0 rounded-full border border-border object-cover object-top"
             />
-            <div>
-              <p class="font-anton text-lg text-text">{{ consultant.fullName }}</p>
-              <p class="text-xs text-muted">Consultoria Hubsme</p>
-            </div>
-          </div>
-        }
-
-        @if (meeting(); as meeting) {
-          <div class="mt-5 space-y-4 border-b border-border pb-5 text-sm">
-            <div class="flex items-start gap-3">
-              <i class="far fa-calendar mt-1 text-muted"></i>
-              <div>
-                <p class="font-inter-bold">Horarios propuestos</p>
-                @for (time of proposedTimes(meeting); track time) {
-                  <p class="text-muted">{{ formatDate(time) }}</p>
+            <div class="min-w-0">
+              <p class="break-words text-sm font-inter-bold">{{ consultant.fullName }}</p>
+              <p class="mt-0.5 text-xs text-muted">
+                {{ consultant.headline || 'Consultoría Hubsme' }}
+              </p>
+              <div class="mt-2 flex flex-wrap gap-1.5 text-xs text-muted">
+                @if (meeting(); as session) {
+                  <span class="rounded-md border border-border bg-surface px-2 py-0.5">
+                    <i class="far fa-clock mr-1 text-secondary" aria-hidden="true"></i
+                    >{{ session.durationMinutes }} min
+                  </span>
                 }
-              </div>
-            </div>
-            <div class="flex items-start gap-3">
-              <i class="far fa-clock mt-1 text-muted"></i>
-              <div>
-                <p class="font-inter-bold">Duracion</p>
-                <p class="text-muted">{{ meeting.durationMinutes }} minutos</p>
+                <span class="rounded-md border border-border bg-surface px-2 py-0.5">
+                  <i class="fas fa-video mr-1 text-secondary" aria-hidden="true"></i>MS Teams
+                </span>
               </div>
             </div>
           </div>
         }
 
-        <div class="mt-5 space-y-3 text-sm">
-          <div class="flex items-center justify-between gap-4">
-            <span class="text-muted">Sesion de consultoria</span>
-            <span class="font-inter-bold">S/ {{ currency(total()) }}</span>
-          </div>
-        </div>
+        @if (meeting(); as session) {
+          @let times = proposedTimes(session);
+          @if (times.length) {
+            <div>
+              <div class="mb-2.5 flex flex-wrap items-center justify-between gap-2">
+                <h3 class="text-sm font-inter-semibold">
+                  <i class="far fa-calendar-check mr-1.5 text-secondary" aria-hidden="true"></i
+                  >Horarios propuestos
+                </h3>
+                <span class="text-xs text-muted"
+                  >{{ times.length }} {{ times.length === 1 ? 'opción' : 'opciones' }}</span
+                >
+              </div>
+              <ul class="list-disc space-y-2 pl-5 text-sm marker:text-secondary">
+                @for (time of times; track time) {
+                  <li class="first-letter:uppercase">
+                    {{ formatDate(time) }} ·
+                    <time [attr.datetime]="time" class="whitespace-nowrap font-inter-semibold">{{
+                      formatTime(time)
+                    }}</time>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        }
 
-        <div class="mt-5 rounded-xl border border-secondary/20 bg-secondary/5 p-4">
-          <p class="text-xs uppercase text-muted font-inter-bold">Total</p>
-          <p class="mt-1 text-3xl text-secondary font-inter-bold">S/ {{ currency(total()) }}</p>
+        @if (!isPaid() && checkout.canCreatePayment && checkout.status !== 'expired') {
+          <form (ngSubmit)="applyPromotionCode()" class="space-y-2 border-t border-border pt-5">
+            <label for="promotionCode" class="mb-2 block text-sm font-inter-semibold">
+              <i class="fas fa-ticket mr-1.5 text-success" aria-hidden="true"></i>¿Tienes un código
+              promocional?
+            </label>
+            <div class="flex gap-2">
+              <input
+                id="promotionCode"
+                name="promotionCode"
+                [ngModel]="promotionCode()"
+                (ngModelChange)="updatePromotionCode($event)"
+                [disabled]="paymentBusy()"
+                maxlength="40"
+                placeholder="Ingresa tu código"
+                class="h-10 min-w-0 flex-1 rounded-xl border border-border bg-background px-3 text-sm uppercase text-text outline-none focus:border-success"
+              />
+              <button
+                type="submit"
+                [disabled]="paymentBusy() || !promotionCode().trim() || !!appliedPromotion()"
+                class="shrink-0 rounded-xl border border-success/30 bg-success/10 px-3 text-sm font-inter-bold text-success transition hover:bg-success/15 disabled:opacity-50 sm:px-4"
+              >
+                @if (validatingPromotion()) {
+                  <i class="fas fa-spinner fa-spin" aria-hidden="true"></i
+                  ><span class="sr-only">Validando cupón</span>
+                } @else {
+                  {{ appliedPromotion() ? 'Aplicado' : 'Aplicar' }}
+                }
+              </button>
+            </div>
+            @if (appliedPromotion()) {
+              <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+                <p class="font-inter-semibold text-success" role="status">Descuento del 100 %</p>
+                <button
+                  type="button"
+                  (click)="updatePromotionCode('')"
+                  [disabled]="paymentBusy()"
+                  class="text-muted underline"
+                >
+                  Quitar cupón
+                </button>
+              </div>
+            } @else if (promotionError()) {
+              <p class="text-xs text-danger" role="alert">{{ promotionError() }}</p>
+            }
+          </form>
+        }
+
+        <div class="space-y-3 border-t border-border pt-5 text-sm">
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-muted">Sesión de consultoría</span>
+            <span class="shrink-0 font-inter-semibold"
+              >{{ currencySymbol() }} {{ currency(subtotal()) }}</span
+            >
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-muted">Descuentos aplicados</span>
+            <span class="shrink-0 font-inter-semibold" [class.text-success]="discount() > 0"
+              >{{ discount() > 0 ? '−' : '' }}{{ currencySymbol() }}
+              {{ currency(discount()) }}</span
+            >
+          </div>
+          <div
+            class="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-secondary/20 bg-secondary/5 p-4"
+          >
+            <p class="text-xs font-inter-bold uppercase tracking-wide text-secondary">
+              Total a pagar
+            </p>
+            <p class="text-2xl font-inter-bold text-secondary tabular-nums" aria-live="polite">
+              {{ currencySymbol() }} {{ currency(total()) }}
+            </p>
+          </div>
         </div>
       </aside>
     </div>
@@ -222,70 +436,206 @@
 
   @if (paymentModalOpen()) {
     <app-modal-form
-      title="Pagar con QR · Monnet"
+      [title]="isBankPayment() ? 'Pagar desde tu banco · Monnet' : 'Pagar con QR · Monnet'"
       maxWidth="2xl"
       [showFooter]="false"
       (onClose)="closePaymentModal()"
     >
-      <div class="space-y-5 p-5 text-center">
-        <p class="text-3xl font-inter-bold">{{ checkout()?.currency }} {{ currency(total()) }}</p>
+      <div class="space-y-5 p-4 sm:p-6">
+        <div
+          class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-background px-4 py-3"
+        >
+          <div>
+            <p class="text-xs font-inter-semibold text-muted">Monto a pagar</p>
+            <p class="mt-1 text-2xl font-inter-bold">
+              {{ currencySymbol() }} {{ currency(total()) }}
+            </p>
+          </div>
+          @if (!isExpired() && remainingTime()) {
+            <div class="text-right">
+              <p class="text-xs font-inter-semibold text-muted">Vence en</p>
+              <p class="mt-1 text-lg font-inter-bold tabular-nums">{{ remainingTime() }}</p>
+            </div>
+          }
+        </div>
         @if (isExpired()) {
           <p class="rounded-xl bg-danger/10 p-4 text-danger">
-            Este QR venció. Verifica si tu pago se completó antes de iniciar otra solicitud.
+            El tiempo del enlace terminó. Cuando Monnet confirme el vencimiento, podrás volver a
+            elegir cómo pagar.
           </p>
         } @else if (checkout()?.status === 'rejected' || checkout()?.status === 'cancelled') {
           <p class="rounded-xl bg-danger/10 p-4 text-danger">
             El pago fue rechazado o cancelado. Verifica su estado antes de iniciar otra solicitud.
           </p>
-        } @else if (qrCode(); as qr) {
-          <img
-            [src]="qr"
-            alt="QR de pago de la sesión"
-            class="mx-auto size-64 max-w-full rounded-xl border border-border"
-          />
-          <p class="text-sm text-muted">
-            Escanea desde tu billetera compatible y confirma el importe y el destinatario. Si estás
-            en el mismo celular, descarga el QR e impórtalo desde tu galería.
-          </p>
-          <a
-            [href]="qr"
-            download="hubsme-pago-qr.png"
-            class="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-secondary font-inter-semibold"
-          >
-            <i class="fas fa-download"></i> Descargar QR
-          </a>
-          @if (remainingTime()) {
-            <p class="text-sm text-muted">Vence en {{ remainingTime() }}</p>
+        } @else if (isBankPayment() && (checkout()?.paymentCode || paymentUrl())) {
+          @if (checkout()?.paymentCode; as code) {
+            <div
+              class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-secondary/20 bg-secondary/5 p-4"
+            >
+              <div class="min-w-0">
+                <p class="text-xs font-inter-semibold text-muted">Código de pago</p>
+                <p
+                  class="mt-1 text-2xl font-inter-bold break-all text-secondary tabular-nums select-all"
+                >
+                  {{ code }}
+                </p>
+              </div>
+              <button
+                type="button"
+                (click)="copyPaymentCode(code)"
+                class="inline-flex w-40 items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-inter-semibold transition motion-safe:active:scale-95"
+                [class]="
+                  paymentCodeCopied()
+                    ? 'border-secondary/45 bg-secondary/20 text-secondary'
+                    : 'border-secondary/25 bg-secondary/10 text-secondary hover:bg-secondary/15'
+                "
+              >
+                @if (paymentCodeCopied()) {
+                  <i class="fas fa-circle-check" aria-hidden="true"></i> Código copiado
+                } @else {
+                  <i class="far fa-copy" aria-hidden="true"></i> Copiar código
+                }
+              </button>
+              <span class="sr-only" role="status">{{
+                paymentCodeCopied() ? 'Código de pago copiado al portapapeles.' : ''
+              }}</span>
+            </div>
           }
+          @if (selectedBank(); as bank) {
+            <section class="space-y-3">
+              <h3 id="bank-payment-options" class="text-base font-inter-bold">Elige dónde pagar</h3>
+              <div
+                role="group"
+                aria-labelledby="bank-payment-options"
+                class="flex flex-wrap justify-center gap-2"
+              >
+                @for (channel of bankPaymentChannels(); track channel.code) {
+                  <button
+                    type="button"
+                    (click)="selectedBankCode.set(channel.code)"
+                    [attr.aria-pressed]="channel.code === bank.code"
+                    [attr.aria-label]="channel.name"
+                    [title]="channel.name"
+                    class="flex h-16 min-w-0 shrink-0 basis-[calc((100%_-_1rem)/3)] cursor-pointer items-center justify-center rounded-xl border bg-surface p-2 sm:basis-[calc((100%_-_2rem)/5)] dark:bg-fixed-background-50"
+                    [class]="
+                      channel.code === bank.code
+                        ? 'border-secondary ring-1 ring-secondary'
+                        : 'border-border'
+                    "
+                  >
+                    <img
+                      [src]="'/images/payment/' + channel.asset"
+                      alt=""
+                      class="h-8 w-full max-w-20 object-contain"
+                    />
+                  </button>
+                }
+              </div>
+            </section>
+            <section class="space-y-3 rounded-xl border border-border bg-background p-4">
+              <h3 class="text-base font-inter-bold">Cómo pagar con {{ bank.name }}</h3>
+              <ol
+                class="list-decimal space-y-2 pl-5 text-sm leading-relaxed text-muted marker:font-inter-bold marker:text-secondary"
+              >
+                <li>{{ bank.openApp }}</li>
+                <li>{{ bank.findService }}</li>
+                <li>
+                  Selecciona {{ checkout()?.currency === 'USD' ? 'dólares' : 'soles' }} e ingresa
+                  @if (checkout()?.paymentCode; as code) {
+                    el código <strong class="text-text tabular-nums">{{ code }}</strong
+                    >.
+                  } @else {
+                    el código que aparece en el comprobante de Monnet.
+                  }
+                </li>
+                <li>Verifica el monto y confirma el pago en tu app.</li>
+              </ol>
+            </section>
+          } @else {
+            <p class="text-sm text-muted">
+              Consulta el comprobante de Monnet para ver las entidades y sus instrucciones.
+            </p>
+          }
+        } @else if (qrCode(); as qr) {
+          <div class="grid items-center gap-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-6">
+            <img
+              [src]="qr"
+              alt="QR de pago de la sesión"
+              class="mx-auto size-52 max-w-full rounded-xl border border-border"
+            />
+            <div class="min-w-0 space-y-3 text-sm">
+              <div class="space-y-2">
+                <h3 class="text-base font-inter-bold">Escanea con Yape o Plin</h3>
+                <div
+                  class="flex w-fit items-center gap-3 rounded-md dark:bg-fixed-background-50 dark:p-1.5"
+                >
+                  @for (brand of qrPaymentBrands; track brand.asset) {
+                    <img
+                      [src]="'/images/payment/' + brand.asset"
+                      [alt]="brand.name"
+                      class="size-8 object-contain"
+                    />
+                  }
+                </div>
+              </div>
+              <ol class="list-decimal space-y-1 pl-5 text-muted">
+                <li>Abre el lector QR de tu billetera y escanea el código.</li>
+                <li>Revisa el importe y confirma el pago a nombre de Monnet.</li>
+              </ol>
+              <p class="text-xs leading-relaxed text-muted">
+                Si usas el mismo celular, descarga el QR y selecciónalo desde la galería de tu
+                billetera.
+              </p>
+              <a
+                [href]="qr"
+                download="hubsme-pago-qr.png"
+                class="inline-flex items-center gap-2 rounded-lg border border-border px-3 py-2 font-inter-semibold text-secondary"
+              >
+                <i class="fas fa-download" aria-hidden="true"></i> Descargar QR
+              </a>
+            </div>
+          </div>
+        } @else if (paymentUrl()) {
+          <p class="text-sm text-muted">Abre las instrucciones de Monnet para completar el pago.</p>
         } @else {
           <p class="text-sm text-muted">
             Estamos verificando tu operación. Si ya pagaste, espera la confirmación antes de iniciar
             otra solicitud.
           </p>
         }
-        @if (paymentUrl(); as url) {
+        @if (!isExpired() && paymentUrl(); as url) {
           <a
             [href]="url"
             target="_blank"
             rel="noopener noreferrer"
-            class="block text-secondary underline"
+            class="inline-block text-sm text-secondary underline"
             >Abrir instrucciones de pago de Monnet</a
           >
         }
-        <p class="text-sm text-muted" aria-live="polite">
-          {{
-            checkingPayment()
-              ? 'Consultando el estado del pago...'
-              : 'Esperando confirmación del pago. La reunión se registrará automáticamente.'
-          }}
-        </p>
+      </div>
+      <div
+        modalFooter
+        class="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-border bg-surface px-4 py-3 sm:px-6"
+      >
+        <span
+          class="inline-flex h-8 w-60 max-w-full items-center justify-center gap-1.5 rounded-full border border-secondary/20 bg-secondary/5 px-2 text-xs font-inter-semibold text-secondary tabular-nums"
+        >
+          <i class="fas fa-clock" aria-hidden="true"></i>
+          @if (checkingPayment()) {
+            Verificando pago…
+          } @else if (nextPaymentCheckIn(); as seconds) {
+            Verificación automática en {{ seconds }}s
+          } @else {
+            Verificación automática en pausa
+          }
+        </span>
         <button
           type="button"
           (click)="refreshPaymentStatus()"
           [disabled]="checkingPayment()"
-          class="rounded-lg bg-secondary px-5 py-3 text-fixed-text-50 font-inter-semibold disabled:opacity-50"
+          class="rounded-lg bg-secondary px-4 py-2.5 text-sm font-inter-semibold text-fixed-text-50 disabled:cursor-wait"
         >
-          Ya pagué, verificar
+          {{ isExpired() ? 'Verificar estado' : 'Ya pagué, verificar' }}
         </button>
       </div>
     </app-modal-form>

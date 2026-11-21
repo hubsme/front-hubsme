@@ -816,6 +816,138 @@ export interface WhatsappWebhookAcceptedDto {
   received: boolean;
 }
 
+export interface MonthlyPayoutTransferDto {
+  orderId: string;
+  monnetId: string | null;
+  monnetStatus: string | null;
+  status: "processing" | "paid" | "rejected";
+  method: "savings" | "current" | "yape" | "plin";
+  amount: string;
+  lastFour: string;
+  isTest: boolean;
+}
+
+export interface MeetingMonthlyPayoutItemDto {
+  payoutId: number;
+  meetingId: number;
+  checkoutId: number;
+  title: string;
+  /** @format date-time */
+  startTime: string | null;
+  meetingStatus: string;
+  pymeName: string;
+  paymentReference: string;
+  paymentMethod: "qr" | "bank-transfer" | "yape-one-shot" | "unidentified";
+  grossAmount: string;
+  payinCommissionAmount: string | null;
+  payinTaxAmount: string | null;
+  payinTotalAmount: string | null;
+  netAfterPayinAmount: string | null;
+  isIncluded: boolean;
+  exclusionReason: "not_completed" | "already_paid" | "payin_unknown" | null;
+}
+
+export interface MeetingMonthlyPayoutDto {
+  consultantId: number;
+  consultantName: string;
+  currency: string;
+  month: string;
+  isClosed: boolean;
+  status: "open" | "pending" | "needs_review" | "processing" | "paid" | "empty";
+  meetingCount: number;
+  includedMeetingCount: number;
+  unreconciledMeetingCount: number;
+  /** Cobrado de todas las reuniones del mes, incluidas las aún no finalizadas o ya pagadas */
+  collectedGrossAmount: string;
+  collectedPayinTotalAmount: string | null;
+  /** Bruto de reuniones finalizadas y aún no pagadas */
+  grossAmount: string;
+  payinCommissionAmount: string | null;
+  payinTaxAmount: string | null;
+  payinTotalAmount: string | null;
+  netAfterPayinAmount: string | null;
+  payoutCommissionPercent: number;
+  payoutMinimumAmount: string;
+  payoutMinimumApplied: boolean | null;
+  igvRate: number;
+  platformCommissionPercent: number;
+  payoutCommissionAmount: string | null;
+  payoutTaxAmount: string | null;
+  payoutTotalAmount: string | null;
+  platformCommissionAmount: string | null;
+  consultantAmount: string | null;
+  /** Admite un nuevo envío según el saldo y el entorno de Monnet */
+  canPayout: boolean;
+  transfer?: MonthlyPayoutTransferDto;
+  meetings: MeetingMonthlyPayoutItemDto[];
+}
+
+export interface MeetingMonthlyPayoutListDto {
+  data: MeetingMonthlyPayoutDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface MonthlyPayoutDestinationDto {
+  method: "savings" | "current" | "yape" | "plin";
+  lastFour: string | null;
+  unavailableReason: string | null;
+}
+
+export interface MonthlyPayoutOptionsDto {
+  amount: string | null;
+  unavailableReason: string | null;
+  confirmation: string | null;
+  destinations: MonthlyPayoutDestinationDto[];
+  isTest: boolean;
+  transfer: MonthlyPayoutTransferDto | null;
+}
+
+export interface CreateMonthlyPayoutDto {
+  /** @example "2026-11" */
+  month: string;
+  consultantId: number;
+  /** @example "PEN" */
+  currency: string;
+  method: "savings" | "current" | "yape" | "plin";
+  confirmation: string;
+}
+
+export interface RefreshMonthlyPayoutDto {
+  orderId: string;
+}
+
+export interface MeetingConsultantFeeBreakdownDto {
+  /** Versiones 1/2: cálculo anterior; versión 3: solo Payin, Payout y Hubsme se liquidan mensualmente */
+  version: 1 | 2 | 3;
+  payinMethod?: "qr" | "bank-transfer" | "yape-one-shot";
+  /** Factor de IGV; 0.18 representa 18% */
+  igvRate?: number;
+  /** Comisión mínima Payin en PEN, antes de IGV */
+  payinMinimumAmount?: string;
+  /** Comisión mínima Payout en PEN, antes de IGV */
+  payoutMinimumAmount?: string;
+  payinMinimumApplied?: boolean;
+  payoutMinimumApplied?: boolean;
+  grossAmount: string;
+  /** Porcentaje Payin sobre el total de la sesión */
+  payinCommissionPercent: number;
+  /** Porcentaje Payout sobre el total de la sesión */
+  payoutCommissionPercent: number;
+  /** Porcentaje de impuesto sobre la comisión Payin */
+  payinTaxPercent: number;
+  /** Porcentaje de impuesto sobre la comisión Payout */
+  payoutTaxPercent: number;
+  /** Porcentaje Hubsme sobre el total de la sesión */
+  platformCommissionPercent: number;
+  payinCommissionAmount: string;
+  payoutCommissionAmount: string;
+  payinTaxAmount: string;
+  payoutTaxAmount: string;
+  platformCommissionAmount: string;
+  totalDeductionsAmount: string;
+  consultantAmount: string;
+}
+
 export interface MeetingConsultantPayoutResultDto {
   id: number;
   /** @format date-time */
@@ -827,10 +959,6 @@ export interface MeetingConsultantPayoutResultDto {
   pymeId: number;
   consultantId: number;
   amount: string;
-  /** Cargo retenido por Mercado Pago */
-  mercadoPagoFeeAmount: string | null;
-  /** Porcentaje efectivo retenido por Mercado Pago sobre el cobro bruto */
-  mercadoPagoFeePercent: string | null;
   currency: string;
   status: "pending" | "paid";
   paymentReference: string | null;
@@ -854,12 +982,14 @@ export interface MeetingConsultantPayoutResultDto {
     | "cancelada";
   pymeName: string;
   consultantName: string;
-  mercadoPagoPaymentId: string | null;
+  paymentId: string | null;
   checkoutExternalReference: string;
   /** Total que la PYME pagó y que ingresó a la cuenta de Hubsme */
   grossAmount: string;
   /** Comisión contable retenida por Hubsme */
   platformCommissionAmount: string;
+  /** Deducciones guardadas al crear el cobro; null para registros anteriores */
+  feeBreakdown: MeetingConsultantFeeBreakdownDto | null;
   /** Número de reagendamientos asociados a esta reunión */
   rescheduleCount: number;
   /** ID de la última reunión activa o más reciente en la cadena */
@@ -900,11 +1030,8 @@ export interface MeetingTraceabilityPayoutSummaryDto {
   processedByAdmin: string | null;
   grossAmount: string;
   platformCommissionAmount: string;
-  /** Cargo retenido por Mercado Pago */
-  mercadoPagoFeeAmount: string | null;
-  /** Porcentaje efectivo retenido por Mercado Pago sobre el cobro bruto */
-  mercadoPagoFeePercent: string | null;
-  mercadoPagoPaymentId: string | null;
+  feeBreakdown: MeetingConsultantFeeBreakdownDto | null;
+  paymentId: string | null;
   checkoutExternalReference: string;
 }
 
@@ -981,7 +1108,7 @@ export interface MeetingRescheduleTraceabilityDto {
 export interface MeetingConsultantPayoutMarkPaidMultipartDto {
   /**
    * @maxLength 180
-   * @example "TRANSFERENCIA-MP-123456"
+   * @example "TRANSFERENCIA-123456"
    */
   paymentReference: string;
   /** @maxLength 2000 */
@@ -1169,6 +1296,23 @@ export interface MeetingCalendarListDto {
 export interface MeetingListDto {
   data: MeetingResultDto[];
   meta: PaginationMetaDto;
+}
+
+export interface MeetingConsultantRatingResultDto {
+  /**
+   * @min 1
+   * @max 5
+   */
+  stars: number | null;
+}
+
+export interface MeetingSetConsultantRatingDto {
+  /**
+   * @min 1
+   * @max 5
+   * @example 4
+   */
+  stars: number;
 }
 
 export interface MeetingAccessResultDto {
@@ -1847,6 +1991,16 @@ export interface EmailSendResultDto {
   messageId: string;
 }
 
+export interface EmailTestHookDto {
+  /** @example "prueba" */
+  message: string;
+}
+
+export interface EmailTestHookResultDto {
+  /** @example "prueba" */
+  message: string;
+}
+
 export interface ConsultantAdminFindAllResultDto {
   data: ConsultantListItemDto[];
   meta: PaginationMetaDto;
@@ -1917,114 +2071,6 @@ export interface ConsultantAdminFindOneResultDto {
   totalReviews: number;
   active: "true" | "false";
   validated: "true" | "false";
-}
-
-export interface MercadoPagoAccountProfileDto {
-  /** @example "123456789" */
-  id: string | null;
-  /** @example "consultor_mp" */
-  nickname: string | null;
-  /** @example "consultor@mail.com" */
-  email: string | null;
-  /** @example "Miguel" */
-  firstName: string | null;
-  /** @example "Salinas" */
-  lastName: string | null;
-  /** @example "MPE" */
-  siteId: string | null;
-  /** @example "PE" */
-  countryId: string | null;
-  /** @example "normal" */
-  userType: string | null;
-  /** @example "https://www.mercadolibre.com.pe/perfil/consultor_mp" */
-  permalink: string | null;
-  /**
-   * @format date-time
-   * @example "2026-06-17T15:00:00.000Z"
-   */
-  registrationDate: string | null;
-  /**
-   * @format date-time
-   * @example "2026-06-17T15:00:00.000Z"
-   */
-  dateCreated: string | null;
-}
-
-export interface ConsultantMercadoPagoAdminDto {
-  /** @example true */
-  connected: boolean;
-  /** @example "123456789" */
-  mercadoPagoUserId: string | null;
-  /** @example "consultor_mp" */
-  nickname: string | null;
-  /** @example "consultor@mail.com" */
-  email: string | null;
-  /**
-   * @format date-time
-   * @example "2026-06-17T15:00:00.000Z"
-   */
-  connectedAt: string | null;
-  /**
-   * @format date-time
-   * @example "2026-06-17T15:00:00.000Z"
-   */
-  lastUpdatedAt: string | null;
-  accountProfile: MercadoPagoAccountProfileDto | null;
-  /**
-   * @format date-time
-   * @example "2026-06-17T15:00:00.000Z"
-   */
-  tokenExpiresAt: string | null;
-  /**
-   * @format date-time
-   * @example "2026-08-19T15:30:00.000Z"
-   */
-  profileLastCheckedAt: string | null;
-  /** @example null */
-  profileError: string | null;
-}
-
-export interface MercadoPagoFinancialReportDto {
-  /** @example "123456789" */
-  id: string | null;
-  /**
-   * @format date-time
-   * @example "2026-08-01T00:00:00.000Z"
-   */
-  beginDate: string | null;
-  /**
-   * @format date-time
-   * @example "2026-08-19T23:59:59.000Z"
-   */
-  endDate: string | null;
-  /** @example "settlement_report_20260819.csv" */
-  fileName: string | null;
-  /**
-   * @format date-time
-   * @example "2026-08-19T15:30:00.000Z"
-   */
-  createdAt: string | null;
-}
-
-export interface ConsultantMercadoPagoFinancialAdminDto {
-  /** @example true */
-  connected: boolean;
-  /** @example "available" */
-  status: "available" | "not_available" | "error";
-  /** @example "PEN" */
-  currency: string | null;
-  /** @example false */
-  balanceAvailable: boolean;
-  /** @example 4 */
-  reportCount: number;
-  latestReport: MercadoPagoFinancialReportDto | null;
-  /**
-   * @format date-time
-   * @example "2026-08-19T15:30:00.000Z"
-   */
-  lastUpdatedAt: string | null;
-  /** @example "Se encontró el último reporte financiero disponible." */
-  message: string;
 }
 
 export interface ConsultantApprovalDto {
@@ -2236,6 +2282,40 @@ export interface ConsultantAdminRemoveResultDto {
   totalReviews: number;
   active: "true" | "false";
   validated: "true" | "false";
+}
+
+export interface ConsultantDepositAccountsResultDto {
+  /** @maxLength 120 */
+  holderFirstName: string | null;
+  /** @maxLength 120 */
+  holderLastName: string | null;
+  /** @pattern ^[0-9]{8}$ */
+  holderDni: string | null;
+  /** @pattern ^[0-9]{20}$ */
+  savingsCci: string | null;
+  /** @pattern ^[0-9]{20}$ */
+  currentCci: string | null;
+  /** @pattern ^9[0-9]{8}$ */
+  yapePhone: string | null;
+  /** @pattern ^9[0-9]{8}$ */
+  plinPhone: string | null;
+}
+
+export interface ConsultantUpdateDepositAccountsDto {
+  /** @maxLength 120 */
+  holderFirstName: string | null;
+  /** @maxLength 120 */
+  holderLastName: string | null;
+  /** @pattern ^[0-9]{8}$ */
+  holderDni: string | null;
+  /** @pattern ^[0-9]{20}$ */
+  savingsCci: string | null;
+  /** @pattern ^[0-9]{20}$ */
+  currentCci: string | null;
+  /** @pattern ^9[0-9]{8}$ */
+  yapePhone: string | null;
+  /** @pattern ^9[0-9]{8}$ */
+  plinPhone: string | null;
 }
 
 export interface ConsultantMeetingDocumentDto {
@@ -2794,21 +2874,6 @@ export interface SubscriptionUpsertDto {
   expiresAt?: string;
 }
 
-export interface SubscriptionCheckoutDto {
-  /**
-   * ID del plan de suscripción
-   * @example "basic"
-   */
-  planId: string;
-}
-
-export interface SubscriptionCheckoutResultDto {
-  /** URL de pago en producción */
-  initPoint: string;
-  /** URL de pago en sandbox */
-  sandboxInitPoint: string;
-}
-
 export interface DashboardStatsDto {
   clients: number;
   meetings: number;
@@ -2887,428 +2952,1167 @@ export interface DashboardResponseDto {
   alerts: DashboardAlertDto[];
 }
 
-export interface MercadoPagoAuthUrlResponseDto {
-  /** @example "https://auth.mercadopago.com/authorization?..." */
-  url: string;
-}
-
-export interface MercadoPagoStatusDto {
-  /** @example true */
-  connected: boolean;
-  /** @example "123456789" */
-  mercadoPagoUserId: string | null;
-  /** @example "consultor_mp" */
-  nickname: string | null;
-  /** @example "consultor@mail.com" */
-  email: string | null;
-  /**
-   * @format date-time
-   * @example "2026-06-17T15:00:00.000Z"
-   */
-  connectedAt: string | null;
-}
-
-export interface MercadoPagoDisconnectResultDto {
-  /** @example true */
-  connected: boolean;
-  /** @example "123456789" */
-  mercadoPagoUserId: string | null;
-  /** @example "consultor_mp" */
-  nickname: string | null;
-  /** @example "consultor@mail.com" */
-  email: string | null;
-  /**
-   * @format date-time
-   * @example "2026-06-17T15:00:00.000Z"
-   */
-  connectedAt: string | null;
-}
-
-export interface MercadoPagoCreateCheckoutDto {
-  /** @example 3 */
-  consultantId: number;
-  /** @example "2026-05-10T15:00:00.000Z" */
-  startTime: string;
-  /** @example ["2026-05-10T15:00:00.000Z","2026-05-10T16:00:00.000Z","2026-05-11T15:00:00.000Z"] */
-  proposedStartTimes: string[];
-  /** @example 60 */
-  durationMinutes?: number;
-  /** @example "Sesión de consultoría" */
-  title: string;
-  /** @example "Detalle de la reunión" */
-  description?: string;
-}
-
-export interface MonnetCheckoutMeetingDetailsDto {
-  startTime: string;
-  proposedStartTimes: string[];
-  durationMinutes: number;
-  title: string;
-  description?: string;
-}
-
-export interface MonnetCheckoutResultDto {
-  id: number;
-  meetingId: number | null;
-  pymeId: number;
-  consultantId: number;
-  status:
-    | "created"
-    | "pending"
-    | "approved"
-    | "rejected"
-    | "cancelled"
-    | "expired";
-  /** @example "120.00" */
-  amount: string;
-  marketplaceFee: string;
-  /** @example "PEN" */
-  currency: string;
-  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
-  paymentUrl: string | null;
-  /** Imagen PNG del QR en formato data:image/png;base64,... */
-  qrCode: string | null;
-  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
-  expiresAt: string | null;
-  environment: "cert" | "production" | null;
-  /** Indica si se puede generar un QR nuevo. Un intento incierto se verifica antes de volver a cobrar. */
-  canCreatePayment: boolean;
-}
-
-export interface CheckoutMeetingDetailsDto {
-  startTime: string;
-  proposedStartTimes: string[];
-  durationMinutes: number;
-  title: string;
-  description?: string;
-}
-
-export interface MercadoPagoPaymentHistoryItemDto {
+export interface PromotionCodeResultDto {
   id: number;
   /** @format date-time */
   createdAt: string;
   /** @format date-time */
   updatedAt: string;
+  code: string;
+  type: "consultation" | "service";
+  description?: string | null;
+  maxRedemptions: number;
+  redemptionCount: number;
   /** @format date-time */
-  meetingCreatedAt: string | null;
+  startsAt?: string | null;
   /** @format date-time */
-  meetingStartTime: string | null;
-  meetingId: number | null;
-  serviceRequestId: number | null;
-  serviceInstallmentIndex: number | null;
-  pymeId: number;
-  consultantId: number;
-  externalReference: string;
-  status:
-    | "created"
-    | "pending"
-    | "approved"
-    | "rejected"
-    | "cancelled"
-    | "expired";
-  amount: string;
-  marketplaceFee: string;
-  currency: string;
-  meetingDetails?: CheckoutMeetingDetailsDto | null;
-  meetingStatus:
-    | "solicitada"
-    | "por_confirmar"
-    | "confirmada"
-    | "finalizada"
-    | "cancelada"
-    | null;
-  meetingCancellationReason: string | null;
-  serviceTitle: string | null;
-  serviceDescription: string | null;
-  mercadoPagoPaymentId: string | null;
-  /** Identificador de la operación en el proveedor de pago. */
-  paymentId: string | null;
-  paymentProvider: "monnet" | "mercado_pago" | null;
-  pymeName: string | null;
-  consultantName: string | null;
-  paymentMethod: "payment" | "promotion_code";
-  /** Payment method identifier reported by the payment provider, such as yape, visa or account_money */
-  paymentMethodId: string | null;
-  /** Payment type reported by the payment provider, such as credit_card, debit_card or account_money */
-  paymentTypeId: string | null;
-  promotionCode: string | null;
+  expiresAt?: string | null;
+  allowedPymeIds?: number[] | null;
+  allowedConsultantIds?: number[] | null;
+  isActive: boolean;
 }
 
-export interface MercadoPagoPaymentHistoryResponseDto {
-  data: MercadoPagoPaymentHistoryItemDto[];
+export interface PromotionCodeListDto {
+  data: PromotionCodeResultDto[];
   meta: PaginationMetaDto;
 }
 
-export interface MercadoPagoFindCheckoutResultDto {
+export interface PromotionCodeRedemptionDetailDto {
   id: number;
-  meetingId: number | null;
+  checkoutId: number;
+  serviceRequestId: number | null;
+  serviceInstallmentIndex: number | null;
   pymeId: number;
+  pymeName: string;
   consultantId: number;
+  consultantName: string;
+  meetingId: number | null;
+  /** @format date-time */
+  redeemedAt: string;
+}
+
+export interface PromotionCodeDetailDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  code: string;
+  type: "consultation" | "service";
+  description?: string | null;
+  maxRedemptions: number;
+  redemptionCount: number;
+  /** @format date-time */
+  startsAt?: string | null;
+  /** @format date-time */
+  expiresAt?: string | null;
+  allowedPymeIds?: number[] | null;
+  allowedConsultantIds?: number[] | null;
+  isActive: boolean;
+  redemptions: PromotionCodeRedemptionDetailDto[];
+}
+
+export interface PromotionCodeCreateDto {
+  /**
+   * If omitted, the backend generates a code
+   * @example "GRATIS-JULIO"
+   */
+  code?: string;
+  /**
+   * Contexto en el que puede canjearse el cupón
+   * @default "consultation"
+   */
+  type?: "consultation" | "service";
+  /** @example "Campaña para primeras consultorias" */
+  description?: string;
+  /**
+   * @min 1
+   * @example 10
+   */
+  maxRedemptions: number;
+  /** @format date-time */
+  startsAt?: string;
+  /** @format date-time */
+  expiresAt?: string;
+  /** IDs de PYMEs autorizadas. Null permite cualquier PYME. */
+  allowedPymeIds?: number[] | null;
+  /** IDs de consultores autorizados. Null permite cualquier consultor. */
+  allowedConsultantIds?: number[] | null;
+}
+
+export interface PromotionCodeUpdateDto {
+  /**
+   * If omitted, the backend generates a code
+   * @example "GRATIS-JULIO"
+   */
+  code?: string;
+  /**
+   * Contexto en el que puede canjearse el cupón
+   * @default "consultation"
+   */
+  type?: "consultation" | "service";
+  /** @example "Campaña para primeras consultorias" */
+  description?: string;
+  /**
+   * @min 1
+   * @example 10
+   */
+  maxRedemptions?: number;
+  /** @format date-time */
+  startsAt?: string;
+  /** @format date-time */
+  expiresAt?: string;
+  /** IDs de PYMEs autorizadas. Null permite cualquier PYME. */
+  allowedPymeIds?: number[] | null;
+  /** IDs de consultores autorizados. Null permite cualquier consultor. */
+  allowedConsultantIds?: number[] | null;
+  isActive?: boolean;
+}
+
+export interface PromotionCodeValidateDto {
+  /** @example 12 */
+  checkoutId: number;
+  /** @example "GRATIS-JULIO" */
+  code: string;
+}
+
+export interface PromotionCodeValidateResultDto {
+  /** @example "GRATIS-JULIO" */
+  code: string;
+  /** @example "0.00" */
+  total: string;
+}
+
+export interface PromotionCodeRedeemDto {
+  /** @example 12 */
+  checkoutId: number;
+  /** @example "GRATIS-JULIO" */
+  code: string;
+}
+
+export interface PromotionCodeRedeemResultDto {
+  meetingId: number;
+  checkoutId: number;
+  code: string;
+  /** @example "Consultoria gratuita confirmada" */
+  message: string;
+}
+
+export interface PromotionCodeRedeemServiceDto {
+  /** @example 12 */
+  serviceRequestId: number;
+  /** @example "SERVICIO-GRATIS" */
+  code: string;
+}
+
+export interface PromotionCodeRedeemServiceResultDto {
+  serviceRequestId: number;
+  installmentIndex: number;
+  checkoutId: number;
+  code: string;
+  /** @example "Cuota de servicio confirmada con cupón" */
+  message: string;
+}
+
+export interface ServiceRequestReferenceAttachmentResultDto {
+  storagePath: string;
+  fileUrl: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
+export interface ServiceRequestEvidenceAttachmentResultDto {
+  storagePath: string;
+  fileUrl: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+  id: string;
+  note?: string | null;
+  /** @min 0 */
+  milestoneIndex?: number | null;
+  uploadedAt: string;
+  uploadedBy: number;
+  uploadedByRole: "pyme" | "consultor";
+}
+
+export interface ServiceRequestMilestoneResultDto {
+  title: string;
+  /** @example "2026-09-15" */
+  dueDate: string;
+}
+
+export interface ServiceRequestPaymentPlanDto {
+  strategy: "single" | "initial_final" | "milestone_installments";
+  /**
+   * @maxLength 240
+   * @example "30% inicial y 70% al finalizar"
+   */
+  summary: string;
+  /** @maxLength 1200 */
+  rationale: string;
+  /**
+   * @maxItems 6
+   * @minItems 1
+   */
+  installments: ServiceRequestPaymentInstallmentDto[];
+}
+
+export interface ServiceRequestPaymentScheduleItemDto {
+  /** @min 0 */
+  installmentIndex: number;
+  label: string;
+  /**
+   * @min 1
+   * @max 100
+   */
+  percentage: number;
+  trigger: "service_approval" | "milestone_completion" | "service_completion";
+  /** @min 0 */
+  milestoneIndex: number;
+  amount?: string | null;
   status:
+    | "not_started"
     | "created"
     | "pending"
     | "approved"
     | "rejected"
     | "cancelled"
     | "expired";
-  /** @example "120.00" */
-  amount: string;
-  marketplaceFee: string;
-  /** @example "PEN" */
-  currency: string;
-  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
-  paymentUrl: string | null;
-  /** Imagen PNG del QR en formato data:image/png;base64,... */
-  qrCode: string | null;
-  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
-  expiresAt: string | null;
-  environment: "cert" | "production" | null;
-  /** Indica si se puede generar un QR nuevo. Un intento incierto se verifica antes de volver a cobrar. */
-  canCreatePayment: boolean;
+  available: boolean;
+  availabilityMessage?: string | null;
+  /** @format date-time */
+  paidAt?: string | null;
 }
 
-export interface MonnetPrepareCheckoutPaymentDto {
-  /**
-   * @maxLength 30
-   * @example "Erick"
-   */
-  payinCustomerName: string;
-  /**
-   * @maxLength 30
-   * @example "Flores Santos"
-   */
-  payinCustomerLastName: string;
-  /**
-   * @maxLength 50
-   * @example "xerickcua@gmail.com"
-   */
-  payinCustomerEmail: string;
-  /**
-   * Celular peruano del cliente: nueve dígitos, sin el prefijo +51.
-   * @example "929073820"
-   */
-  payinCustomerPhone: string;
-  /**
-   * Tipo de documento habilitado por Monnet para el comercio.
-   * @example "DNI"
-   */
-  payinCustomerTypeDocument: "DNI";
-  /**
-   * DNI ilustrativo; usar el documento del pagador o el dato de prueba acordado con Monnet.
-   * @example "12345678"
-   */
-  payinCustomerDocument: string;
-  /**
-   * @maxLength 200
-   * @example "Avenida de pruebas 123"
-   */
-  payinCustomerAddress: string;
-  /**
-   * @maxLength 80
-   * @example "Lima"
-   */
-  payinCustomerCity: string;
-  /**
-   * @maxLength 80
-   * @example "Lima"
-   */
-  payinCustomerRegion: string;
-  /** @example "15073" */
-  payinCustomerZipCode: string;
-}
-
-export interface MercadoPagoPrepareCheckoutPaymentResultDto {
+export interface ServiceRequestResultDto {
   id: number;
-  meetingId: number | null;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
   pymeId: number;
   consultantId: number;
+  serviceOfferId?: number | null;
+  initialMeetingProposedStartTimes: string[];
+  /** @format date-time */
+  initialMeetingStartTime?: string | null;
+  pymeName: string | null;
+  consultantName: string | null;
+  consultantHeadline?: string | null;
+  consultantPhotoUrl?: string | null;
+  title: string;
+  category?:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+    | null;
+  subcategory?: string | null;
+  description: string;
+  expectedOutcome?: string | null;
+  requirements: string;
+  deliverables: string[];
+  exclusions?: string | null;
+  referenceUrls: string[];
+  referenceAttachments: ServiceRequestReferenceAttachmentResultDto[];
+  evidenceAttachments: ServiceRequestEvidenceAttachmentResultDto[];
+  budgetType?: "fixed" | "range" | null;
+  budgetMin?: string | null;
+  budgetMax?: string | null;
+  /** @example "2026-09-30" */
+  deadline?: string | null;
+  estimatedDuration?: string | null;
+  workModality: "remote";
+  workMethod?: string | null;
+  milestones: ServiceRequestMilestoneResultDto[];
+  paymentPlan: ServiceRequestPaymentPlanDto;
+  paymentSchedule: ServiceRequestPaymentScheduleItemDto[];
+  meetings: MeetingResultDto[];
+  details?: string | null;
   status:
-    | "created"
-    | "pending"
-    | "approved"
-    | "rejected"
-    | "cancelled"
-    | "expired";
-  /** @example "120.00" */
-  amount: string;
-  marketplaceFee: string;
-  /** @example "PEN" */
+    | "requested"
+    | "proposal_sent"
+    | "consultant_declined"
+    | "payment_pending"
+    | "paid"
+    | "completed"
+    | "pyme_declined"
+    | "cancelled";
+  proposedPrice?: string | null;
   currency: string;
-  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
-  paymentUrl: string | null;
-  /** Imagen PNG del QR en formato data:image/png;base64,... */
-  qrCode: string | null;
-  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
-  expiresAt: string | null;
-  environment: "cert" | "production" | null;
-  /** Indica si se puede generar un QR nuevo. Un intento incierto se verifica antes de volver a cobrar. */
-  canCreatePayment: boolean;
+  proposalMessage?: string | null;
+  pymeDecisionMessage?: string | null;
+  /** @format date-time */
+  respondedAt?: string | null;
+  /** @format date-time */
+  decidedAt?: string | null;
+  /** @format date-time */
+  paidAt?: string | null;
+  /** @format date-time */
+  completedAt?: string | null;
 }
 
-export interface MercadoPagoServicePaymentDto {
+export interface ServiceRequestListDto {
+  data: ServiceRequestResultDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface ServiceRequestInitialMeetingOptionDto {
+  /** @example 12 */
+  consultantId: number;
   /**
-   * Índice de la cuota que se desea pagar. Si se omite, se usa la primera pendiente.
+   * @maxItems 3
+   * @minItems 3
+   * @example ["2026-08-12T15:00:00.000Z","2026-08-13T15:00:00.000Z","2026-08-14T15:00:00.000Z"]
+   */
+  proposedStartTimes: string[];
+}
+
+export interface ServiceRequestMilestoneCreateDto {
+  /** @maxLength 240 */
+  title: string;
+  /** @example "2026-09-15" */
+  dueDate: string;
+}
+
+export interface ServiceRequestCreateMultipartDto {
+  /**
+   * Tarea del acta que originó la solicitud
+   * @min 1
+   */
+  sourceTaskId?: number;
+  /**
+   * Oferta del catálogo que originó la solicitud
+   * @min 1
+   */
+  serviceOfferId?: number;
+  /**
+   * @maxItems 3
+   * @minItems 1
+   * @example [8,12,19]
+   */
+  consultantIds: number[];
+  /**
+   * @maxItems 3
+   * @minItems 1
+   */
+  initialMeetingOptions: ServiceRequestInitialMeetingOptionDto[];
+  /**
+   * @maxLength 160
+   * @example "Capacitación de seguridad para el personal"
+   */
+  title: string;
+  /** @example "Marketing" */
+  category:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable";
+  /**
+   * @maxLength 120
+   * @example "Redes sociales"
+   */
+  subcategory: string;
+  /**
+   * @maxLength 5000
+   * @example "La marca publica sin una estrategia ni calendario definido."
+   */
+  description: string;
+  /**
+   * @maxLength 5000
+   * @example "Contar con una estrategia y un calendario aplicable durante tres meses."
+   */
+  expectedOutcome: string;
+  /**
+   * @maxLength 5000
+   * @example "Diagnóstico, propuesta y acompañamiento durante la implementación."
+   */
+  requirements: string;
+  /** @example ["Estrategia documentada en PDF","Calendario editable de 3 meses"] */
+  deliverables: string[];
+  /** @maxLength 5000 */
+  exclusions?: string;
+  /** @maxItems 10 */
+  referenceUrls?: string[];
+  budgetType: "fixed" | "range";
+  /**
+   * @min 0.01
+   * @example 1500
+   */
+  budgetMin: number;
+  /**
+   * @min 0.01
+   * @example 2500
+   */
+  budgetMax?: number;
+  /** @example "2026-09-30" */
+  deadline: string;
+  /**
+   * @maxLength 160
+   * @example "4 semanas"
+   */
+  estimatedDuration: string;
+  /** @example "remote" */
+  workModality: "remote";
+  /**
+   * @maxLength 5000
+   * @example "Una reunión semanal y coordinación asíncrona por correo."
+   */
+  workMethod: string;
+  /** @maxItems 20 */
+  milestones?: ServiceRequestMilestoneCreateDto[];
+  paymentPlan: ServiceRequestPaymentPlanDto;
+  /**
+   * @maxLength 5000
+   * @example "Disponibilidad durante la segunda semana del mes."
+   */
+  details?: string;
+  /** Hasta 5 archivos de referencia de máximo 10 MB cada uno */
+  files?: File[];
+}
+
+export interface ServiceRequestProposalDto {
+  /**
+   * @min 1
+   * @example 1850.5
+   */
+  price: number;
+  /** @example "2026-08-12T15:00:00.000Z" */
+  selectedInitialMeetingStartTime?: string;
+  /**
+   * @maxLength 3000
+   * @example "Incluye materiales y dos jornadas de capacitación."
+   */
+  message?: string;
+}
+
+export interface ServiceRequestDeclineDto {
+  /**
+   * @maxLength 3000
+   * @example "No podremos continuar con esta solicitud."
+   */
+  message?: string;
+}
+
+export interface ServiceRequestCompleteServiceResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  pymeId: number;
+  consultantId: number;
+  serviceOfferId?: number | null;
+  initialMeetingProposedStartTimes: string[];
+  /** @format date-time */
+  initialMeetingStartTime?: string | null;
+  pymeName: string | null;
+  consultantName: string | null;
+  consultantHeadline?: string | null;
+  consultantPhotoUrl?: string | null;
+  title: string;
+  category?:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+    | null;
+  subcategory?: string | null;
+  description: string;
+  expectedOutcome?: string | null;
+  requirements: string;
+  deliverables: string[];
+  exclusions?: string | null;
+  referenceUrls: string[];
+  referenceAttachments: ServiceRequestReferenceAttachmentResultDto[];
+  evidenceAttachments: ServiceRequestEvidenceAttachmentResultDto[];
+  budgetType?: "fixed" | "range" | null;
+  budgetMin?: string | null;
+  budgetMax?: string | null;
+  /** @example "2026-09-30" */
+  deadline?: string | null;
+  estimatedDuration?: string | null;
+  workModality: "remote";
+  workMethod?: string | null;
+  milestones: ServiceRequestMilestoneResultDto[];
+  paymentPlan: ServiceRequestPaymentPlanDto;
+  paymentSchedule: ServiceRequestPaymentScheduleItemDto[];
+  meetings: MeetingResultDto[];
+  details?: string | null;
+  status:
+    | "requested"
+    | "proposal_sent"
+    | "consultant_declined"
+    | "payment_pending"
+    | "paid"
+    | "completed"
+    | "pyme_declined"
+    | "cancelled";
+  proposedPrice?: string | null;
+  currency: string;
+  proposalMessage?: string | null;
+  pymeDecisionMessage?: string | null;
+  /** @format date-time */
+  respondedAt?: string | null;
+  /** @format date-time */
+  decidedAt?: string | null;
+  /** @format date-time */
+  paidAt?: string | null;
+  /** @format date-time */
+  completedAt?: string | null;
+}
+
+export interface ServiceRequestMilestoneMeetingDto {
+  /**
    * @min 0
+   * @max 19
    * @example 0
    */
-  installmentIndex?: number;
-}
-
-export interface MercadoPagoCheckoutDto {
-  id: number;
-  meetingId: number | null;
-  serviceRequestId: number | null;
-  serviceInstallmentIndex: number | null;
-  pymeId: number;
-  consultantId: number;
-  preferenceId: string | null;
-  initPoint: string | null;
-  sandboxInitPoint: string | null;
-  externalReference: string;
-  status:
-    | "created"
-    | "pending"
-    | "approved"
-    | "rejected"
-    | "cancelled"
-    | "expired";
-  amount: string;
-  marketplaceFee: string;
-  currency: string;
-  meetingDetails?: CheckoutMeetingDetailsDto | null;
-}
-
-export interface MercadoPagoSyncServicePaymentResultDto {
-  id: number;
-  meetingId: number | null;
-  serviceRequestId: number | null;
-  serviceInstallmentIndex: number | null;
-  pymeId: number;
-  consultantId: number;
-  preferenceId: string | null;
-  initPoint: string | null;
-  sandboxInitPoint: string | null;
-  externalReference: string;
-  status:
-    | "created"
-    | "pending"
-    | "approved"
-    | "rejected"
-    | "cancelled"
-    | "expired";
-  amount: string;
-  marketplaceFee: string;
-  currency: string;
-  meetingDetails?: CheckoutMeetingDetailsDto | null;
-}
-
-export interface MonnetCreateCheckoutDto {
-  /** @example 3 */
-  consultantId: number;
-  /** @example "2026-12-10T15:00:00.000Z" */
-  startTime?: string;
-  /** @example ["2026-12-10T15:00:00.000Z","2026-12-11T15:00:00.000Z","2026-12-12T15:00:00.000Z"] */
+  milestoneIndex: number;
+  /** @example ["2026-08-19T15:00:00.000Z","2026-08-20T15:00:00.000Z","2026-08-21T15:00:00.000Z"] */
   proposedStartTimes: string[];
+}
+
+export interface ServiceRequestMilestoneUpdateDto {
   /**
-   * @min 60
-   * @max 480
-   * @example 60
+   * @maxLength 160
+   * @example "Validación final con contabilidad"
    */
-  durationMinutes?: number;
+  title: string;
+  /** @example "2026-09-20" */
+  dueDate: string;
+}
+
+export interface ServiceRequestRemoveMilestoneResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  pymeId: number;
+  consultantId: number;
+  serviceOfferId?: number | null;
+  initialMeetingProposedStartTimes: string[];
+  /** @format date-time */
+  initialMeetingStartTime?: string | null;
+  pymeName: string | null;
+  consultantName: string | null;
+  consultantHeadline?: string | null;
+  consultantPhotoUrl?: string | null;
+  title: string;
+  category?:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+    | null;
+  subcategory?: string | null;
+  description: string;
+  expectedOutcome?: string | null;
+  requirements: string;
+  deliverables: string[];
+  exclusions?: string | null;
+  referenceUrls: string[];
+  referenceAttachments: ServiceRequestReferenceAttachmentResultDto[];
+  evidenceAttachments: ServiceRequestEvidenceAttachmentResultDto[];
+  budgetType?: "fixed" | "range" | null;
+  budgetMin?: string | null;
+  budgetMax?: string | null;
+  /** @example "2026-09-30" */
+  deadline?: string | null;
+  estimatedDuration?: string | null;
+  workModality: "remote";
+  workMethod?: string | null;
+  milestones: ServiceRequestMilestoneResultDto[];
+  paymentPlan: ServiceRequestPaymentPlanDto;
+  paymentSchedule: ServiceRequestPaymentScheduleItemDto[];
+  meetings: MeetingResultDto[];
+  details?: string | null;
+  status:
+    | "requested"
+    | "proposal_sent"
+    | "consultant_declined"
+    | "payment_pending"
+    | "paid"
+    | "completed"
+    | "pyme_declined"
+    | "cancelled";
+  proposedPrice?: string | null;
+  currency: string;
+  proposalMessage?: string | null;
+  pymeDecisionMessage?: string | null;
+  /** @format date-time */
+  respondedAt?: string | null;
+  /** @format date-time */
+  decidedAt?: string | null;
+  /** @format date-time */
+  paidAt?: string | null;
+  /** @format date-time */
+  completedAt?: string | null;
+}
+
+export interface ServiceRequestExtraMilestoneMeetingDto {
   /**
-   * @maxLength 200
-   * @example "Sesión de consultoría"
+   * @min 1
+   * @max 19
+   * @example 2
+   */
+  insertAtIndex: number;
+  /** @example "Validación final con contabilidad" */
+  title: string;
+  /** @example "2026-09-20" */
+  dueDate: string;
+  /** @example ["2026-09-17T15:00:00.000Z","2026-09-18T15:00:00.000Z","2026-09-19T15:00:00.000Z"] */
+  proposedStartTimes: string[];
+}
+
+export interface ServiceRequestEvidenceMultipartDto {
+  /** @example "Constancia SUNAT correspondiente al primer entregable." */
+  note?: string;
+  /**
+   * @min 0
+   * @max 49
+   * @example 0
+   */
+  milestoneIndex?: number;
+}
+
+export interface ServiceRequestDeleteEvidenceResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  pymeId: number;
+  consultantId: number;
+  serviceOfferId?: number | null;
+  initialMeetingProposedStartTimes: string[];
+  /** @format date-time */
+  initialMeetingStartTime?: string | null;
+  pymeName: string | null;
+  consultantName: string | null;
+  consultantHeadline?: string | null;
+  consultantPhotoUrl?: string | null;
+  title: string;
+  category?:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable"
+    | null;
+  subcategory?: string | null;
+  description: string;
+  expectedOutcome?: string | null;
+  requirements: string;
+  deliverables: string[];
+  exclusions?: string | null;
+  referenceUrls: string[];
+  referenceAttachments: ServiceRequestReferenceAttachmentResultDto[];
+  evidenceAttachments: ServiceRequestEvidenceAttachmentResultDto[];
+  budgetType?: "fixed" | "range" | null;
+  budgetMin?: string | null;
+  budgetMax?: string | null;
+  /** @example "2026-09-30" */
+  deadline?: string | null;
+  estimatedDuration?: string | null;
+  workModality: "remote";
+  workMethod?: string | null;
+  milestones: ServiceRequestMilestoneResultDto[];
+  paymentPlan: ServiceRequestPaymentPlanDto;
+  paymentSchedule: ServiceRequestPaymentScheduleItemDto[];
+  meetings: MeetingResultDto[];
+  details?: string | null;
+  status:
+    | "requested"
+    | "proposal_sent"
+    | "consultant_declined"
+    | "payment_pending"
+    | "paid"
+    | "completed"
+    | "pyme_declined"
+    | "cancelled";
+  proposedPrice?: string | null;
+  currency: string;
+  proposalMessage?: string | null;
+  pymeDecisionMessage?: string | null;
+  /** @format date-time */
+  respondedAt?: string | null;
+  /** @format date-time */
+  decidedAt?: string | null;
+  /** @format date-time */
+  paidAt?: string | null;
+  /** @format date-time */
+  completedAt?: string | null;
+}
+
+export interface DniVerificationDto {
+  /**
+   * Número de DNI peruano de 8 dígitos
+   * @example "72750623"
+   */
+  documentNumber: string;
+  /** @example "Juan" */
+  firstName: string;
+  /** @example "Pérez" */
+  paternalLastName: string;
+  /** @example "Gómez" */
+  maternalLastName: string;
+  /**
+   * Fecha en formato ISO: YYYY-MM-DD
+   * @example "1990-05-21"
+   */
+  birthDate: string;
+}
+
+export interface DniVerificationMatchesDto {
+  /** Coincide el número de DNI consultado con el registro devuelto */
+  documentNumber: boolean;
+  firstName: boolean;
+  paternalLastName: boolean;
+  maternalLastName: boolean;
+  birthDate: boolean;
+}
+
+export interface DniVerificationIdentityDto {
+  id: string;
+  nombres: string;
+  apellido_paterno: string;
+  apellido_materno: string;
+  nombre_completo: string;
+  genero: string;
+  fecha_nacimiento: string;
+  codigo_verificacion: string;
+}
+
+export interface DniVerificationResultDto {
+  /** Indica si todos los datos enviados coinciden */
+  verified: boolean;
+  /** Indica si PeruDevs encontró un registro para el DNI */
+  providerFound: boolean;
+  matches: DniVerificationMatchesDto;
+  /** Datos devueltos por el proveedor para conservarlos internamente al crear la cuenta */
+  identity: DniVerificationIdentityDto | null;
+  /** @example "Los datos coinciden con el registro consultado." */
+  message: string;
+}
+
+export interface DniLookupDto {
+  /**
+   * Número de DNI peruano de 8 dígitos
+   * @example "72750623"
+   */
+  documentNumber: string;
+}
+
+export interface DniLookupResultDto {
+  /** @example "Juan" */
+  firstName: string;
+  /** @example "Pérez Gómez" */
+  lastName: string;
+}
+
+export interface RucVerificationDto {
+  /**
+   * Número de RUC peruano de 11 dígitos
+   * @example "20123456789"
+   */
+  ruc: string;
+}
+
+export interface RucVerificationResultDto {
+  /** Indica si el RUC existe en el registro consultado */
+  verified: boolean;
+  /** Indica si PeruDevs encontró información para el RUC */
+  providerFound: boolean;
+  /**
+   * Nombre comercial asociado al RUC; usa la razón social cuando el proveedor no informa un nombre comercial
+   * @example "Textiles del Sur SAC"
+   */
+  nombreComercial: string | null;
+  /** @example "El RUC existe en el registro consultado." */
+  message: string;
+}
+
+export interface FeedbackListItemDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  userId: number;
+  userRole: "pyme" | "consultor";
+  userName: string;
+  userEmail: string;
+  title: string;
+  description: string;
+  status: "new" | "in_review" | "accepted" | "resolved" | "closed";
+  /** @format date-time */
+  statusUpdatedAt?: string | null;
+  statusUpdatedBy?: string | null;
+  attachmentCount: number;
+  replyCount: number;
+}
+
+export interface FeedbackListDto {
+  data: FeedbackListItemDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface FeedbackAttachmentResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  storagePath: string;
+  fileUrl: string;
+  originalName: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
+export interface FeedbackReplyResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  authorType: "user" | "admin";
+  authorUserId?: number | null;
+  authorName: string;
+  message: string;
+}
+
+export interface FeedbackResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  userId: number;
+  userRole: "pyme" | "consultor";
+  userName: string;
+  userEmail: string;
+  title: string;
+  description: string;
+  status: "new" | "in_review" | "accepted" | "resolved" | "closed";
+  /** @format date-time */
+  statusUpdatedAt?: string | null;
+  statusUpdatedBy?: string | null;
+  attachmentCount: number;
+  replyCount: number;
+  attachments: FeedbackAttachmentResultDto[];
+  replies: FeedbackReplyResultDto[];
+}
+
+export interface FeedbackCreateMultipartDto {
+  /**
+   * @maxLength 160
+   * @example "No puedo visualizar el acta de mi reunión"
    */
   title: string;
   /**
-   * @maxLength 2000
-   * @example "Revisión del plan comercial"
+   * @maxLength 5000
+   * @example "Al ingresar al detalle aparece una pantalla vacía."
    */
+  description: string;
+  /** Hasta 5 imágenes JPG, PNG, WEBP, HEIC o HEIF de máximo 8 MB cada una */
+  images?: File[];
+}
+
+export interface FeedbackReplyCreateDto {
+  /**
+   * @maxLength 3000
+   * @example "Gracias por el reporte. Ya estamos revisándolo."
+   */
+  message: string;
+}
+
+export interface FeedbackAdminFindOneResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  userId: number;
+  userRole: "pyme" | "consultor";
+  userName: string;
+  userEmail: string;
+  title: string;
+  description: string;
+  status: "new" | "in_review" | "accepted" | "resolved" | "closed";
+  /** @format date-time */
+  statusUpdatedAt?: string | null;
+  statusUpdatedBy?: string | null;
+  attachmentCount: number;
+  replyCount: number;
+  attachments: FeedbackAttachmentResultDto[];
+  replies: FeedbackReplyResultDto[];
+}
+
+export interface FeedbackStatusUpdateDto {
+  status: "new" | "in_review" | "accepted" | "resolved" | "closed";
+}
+
+export interface FeedbackAdminReplyResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  userId: number;
+  userRole: "pyme" | "consultor";
+  userName: string;
+  userEmail: string;
+  title: string;
+  description: string;
+  status: "new" | "in_review" | "accepted" | "resolved" | "closed";
+  /** @format date-time */
+  statusUpdatedAt?: string | null;
+  statusUpdatedBy?: string | null;
+  attachmentCount: number;
+  replyCount: number;
+  attachments: FeedbackAttachmentResultDto[];
+  replies: FeedbackReplyResultDto[];
+}
+
+export interface ConsultantServiceOfferResultDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  consultantId: number;
+  consultantName: string;
+  consultantHeadline?: string | null;
+  consultantPhotoUrl?: string | null;
+  consultantRating: string;
+  consultantYearsExperience: number;
+  title: string;
+  category:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable";
+  subcategory: string;
+  description: string;
+  expectedOutcome: string;
+  requirements: string;
+  deliverables: string[];
+  exclusions?: string | null;
+  estimatedDurationDays: number;
+  workModality: "remote";
+  workMethod: string;
+  price: string;
+  currency: string;
+  pricePeriod: "one_time" | "monthly" | "hourly";
+  isActive: boolean;
+}
+
+export interface ConsultantServiceOfferListDto {
+  data: ConsultantServiceOfferResultDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface ServiceOfferFindMineResultDto {
+  data: ConsultantServiceOfferResultDto[];
+  meta: PaginationMetaDto;
+}
+
+export interface ConsultantServiceOfferCreateDto {
+  /**
+   * @maxLength 160
+   * @example "Contabilidad mensual para PYMEs"
+   */
+  title: string;
+  /** @example "Tributario / Contable" */
+  category:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable";
+  /**
+   * @maxLength 120
+   * @example "Contabilidad"
+   */
+  subcategory: string;
+  /** @maxLength 5000 */
+  description: string;
+  /** @maxLength 5000 */
+  expectedOutcome: string;
+  /** @maxLength 5000 */
+  requirements: string;
+  /**
+   * @maxItems 20
+   * @minItems 1
+   */
+  deliverables: string[];
+  /** @maxLength 5000 */
+  exclusions?: string;
+  /**
+   * @min 1
+   * @max 365
+   * @example 30
+   */
+  estimatedDurationDays: number;
+  /** @example "remote" */
+  workModality: "remote";
+  /** @maxLength 5000 */
+  workMethod: string;
+  /**
+   * @min 0.01
+   * @example 1200
+   */
+  price: number;
+  /** @example "monthly" */
+  pricePeriod: "one_time" | "monthly" | "hourly";
+}
+
+export interface ConsultantServiceOfferUpdateDto {
+  /**
+   * @maxLength 160
+   * @example "Contabilidad mensual para PYMEs"
+   */
+  title?: string;
+  /** @example "Tributario / Contable" */
+  category?:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable";
+  /**
+   * @maxLength 120
+   * @example "Contabilidad"
+   */
+  subcategory?: string;
+  /** @maxLength 5000 */
   description?: string;
+  /** @maxLength 5000 */
+  expectedOutcome?: string;
+  /** @maxLength 5000 */
+  requirements?: string;
+  /**
+   * @maxItems 20
+   * @minItems 1
+   */
+  deliverables?: string[];
+  /** @maxLength 5000 */
+  exclusions?: string;
+  /**
+   * @min 1
+   * @max 365
+   * @example 30
+   */
+  estimatedDurationDays?: number;
+  /** @example "remote" */
+  workModality?: "remote";
+  /** @maxLength 5000 */
+  workMethod?: string;
+  /**
+   * @min 0.01
+   * @example 1200
+   */
+  price?: number;
+  /** @example "monthly" */
+  pricePeriod?: "one_time" | "monthly" | "hourly";
 }
 
-export interface MonnetFindCheckoutResultDto {
-  id: number;
-  meetingId: number | null;
-  pymeId: number;
-  consultantId: number;
-  status:
-    | "created"
-    | "pending"
-    | "approved"
-    | "rejected"
-    | "cancelled"
-    | "expired";
-  /** @example "120.00" */
-  amount: string;
-  marketplaceFee: string;
-  /** @example "PEN" */
-  currency: string;
-  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
-  paymentUrl: string | null;
-  /** Imagen PNG del QR en formato data:image/png;base64,... */
-  qrCode: string | null;
-  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
-  expiresAt: string | null;
-  environment: "cert" | "production" | null;
-  /** Indica si se puede generar un QR nuevo. Un intento incierto se verifica antes de volver a cobrar. */
-  canCreatePayment: boolean;
+export interface ConsultantServiceOfferActiveDto {
+  isActive: boolean;
 }
 
-export interface MonnetPrepareCheckoutPaymentResultDto {
+export interface ServiceOfferRemoveResultDto {
   id: number;
-  meetingId: number | null;
-  pymeId: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
   consultantId: number;
-  status:
-    | "created"
-    | "pending"
-    | "approved"
-    | "rejected"
-    | "cancelled"
-    | "expired";
-  /** @example "120.00" */
-  amount: string;
-  marketplaceFee: string;
-  /** @example "PEN" */
+  consultantName: string;
+  consultantHeadline?: string | null;
+  consultantPhotoUrl?: string | null;
+  consultantRating: string;
+  consultantYearsExperience: number;
+  title: string;
+  category:
+    | "Estratégica"
+    | "Financiera"
+    | "Comercial / Ventas"
+    | "Marketing"
+    | "Servicio al cliente"
+    | "Operaciones"
+    | "Organizacional / RRHH"
+    | "Tecnología"
+    | "Legal"
+    | "Laboral"
+    | "Tributario / Contable";
+  subcategory: string;
+  description: string;
+  expectedOutcome: string;
+  requirements: string;
+  deliverables: string[];
+  exclusions?: string | null;
+  estimatedDurationDays: number;
+  workModality: "remote";
+  workMethod: string;
+  price: string;
   currency: string;
-  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
-  paymentUrl: string | null;
-  /** Imagen PNG del QR en formato data:image/png;base64,... */
-  qrCode: string | null;
-  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
-  expiresAt: string | null;
-  environment: "cert" | "production" | null;
-  /** Indica si se puede generar un QR nuevo. Un intento incierto se verifica antes de volver a cobrar. */
-  canCreatePayment: boolean;
-}
-
-export interface MonnetSyncCheckoutPaymentResultDto {
-  id: number;
-  meetingId: number | null;
-  pymeId: number;
-  consultantId: number;
-  status:
-    | "created"
-    | "pending"
-    | "approved"
-    | "rejected"
-    | "cancelled"
-    | "expired";
-  /** @example "120.00" */
-  amount: string;
-  marketplaceFee: string;
-  /** @example "PEN" */
-  currency: string;
-  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
-  paymentUrl: string | null;
-  /** Imagen PNG del QR en formato data:image/png;base64,... */
-  qrCode: string | null;
-  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
-  expiresAt: string | null;
-  environment: "cert" | "production" | null;
-  /** Indica si se puede generar un QR nuevo. Un intento incierto se verifica antes de volver a cobrar. */
-  canCreatePayment: boolean;
+  pricePeriod: "one_time" | "monthly" | "hourly";
+  isActive: boolean;
 }
 
 export interface PayinCreateBankTransferDto {
@@ -3987,1138 +4791,236 @@ export interface PayinCreateYapeWebDto {
   payinCustomerShippingZipCode?: string;
 }
 
-export interface ServiceRequestReferenceAttachmentResultDto {
-  storagePath: string;
-  fileUrl: string;
-  originalName: string;
-  mimeType: string;
-  sizeBytes: number;
-}
-
-export interface ServiceRequestEvidenceAttachmentResultDto {
-  storagePath: string;
-  fileUrl: string;
-  originalName: string;
-  mimeType: string;
-  sizeBytes: number;
-  id: string;
-  note?: string | null;
-  /** @min 0 */
-  milestoneIndex?: number | null;
-  uploadedAt: string;
-  uploadedBy: number;
-  uploadedByRole: "pyme" | "consultor";
-}
-
-export interface ServiceRequestMilestoneResultDto {
+export interface MonnetCreateCheckoutDto {
+  /** @example 3 */
+  consultantId: number;
+  /** @example "2026-12-10T15:00:00.000Z" */
+  startTime?: string;
+  /** @example ["2026-12-10T15:00:00.000Z","2026-12-11T15:00:00.000Z","2026-12-12T15:00:00.000Z"] */
+  proposedStartTimes: string[];
+  /**
+   * @min 60
+   * @max 480
+   * @example 60
+   */
+  durationMinutes?: number;
+  /**
+   * @maxLength 200
+   * @example "Sesión de consultoría"
+   */
   title: string;
-  /** @example "2026-09-15" */
-  dueDate: string;
+  /**
+   * @maxLength 2000
+   * @example "Revisión del plan comercial"
+   */
+  description?: string;
 }
 
-export interface ServiceRequestPaymentPlanDto {
-  strategy: "single" | "initial_final" | "milestone_installments";
-  /**
-   * @maxLength 240
-   * @example "30% inicial y 70% al finalizar"
-   */
-  summary: string;
-  /** @maxLength 1200 */
-  rationale: string;
-  /**
-   * @maxItems 6
-   * @minItems 1
-   */
-  installments: ServiceRequestPaymentInstallmentDto[];
+export interface MonnetCheckoutMeetingDetailsDto {
+  startTime: string;
+  proposedStartTimes: string[];
+  durationMinutes: number;
+  title: string;
+  description?: string;
 }
 
-export interface ServiceRequestPaymentScheduleItemDto {
-  /** @min 0 */
-  installmentIndex: number;
-  label: string;
-  /**
-   * @min 1
-   * @max 100
-   */
-  percentage: number;
-  trigger: "service_approval" | "milestone_completion" | "service_completion";
-  /** @min 0 */
-  milestoneIndex: number;
-  amount?: string | null;
+export interface MonnetCheckoutReferencesDto {
+  /** @example "HUBSME-00000000-0000-4000-8000-000000000001" */
+  payinMerchantOperationNumber: string;
+  /** @example "MONTRX4214729724051762681" */
+  payinTrxOperation: string | null;
+  /** @example "42147297" */
+  operationNumber: string | null;
+  /** @example "0987654321" */
+  payinID: string | null;
+  /** @example "13238534" */
+  paymentCode: string | null;
+}
+
+export interface MonnetCheckoutResultDto {
+  id: number;
+  meetingId: number | null;
+  pymeId: number;
+  consultantId: number;
   status:
-    | "not_started"
     | "created"
     | "pending"
     | "approved"
     | "rejected"
     | "cancelled"
     | "expired";
-  available: boolean;
-  availabilityMessage?: string | null;
-  /** @format date-time */
-  paidAt?: string | null;
-}
-
-export interface ServiceRequestResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  pymeId: number;
-  consultantId: number;
-  serviceOfferId?: number | null;
-  initialMeetingProposedStartTimes: string[];
-  /** @format date-time */
-  initialMeetingStartTime?: string | null;
-  pymeName: string | null;
-  consultantName: string | null;
-  consultantHeadline?: string | null;
-  consultantPhotoUrl?: string | null;
-  title: string;
-  category?:
-    | "Estratégica"
-    | "Financiera"
-    | "Comercial / Ventas"
-    | "Marketing"
-    | "Servicio al cliente"
-    | "Operaciones"
-    | "Organizacional / RRHH"
-    | "Tecnología"
-    | "Legal"
-    | "Laboral"
-    | "Tributario / Contable"
-    | null;
-  subcategory?: string | null;
-  description: string;
-  expectedOutcome?: string | null;
-  requirements: string;
-  deliverables: string[];
-  exclusions?: string | null;
-  referenceUrls: string[];
-  referenceAttachments: ServiceRequestReferenceAttachmentResultDto[];
-  evidenceAttachments: ServiceRequestEvidenceAttachmentResultDto[];
-  budgetType?: "fixed" | "range" | null;
-  budgetMin?: string | null;
-  budgetMax?: string | null;
-  /** @example "2026-09-30" */
-  deadline?: string | null;
-  estimatedDuration?: string | null;
-  workModality: "remote";
-  workMethod?: string | null;
-  milestones: ServiceRequestMilestoneResultDto[];
-  paymentPlan: ServiceRequestPaymentPlanDto;
-  paymentSchedule: ServiceRequestPaymentScheduleItemDto[];
-  meetings: MeetingResultDto[];
-  details?: string | null;
-  status:
-    | "requested"
-    | "proposal_sent"
-    | "consultant_declined"
-    | "payment_pending"
-    | "paid"
-    | "completed"
-    | "pyme_declined"
-    | "cancelled";
-  proposedPrice?: string | null;
+  /** @example "120.00" */
+  amount: string;
+  marketplaceFee: string;
+  /** @example "PEN" */
   currency: string;
-  proposalMessage?: string | null;
-  pymeDecisionMessage?: string | null;
-  /** @format date-time */
-  respondedAt?: string | null;
-  /** @format date-time */
-  decidedAt?: string | null;
-  /** @format date-time */
-  paidAt?: string | null;
-  /** @format date-time */
-  completedAt?: string | null;
+  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
+  monnetReferences: MonnetCheckoutReferencesDto | null;
+  paymentMethod: "qr" | "bank-transfer" | null;
+  paymentUrl: string | null;
+  /** @example "13238534" */
+  paymentCode: string | null;
+  /**
+   * Entidades habilitadas por Monnet para el código bancario.
+   * @example ["BBVA","IBK","BCP"]
+   */
+  paymentBankCodes: string[] | null;
+  /** Imagen PNG del QR en formato data:image/png;base64,... */
+  qrCode: string | null;
+  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
+  expiresAt: string | null;
+  environment: "cert" | "production" | null;
+  /** Indica si se puede crear un pago. Un intento incierto se verifica antes de volver a cobrar. */
+  canCreatePayment: boolean;
 }
 
-export interface ServiceRequestListDto {
-  data: ServiceRequestResultDto[];
-  meta: PaginationMetaDto;
-}
-
-export interface ServiceRequestInitialMeetingOptionDto {
-  /** @example 12 */
-  consultantId: number;
-  /**
-   * @maxItems 3
-   * @minItems 3
-   * @example ["2026-08-12T15:00:00.000Z","2026-08-13T15:00:00.000Z","2026-08-14T15:00:00.000Z"]
-   */
-  proposedStartTimes: string[];
-}
-
-export interface ServiceRequestMilestoneCreateDto {
-  /** @maxLength 240 */
-  title: string;
-  /** @example "2026-09-15" */
-  dueDate: string;
-}
-
-export interface ServiceRequestCreateMultipartDto {
-  /**
-   * Tarea del acta que originó la solicitud
-   * @min 1
-   */
-  sourceTaskId?: number;
-  /**
-   * Oferta del catálogo que originó la solicitud
-   * @min 1
-   */
-  serviceOfferId?: number;
-  /**
-   * @maxItems 3
-   * @minItems 1
-   * @example [8,12,19]
-   */
-  consultantIds: number[];
-  /**
-   * @maxItems 3
-   * @minItems 1
-   */
-  initialMeetingOptions: ServiceRequestInitialMeetingOptionDto[];
-  /**
-   * @maxLength 160
-   * @example "Capacitación de seguridad para el personal"
-   */
-  title: string;
-  /** @example "Marketing" */
-  category:
-    | "Estratégica"
-    | "Financiera"
-    | "Comercial / Ventas"
-    | "Marketing"
-    | "Servicio al cliente"
-    | "Operaciones"
-    | "Organizacional / RRHH"
-    | "Tecnología"
-    | "Legal"
-    | "Laboral"
-    | "Tributario / Contable";
-  /**
-   * @maxLength 120
-   * @example "Redes sociales"
-   */
-  subcategory: string;
-  /**
-   * @maxLength 5000
-   * @example "La marca publica sin una estrategia ni calendario definido."
-   */
-  description: string;
-  /**
-   * @maxLength 5000
-   * @example "Contar con una estrategia y un calendario aplicable durante tres meses."
-   */
-  expectedOutcome: string;
-  /**
-   * @maxLength 5000
-   * @example "Diagnóstico, propuesta y acompañamiento durante la implementación."
-   */
-  requirements: string;
-  /** @example ["Estrategia documentada en PDF","Calendario editable de 3 meses"] */
-  deliverables: string[];
-  /** @maxLength 5000 */
-  exclusions?: string;
-  /** @maxItems 10 */
-  referenceUrls?: string[];
-  budgetType: "fixed" | "range";
-  /**
-   * @min 0.01
-   * @example 1500
-   */
-  budgetMin: number;
-  /**
-   * @min 0.01
-   * @example 2500
-   */
-  budgetMax?: number;
-  /** @example "2026-09-30" */
-  deadline: string;
-  /**
-   * @maxLength 160
-   * @example "4 semanas"
-   */
-  estimatedDuration: string;
-  /** @example "remote" */
-  workModality: "remote";
-  /**
-   * @maxLength 5000
-   * @example "Una reunión semanal y coordinación asíncrona por correo."
-   */
-  workMethod: string;
-  /** @maxItems 20 */
-  milestones?: ServiceRequestMilestoneCreateDto[];
-  paymentPlan: ServiceRequestPaymentPlanDto;
-  /**
-   * @maxLength 5000
-   * @example "Disponibilidad durante la segunda semana del mes."
-   */
-  details?: string;
-  /** Hasta 5 archivos de referencia de máximo 10 MB cada uno */
-  files?: File[];
-}
-
-export interface ServiceRequestProposalDto {
-  /**
-   * @min 1
-   * @example 1850.5
-   */
-  price: number;
-  /** @example "2026-08-12T15:00:00.000Z" */
-  selectedInitialMeetingStartTime?: string;
-  /**
-   * @maxLength 3000
-   * @example "Incluye materiales y dos jornadas de capacitación."
-   */
-  message?: string;
-}
-
-export interface ServiceRequestDeclineDto {
-  /**
-   * @maxLength 3000
-   * @example "No podremos continuar con esta solicitud."
-   */
-  message?: string;
-}
-
-export interface ServiceRequestCompleteServiceResultDto {
+export interface MonnetFindCheckoutResultDto {
   id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  pymeId: number;
-  consultantId: number;
-  serviceOfferId?: number | null;
-  initialMeetingProposedStartTimes: string[];
-  /** @format date-time */
-  initialMeetingStartTime?: string | null;
-  pymeName: string | null;
-  consultantName: string | null;
-  consultantHeadline?: string | null;
-  consultantPhotoUrl?: string | null;
-  title: string;
-  category?:
-    | "Estratégica"
-    | "Financiera"
-    | "Comercial / Ventas"
-    | "Marketing"
-    | "Servicio al cliente"
-    | "Operaciones"
-    | "Organizacional / RRHH"
-    | "Tecnología"
-    | "Legal"
-    | "Laboral"
-    | "Tributario / Contable"
-    | null;
-  subcategory?: string | null;
-  description: string;
-  expectedOutcome?: string | null;
-  requirements: string;
-  deliverables: string[];
-  exclusions?: string | null;
-  referenceUrls: string[];
-  referenceAttachments: ServiceRequestReferenceAttachmentResultDto[];
-  evidenceAttachments: ServiceRequestEvidenceAttachmentResultDto[];
-  budgetType?: "fixed" | "range" | null;
-  budgetMin?: string | null;
-  budgetMax?: string | null;
-  /** @example "2026-09-30" */
-  deadline?: string | null;
-  estimatedDuration?: string | null;
-  workModality: "remote";
-  workMethod?: string | null;
-  milestones: ServiceRequestMilestoneResultDto[];
-  paymentPlan: ServiceRequestPaymentPlanDto;
-  paymentSchedule: ServiceRequestPaymentScheduleItemDto[];
-  meetings: MeetingResultDto[];
-  details?: string | null;
-  status:
-    | "requested"
-    | "proposal_sent"
-    | "consultant_declined"
-    | "payment_pending"
-    | "paid"
-    | "completed"
-    | "pyme_declined"
-    | "cancelled";
-  proposedPrice?: string | null;
-  currency: string;
-  proposalMessage?: string | null;
-  pymeDecisionMessage?: string | null;
-  /** @format date-time */
-  respondedAt?: string | null;
-  /** @format date-time */
-  decidedAt?: string | null;
-  /** @format date-time */
-  paidAt?: string | null;
-  /** @format date-time */
-  completedAt?: string | null;
-}
-
-export interface ServiceRequestMilestoneMeetingDto {
-  /**
-   * @min 0
-   * @max 19
-   * @example 0
-   */
-  milestoneIndex: number;
-  /** @example ["2026-08-19T15:00:00.000Z","2026-08-20T15:00:00.000Z","2026-08-21T15:00:00.000Z"] */
-  proposedStartTimes: string[];
-}
-
-export interface ServiceRequestMilestoneUpdateDto {
-  /**
-   * @maxLength 160
-   * @example "Validación final con contabilidad"
-   */
-  title: string;
-  /** @example "2026-09-20" */
-  dueDate: string;
-}
-
-export interface ServiceRequestRemoveMilestoneResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  pymeId: number;
-  consultantId: number;
-  serviceOfferId?: number | null;
-  initialMeetingProposedStartTimes: string[];
-  /** @format date-time */
-  initialMeetingStartTime?: string | null;
-  pymeName: string | null;
-  consultantName: string | null;
-  consultantHeadline?: string | null;
-  consultantPhotoUrl?: string | null;
-  title: string;
-  category?:
-    | "Estratégica"
-    | "Financiera"
-    | "Comercial / Ventas"
-    | "Marketing"
-    | "Servicio al cliente"
-    | "Operaciones"
-    | "Organizacional / RRHH"
-    | "Tecnología"
-    | "Legal"
-    | "Laboral"
-    | "Tributario / Contable"
-    | null;
-  subcategory?: string | null;
-  description: string;
-  expectedOutcome?: string | null;
-  requirements: string;
-  deliverables: string[];
-  exclusions?: string | null;
-  referenceUrls: string[];
-  referenceAttachments: ServiceRequestReferenceAttachmentResultDto[];
-  evidenceAttachments: ServiceRequestEvidenceAttachmentResultDto[];
-  budgetType?: "fixed" | "range" | null;
-  budgetMin?: string | null;
-  budgetMax?: string | null;
-  /** @example "2026-09-30" */
-  deadline?: string | null;
-  estimatedDuration?: string | null;
-  workModality: "remote";
-  workMethod?: string | null;
-  milestones: ServiceRequestMilestoneResultDto[];
-  paymentPlan: ServiceRequestPaymentPlanDto;
-  paymentSchedule: ServiceRequestPaymentScheduleItemDto[];
-  meetings: MeetingResultDto[];
-  details?: string | null;
-  status:
-    | "requested"
-    | "proposal_sent"
-    | "consultant_declined"
-    | "payment_pending"
-    | "paid"
-    | "completed"
-    | "pyme_declined"
-    | "cancelled";
-  proposedPrice?: string | null;
-  currency: string;
-  proposalMessage?: string | null;
-  pymeDecisionMessage?: string | null;
-  /** @format date-time */
-  respondedAt?: string | null;
-  /** @format date-time */
-  decidedAt?: string | null;
-  /** @format date-time */
-  paidAt?: string | null;
-  /** @format date-time */
-  completedAt?: string | null;
-}
-
-export interface ServiceRequestExtraMilestoneMeetingDto {
-  /**
-   * @min 1
-   * @max 19
-   * @example 2
-   */
-  insertAtIndex: number;
-  /** @example "Validación final con contabilidad" */
-  title: string;
-  /** @example "2026-09-20" */
-  dueDate: string;
-  /** @example ["2026-09-17T15:00:00.000Z","2026-09-18T15:00:00.000Z","2026-09-19T15:00:00.000Z"] */
-  proposedStartTimes: string[];
-}
-
-export interface ServiceRequestEvidenceMultipartDto {
-  /** @example "Constancia SUNAT correspondiente al primer entregable." */
-  note?: string;
-  /**
-   * @min 0
-   * @max 49
-   * @example 0
-   */
-  milestoneIndex?: number;
-}
-
-export interface ServiceRequestDeleteEvidenceResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  pymeId: number;
-  consultantId: number;
-  serviceOfferId?: number | null;
-  initialMeetingProposedStartTimes: string[];
-  /** @format date-time */
-  initialMeetingStartTime?: string | null;
-  pymeName: string | null;
-  consultantName: string | null;
-  consultantHeadline?: string | null;
-  consultantPhotoUrl?: string | null;
-  title: string;
-  category?:
-    | "Estratégica"
-    | "Financiera"
-    | "Comercial / Ventas"
-    | "Marketing"
-    | "Servicio al cliente"
-    | "Operaciones"
-    | "Organizacional / RRHH"
-    | "Tecnología"
-    | "Legal"
-    | "Laboral"
-    | "Tributario / Contable"
-    | null;
-  subcategory?: string | null;
-  description: string;
-  expectedOutcome?: string | null;
-  requirements: string;
-  deliverables: string[];
-  exclusions?: string | null;
-  referenceUrls: string[];
-  referenceAttachments: ServiceRequestReferenceAttachmentResultDto[];
-  evidenceAttachments: ServiceRequestEvidenceAttachmentResultDto[];
-  budgetType?: "fixed" | "range" | null;
-  budgetMin?: string | null;
-  budgetMax?: string | null;
-  /** @example "2026-09-30" */
-  deadline?: string | null;
-  estimatedDuration?: string | null;
-  workModality: "remote";
-  workMethod?: string | null;
-  milestones: ServiceRequestMilestoneResultDto[];
-  paymentPlan: ServiceRequestPaymentPlanDto;
-  paymentSchedule: ServiceRequestPaymentScheduleItemDto[];
-  meetings: MeetingResultDto[];
-  details?: string | null;
-  status:
-    | "requested"
-    | "proposal_sent"
-    | "consultant_declined"
-    | "payment_pending"
-    | "paid"
-    | "completed"
-    | "pyme_declined"
-    | "cancelled";
-  proposedPrice?: string | null;
-  currency: string;
-  proposalMessage?: string | null;
-  pymeDecisionMessage?: string | null;
-  /** @format date-time */
-  respondedAt?: string | null;
-  /** @format date-time */
-  decidedAt?: string | null;
-  /** @format date-time */
-  paidAt?: string | null;
-  /** @format date-time */
-  completedAt?: string | null;
-}
-
-export interface PromotionCodeResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  code: string;
-  type: "consultation" | "service";
-  description?: string | null;
-  maxRedemptions: number;
-  redemptionCount: number;
-  /** @format date-time */
-  startsAt?: string | null;
-  /** @format date-time */
-  expiresAt?: string | null;
-  allowedPymeIds?: number[] | null;
-  allowedConsultantIds?: number[] | null;
-  isActive: boolean;
-}
-
-export interface PromotionCodeListDto {
-  data: PromotionCodeResultDto[];
-  meta: PaginationMetaDto;
-}
-
-export interface PromotionCodeRedemptionDetailDto {
-  id: number;
-  checkoutId: number;
-  serviceRequestId: number | null;
-  serviceInstallmentIndex: number | null;
-  pymeId: number;
-  pymeName: string;
-  consultantId: number;
-  consultantName: string;
   meetingId: number | null;
-  /** @format date-time */
-  redeemedAt: string;
-}
-
-export interface PromotionCodeDetailDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  code: string;
-  type: "consultation" | "service";
-  description?: string | null;
-  maxRedemptions: number;
-  redemptionCount: number;
-  /** @format date-time */
-  startsAt?: string | null;
-  /** @format date-time */
-  expiresAt?: string | null;
-  allowedPymeIds?: number[] | null;
-  allowedConsultantIds?: number[] | null;
-  isActive: boolean;
-  redemptions: PromotionCodeRedemptionDetailDto[];
-}
-
-export interface PromotionCodeCreateDto {
-  /**
-   * If omitted, the backend generates a code
-   * @example "GRATIS-JULIO"
-   */
-  code?: string;
-  /**
-   * Contexto en el que puede canjearse el cupón
-   * @default "consultation"
-   */
-  type?: "consultation" | "service";
-  /** @example "Campaña para primeras consultorias" */
-  description?: string;
-  /**
-   * @min 1
-   * @example 10
-   */
-  maxRedemptions: number;
-  /** @format date-time */
-  startsAt?: string;
-  /** @format date-time */
-  expiresAt?: string;
-  /** IDs de PYMEs autorizadas. Null permite cualquier PYME. */
-  allowedPymeIds?: number[] | null;
-  /** IDs de consultores autorizados. Null permite cualquier consultor. */
-  allowedConsultantIds?: number[] | null;
-}
-
-export interface PromotionCodeUpdateDto {
-  /**
-   * If omitted, the backend generates a code
-   * @example "GRATIS-JULIO"
-   */
-  code?: string;
-  /**
-   * Contexto en el que puede canjearse el cupón
-   * @default "consultation"
-   */
-  type?: "consultation" | "service";
-  /** @example "Campaña para primeras consultorias" */
-  description?: string;
-  /**
-   * @min 1
-   * @example 10
-   */
-  maxRedemptions?: number;
-  /** @format date-time */
-  startsAt?: string;
-  /** @format date-time */
-  expiresAt?: string;
-  /** IDs de PYMEs autorizadas. Null permite cualquier PYME. */
-  allowedPymeIds?: number[] | null;
-  /** IDs de consultores autorizados. Null permite cualquier consultor. */
-  allowedConsultantIds?: number[] | null;
-  isActive?: boolean;
-}
-
-export interface PromotionCodeRedeemDto {
-  /** @example 12 */
-  checkoutId: number;
-  /** @example "GRATIS-JULIO" */
-  code: string;
-}
-
-export interface PromotionCodeRedeemResultDto {
-  meetingId: number;
-  checkoutId: number;
-  code: string;
-  /** @example "Consultoria gratuita confirmada" */
-  message: string;
-}
-
-export interface PromotionCodeRedeemServiceDto {
-  /** @example 12 */
-  serviceRequestId: number;
-  /** @example "SERVICIO-GRATIS" */
-  code: string;
-}
-
-export interface PromotionCodeRedeemServiceResultDto {
-  serviceRequestId: number;
-  installmentIndex: number;
-  checkoutId: number;
-  code: string;
-  /** @example "Cuota de servicio confirmada con cupón" */
-  message: string;
-}
-
-export interface DniVerificationDto {
-  /**
-   * Número de DNI peruano de 8 dígitos
-   * @example "72750623"
-   */
-  documentNumber: string;
-  /** @example "Juan" */
-  firstName: string;
-  /** @example "Pérez" */
-  paternalLastName: string;
-  /** @example "Gómez" */
-  maternalLastName: string;
-  /**
-   * Fecha en formato ISO: YYYY-MM-DD
-   * @example "1990-05-21"
-   */
-  birthDate: string;
-}
-
-export interface DniVerificationMatchesDto {
-  /** Coincide el número de DNI consultado con el registro devuelto */
-  documentNumber: boolean;
-  firstName: boolean;
-  paternalLastName: boolean;
-  maternalLastName: boolean;
-  birthDate: boolean;
-}
-
-export interface DniVerificationIdentityDto {
-  id: string;
-  nombres: string;
-  apellido_paterno: string;
-  apellido_materno: string;
-  nombre_completo: string;
-  genero: string;
-  fecha_nacimiento: string;
-  codigo_verificacion: string;
-}
-
-export interface DniVerificationResultDto {
-  /** Indica si todos los datos enviados coinciden */
-  verified: boolean;
-  /** Indica si PeruDevs encontró un registro para el DNI */
-  providerFound: boolean;
-  matches: DniVerificationMatchesDto;
-  /** Datos devueltos por el proveedor para conservarlos internamente al crear la cuenta */
-  identity: DniVerificationIdentityDto | null;
-  /** @example "Los datos coinciden con el registro consultado." */
-  message: string;
-}
-
-export interface RucVerificationDto {
-  /**
-   * Número de RUC peruano de 11 dígitos
-   * @example "20123456789"
-   */
-  ruc: string;
-}
-
-export interface RucVerificationResultDto {
-  /** Indica si el RUC existe en el registro consultado */
-  verified: boolean;
-  /** Indica si PeruDevs encontró información para el RUC */
-  providerFound: boolean;
-  /**
-   * Nombre comercial asociado al RUC; usa la razón social cuando el proveedor no informa un nombre comercial
-   * @example "Textiles del Sur SAC"
-   */
-  nombreComercial: string | null;
-  /** @example "El RUC existe en el registro consultado." */
-  message: string;
-}
-
-export interface FeedbackListItemDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  userId: number;
-  userRole: "pyme" | "consultor";
-  userName: string;
-  userEmail: string;
-  title: string;
-  description: string;
-  status: "new" | "in_review" | "accepted" | "resolved" | "closed";
-  /** @format date-time */
-  statusUpdatedAt?: string | null;
-  statusUpdatedBy?: string | null;
-  attachmentCount: number;
-  replyCount: number;
-}
-
-export interface FeedbackListDto {
-  data: FeedbackListItemDto[];
-  meta: PaginationMetaDto;
-}
-
-export interface FeedbackAttachmentResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  storagePath: string;
-  fileUrl: string;
-  originalName: string;
-  mimeType: string;
-  sizeBytes: number;
-}
-
-export interface FeedbackReplyResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  authorType: "user" | "admin";
-  authorUserId?: number | null;
-  authorName: string;
-  message: string;
-}
-
-export interface FeedbackResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  userId: number;
-  userRole: "pyme" | "consultor";
-  userName: string;
-  userEmail: string;
-  title: string;
-  description: string;
-  status: "new" | "in_review" | "accepted" | "resolved" | "closed";
-  /** @format date-time */
-  statusUpdatedAt?: string | null;
-  statusUpdatedBy?: string | null;
-  attachmentCount: number;
-  replyCount: number;
-  attachments: FeedbackAttachmentResultDto[];
-  replies: FeedbackReplyResultDto[];
-}
-
-export interface FeedbackCreateMultipartDto {
-  /**
-   * @maxLength 160
-   * @example "No puedo visualizar el acta de mi reunión"
-   */
-  title: string;
-  /**
-   * @maxLength 5000
-   * @example "Al ingresar al detalle aparece una pantalla vacía."
-   */
-  description: string;
-  /** Hasta 5 imágenes JPG, PNG, WEBP, HEIC o HEIF de máximo 8 MB cada una */
-  images?: File[];
-}
-
-export interface FeedbackReplyCreateDto {
-  /**
-   * @maxLength 3000
-   * @example "Gracias por el reporte. Ya estamos revisándolo."
-   */
-  message: string;
-}
-
-export interface FeedbackAdminFindOneResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  userId: number;
-  userRole: "pyme" | "consultor";
-  userName: string;
-  userEmail: string;
-  title: string;
-  description: string;
-  status: "new" | "in_review" | "accepted" | "resolved" | "closed";
-  /** @format date-time */
-  statusUpdatedAt?: string | null;
-  statusUpdatedBy?: string | null;
-  attachmentCount: number;
-  replyCount: number;
-  attachments: FeedbackAttachmentResultDto[];
-  replies: FeedbackReplyResultDto[];
-}
-
-export interface FeedbackStatusUpdateDto {
-  status: "new" | "in_review" | "accepted" | "resolved" | "closed";
-}
-
-export interface FeedbackAdminReplyResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
-  userId: number;
-  userRole: "pyme" | "consultor";
-  userName: string;
-  userEmail: string;
-  title: string;
-  description: string;
-  status: "new" | "in_review" | "accepted" | "resolved" | "closed";
-  /** @format date-time */
-  statusUpdatedAt?: string | null;
-  statusUpdatedBy?: string | null;
-  attachmentCount: number;
-  replyCount: number;
-  attachments: FeedbackAttachmentResultDto[];
-  replies: FeedbackReplyResultDto[];
-}
-
-export interface ConsultantServiceOfferResultDto {
-  id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
+  pymeId: number;
   consultantId: number;
-  consultantName: string;
-  consultantHeadline?: string | null;
-  consultantPhotoUrl?: string | null;
-  consultantRating: string;
-  consultantYearsExperience: number;
-  title: string;
-  category:
-    | "Estratégica"
-    | "Financiera"
-    | "Comercial / Ventas"
-    | "Marketing"
-    | "Servicio al cliente"
-    | "Operaciones"
-    | "Organizacional / RRHH"
-    | "Tecnología"
-    | "Legal"
-    | "Laboral"
-    | "Tributario / Contable";
-  subcategory: string;
-  description: string;
-  expectedOutcome: string;
-  requirements: string;
-  deliverables: string[];
-  exclusions?: string | null;
-  estimatedDurationDays: number;
-  workModality: "remote";
-  workMethod: string;
-  price: string;
+  status:
+    | "created"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "expired";
+  /** @example "120.00" */
+  amount: string;
+  marketplaceFee: string;
+  /** @example "PEN" */
   currency: string;
-  pricePeriod: "one_time" | "monthly" | "hourly";
-  isActive: boolean;
-}
-
-export interface ConsultantServiceOfferListDto {
-  data: ConsultantServiceOfferResultDto[];
-  meta: PaginationMetaDto;
-}
-
-export interface ServiceOfferFindMineResultDto {
-  data: ConsultantServiceOfferResultDto[];
-  meta: PaginationMetaDto;
-}
-
-export interface ConsultantServiceOfferCreateDto {
+  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
+  monnetReferences: MonnetCheckoutReferencesDto | null;
+  paymentMethod: "qr" | "bank-transfer" | null;
+  paymentUrl: string | null;
+  /** @example "13238534" */
+  paymentCode: string | null;
   /**
-   * @maxLength 160
-   * @example "Contabilidad mensual para PYMEs"
+   * Entidades habilitadas por Monnet para el código bancario.
+   * @example ["BBVA","IBK","BCP"]
    */
-  title: string;
-  /** @example "Tributario / Contable" */
-  category:
-    | "Estratégica"
-    | "Financiera"
-    | "Comercial / Ventas"
-    | "Marketing"
-    | "Servicio al cliente"
-    | "Operaciones"
-    | "Organizacional / RRHH"
-    | "Tecnología"
-    | "Legal"
-    | "Laboral"
-    | "Tributario / Contable";
+  paymentBankCodes: string[] | null;
+  /** Imagen PNG del QR en formato data:image/png;base64,... */
+  qrCode: string | null;
+  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
+  expiresAt: string | null;
+  environment: "cert" | "production" | null;
+  /** Indica si se puede crear un pago. Un intento incierto se verifica antes de volver a cobrar. */
+  canCreatePayment: boolean;
+}
+
+export interface MonnetPrepareCheckoutPaymentDto {
+  /** @default "qr" */
+  paymentMethod?: "qr" | "bank-transfer";
+  /**
+   * DNI del pagador de 8 dígitos
+   * @example "12345678"
+   */
+  payinCustomerDocument: string;
   /**
    * @maxLength 120
-   * @example "Contabilidad"
+   * @example "Juan"
    */
-  subcategory: string;
-  /** @maxLength 5000 */
-  description: string;
-  /** @maxLength 5000 */
-  expectedOutcome: string;
-  /** @maxLength 5000 */
-  requirements: string;
+  payinCustomerName: string;
   /**
-   * @maxItems 20
-   * @minItems 1
+   * @maxLength 240
+   * @example "Pérez Gómez"
    */
-  deliverables: string[];
-  /** @maxLength 5000 */
-  exclusions?: string;
-  /**
-   * @min 1
-   * @max 365
-   * @example 30
-   */
-  estimatedDurationDays: number;
-  /** @example "remote" */
-  workModality: "remote";
-  /** @maxLength 5000 */
-  workMethod: string;
-  /**
-   * @min 0.01
-   * @example 1200
-   */
-  price: number;
-  /** @example "monthly" */
-  pricePeriod: "one_time" | "monthly" | "hourly";
+  payinCustomerLastName: string;
 }
 
-export interface ConsultantServiceOfferUpdateDto {
-  /**
-   * @maxLength 160
-   * @example "Contabilidad mensual para PYMEs"
-   */
-  title?: string;
-  /** @example "Tributario / Contable" */
-  category?:
-    | "Estratégica"
-    | "Financiera"
-    | "Comercial / Ventas"
-    | "Marketing"
-    | "Servicio al cliente"
-    | "Operaciones"
-    | "Organizacional / RRHH"
-    | "Tecnología"
-    | "Legal"
-    | "Laboral"
-    | "Tributario / Contable";
-  /**
-   * @maxLength 120
-   * @example "Contabilidad"
-   */
-  subcategory?: string;
-  /** @maxLength 5000 */
-  description?: string;
-  /** @maxLength 5000 */
-  expectedOutcome?: string;
-  /** @maxLength 5000 */
-  requirements?: string;
-  /**
-   * @maxItems 20
-   * @minItems 1
-   */
-  deliverables?: string[];
-  /** @maxLength 5000 */
-  exclusions?: string;
-  /**
-   * @min 1
-   * @max 365
-   * @example 30
-   */
-  estimatedDurationDays?: number;
-  /** @example "remote" */
-  workModality?: "remote";
-  /** @maxLength 5000 */
-  workMethod?: string;
-  /**
-   * @min 0.01
-   * @example 1200
-   */
-  price?: number;
-  /** @example "monthly" */
-  pricePeriod?: "one_time" | "monthly" | "hourly";
-}
-
-export interface ConsultantServiceOfferActiveDto {
-  isActive: boolean;
-}
-
-export interface ServiceOfferRemoveResultDto {
+export interface MonnetPrepareCheckoutPaymentResultDto {
   id: number;
-  /** @format date-time */
-  createdAt: string;
-  /** @format date-time */
-  updatedAt: string;
+  meetingId: number | null;
+  pymeId: number;
   consultantId: number;
-  consultantName: string;
-  consultantHeadline?: string | null;
-  consultantPhotoUrl?: string | null;
-  consultantRating: string;
-  consultantYearsExperience: number;
-  title: string;
-  category:
-    | "Estratégica"
-    | "Financiera"
-    | "Comercial / Ventas"
-    | "Marketing"
-    | "Servicio al cliente"
-    | "Operaciones"
-    | "Organizacional / RRHH"
-    | "Tecnología"
-    | "Legal"
-    | "Laboral"
-    | "Tributario / Contable";
-  subcategory: string;
-  description: string;
-  expectedOutcome: string;
-  requirements: string;
-  deliverables: string[];
-  exclusions?: string | null;
-  estimatedDurationDays: number;
-  workModality: "remote";
-  workMethod: string;
-  price: string;
+  status:
+    | "created"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "expired";
+  /** @example "120.00" */
+  amount: string;
+  marketplaceFee: string;
+  /** @example "PEN" */
   currency: string;
-  pricePeriod: "one_time" | "monthly" | "hourly";
-  isActive: boolean;
+  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
+  monnetReferences: MonnetCheckoutReferencesDto | null;
+  paymentMethod: "qr" | "bank-transfer" | null;
+  paymentUrl: string | null;
+  /** @example "13238534" */
+  paymentCode: string | null;
+  /**
+   * Entidades habilitadas por Monnet para el código bancario.
+   * @example ["BBVA","IBK","BCP"]
+   */
+  paymentBankCodes: string[] | null;
+  /** Imagen PNG del QR en formato data:image/png;base64,... */
+  qrCode: string | null;
+  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
+  expiresAt: string | null;
+  environment: "cert" | "production" | null;
+  /** Indica si se puede crear un pago. Un intento incierto se verifica antes de volver a cobrar. */
+  canCreatePayment: boolean;
+}
+
+export interface MonnetSyncCheckoutPaymentResultDto {
+  id: number;
+  meetingId: number | null;
+  pymeId: number;
+  consultantId: number;
+  status:
+    | "created"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "expired";
+  /** @example "120.00" */
+  amount: string;
+  marketplaceFee: string;
+  /** @example "PEN" */
+  currency: string;
+  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
+  monnetReferences: MonnetCheckoutReferencesDto | null;
+  paymentMethod: "qr" | "bank-transfer" | null;
+  paymentUrl: string | null;
+  /** @example "13238534" */
+  paymentCode: string | null;
+  /**
+   * Entidades habilitadas por Monnet para el código bancario.
+   * @example ["BBVA","IBK","BCP"]
+   */
+  paymentBankCodes: string[] | null;
+  /** Imagen PNG del QR en formato data:image/png;base64,... */
+  qrCode: string | null;
+  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
+  expiresAt: string | null;
+  environment: "cert" | "production" | null;
+  /** Indica si se puede crear un pago. Un intento incierto se verifica antes de volver a cobrar. */
+  canCreatePayment: boolean;
+}
+
+export interface MonnetSimulateWebhookDto {
+  /**
+   * 5: Autorizado. 6: Denegado.
+   * @example "5"
+   */
+  payinStateID: "5" | "6";
+}
+
+export interface MonnetSimulateWebhookResultDto {
+  /** @example 42 */
+  id: number;
+  /** @example 18 */
+  meetingId: number | null;
+  status: "approved" | "rejected";
+  /** @example true */
+  simulated: boolean;
 }
 
 export interface MonnetPayinWebhookDto {
@@ -5149,6 +5051,63 @@ export interface MonnetPayinWebhookDto {
 export interface MonnetPayinWebhookResultDto {
   /** @example true */
   received: boolean;
+}
+
+export interface MonnetPayoutWebhookResultDto {
+  received: boolean;
+}
+
+export interface PaymentHistoryItemDto {
+  id: number;
+  /** @format date-time */
+  createdAt: string;
+  /** @format date-time */
+  updatedAt: string;
+  /** @format date-time */
+  meetingCreatedAt: string | null;
+  /** @format date-time */
+  meetingStartTime: string | null;
+  meetingId: number | null;
+  serviceRequestId: number | null;
+  serviceInstallmentIndex: number | null;
+  pymeId: number;
+  consultantId: number;
+  externalReference: string;
+  status:
+    | "created"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "expired";
+  amount: string;
+  marketplaceFee: string;
+  currency: string;
+  meetingDetails?: MonnetCheckoutMeetingDetailsDto | null;
+  meetingStatus:
+    | "solicitada"
+    | "por_confirmar"
+    | "confirmada"
+    | "finalizada"
+    | "cancelada"
+    | null;
+  meetingCancellationReason: string | null;
+  serviceTitle: string | null;
+  serviceDescription: string | null;
+  /** Identificador de la operación en el proveedor de pago. */
+  paymentId: string | null;
+  paymentProvider: "monnet" | null;
+  pymeName: string | null;
+  consultantName: string | null;
+  paymentMethod: "payment" | "promotion_code";
+  /** Método de Monnet: qr o bank-transfer. Otros registros históricos pueden no tener método. */
+  paymentMethodId: string | null;
+  promotionCode: string | null;
+}
+
+export interface PaymentHistoryResponseDto {
+  data: PaymentHistoryItemDto[];
+  meta: PaginationMetaDto;
 }
 
 export interface LoginDto {
@@ -5183,6 +5142,20 @@ export interface LoginResponseDto {
 }
 
 export interface RegisterDto {
+  /** Versión de los documentos revisados durante el registro */
+  contractVersion: string;
+  /** Aceptación expresa del contrato y la Política de Privacidad */
+  acceptedContract: boolean;
+  /**
+   * Autorización independiente para comunicaciones comerciales
+   * @default false
+   */
+  marketingConsent?: boolean;
+  /**
+   * Código enviado al correo de registro
+   * @pattern ^[0-9]{8}$
+   */
+  emailCode: string;
   /** Token de invitación para unirse a una PYME existente */
   invitationToken?: string;
   /**
@@ -5296,6 +5269,26 @@ export interface RegisterDto {
   cvUrl?: string;
   /** @default "pyme" */
   role: "pyme" | "consultor";
+}
+
+export interface RegistrationDocumentsResultDto {
+  version: string;
+  contractUrl: string;
+  privacyUrl: string;
+  acceptanceText: string;
+  marketingText: string;
+}
+
+export interface RegistrationEmailCodeDto {
+  /**
+   * @format email
+   * @maxLength 255
+   */
+  email: string;
+}
+
+export interface RegistrationEmailCodeResultDto {
+  message: string;
 }
 
 export interface InvitationPreviewDto {
@@ -5685,6 +5678,57 @@ export type WhatsappVerifyWebhookData = string;
 
 export type WhatsappReceiveWebhookData = WhatsappWebhookAcceptedDto;
 
+export interface MeetingadminFindMonthlyPayoutsParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Items per page
+   * @default 10
+   */
+  limit?: number;
+  /**
+   * Mes de la sesión en Perú; por defecto el mes actual
+   * @example "2026-11"
+   */
+  month?: string;
+  search?: string;
+  consultantId?: number;
+  status?:
+    | "open"
+    | "pending"
+    | "needs_review"
+    | "processing"
+    | "paid"
+    | "empty";
+}
+
+export type MeetingadminFindMonthlyPayoutsData = MeetingMonthlyPayoutListDto;
+
+export type MeetingadminFindMonthlyPayoutsError = HttpErrorDto;
+
+export type MeetingadminCreateMonthlyPayoutData = MonthlyPayoutTransferDto;
+
+export type MeetingadminCreateMonthlyPayoutError = HttpErrorDto;
+
+export interface MeetingadminGetMonthlyPayoutOptionsParams {
+  /** @example "2026-11" */
+  month: string;
+  consultantId: number;
+  /** @example "PEN" */
+  currency: string;
+}
+
+export type MeetingadminGetMonthlyPayoutOptionsData = MonthlyPayoutOptionsDto;
+
+export type MeetingadminGetMonthlyPayoutOptionsError = HttpErrorDto;
+
+export type MeetingadminRefreshMonthlyPayoutData = MonthlyPayoutTransferDto;
+
+export type MeetingadminRefreshMonthlyPayoutError = HttpErrorDto;
+
 export interface MeetingadminFindAllPayoutsParams {
   /**
    * Page number
@@ -5696,7 +5740,7 @@ export interface MeetingadminFindAllPayoutsParams {
    * @default 10
    */
   limit?: number;
-  /** Busca por reunión, PYME, consultor, referencia o pago de Mercado Pago */
+  /** Busca por reunión, PYME, consultor, referencia o operación de pago */
   search?: string;
   /** @example 2 */
   consultantId?: number;
@@ -5840,6 +5884,22 @@ export interface MeetingFindOneParams {
 export type MeetingFindOneData = MeetingResultDto;
 
 export type MeetingFindOneError = HttpErrorDto;
+
+export interface MeetingGetConsultantRatingParams {
+  id: number;
+}
+
+export type MeetingGetConsultantRatingData = MeetingConsultantRatingResultDto;
+
+export type MeetingGetConsultantRatingError = HttpErrorDto;
+
+export interface MeetingSetConsultantRatingParams {
+  id: number;
+}
+
+export type MeetingSetConsultantRatingData = MeetingConsultantRatingResultDto;
+
+export type MeetingSetConsultantRatingError = HttpErrorDto;
 
 export interface MeetingAccessParams {
   id: number;
@@ -6113,6 +6173,10 @@ export type EmailSendEmailData = EmailSendResultDto;
 
 export type EmailSendEmailError = HttpErrorDto;
 
+export type EmailTestHookData = EmailTestHookResultDto;
+
+export type EmailTestHookError = HttpErrorDto;
+
 export interface ConsultantadminFindAllParams {
   /**
    * Page number
@@ -6144,36 +6208,6 @@ export type ConsultantadminFindOneData = ConsultantAdminFindOneResultDto;
 
 export type ConsultantadminFindOneError = HttpErrorDto;
 
-export interface ConsultantadminMercadoPagoParams {
-  id: number;
-}
-
-export type ConsultantadminMercadoPagoData = ConsultantMercadoPagoAdminDto;
-
-export type ConsultantadminMercadoPagoError = HttpErrorDto;
-
-export interface ConsultantadminMercadoPagoFinancialParams {
-  id: number;
-}
-
-export type ConsultantadminMercadoPagoFinancialData =
-  ConsultantMercadoPagoFinancialAdminDto;
-
-export type ConsultantadminMercadoPagoFinancialError = HttpErrorDto;
-
-export interface ConsultantadminMercadoPagoFinancialDownloadParams {
-  /**
-   * Mercado Pago report generation task to continue tracking instead of creating a new report.
-   * @example "99336983670"
-   */
-  taskId?: string;
-  id: number;
-}
-
-export type ConsultantadminMercadoPagoFinancialDownloadData = any;
-
-export type ConsultantadminMercadoPagoFinancialDownloadError = HttpErrorDto;
-
 export interface ConsultantadminApproveParams {
   id: number;
 }
@@ -6197,6 +6231,16 @@ export interface ConsultantadminRemoveParams {
 export type ConsultantadminRemoveData = ConsultantAdminRemoveResultDto;
 
 export type ConsultantadminRemoveError = HttpErrorDto;
+
+export type ConsultantGetDepositAccountsData =
+  ConsultantDepositAccountsResultDto;
+
+export type ConsultantGetDepositAccountsError = HttpErrorDto;
+
+export type ConsultantUpdateDepositAccountsData =
+  ConsultantDepositAccountsResultDto;
+
+export type ConsultantUpdateDepositAccountsError = HttpErrorDto;
 
 export interface ConsultantFindAllParams {
   /**
@@ -6511,10 +6555,6 @@ export type SubscriptionUpsertData = SubscriptionResultDto;
 
 export type SubscriptionUpsertError = HttpErrorDto;
 
-export type SubscriptionCreateCheckoutData = SubscriptionCheckoutResultDto;
-
-export type SubscriptionCreateCheckoutError = HttpErrorDto;
-
 export interface DashboardSummaryParams {
   /** @example 3 */
   userId?: number;
@@ -6525,189 +6565,56 @@ export type DashboardSummaryData = DashboardResponseDto;
 
 export type DashboardSummaryError = HttpErrorDto;
 
-export interface MercadopagoAuthUrlParams {
-  /** @example 3 */
-  consultantId: number;
-}
-
-export type MercadopagoAuthUrlData = MercadoPagoAuthUrlResponseDto;
-
-export type MercadopagoAuthUrlError = HttpErrorDto;
-
-export interface MercadopagoCallbackParams {
-  code?: string;
-  state?: string;
-  error?: string;
-}
-
-export type MercadopagoCallbackData = any;
-
-export type MercadopagoCallbackError = HttpErrorDto;
-
-export interface MercadopagoStatusParams {
-  /** @example 3 */
-  consultantId: number;
-}
-
-export type MercadopagoStatusData = MercadoPagoStatusDto;
-
-export type MercadopagoStatusError = HttpErrorDto;
-
-export interface MercadopagoDisconnectParams {
-  /** @example 3 */
-  consultantId: number;
-}
-
-export type MercadopagoDisconnectData = MercadoPagoDisconnectResultDto;
-
-export type MercadopagoDisconnectError = HttpErrorDto;
-
-export type MercadopagoCreateCheckoutData = MonnetCheckoutResultDto;
-
-export type MercadopagoCreateCheckoutError = HttpErrorDto;
-
-export interface MercadopagoFindPaymentsParams {
+export interface PromotioncodeadminFindAllParams {
   /**
    * Page number
    * @default 1
    */
   page?: number;
   /**
-   * Maximum of 10 payments per page
-   * @max 10
+   * Items per page
    * @default 10
    */
   limit?: number;
-  /**
-   * Year used to filter the payment date
-   * @default 2026
-   */
-  year?: number;
-  /**
-   * Month used to filter the payment date
-   * @default 11
-   */
-  month?: number;
-  /** Type of operation */
-  operationType?: "servicio" | "consultoria";
-  /** Payment method category */
-  paymentType?: "cupon" | "mercado_pago" | "tarjeta" | "yape" | "monnet";
+  search?: string;
 }
 
-export type MercadopagoFindPaymentsData = MercadoPagoPaymentHistoryResponseDto;
+export type PromotioncodeadminFindAllData = PromotionCodeListDto;
 
-export type MercadopagoFindPaymentsError = HttpErrorDto;
+export type PromotioncodeadminFindAllError = HttpErrorDto;
 
-export interface MercadopagoFindPaymentParams {
+export interface PromotioncodeadminFindOneParams {
   id: number;
 }
 
-export type MercadopagoFindPaymentData = MercadoPagoPaymentHistoryItemDto;
+export type PromotioncodeadminFindOneData = PromotionCodeDetailDto;
 
-export type MercadopagoFindPaymentError = HttpErrorDto;
+export type PromotioncodeadminFindOneError = HttpErrorDto;
 
-export interface MercadopagoFindCheckoutParams {
+export type PromotioncodeadminCreateData = PromotionCodeResultDto;
+
+export type PromotioncodeadminCreateError = HttpErrorDto;
+
+export interface PromotioncodeadminUpdateParams {
   id: number;
 }
 
-export type MercadopagoFindCheckoutData = MercadoPagoFindCheckoutResultDto;
+export type PromotioncodeadminUpdateData = PromotionCodeResultDto;
 
-export type MercadopagoFindCheckoutError = HttpErrorDto;
+export type PromotioncodeadminUpdateError = HttpErrorDto;
 
-export interface MercadopagoPrepareCheckoutPaymentParams {
-  id: number;
-}
+export type PromotioncodeValidateData = PromotionCodeValidateResultDto;
 
-export type MercadopagoPrepareCheckoutPaymentData =
-  MercadoPagoPrepareCheckoutPaymentResultDto;
+export type PromotioncodeValidateError = HttpErrorDto;
 
-export type MercadopagoPrepareCheckoutPaymentError = HttpErrorDto;
+export type PromotioncodeRedeemData = PromotionCodeRedeemResultDto;
 
-export interface MercadopagoPrepareServicePaymentParams {
-  id: number;
-}
+export type PromotioncodeRedeemError = HttpErrorDto;
 
-export type MercadopagoPrepareServicePaymentData = MercadoPagoCheckoutDto;
+export type PromotioncodeRedeemServiceData =
+  PromotionCodeRedeemServiceResultDto;
 
-export type MercadopagoPrepareServicePaymentError = HttpErrorDto;
-
-export interface MercadopagoSyncServicePaymentParams {
-  id: number;
-}
-
-export type MercadopagoSyncServicePaymentData =
-  MercadoPagoSyncServicePaymentResultDto;
-
-export type MercadopagoSyncServicePaymentError = HttpErrorDto;
-
-export interface MercadopagoWebhookParams {
-  /** @example "payment" */
-  type?: string;
-  /** @example "payment" */
-  topic?: string;
-  /** @example "123456789" */
-  id?: string;
-  /** @example "123456789" */
-  payment_id?: string;
-  /** @example "123456789" */
-  "data.id"?: string;
-  /** @example "https://api.mercadopago.com/v1/payments/123456789" */
-  resource?: string;
-  /** @example "payment.created" */
-  action?: string;
-  /** @example "pending:1:2:1792500000000" */
-  externalReference?: string;
-}
-
-export type MercadopagoWebhookData = any;
-
-export type MercadopagoWebhookError = HttpErrorDto;
-
-export type MonnetcheckoutCreateCheckoutData = MonnetCheckoutResultDto;
-
-export type MonnetcheckoutCreateCheckoutError = HttpErrorDto;
-
-export interface MonnetcheckoutFindCheckoutParams {
-  id: number;
-}
-
-export type MonnetcheckoutFindCheckoutData = MonnetFindCheckoutResultDto;
-
-export type MonnetcheckoutFindCheckoutError = HttpErrorDto;
-
-export interface MonnetcheckoutPrepareCheckoutPaymentParams {
-  id: number;
-}
-
-export type MonnetcheckoutPrepareCheckoutPaymentData =
-  MonnetPrepareCheckoutPaymentResultDto;
-
-export type MonnetcheckoutPrepareCheckoutPaymentError = HttpErrorDto;
-
-export interface MonnetcheckoutSyncCheckoutPaymentParams {
-  id: number;
-}
-
-export type MonnetcheckoutSyncCheckoutPaymentData =
-  MonnetSyncCheckoutPaymentResultDto;
-
-export type MonnetcheckoutSyncCheckoutPaymentError = HttpErrorDto;
-
-export type MonnetpayinCreateBankTransferData = PayinTransactionResultDto;
-
-export type MonnetpayinCreateBankTransferError = HttpErrorDto;
-
-export type MonnetpayinCreateQrData = PayinTransactionResultDto;
-
-export type MonnetpayinCreateQrError = HttpErrorDto;
-
-export type MonnetpayinCreateYapeMobileData = PayinTransactionResultDto;
-
-export type MonnetpayinCreateYapeMobileError = HttpErrorDto;
-
-export type MonnetpayinCreateYapeWebData = PayinTransactionResultDto;
-
-export type MonnetpayinCreateYapeWebError = HttpErrorDto;
+export type PromotioncodeRedeemServiceError = HttpErrorDto;
 
 export interface ServiceFindAllParams {
   /**
@@ -6825,56 +6732,13 @@ export type ServiceDeleteEvidenceData = ServiceRequestDeleteEvidenceResultDto;
 
 export type ServiceDeleteEvidenceError = HttpErrorDto;
 
-export interface PromotioncodeadminFindAllParams {
-  /**
-   * Page number
-   * @default 1
-   */
-  page?: number;
-  /**
-   * Items per page
-   * @default 10
-   */
-  limit?: number;
-  search?: string;
-}
-
-export type PromotioncodeadminFindAllData = PromotionCodeListDto;
-
-export type PromotioncodeadminFindAllError = HttpErrorDto;
-
-export interface PromotioncodeadminFindOneParams {
-  id: number;
-}
-
-export type PromotioncodeadminFindOneData = PromotionCodeDetailDto;
-
-export type PromotioncodeadminFindOneError = HttpErrorDto;
-
-export type PromotioncodeadminCreateData = PromotionCodeResultDto;
-
-export type PromotioncodeadminCreateError = HttpErrorDto;
-
-export interface PromotioncodeadminUpdateParams {
-  id: number;
-}
-
-export type PromotioncodeadminUpdateData = PromotionCodeResultDto;
-
-export type PromotioncodeadminUpdateError = HttpErrorDto;
-
-export type PromotioncodeRedeemData = PromotionCodeRedeemResultDto;
-
-export type PromotioncodeRedeemError = HttpErrorDto;
-
-export type PromotioncodeRedeemServiceData =
-  PromotionCodeRedeemServiceResultDto;
-
-export type PromotioncodeRedeemServiceError = HttpErrorDto;
-
 export type IdentityverificationVerifyDniData = DniVerificationResultDto;
 
 export type IdentityverificationVerifyDniError = HttpErrorDto;
+
+export type IdentityverificationLookupDniData = DniLookupResultDto;
+
+export type IdentityverificationLookupDniError = HttpErrorDto;
 
 export type IdentityverificationVerifyRucData = RucVerificationResultDto;
 
@@ -7067,9 +6931,109 @@ export type ServiceofferRemoveData = ServiceOfferRemoveResultDto;
 
 export type ServiceofferRemoveError = HttpErrorDto;
 
+export type MonnetpayinCreateBankTransferData = PayinTransactionResultDto;
+
+export type MonnetpayinCreateBankTransferError = HttpErrorDto;
+
+export type MonnetpayinCreateQrData = PayinTransactionResultDto;
+
+export type MonnetpayinCreateQrError = HttpErrorDto;
+
+export type MonnetpayinCreateYapeMobileData = PayinTransactionResultDto;
+
+export type MonnetpayinCreateYapeMobileError = HttpErrorDto;
+
+export type MonnetpayinCreateYapeWebData = PayinTransactionResultDto;
+
+export type MonnetpayinCreateYapeWebError = HttpErrorDto;
+
+export type MonnetcheckoutCreateCheckoutData = MonnetCheckoutResultDto;
+
+export type MonnetcheckoutCreateCheckoutError = HttpErrorDto;
+
+export interface MonnetcheckoutFindCheckoutParams {
+  id: number;
+}
+
+export type MonnetcheckoutFindCheckoutData = MonnetFindCheckoutResultDto;
+
+export type MonnetcheckoutFindCheckoutError = HttpErrorDto;
+
+export interface MonnetcheckoutPrepareCheckoutPaymentParams {
+  id: number;
+}
+
+export type MonnetcheckoutPrepareCheckoutPaymentData =
+  MonnetPrepareCheckoutPaymentResultDto;
+
+export type MonnetcheckoutPrepareCheckoutPaymentError = HttpErrorDto;
+
+export interface MonnetcheckoutSyncCheckoutPaymentParams {
+  id: number;
+}
+
+export type MonnetcheckoutSyncCheckoutPaymentData =
+  MonnetSyncCheckoutPaymentResultDto;
+
+export type MonnetcheckoutSyncCheckoutPaymentError = HttpErrorDto;
+
+export interface MonnetcheckoutadminSimulateWebhookParams {
+  /** ID del checkout de HUBSME */
+  id: number;
+}
+
+export type MonnetcheckoutadminSimulateWebhookData =
+  MonnetSimulateWebhookResultDto;
+
+export type MonnetcheckoutadminSimulateWebhookError = HttpErrorDto;
+
 export type MonnetwebhookPayinData = MonnetPayinWebhookResultDto;
 
 export type MonnetwebhookPayinError = HttpErrorDto;
+
+export type MonnetwebhookPayoutData = MonnetPayoutWebhookResultDto;
+
+export type MonnetwebhookPayoutError = HttpErrorDto;
+
+export interface PaymenthistoryFindAllParams {
+  /**
+   * Page number
+   * @default 1
+   */
+  page?: number;
+  /**
+   * Maximum of 10 payments per page
+   * @max 10
+   * @default 10
+   */
+  limit?: number;
+  /**
+   * Year used to filter the payment date
+   * @default 2026
+   */
+  year?: number;
+  /**
+   * Month used to filter the payment date
+   * @default 11
+   */
+  month?: number;
+  /** Type of operation */
+  operationType?: "servicio" | "consultoria";
+  /** Payment method category */
+  paymentType?: "cupon" | "monnet";
+}
+
+export type PaymenthistoryFindAllData = PaymentHistoryResponseDto;
+
+export type PaymenthistoryFindAllError = HttpErrorDto;
+
+export interface PaymenthistoryFindOneParams {
+  id: number;
+}
+
+export type PaymenthistoryFindOneData = PaymentHistoryItemDto;
+
+export type PaymenthistoryFindOneError = HttpErrorDto;
 
 export type AuthLoginData = LoginResponseDto;
 
@@ -7078,6 +7042,18 @@ export type AuthLoginError = HttpErrorDto;
 export type AuthRegisterData = LoginResponseDto;
 
 export type AuthRegisterError = HttpErrorDto;
+
+export interface AuthRegistrationDocumentsParams {
+  role: "pyme" | "consultor";
+}
+
+export type AuthRegistrationDocumentsData = RegistrationDocumentsResultDto;
+
+export type AuthRegistrationDocumentsError = HttpErrorDto;
+
+export type AuthRegistrationEmailCodeData = RegistrationEmailCodeResultDto;
+
+export type AuthRegistrationEmailCodeError = HttpErrorDto;
 
 export interface AuthInvitationParams {
   token: string;
@@ -7092,6 +7068,12 @@ export type AuthAcceptInvitationData = AuthAcceptInvitationResultDto;
 export type AuthAcceptInvitationError = HttpErrorDto;
 
 export interface AuthGoogleUrlParams {
+  /** Versión del contrato revisado al crear una cuenta */
+  contractVersion?: string;
+  /** Aceptación expresa durante el registro */
+  acceptedContract?: "true" | "false";
+  /** Autorización opcional de marketing */
+  marketingConsent?: "true" | "false";
   /** @default "login" */
   flow?: "login" | "register" | "invitation";
   /** @default "pyme" */
@@ -7890,6 +7872,110 @@ export namespace MeetingAdmin {
   /**
    * No description
    * @tags meetingAdmin
+   * @name MeetingadminFindMonthlyPayouts
+   * @summary List monthly settlements and Monnet Payout status
+   * @request GET:/admin/backoffice/meeting/payout/monthly
+   * @secure
+   * @response `200` `MeetingadminFindMonthlyPayoutsData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MeetingadminFindMonthlyPayouts {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Items per page
+       * @default 10
+       */
+      limit?: number;
+      /**
+       * Mes de la sesión en Perú; por defecto el mes actual
+       * @example "2026-11"
+       */
+      month?: string;
+      search?: string;
+      consultantId?: number;
+      status?:
+        | "open"
+        | "pending"
+        | "needs_review"
+        | "processing"
+        | "paid"
+        | "empty";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingadminFindMonthlyPayoutsData;
+  }
+
+  /**
+   * No description
+   * @tags meetingAdmin
+   * @name MeetingadminCreateMonthlyPayout
+   * @summary Create a Monnet Payout for a closed monthly settlement
+   * @request POST:/admin/backoffice/meeting/payout/monthly
+   * @secure
+   * @response `200` `MeetingadminCreateMonthlyPayoutData`
+   * @response `400` `HttpErrorDto`
+   * @response `409` `HttpErrorDto`
+   */
+  export namespace MeetingadminCreateMonthlyPayout {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = CreateMonthlyPayoutDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingadminCreateMonthlyPayoutData;
+  }
+
+  /**
+   * No description
+   * @tags meetingAdmin
+   * @name MeetingadminGetMonthlyPayoutOptions
+   * @summary Get the amount and available destinations for a monthly settlement
+   * @request GET:/admin/backoffice/meeting/payout/monthly/options
+   * @secure
+   * @response `200` `MeetingadminGetMonthlyPayoutOptionsData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MeetingadminGetMonthlyPayoutOptions {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** @example "2026-11" */
+      month: string;
+      consultantId: number;
+      /** @example "PEN" */
+      currency: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingadminGetMonthlyPayoutOptionsData;
+  }
+
+  /**
+   * No description
+   * @tags meetingAdmin
+   * @name MeetingadminRefreshMonthlyPayout
+   * @summary Reconcile a monthly payout with its current status in Monnet
+   * @request POST:/admin/backoffice/meeting/payout/monthly/refresh
+   * @secure
+   * @response `200` `MeetingadminRefreshMonthlyPayoutData`
+   * @response `503` `HttpErrorDto`
+   */
+  export namespace MeetingadminRefreshMonthlyPayout {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = RefreshMonthlyPayoutDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingadminRefreshMonthlyPayoutData;
+  }
+
+  /**
+   * No description
+   * @tags meetingAdmin
    * @name MeetingadminFindAllPayouts
    * @summary List consultant payouts generated from consultation meetings
    * @request GET:/admin/backoffice/meeting/payout/find-all
@@ -7910,7 +7996,7 @@ export namespace MeetingAdmin {
        * @default 10
        */
       limit?: number;
-      /** Busca por reunión, PYME, consultor, referencia o pago de Mercado Pago */
+      /** Busca por reunión, PYME, consultor, referencia o operación de pago */
       search?: string;
       /** @example 2 */
       consultantId?: number;
@@ -8149,6 +8235,50 @@ export namespace Meeting {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = MeetingFindOneData;
+  }
+
+  /**
+   * No description
+   * @tags meeting
+   * @name MeetingGetConsultantRating
+   * @summary Get the rating left by the company as a meeting participant
+   * @request GET:/admin/meeting/consultant-rating/{id}
+   * @secure
+   * @response `200` `MeetingGetConsultantRatingData`
+   * @response `400` `HttpErrorDto`
+   * @response `403` `HttpErrorDto`
+   * @response `404` `HttpErrorDto`
+   */
+  export namespace MeetingGetConsultantRating {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingGetConsultantRatingData;
+  }
+
+  /**
+   * No description
+   * @tags meeting
+   * @name MeetingSetConsultantRating
+   * @summary Rate a confirmed or completed meeting as the company owner
+   * @request PUT:/admin/meeting/consultant-rating/{id}
+   * @secure
+   * @response `200` `MeetingSetConsultantRatingData`
+   * @response `400` `HttpErrorDto`
+   * @response `403` `HttpErrorDto`
+   * @response `404` `HttpErrorDto`
+   */
+  export namespace MeetingSetConsultantRating {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = MeetingSetConsultantRatingDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingSetConsultantRatingData;
   }
 
   /**
@@ -8828,6 +8958,24 @@ export namespace Email {
     export type RequestHeaders = {};
     export type ResponseBody = EmailSendEmailData;
   }
+
+  /**
+   * No description
+   * @tags email
+   * @name EmailTestHook
+   * @summary Probar endpoint de email
+   * @request POST:/admin/email/test-hook
+   * @secure
+   * @response `201` `EmailTestHookData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace EmailTestHook {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = EmailTestHookDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = EmailTestHookData;
+  }
 }
 
 export namespace ConsultantAdmin {
@@ -8884,72 +9032,6 @@ export namespace ConsultantAdmin {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = ConsultantadminFindOneData;
-  }
-
-  /**
-   * No description
-   * @tags consultantAdmin
-   * @name ConsultantadminMercadoPago
-   * @summary Get Mercado Pago account details for a consultant in the internal admin panel
-   * @request GET:/admin/backoffice/consultant/mercado-pago/{id}
-   * @secure
-   * @response `200` `ConsultantadminMercadoPagoData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantadminMercadoPago {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantadminMercadoPagoData;
-  }
-
-  /**
-   * No description
-   * @tags consultantAdmin
-   * @name ConsultantadminMercadoPagoFinancial
-   * @summary Get a consultant Mercado Pago financial report status in the internal admin panel
-   * @request GET:/admin/backoffice/consultant/mercado-pago/{id}/financial
-   * @secure
-   * @response `200` `ConsultantadminMercadoPagoFinancialData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantadminMercadoPagoFinancial {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantadminMercadoPagoFinancialData;
-  }
-
-  /**
-   * No description
-   * @tags consultantAdmin
-   * @name ConsultantadminMercadoPagoFinancialDownload
-   * @summary Download the latest consultant Mercado Pago financial report
-   * @request GET:/admin/backoffice/consultant/mercado-pago/{id}/financial/download
-   * @secure
-   * @response `200` `ConsultantadminMercadoPagoFinancialDownloadData` Downloads the report or returns its generation status.
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace ConsultantadminMercadoPagoFinancialDownload {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {
-      /**
-       * Mercado Pago report generation task to continue tracking instead of creating a new report.
-       * @example "99336983670"
-       */
-      taskId?: string;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = ConsultantadminMercadoPagoFinancialDownloadData;
   }
 
   /**
@@ -9014,6 +9096,45 @@ export namespace ConsultantAdmin {
 }
 
 export namespace Consultant {
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantGetDepositAccounts
+   * @summary Get the current consultant deposit accounts
+   * @request GET:/admin/consultant/deposit-accounts
+   * @secure
+   * @response `200` `ConsultantGetDepositAccountsData`
+   * @response `403` `HttpErrorDto`
+   * @response `404` `HttpErrorDto`
+   */
+  export namespace ConsultantGetDepositAccounts {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantGetDepositAccountsData;
+  }
+
+  /**
+   * No description
+   * @tags consultant
+   * @name ConsultantUpdateDepositAccounts
+   * @summary Update the current consultant deposit accounts
+   * @request PUT:/admin/consultant/deposit-accounts
+   * @secure
+   * @response `200` `ConsultantUpdateDepositAccountsData`
+   * @response `400` `HttpErrorDto`
+   * @response `403` `HttpErrorDto`
+   * @response `404` `HttpErrorDto`
+   */
+  export namespace ConsultantUpdateDepositAccounts {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = ConsultantUpdateDepositAccountsDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ConsultantUpdateDepositAccountsData;
+  }
+
   /**
    * No description
    * @tags consultant
@@ -9679,24 +9800,6 @@ export namespace Subscription {
     export type RequestHeaders = {};
     export type ResponseBody = SubscriptionUpsertData;
   }
-
-  /**
-   * No description
-   * @tags subscription
-   * @name SubscriptionCreateCheckout
-   * @summary Create Mercado Pago preference for subscription plan
-   * @request POST:/admin/subscription/checkout
-   * @secure
-   * @response `200` `SubscriptionCreateCheckoutData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace SubscriptionCreateCheckout {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = SubscriptionCheckoutDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = SubscriptionCreateCheckoutData;
-  }
 }
 
 export namespace Dashboard {
@@ -9723,121 +9826,18 @@ export namespace Dashboard {
   }
 }
 
-export namespace MercadoPago {
+export namespace PromotionCodeAdmin {
   /**
    * No description
-   * @tags mercadoPago
-   * @name MercadopagoAuthUrl
-   * @summary Get Mercado Pago OAuth URL for a consultant
-   * @request GET:/admin/mercado-pago/auth-url
+   * @tags promotionCodeAdmin
+   * @name PromotioncodeadminFindAll
+   * @summary List promotional codes for the admin panel
+   * @request GET:/admin/promotion-code/find-all
    * @secure
-   * @response `200` `MercadopagoAuthUrlData`
+   * @response `200` `PromotioncodeadminFindAllData`
    * @response `400` `HttpErrorDto`
    */
-  export namespace MercadopagoAuthUrl {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /** @example 3 */
-      consultantId: number;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = MercadopagoAuthUrlData;
-  }
-
-  /**
-   * No description
-   * @tags mercadoPago
-   * @name MercadopagoCallback
-   * @summary Mercado Pago OAuth callback for consultant connection
-   * @request GET:/admin/mercado-pago/callback
-   * @response `200` `MercadopagoCallbackData` HTML response that posts the connection result to the opener window
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace MercadopagoCallback {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      code?: string;
-      state?: string;
-      error?: string;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = MercadopagoCallbackData;
-  }
-
-  /**
-   * No description
-   * @tags mercadoPago
-   * @name MercadopagoStatus
-   * @summary Get consultant Mercado Pago connection status
-   * @request GET:/admin/mercado-pago/status
-   * @secure
-   * @response `200` `MercadopagoStatusData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace MercadopagoStatus {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /** @example 3 */
-      consultantId: number;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = MercadopagoStatusData;
-  }
-
-  /**
-   * No description
-   * @tags mercadoPago
-   * @name MercadopagoDisconnect
-   * @summary Disconnect consultant Mercado Pago account
-   * @request DELETE:/admin/mercado-pago/disconnect
-   * @secure
-   * @response `200` `MercadopagoDisconnectData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace MercadopagoDisconnect {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /** @example 3 */
-      consultantId: number;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = MercadopagoDisconnectData;
-  }
-
-  /**
-   * No description
-   * @tags mercadoPago
-   * @name MercadopagoCreateCheckout
-   * @summary Crear checkout Monnet (ruta anterior)
-   * @request POST:/admin/mercado-pago/checkout
-   * @deprecated
-   * @secure
-   * @response `200` `MercadopagoCreateCheckoutData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace MercadopagoCreateCheckout {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = MercadoPagoCreateCheckoutDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = MercadopagoCreateCheckoutData;
-  }
-
-  /**
-   * No description
-   * @tags mercadoPago
-   * @name MercadopagoFindPayments
-   * @summary List Mercado Pago payments for the authenticated user
-   * @request GET:/admin/mercado-pago/payments
-   * @secure
-   * @response `200` `MercadopagoFindPaymentsData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace MercadopagoFindPayments {
+  export namespace PromotioncodeadminFindAll {
     export type RequestParams = {};
     export type RequestQuery = {
       /**
@@ -9846,319 +9846,129 @@ export namespace MercadoPago {
        */
       page?: number;
       /**
-       * Maximum of 10 payments per page
-       * @max 10
+       * Items per page
        * @default 10
        */
       limit?: number;
-      /**
-       * Year used to filter the payment date
-       * @default 2026
-       */
-      year?: number;
-      /**
-       * Month used to filter the payment date
-       * @default 11
-       */
-      month?: number;
-      /** Type of operation */
-      operationType?: "servicio" | "consultoria";
-      /** Payment method category */
-      paymentType?: "cupon" | "mercado_pago" | "tarjeta" | "yape" | "monnet";
+      search?: string;
     };
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = MercadopagoFindPaymentsData;
+    export type ResponseBody = PromotioncodeadminFindAllData;
   }
 
   /**
    * No description
-   * @tags mercadoPago
-   * @name MercadopagoFindPayment
-   * @summary Get a Mercado Pago payment detail for the authenticated user
-   * @request GET:/admin/mercado-pago/payments/{id}
+   * @tags promotionCodeAdmin
+   * @name PromotioncodeadminFindOne
+   * @summary Get promotional code details and redemptions
+   * @request GET:/admin/promotion-code/find-one/{id}
    * @secure
-   * @response `200` `MercadopagoFindPaymentData`
+   * @response `200` `PromotioncodeadminFindOneData`
    * @response `400` `HttpErrorDto`
    */
-  export namespace MercadopagoFindPayment {
+  export namespace PromotioncodeadminFindOne {
     export type RequestParams = {
       id: number;
     };
     export type RequestQuery = {};
     export type RequestBody = never;
     export type RequestHeaders = {};
-    export type ResponseBody = MercadopagoFindPaymentData;
+    export type ResponseBody = PromotioncodeadminFindOneData;
   }
 
   /**
    * No description
-   * @tags mercadoPago
-   * @name MercadopagoFindCheckout
-   * @summary Consultar checkout Monnet (ruta anterior)
-   * @request GET:/admin/mercado-pago/checkout/{id}
-   * @deprecated
+   * @tags promotionCodeAdmin
+   * @name PromotioncodeadminCreate
+   * @summary Create a promotional code
+   * @request POST:/admin/promotion-code/create
    * @secure
-   * @response `200` `MercadopagoFindCheckoutData`
+   * @response `201` `PromotioncodeadminCreateData`
    * @response `400` `HttpErrorDto`
    */
-  export namespace MercadopagoFindCheckout {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = MercadopagoFindCheckoutData;
-  }
-
-  /**
-   * No description
-   * @tags mercadoPago
-   * @name MercadopagoPrepareCheckoutPayment
-   * @summary Generar QR Monnet (ruta anterior)
-   * @request POST:/admin/mercado-pago/checkout/{id}/payment
-   * @deprecated
-   * @secure
-   * @response `200` `MercadopagoPrepareCheckoutPaymentData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace MercadopagoPrepareCheckoutPayment {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = MonnetPrepareCheckoutPaymentDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = MercadopagoPrepareCheckoutPaymentData;
-  }
-
-  /**
-   * No description
-   * @tags mercadoPago
-   * @name MercadopagoPrepareServicePayment
-   * @summary Create the Mercado Pago preference for a service installment
-   * @request POST:/admin/mercado-pago/service/{id}/payment
-   * @secure
-   * @response `200` `MercadopagoPrepareServicePaymentData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace MercadopagoPrepareServicePayment {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = MercadoPagoServicePaymentDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = MercadopagoPrepareServicePaymentData;
-  }
-
-  /**
-   * No description
-   * @tags mercadoPago
-   * @name MercadopagoSyncServicePayment
-   * @summary Synchronize a service installment payment with Mercado Pago
-   * @request POST:/admin/mercado-pago/service/{id}/payment/sync
-   * @secure
-   * @response `200` `MercadopagoSyncServicePaymentData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace MercadopagoSyncServicePayment {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = MercadoPagoServicePaymentDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = MercadopagoSyncServicePaymentData;
-  }
-
-  /**
-   * No description
-   * @tags mercadoPago
-   * @name MercadopagoWebhook
-   * @summary Mercado Pago payment webhook
-   * @request POST:/admin/mercado-pago/webhook
-   * @response `200` `MercadopagoWebhookData` Webhook processed
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace MercadopagoWebhook {
+  export namespace PromotioncodeadminCreate {
     export type RequestParams = {};
-    export type RequestQuery = {
-      /** @example "payment" */
-      type?: string;
-      /** @example "payment" */
-      topic?: string;
-      /** @example "123456789" */
-      id?: string;
-      /** @example "123456789" */
-      payment_id?: string;
-      /** @example "123456789" */
-      "data.id"?: string;
-      /** @example "https://api.mercadopago.com/v1/payments/123456789" */
-      resource?: string;
-      /** @example "payment.created" */
-      action?: string;
-      /** @example "pending:1:2:1792500000000" */
-      externalReference?: string;
-    };
-    export type RequestBody = never;
+    export type RequestQuery = {};
+    export type RequestBody = PromotionCodeCreateDto;
     export type RequestHeaders = {};
-    export type ResponseBody = MercadopagoWebhookData;
+    export type ResponseBody = PromotioncodeadminCreateData;
+  }
+
+  /**
+   * No description
+   * @tags promotionCodeAdmin
+   * @name PromotioncodeadminUpdate
+   * @summary Update or deactivate a promotional code
+   * @request PATCH:/admin/promotion-code/update/{id}
+   * @secure
+   * @response `200` `PromotioncodeadminUpdateData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PromotioncodeadminUpdate {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = PromotionCodeUpdateDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = PromotioncodeadminUpdateData;
   }
 }
 
-export namespace MonnetCheckout {
+export namespace PromotionCode {
   /**
    * No description
-   * @tags monnetCheckout
-   * @name MonnetcheckoutCreateCheckout
-   * @summary Crear checkout de reunión con Monnet QR
-   * @request POST:/admin/monnet/checkout
+   * @tags promotionCode
+   * @name PromotioncodeValidate
+   * @summary Consultar el descuento de un cupón para una sesión
+   * @request POST:/admin/promotion-code/validate
    * @secure
-   * @response `200` `MonnetcheckoutCreateCheckoutData`
+   * @response `200` `PromotioncodeValidateData`
    * @response `400` `HttpErrorDto`
    */
-  export namespace MonnetcheckoutCreateCheckout {
+  export namespace PromotioncodeValidate {
     export type RequestParams = {};
     export type RequestQuery = {};
-    export type RequestBody = MonnetCreateCheckoutDto;
+    export type RequestBody = PromotionCodeValidateDto;
     export type RequestHeaders = {};
-    export type ResponseBody = MonnetcheckoutCreateCheckoutData;
+    export type ResponseBody = PromotioncodeValidateData;
   }
 
   /**
    * No description
-   * @tags monnetCheckout
-   * @name MonnetcheckoutFindCheckout
-   * @summary Consultar checkout y QR de la reunión
-   * @request GET:/admin/monnet/checkout/{id}
+   * @tags promotionCode
+   * @name PromotioncodeRedeem
+   * @summary Redeem a code for a free consulting session
+   * @request POST:/admin/promotion-code/redeem
    * @secure
-   * @response `200` `MonnetcheckoutFindCheckoutData`
+   * @response `201` `PromotioncodeRedeemData`
    * @response `400` `HttpErrorDto`
    */
-  export namespace MonnetcheckoutFindCheckout {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = MonnetcheckoutFindCheckoutData;
-  }
-
-  /**
-   * No description
-   * @tags monnetCheckout
-   * @name MonnetcheckoutPrepareCheckoutPayment
-   * @summary Generar QR de pago con el importe calculado por Hubsme
-   * @request POST:/admin/monnet/checkout/{id}/payment
-   * @secure
-   * @response `200` `MonnetcheckoutPrepareCheckoutPaymentData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace MonnetcheckoutPrepareCheckoutPayment {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = MonnetPrepareCheckoutPaymentDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = MonnetcheckoutPrepareCheckoutPaymentData;
-  }
-
-  /**
-   * No description
-   * @tags monnetCheckout
-   * @name MonnetcheckoutSyncCheckoutPayment
-   * @summary Verificar en Monnet y confirmar el pago de la reunión
-   * @request POST:/admin/monnet/checkout/{id}/payment/sync
-   * @secure
-   * @response `200` `MonnetcheckoutSyncCheckoutPaymentData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace MonnetcheckoutSyncCheckoutPayment {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = MonnetcheckoutSyncCheckoutPaymentData;
-  }
-}
-
-export namespace MonnetPayin {
-  /**
-   * No description
-   * @tags monnetPayin
-   * @name MonnetpayinCreateBankTransfer
-   * @summary PER · Válida · Monnet · Bank Transfer
-   * @request POST:/admin/monnet/payin/create-transaction/standard/bank-transfer
-   * @secure
-   * @response `200` `MonnetpayinCreateBankTransferData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace MonnetpayinCreateBankTransfer {
+  export namespace PromotioncodeRedeem {
     export type RequestParams = {};
     export type RequestQuery = {};
-    export type RequestBody = PayinCreateBankTransferDto;
+    export type RequestBody = PromotionCodeRedeemDto;
     export type RequestHeaders = {};
-    export type ResponseBody = MonnetpayinCreateBankTransferData;
+    export type ResponseBody = PromotioncodeRedeemData;
   }
 
   /**
    * No description
-   * @tags monnetPayin
-   * @name MonnetpayinCreateQr
-   * @summary PER · Válida · QR (Ligo en la colección)
-   * @request POST:/admin/monnet/payin/create-transaction/standard/qr
+   * @tags promotionCode
+   * @name PromotioncodeRedeemService
+   * @summary Redeem a service code for the next available installment
+   * @request POST:/admin/promotion-code/redeem-service
    * @secure
-   * @response `200` `MonnetpayinCreateQrData`
+   * @response `201` `PromotioncodeRedeemServiceData`
    * @response `400` `HttpErrorDto`
    */
-  export namespace MonnetpayinCreateQr {
+  export namespace PromotioncodeRedeemService {
     export type RequestParams = {};
     export type RequestQuery = {};
-    export type RequestBody = PayinCreateQrDto;
+    export type RequestBody = PromotionCodeRedeemServiceDto;
     export type RequestHeaders = {};
-    export type ResponseBody = MonnetpayinCreateQrData;
-  }
-
-  /**
-   * No description
-   * @tags monnetPayin
-   * @name MonnetpayinCreateYapeMobile
-   * @summary White Label · Válida · Yape One Shot Mobile
-   * @request POST:/admin/monnet/payin/create-transaction/white-label/yape/mobile
-   * @secure
-   * @response `200` `MonnetpayinCreateYapeMobileData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace MonnetpayinCreateYapeMobile {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = PayinCreateYapeMobileDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = MonnetpayinCreateYapeMobileData;
-  }
-
-  /**
-   * No description
-   * @tags monnetPayin
-   * @name MonnetpayinCreateYapeWeb
-   * @summary White Label · Válida · Yape One Shot Web
-   * @request POST:/admin/monnet/payin/create-transaction/white-label/yape/web
-   * @secure
-   * @response `200` `MonnetpayinCreateYapeWebData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace MonnetpayinCreateYapeWeb {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = PayinCreateYapeWebDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = MonnetpayinCreateYapeWebData;
+    export type ResponseBody = PromotioncodeRedeemServiceData;
   }
 }
 
@@ -10426,134 +10236,6 @@ export namespace Service {
   }
 }
 
-export namespace PromotionCodeAdmin {
-  /**
-   * No description
-   * @tags promotionCodeAdmin
-   * @name PromotioncodeadminFindAll
-   * @summary List promotional codes for the admin panel
-   * @request GET:/admin/promotion-code/find-all
-   * @secure
-   * @response `200` `PromotioncodeadminFindAllData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PromotioncodeadminFindAll {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /**
-       * Page number
-       * @default 1
-       */
-      page?: number;
-      /**
-       * Items per page
-       * @default 10
-       */
-      limit?: number;
-      search?: string;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = PromotioncodeadminFindAllData;
-  }
-
-  /**
-   * No description
-   * @tags promotionCodeAdmin
-   * @name PromotioncodeadminFindOne
-   * @summary Get promotional code details and redemptions
-   * @request GET:/admin/promotion-code/find-one/{id}
-   * @secure
-   * @response `200` `PromotioncodeadminFindOneData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PromotioncodeadminFindOne {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = PromotioncodeadminFindOneData;
-  }
-
-  /**
-   * No description
-   * @tags promotionCodeAdmin
-   * @name PromotioncodeadminCreate
-   * @summary Create a promotional code
-   * @request POST:/admin/promotion-code/create
-   * @secure
-   * @response `201` `PromotioncodeadminCreateData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PromotioncodeadminCreate {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = PromotionCodeCreateDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = PromotioncodeadminCreateData;
-  }
-
-  /**
-   * No description
-   * @tags promotionCodeAdmin
-   * @name PromotioncodeadminUpdate
-   * @summary Update or deactivate a promotional code
-   * @request PATCH:/admin/promotion-code/update/{id}
-   * @secure
-   * @response `200` `PromotioncodeadminUpdateData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PromotioncodeadminUpdate {
-    export type RequestParams = {
-      id: number;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = PromotionCodeUpdateDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = PromotioncodeadminUpdateData;
-  }
-}
-
-export namespace PromotionCode {
-  /**
-   * No description
-   * @tags promotionCode
-   * @name PromotioncodeRedeem
-   * @summary Redeem a code for a free consulting session
-   * @request POST:/admin/promotion-code/redeem
-   * @secure
-   * @response `201` `PromotioncodeRedeemData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PromotioncodeRedeem {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = PromotionCodeRedeemDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = PromotioncodeRedeemData;
-  }
-
-  /**
-   * No description
-   * @tags promotionCode
-   * @name PromotioncodeRedeemService
-   * @summary Redeem a service code for the next available installment
-   * @request POST:/admin/promotion-code/redeem-service
-   * @secure
-   * @response `201` `PromotioncodeRedeemServiceData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace PromotioncodeRedeemService {
-    export type RequestParams = {};
-    export type RequestQuery = {};
-    export type RequestBody = PromotionCodeRedeemServiceDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = PromotioncodeRedeemServiceData;
-  }
-}
-
 export namespace IdentityVerification {
   /**
    * No description
@@ -10571,6 +10253,26 @@ export namespace IdentityVerification {
     export type RequestBody = DniVerificationDto;
     export type RequestHeaders = {};
     export type ResponseBody = IdentityverificationVerifyDniData;
+  }
+
+  /**
+   * No description
+   * @tags identityVerification
+   * @name IdentityverificationLookupDni
+   * @summary Consultar nombres y apellidos por DNI
+   * @request POST:/admin/identity-verification/dni/lookup
+   * @secure
+   * @response `200` `IdentityverificationLookupDniData`
+   * @response `400` `HttpErrorDto`
+   * @response `404` `HttpErrorDto`
+   * @response `502` `HttpErrorDto`
+   */
+  export namespace IdentityverificationLookupDni {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = DniLookupDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = IdentityverificationLookupDniData;
   }
 
   /**
@@ -10969,6 +10671,186 @@ export namespace ServiceOffer {
   }
 }
 
+export namespace MonnetPayin {
+  /**
+   * No description
+   * @tags monnetPayin
+   * @name MonnetpayinCreateBankTransfer
+   * @summary PER · Válida · Monnet · Bank Transfer
+   * @request POST:/admin/monnet/payin/create-transaction/standard/bank-transfer
+   * @secure
+   * @response `200` `MonnetpayinCreateBankTransferData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetpayinCreateBankTransfer {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PayinCreateBankTransferDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetpayinCreateBankTransferData;
+  }
+
+  /**
+   * No description
+   * @tags monnetPayin
+   * @name MonnetpayinCreateQr
+   * @summary PER · Válida · QR (Ligo en la colección)
+   * @request POST:/admin/monnet/payin/create-transaction/standard/qr
+   * @secure
+   * @response `200` `MonnetpayinCreateQrData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetpayinCreateQr {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PayinCreateQrDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetpayinCreateQrData;
+  }
+
+  /**
+   * No description
+   * @tags monnetPayin
+   * @name MonnetpayinCreateYapeMobile
+   * @summary White Label · Válida · Yape One Shot Mobile
+   * @request POST:/admin/monnet/payin/create-transaction/white-label/yape/mobile
+   * @secure
+   * @response `200` `MonnetpayinCreateYapeMobileData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetpayinCreateYapeMobile {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PayinCreateYapeMobileDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetpayinCreateYapeMobileData;
+  }
+
+  /**
+   * No description
+   * @tags monnetPayin
+   * @name MonnetpayinCreateYapeWeb
+   * @summary White Label · Válida · Yape One Shot Web
+   * @request POST:/admin/monnet/payin/create-transaction/white-label/yape/web
+   * @secure
+   * @response `200` `MonnetpayinCreateYapeWebData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetpayinCreateYapeWeb {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = PayinCreateYapeWebDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetpayinCreateYapeWebData;
+  }
+}
+
+export namespace MonnetCheckout {
+  /**
+   * No description
+   * @tags monnetCheckout
+   * @name MonnetcheckoutCreateCheckout
+   * @summary Crear checkout de reunión con Monnet
+   * @request POST:/admin/monnet/checkout
+   * @secure
+   * @response `200` `MonnetcheckoutCreateCheckoutData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetcheckoutCreateCheckout {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = MonnetCreateCheckoutDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetcheckoutCreateCheckoutData;
+  }
+
+  /**
+   * No description
+   * @tags monnetCheckout
+   * @name MonnetcheckoutFindCheckout
+   * @summary Consultar checkout e instrucciones de pago de la reunión
+   * @request GET:/admin/monnet/checkout/{id}
+   * @secure
+   * @response `200` `MonnetcheckoutFindCheckoutData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetcheckoutFindCheckout {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetcheckoutFindCheckoutData;
+  }
+
+  /**
+   * No description
+   * @tags monnetCheckout
+   * @name MonnetcheckoutPrepareCheckoutPayment
+   * @summary Generar QR o código bancario con el importe calculado por Hubsme
+   * @request POST:/admin/monnet/checkout/{id}/payment
+   * @secure
+   * @response `200` `MonnetcheckoutPrepareCheckoutPaymentData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetcheckoutPrepareCheckoutPayment {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = MonnetPrepareCheckoutPaymentDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetcheckoutPrepareCheckoutPaymentData;
+  }
+
+  /**
+   * No description
+   * @tags monnetCheckout
+   * @name MonnetcheckoutSyncCheckoutPayment
+   * @summary Verificar en Monnet y confirmar el pago de la reunión
+   * @request POST:/admin/monnet/checkout/{id}/payment/sync
+   * @secure
+   * @response `200` `MonnetcheckoutSyncCheckoutPaymentData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace MonnetcheckoutSyncCheckoutPayment {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetcheckoutSyncCheckoutPaymentData;
+  }
+}
+
+export namespace MonnetCheckoutAdmin {
+  /**
+   * No description
+   * @tags monnetCheckoutAdmin
+   * @name MonnetcheckoutadminSimulateWebhook
+   * @summary Simular una notificación Payin de Monnet en certificación
+   * @request POST:/admin/monnet/checkout/{id}/payment/simulate-webhook
+   * @secure
+   * @response `200` `MonnetcheckoutadminSimulateWebhookData`
+   * @response `400` `HttpErrorDto`
+   * @response `401` `HttpErrorDto`
+   * @response `404` `HttpErrorDto`
+   * @response `409` `HttpErrorDto`
+   */
+  export namespace MonnetcheckoutadminSimulateWebhook {
+    export type RequestParams = {
+      /** ID del checkout de HUBSME */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = MonnetSimulateWebhookDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetcheckoutadminSimulateWebhookData;
+  }
+}
+
 export namespace MonnetWebhook {
   /**
    * No description
@@ -10985,6 +10867,91 @@ export namespace MonnetWebhook {
     export type RequestBody = MonnetPayinWebhookDto;
     export type RequestHeaders = {};
     export type ResponseBody = MonnetwebhookPayinData;
+  }
+
+  /**
+   * No description
+   * @tags monnetWebhook
+   * @name MonnetwebhookPayout
+   * @summary Receive signed Monnet Payout notifications
+   * @request POST:/admin/monnet/webhook/payout
+   * @response `200` `MonnetwebhookPayoutData`
+   * @response `401` `HttpErrorDto`
+   */
+  export namespace MonnetwebhookPayout {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {
+      verification: string;
+    };
+    export type ResponseBody = MonnetwebhookPayoutData;
+  }
+}
+
+export namespace PaymentHistory {
+  /**
+   * No description
+   * @tags paymentHistory
+   * @name PaymenthistoryFindAll
+   * @summary Consultar el historial de pagos del usuario
+   * @request GET:/admin/payments
+   * @secure
+   * @response `200` `PaymenthistoryFindAllData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PaymenthistoryFindAll {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /**
+       * Page number
+       * @default 1
+       */
+      page?: number;
+      /**
+       * Maximum of 10 payments per page
+       * @max 10
+       * @default 10
+       */
+      limit?: number;
+      /**
+       * Year used to filter the payment date
+       * @default 2026
+       */
+      year?: number;
+      /**
+       * Month used to filter the payment date
+       * @default 11
+       */
+      month?: number;
+      /** Type of operation */
+      operationType?: "servicio" | "consultoria";
+      /** Payment method category */
+      paymentType?: "cupon" | "monnet";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PaymenthistoryFindAllData;
+  }
+
+  /**
+   * No description
+   * @tags paymentHistory
+   * @name PaymenthistoryFindOne
+   * @summary Consultar un pago del usuario
+   * @request GET:/admin/payments/{id}
+   * @secure
+   * @response `200` `PaymenthistoryFindOneData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace PaymenthistoryFindOne {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = PaymenthistoryFindOneData;
   }
 }
 
@@ -11021,6 +10988,43 @@ export namespace Auth {
     export type RequestBody = RegisterDto;
     export type RequestHeaders = {};
     export type ResponseBody = AuthRegisterData;
+  }
+
+  /**
+   * No description
+   * @tags auth
+   * @name AuthRegistrationDocuments
+   * @summary Get the versioned registration documents for a role
+   * @request GET:/auth/registration-documents
+   * @response `200` `AuthRegistrationDocumentsData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace AuthRegistrationDocuments {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      role: "pyme" | "consultor";
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthRegistrationDocumentsData;
+  }
+
+  /**
+   * No description
+   * @tags auth
+   * @name AuthRegistrationEmailCode
+   * @summary Send a verification code to the registration email
+   * @request POST:/auth/registration-email-code
+   * @response `201` `AuthRegistrationEmailCodeData`
+   * @response `400` `HttpErrorDto`
+   * @response `429` `HttpErrorDto`
+   */
+  export namespace AuthRegistrationEmailCode {
+    export type RequestParams = {};
+    export type RequestQuery = {};
+    export type RequestBody = RegistrationEmailCodeDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = AuthRegistrationEmailCodeData;
   }
 
   /**
@@ -11072,6 +11076,12 @@ export namespace Auth {
   export namespace AuthGoogleUrl {
     export type RequestParams = {};
     export type RequestQuery = {
+      /** Versión del contrato revisado al crear una cuenta */
+      contractVersion?: string;
+      /** Aceptación expresa durante el registro */
+      acceptedContract?: "true" | "false";
+      /** Autorización opcional de marketing */
+      marketingConsent?: "true" | "false";
       /** @default "login" */
       flow?: "login" | "register" | "invitation";
       /** @default "pyme" */
@@ -12226,6 +12236,117 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags meetingAdmin
+     * @name MeetingadminFindMonthlyPayouts
+     * @summary List monthly settlements and Monnet Payout status
+     * @request GET:/admin/backoffice/meeting/payout/monthly
+     * @secure
+     * @response `200` `MeetingadminFindMonthlyPayoutsData`
+     * @response `400` `HttpErrorDto`
+     */
+    meetingadminFindMonthlyPayouts: (
+      query: MeetingadminFindMonthlyPayoutsParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MeetingadminFindMonthlyPayoutsData,
+        MeetingadminFindMonthlyPayoutsError
+      >({
+        path: `/admin/backoffice/meeting/payout/monthly`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetingAdmin
+     * @name MeetingadminCreateMonthlyPayout
+     * @summary Create a Monnet Payout for a closed monthly settlement
+     * @request POST:/admin/backoffice/meeting/payout/monthly
+     * @secure
+     * @response `200` `MeetingadminCreateMonthlyPayoutData`
+     * @response `400` `HttpErrorDto`
+     * @response `409` `HttpErrorDto`
+     */
+    meetingadminCreateMonthlyPayout: (
+      data: CreateMonthlyPayoutDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MeetingadminCreateMonthlyPayoutData,
+        MeetingadminCreateMonthlyPayoutError
+      >({
+        path: `/admin/backoffice/meeting/payout/monthly`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetingAdmin
+     * @name MeetingadminGetMonthlyPayoutOptions
+     * @summary Get the amount and available destinations for a monthly settlement
+     * @request GET:/admin/backoffice/meeting/payout/monthly/options
+     * @secure
+     * @response `200` `MeetingadminGetMonthlyPayoutOptionsData`
+     * @response `400` `HttpErrorDto`
+     */
+    meetingadminGetMonthlyPayoutOptions: (
+      query: MeetingadminGetMonthlyPayoutOptionsParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MeetingadminGetMonthlyPayoutOptionsData,
+        MeetingadminGetMonthlyPayoutOptionsError
+      >({
+        path: `/admin/backoffice/meeting/payout/monthly/options`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetingAdmin
+     * @name MeetingadminRefreshMonthlyPayout
+     * @summary Reconcile a monthly payout with its current status in Monnet
+     * @request POST:/admin/backoffice/meeting/payout/monthly/refresh
+     * @secure
+     * @response `200` `MeetingadminRefreshMonthlyPayoutData`
+     * @response `503` `HttpErrorDto`
+     */
+    meetingadminRefreshMonthlyPayout: (
+      data: RefreshMonthlyPayoutDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MeetingadminRefreshMonthlyPayoutData,
+        MeetingadminRefreshMonthlyPayoutError
+      >({
+        path: `/admin/backoffice/meeting/payout/monthly/refresh`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetingAdmin
      * @name MeetingadminFindAllPayouts
      * @summary List consultant payouts generated from consultation meetings
      * @request GET:/admin/backoffice/meeting/payout/find-all
@@ -12445,6 +12566,65 @@ export class Api<SecurityDataType extends unknown> {
         path: `/admin/meeting/find-one/${id}`,
         method: "GET",
         secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meeting
+     * @name MeetingGetConsultantRating
+     * @summary Get the rating left by the company as a meeting participant
+     * @request GET:/admin/meeting/consultant-rating/{id}
+     * @secure
+     * @response `200` `MeetingGetConsultantRatingData`
+     * @response `400` `HttpErrorDto`
+     * @response `403` `HttpErrorDto`
+     * @response `404` `HttpErrorDto`
+     */
+    getConsultantRating: (
+      { id }: MeetingGetConsultantRatingParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MeetingGetConsultantRatingData,
+        MeetingGetConsultantRatingError
+      >({
+        path: `/admin/meeting/consultant-rating/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meeting
+     * @name MeetingSetConsultantRating
+     * @summary Rate a confirmed or completed meeting as the company owner
+     * @request PUT:/admin/meeting/consultant-rating/{id}
+     * @secure
+     * @response `200` `MeetingSetConsultantRatingData`
+     * @response `400` `HttpErrorDto`
+     * @response `403` `HttpErrorDto`
+     * @response `404` `HttpErrorDto`
+     */
+    setConsultantRating: (
+      { id }: MeetingSetConsultantRatingParams,
+      data: MeetingSetConsultantRatingDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MeetingSetConsultantRatingData,
+        MeetingSetConsultantRatingError
+      >({
+        path: `/admin/meeting/consultant-rating/${id}`,
+        method: "PUT",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
@@ -13268,6 +13448,28 @@ export class Api<SecurityDataType extends unknown> {
         format: "json",
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags email
+     * @name EmailTestHook
+     * @summary Probar endpoint de email
+     * @request POST:/admin/email/test-hook
+     * @secure
+     * @response `201` `EmailTestHookData`
+     * @response `400` `HttpErrorDto`
+     */
+    testHook: (data: EmailTestHookDto, params: RequestParams = {}) =>
+      this.http.request<EmailTestHookData, EmailTestHookError>({
+        path: `/admin/email/test-hook`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
   };
   consultantAdmin = {
     /**
@@ -13320,84 +13522,6 @@ export class Api<SecurityDataType extends unknown> {
         method: "GET",
         secure: true,
         format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultantAdmin
-     * @name ConsultantadminMercadoPago
-     * @summary Get Mercado Pago account details for a consultant in the internal admin panel
-     * @request GET:/admin/backoffice/consultant/mercado-pago/{id}
-     * @secure
-     * @response `200` `ConsultantadminMercadoPagoData`
-     * @response `400` `HttpErrorDto`
-     */
-    consultantadminMercadoPago: (
-      { id }: ConsultantadminMercadoPagoParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        ConsultantadminMercadoPagoData,
-        ConsultantadminMercadoPagoError
-      >({
-        path: `/admin/backoffice/consultant/mercado-pago/${id}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultantAdmin
-     * @name ConsultantadminMercadoPagoFinancial
-     * @summary Get a consultant Mercado Pago financial report status in the internal admin panel
-     * @request GET:/admin/backoffice/consultant/mercado-pago/{id}/financial
-     * @secure
-     * @response `200` `ConsultantadminMercadoPagoFinancialData`
-     * @response `400` `HttpErrorDto`
-     */
-    consultantadminMercadoPagoFinancial: (
-      { id }: ConsultantadminMercadoPagoFinancialParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        ConsultantadminMercadoPagoFinancialData,
-        ConsultantadminMercadoPagoFinancialError
-      >({
-        path: `/admin/backoffice/consultant/mercado-pago/${id}/financial`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags consultantAdmin
-     * @name ConsultantadminMercadoPagoFinancialDownload
-     * @summary Download the latest consultant Mercado Pago financial report
-     * @request GET:/admin/backoffice/consultant/mercado-pago/{id}/financial/download
-     * @secure
-     * @response `200` `ConsultantadminMercadoPagoFinancialDownloadData` Downloads the report or returns its generation status.
-     * @response `400` `HttpErrorDto`
-     */
-    consultantadminMercadoPagoFinancialDownload: (
-      { id, ...query }: ConsultantadminMercadoPagoFinancialDownloadParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        ConsultantadminMercadoPagoFinancialDownloadData,
-        ConsultantadminMercadoPagoFinancialDownloadError
-      >({
-        path: `/admin/backoffice/consultant/mercado-pago/${id}/financial/download`,
-        method: "GET",
-        query: query,
-        secure: true,
         ...params,
       }),
 
@@ -13483,6 +13607,60 @@ export class Api<SecurityDataType extends unknown> {
       }),
   };
   consultant = {
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantGetDepositAccounts
+     * @summary Get the current consultant deposit accounts
+     * @request GET:/admin/consultant/deposit-accounts
+     * @secure
+     * @response `200` `ConsultantGetDepositAccountsData`
+     * @response `403` `HttpErrorDto`
+     * @response `404` `HttpErrorDto`
+     */
+    getDepositAccounts: (params: RequestParams = {}) =>
+      this.http.request<
+        ConsultantGetDepositAccountsData,
+        ConsultantGetDepositAccountsError
+      >({
+        path: `/admin/consultant/deposit-accounts`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags consultant
+     * @name ConsultantUpdateDepositAccounts
+     * @summary Update the current consultant deposit accounts
+     * @request PUT:/admin/consultant/deposit-accounts
+     * @secure
+     * @response `200` `ConsultantUpdateDepositAccountsData`
+     * @response `400` `HttpErrorDto`
+     * @response `403` `HttpErrorDto`
+     * @response `404` `HttpErrorDto`
+     */
+    updateDepositAccounts: (
+      data: ConsultantUpdateDepositAccountsDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ConsultantUpdateDepositAccountsData,
+        ConsultantUpdateDepositAccountsError
+      >({
+        path: `/admin/consultant/deposit-accounts`,
+        method: "PUT",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *
@@ -14161,34 +14339,6 @@ export class Api<SecurityDataType extends unknown> {
         format: "json",
         ...params,
       }),
-
-    /**
-     * No description
-     *
-     * @tags subscription
-     * @name SubscriptionCreateCheckout
-     * @summary Create Mercado Pago preference for subscription plan
-     * @request POST:/admin/subscription/checkout
-     * @secure
-     * @response `200` `SubscriptionCreateCheckoutData`
-     * @response `400` `HttpErrorDto`
-     */
-    createCheckout: (
-      data: SubscriptionCheckoutDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        SubscriptionCreateCheckoutData,
-        SubscriptionCreateCheckoutError
-      >({
-        path: `/admin/subscription/checkout`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
   };
   dashboard = {
     /**
@@ -14215,121 +14365,80 @@ export class Api<SecurityDataType extends unknown> {
         ...params,
       }),
   };
-  mercadoPago = {
+  promotionCodeAdmin = {
     /**
      * No description
      *
-     * @tags mercadoPago
-     * @name MercadopagoAuthUrl
-     * @summary Get Mercado Pago OAuth URL for a consultant
-     * @request GET:/admin/mercado-pago/auth-url
+     * @tags promotionCodeAdmin
+     * @name PromotioncodeadminFindAll
+     * @summary List promotional codes for the admin panel
+     * @request GET:/admin/promotion-code/find-all
      * @secure
-     * @response `200` `MercadopagoAuthUrlData`
+     * @response `200` `PromotioncodeadminFindAllData`
      * @response `400` `HttpErrorDto`
      */
-    mercadopagoAuthUrl: (
-      query: MercadopagoAuthUrlParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<MercadopagoAuthUrlData, MercadopagoAuthUrlError>({
-        path: `/admin/mercado-pago/auth-url`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags mercadoPago
-     * @name MercadopagoCallback
-     * @summary Mercado Pago OAuth callback for consultant connection
-     * @request GET:/admin/mercado-pago/callback
-     * @response `200` `MercadopagoCallbackData` HTML response that posts the connection result to the opener window
-     * @response `400` `HttpErrorDto`
-     */
-    mercadopagoCallback: (
-      query: MercadopagoCallbackParams = {},
-      params: RequestParams = {},
-    ) =>
-      this.http.request<MercadopagoCallbackData, MercadopagoCallbackError>({
-        path: `/admin/mercado-pago/callback`,
-        method: "GET",
-        query: query,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags mercadoPago
-     * @name MercadopagoStatus
-     * @summary Get consultant Mercado Pago connection status
-     * @request GET:/admin/mercado-pago/status
-     * @secure
-     * @response `200` `MercadopagoStatusData`
-     * @response `400` `HttpErrorDto`
-     */
-    mercadopagoStatus: (
-      query: MercadopagoStatusParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<MercadopagoStatusData, MercadopagoStatusError>({
-        path: `/admin/mercado-pago/status`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags mercadoPago
-     * @name MercadopagoDisconnect
-     * @summary Disconnect consultant Mercado Pago account
-     * @request DELETE:/admin/mercado-pago/disconnect
-     * @secure
-     * @response `200` `MercadopagoDisconnectData`
-     * @response `400` `HttpErrorDto`
-     */
-    mercadopagoDisconnect: (
-      query: MercadopagoDisconnectParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<MercadopagoDisconnectData, MercadopagoDisconnectError>({
-        path: `/admin/mercado-pago/disconnect`,
-        method: "DELETE",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags mercadoPago
-     * @name MercadopagoCreateCheckout
-     * @summary Crear checkout Monnet (ruta anterior)
-     * @request POST:/admin/mercado-pago/checkout
-     * @deprecated
-     * @secure
-     * @response `200` `MercadopagoCreateCheckoutData`
-     * @response `400` `HttpErrorDto`
-     */
-    mercadopagoCreateCheckout: (
-      data: MercadoPagoCreateCheckoutDto,
+    promotioncodeadminFindAll: (
+      query: PromotioncodeadminFindAllParams = {},
       params: RequestParams = {},
     ) =>
       this.http.request<
-        MercadopagoCreateCheckoutData,
-        MercadopagoCreateCheckoutError
+        PromotioncodeadminFindAllData,
+        PromotioncodeadminFindAllError
       >({
-        path: `/admin/mercado-pago/checkout`,
+        path: `/admin/promotion-code/find-all`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags promotionCodeAdmin
+     * @name PromotioncodeadminFindOne
+     * @summary Get promotional code details and redemptions
+     * @request GET:/admin/promotion-code/find-one/{id}
+     * @secure
+     * @response `200` `PromotioncodeadminFindOneData`
+     * @response `400` `HttpErrorDto`
+     */
+    promotioncodeadminFindOne: (
+      { id }: PromotioncodeadminFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PromotioncodeadminFindOneData,
+        PromotioncodeadminFindOneError
+      >({
+        path: `/admin/promotion-code/find-one/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags promotionCodeAdmin
+     * @name PromotioncodeadminCreate
+     * @summary Create a promotional code
+     * @request POST:/admin/promotion-code/create
+     * @secure
+     * @response `201` `PromotioncodeadminCreateData`
+     * @response `400` `HttpErrorDto`
+     */
+    promotioncodeadminCreate: (
+      data: PromotionCodeCreateDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        PromotioncodeadminCreateData,
+        PromotioncodeadminCreateError
+      >({
+        path: `/admin/promotion-code/create`,
         method: "POST",
         body: data,
         secure: true,
@@ -14341,323 +14450,50 @@ export class Api<SecurityDataType extends unknown> {
     /**
      * No description
      *
-     * @tags mercadoPago
-     * @name MercadopagoFindPayments
-     * @summary List Mercado Pago payments for the authenticated user
-     * @request GET:/admin/mercado-pago/payments
+     * @tags promotionCodeAdmin
+     * @name PromotioncodeadminUpdate
+     * @summary Update or deactivate a promotional code
+     * @request PATCH:/admin/promotion-code/update/{id}
      * @secure
-     * @response `200` `MercadopagoFindPaymentsData`
+     * @response `200` `PromotioncodeadminUpdateData`
      * @response `400` `HttpErrorDto`
      */
-    mercadopagoFindPayments: (
-      query: MercadopagoFindPaymentsParams = {},
+    promotioncodeadminUpdate: (
+      { id }: PromotioncodeadminUpdateParams,
+      data: PromotionCodeUpdateDto,
       params: RequestParams = {},
     ) =>
       this.http.request<
-        MercadopagoFindPaymentsData,
-        MercadopagoFindPaymentsError
+        PromotioncodeadminUpdateData,
+        PromotioncodeadminUpdateError
       >({
-        path: `/admin/mercado-pago/payments`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags mercadoPago
-     * @name MercadopagoFindPayment
-     * @summary Get a Mercado Pago payment detail for the authenticated user
-     * @request GET:/admin/mercado-pago/payments/{id}
-     * @secure
-     * @response `200` `MercadopagoFindPaymentData`
-     * @response `400` `HttpErrorDto`
-     */
-    mercadopagoFindPayment: (
-      { id }: MercadopagoFindPaymentParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        MercadopagoFindPaymentData,
-        MercadopagoFindPaymentError
-      >({
-        path: `/admin/mercado-pago/payments/${id}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags mercadoPago
-     * @name MercadopagoFindCheckout
-     * @summary Consultar checkout Monnet (ruta anterior)
-     * @request GET:/admin/mercado-pago/checkout/{id}
-     * @deprecated
-     * @secure
-     * @response `200` `MercadopagoFindCheckoutData`
-     * @response `400` `HttpErrorDto`
-     */
-    mercadopagoFindCheckout: (
-      { id }: MercadopagoFindCheckoutParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        MercadopagoFindCheckoutData,
-        MercadopagoFindCheckoutError
-      >({
-        path: `/admin/mercado-pago/checkout/${id}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags mercadoPago
-     * @name MercadopagoPrepareCheckoutPayment
-     * @summary Generar QR Monnet (ruta anterior)
-     * @request POST:/admin/mercado-pago/checkout/{id}/payment
-     * @deprecated
-     * @secure
-     * @response `200` `MercadopagoPrepareCheckoutPaymentData`
-     * @response `400` `HttpErrorDto`
-     */
-    mercadopagoPrepareCheckoutPayment: (
-      { id }: MercadopagoPrepareCheckoutPaymentParams,
-      data: MonnetPrepareCheckoutPaymentDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        MercadopagoPrepareCheckoutPaymentData,
-        MercadopagoPrepareCheckoutPaymentError
-      >({
-        path: `/admin/mercado-pago/checkout/${id}/payment`,
-        method: "POST",
+        path: `/admin/promotion-code/update/${id}`,
+        method: "PATCH",
         body: data,
         secure: true,
         type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags mercadoPago
-     * @name MercadopagoPrepareServicePayment
-     * @summary Create the Mercado Pago preference for a service installment
-     * @request POST:/admin/mercado-pago/service/{id}/payment
-     * @secure
-     * @response `200` `MercadopagoPrepareServicePaymentData`
-     * @response `400` `HttpErrorDto`
-     */
-    mercadopagoPrepareServicePayment: (
-      { id }: MercadopagoPrepareServicePaymentParams,
-      data: MercadoPagoServicePaymentDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        MercadopagoPrepareServicePaymentData,
-        MercadopagoPrepareServicePaymentError
-      >({
-        path: `/admin/mercado-pago/service/${id}/payment`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags mercadoPago
-     * @name MercadopagoSyncServicePayment
-     * @summary Synchronize a service installment payment with Mercado Pago
-     * @request POST:/admin/mercado-pago/service/{id}/payment/sync
-     * @secure
-     * @response `200` `MercadopagoSyncServicePaymentData`
-     * @response `400` `HttpErrorDto`
-     */
-    mercadopagoSyncServicePayment: (
-      { id }: MercadopagoSyncServicePaymentParams,
-      data: MercadoPagoServicePaymentDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        MercadopagoSyncServicePaymentData,
-        MercadopagoSyncServicePaymentError
-      >({
-        path: `/admin/mercado-pago/service/${id}/payment/sync`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags mercadoPago
-     * @name MercadopagoWebhook
-     * @summary Mercado Pago payment webhook
-     * @request POST:/admin/mercado-pago/webhook
-     * @response `200` `MercadopagoWebhookData` Webhook processed
-     * @response `400` `HttpErrorDto`
-     */
-    mercadopagoWebhook: (
-      query: MercadopagoWebhookParams = {},
-      params: RequestParams = {},
-    ) =>
-      this.http.request<MercadopagoWebhookData, MercadopagoWebhookError>({
-        path: `/admin/mercado-pago/webhook`,
-        method: "POST",
-        query: query,
-        ...params,
-      }),
-  };
-  monnetCheckout = {
-    /**
-     * No description
-     *
-     * @tags monnetCheckout
-     * @name MonnetcheckoutCreateCheckout
-     * @summary Crear checkout de reunión con Monnet QR
-     * @request POST:/admin/monnet/checkout
-     * @secure
-     * @response `200` `MonnetcheckoutCreateCheckoutData`
-     * @response `400` `HttpErrorDto`
-     */
-    monnetcheckoutCreateCheckout: (
-      data: MonnetCreateCheckoutDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        MonnetcheckoutCreateCheckoutData,
-        MonnetcheckoutCreateCheckoutError
-      >({
-        path: `/admin/monnet/checkout`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags monnetCheckout
-     * @name MonnetcheckoutFindCheckout
-     * @summary Consultar checkout y QR de la reunión
-     * @request GET:/admin/monnet/checkout/{id}
-     * @secure
-     * @response `200` `MonnetcheckoutFindCheckoutData`
-     * @response `400` `HttpErrorDto`
-     */
-    monnetcheckoutFindCheckout: (
-      { id }: MonnetcheckoutFindCheckoutParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        MonnetcheckoutFindCheckoutData,
-        MonnetcheckoutFindCheckoutError
-      >({
-        path: `/admin/monnet/checkout/${id}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags monnetCheckout
-     * @name MonnetcheckoutPrepareCheckoutPayment
-     * @summary Generar QR de pago con el importe calculado por Hubsme
-     * @request POST:/admin/monnet/checkout/{id}/payment
-     * @secure
-     * @response `200` `MonnetcheckoutPrepareCheckoutPaymentData`
-     * @response `400` `HttpErrorDto`
-     */
-    monnetcheckoutPrepareCheckoutPayment: (
-      { id }: MonnetcheckoutPrepareCheckoutPaymentParams,
-      data: MonnetPrepareCheckoutPaymentDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        MonnetcheckoutPrepareCheckoutPaymentData,
-        MonnetcheckoutPrepareCheckoutPaymentError
-      >({
-        path: `/admin/monnet/checkout/${id}/payment`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags monnetCheckout
-     * @name MonnetcheckoutSyncCheckoutPayment
-     * @summary Verificar en Monnet y confirmar el pago de la reunión
-     * @request POST:/admin/monnet/checkout/{id}/payment/sync
-     * @secure
-     * @response `200` `MonnetcheckoutSyncCheckoutPaymentData`
-     * @response `400` `HttpErrorDto`
-     */
-    monnetcheckoutSyncCheckoutPayment: (
-      { id }: MonnetcheckoutSyncCheckoutPaymentParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        MonnetcheckoutSyncCheckoutPaymentData,
-        MonnetcheckoutSyncCheckoutPaymentError
-      >({
-        path: `/admin/monnet/checkout/${id}/payment/sync`,
-        method: "POST",
-        secure: true,
         format: "json",
         ...params,
       }),
   };
-  monnetPayin = {
+  promotionCode = {
     /**
      * No description
      *
-     * @tags monnetPayin
-     * @name MonnetpayinCreateBankTransfer
-     * @summary PER · Válida · Monnet · Bank Transfer
-     * @request POST:/admin/monnet/payin/create-transaction/standard/bank-transfer
+     * @tags promotionCode
+     * @name PromotioncodeValidate
+     * @summary Consultar el descuento de un cupón para una sesión
+     * @request POST:/admin/promotion-code/validate
      * @secure
-     * @response `200` `MonnetpayinCreateBankTransferData`
+     * @response `200` `PromotioncodeValidateData`
      * @response `400` `HttpErrorDto`
      */
-    monnetpayinCreateBankTransfer: (
-      data: PayinCreateBankTransferDto,
+    promotioncodeValidate: (
+      data: PromotionCodeValidateDto,
       params: RequestParams = {},
     ) =>
-      this.http.request<
-        MonnetpayinCreateBankTransferData,
-        MonnetpayinCreateBankTransferError
-      >({
-        path: `/admin/monnet/payin/create-transaction/standard/bank-transfer`,
+      this.http.request<PromotioncodeValidateData, PromotioncodeValidateError>({
+        path: `/admin/promotion-code/validate`,
         method: "POST",
         body: data,
         secure: true,
@@ -14669,17 +14505,20 @@ export class Api<SecurityDataType extends unknown> {
     /**
      * No description
      *
-     * @tags monnetPayin
-     * @name MonnetpayinCreateQr
-     * @summary PER · Válida · QR (Ligo en la colección)
-     * @request POST:/admin/monnet/payin/create-transaction/standard/qr
+     * @tags promotionCode
+     * @name PromotioncodeRedeem
+     * @summary Redeem a code for a free consulting session
+     * @request POST:/admin/promotion-code/redeem
      * @secure
-     * @response `200` `MonnetpayinCreateQrData`
+     * @response `201` `PromotioncodeRedeemData`
      * @response `400` `HttpErrorDto`
      */
-    monnetpayinCreateQr: (data: PayinCreateQrDto, params: RequestParams = {}) =>
-      this.http.request<MonnetpayinCreateQrData, MonnetpayinCreateQrError>({
-        path: `/admin/monnet/payin/create-transaction/standard/qr`,
+    promotioncodeRedeem: (
+      data: PromotionCodeRedeemDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PromotioncodeRedeemData, PromotioncodeRedeemError>({
+        path: `/admin/promotion-code/redeem`,
         method: "POST",
         body: data,
         secure: true,
@@ -14691,51 +14530,23 @@ export class Api<SecurityDataType extends unknown> {
     /**
      * No description
      *
-     * @tags monnetPayin
-     * @name MonnetpayinCreateYapeMobile
-     * @summary White Label · Válida · Yape One Shot Mobile
-     * @request POST:/admin/monnet/payin/create-transaction/white-label/yape/mobile
+     * @tags promotionCode
+     * @name PromotioncodeRedeemService
+     * @summary Redeem a service code for the next available installment
+     * @request POST:/admin/promotion-code/redeem-service
      * @secure
-     * @response `200` `MonnetpayinCreateYapeMobileData`
+     * @response `201` `PromotioncodeRedeemServiceData`
      * @response `400` `HttpErrorDto`
      */
-    monnetpayinCreateYapeMobile: (
-      data: PayinCreateYapeMobileDto,
+    promotioncodeRedeemService: (
+      data: PromotionCodeRedeemServiceDto,
       params: RequestParams = {},
     ) =>
       this.http.request<
-        MonnetpayinCreateYapeMobileData,
-        MonnetpayinCreateYapeMobileError
+        PromotioncodeRedeemServiceData,
+        PromotioncodeRedeemServiceError
       >({
-        path: `/admin/monnet/payin/create-transaction/white-label/yape/mobile`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags monnetPayin
-     * @name MonnetpayinCreateYapeWeb
-     * @summary White Label · Válida · Yape One Shot Web
-     * @request POST:/admin/monnet/payin/create-transaction/white-label/yape/web
-     * @secure
-     * @response `200` `MonnetpayinCreateYapeWebData`
-     * @response `400` `HttpErrorDto`
-     */
-    monnetpayinCreateYapeWeb: (
-      data: PayinCreateYapeWebDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        MonnetpayinCreateYapeWebData,
-        MonnetpayinCreateYapeWebError
-      >({
-        path: `/admin/monnet/payin/create-transaction/white-label/yape/web`,
+        path: `/admin/promotion-code/redeem-service`,
         method: "POST",
         body: data,
         secure: true,
@@ -15057,171 +14868,6 @@ export class Api<SecurityDataType extends unknown> {
         ...params,
       }),
   };
-  promotionCodeAdmin = {
-    /**
-     * No description
-     *
-     * @tags promotionCodeAdmin
-     * @name PromotioncodeadminFindAll
-     * @summary List promotional codes for the admin panel
-     * @request GET:/admin/promotion-code/find-all
-     * @secure
-     * @response `200` `PromotioncodeadminFindAllData`
-     * @response `400` `HttpErrorDto`
-     */
-    promotioncodeadminFindAll: (
-      query: PromotioncodeadminFindAllParams = {},
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PromotioncodeadminFindAllData,
-        PromotioncodeadminFindAllError
-      >({
-        path: `/admin/promotion-code/find-all`,
-        method: "GET",
-        query: query,
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags promotionCodeAdmin
-     * @name PromotioncodeadminFindOne
-     * @summary Get promotional code details and redemptions
-     * @request GET:/admin/promotion-code/find-one/{id}
-     * @secure
-     * @response `200` `PromotioncodeadminFindOneData`
-     * @response `400` `HttpErrorDto`
-     */
-    promotioncodeadminFindOne: (
-      { id }: PromotioncodeadminFindOneParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PromotioncodeadminFindOneData,
-        PromotioncodeadminFindOneError
-      >({
-        path: `/admin/promotion-code/find-one/${id}`,
-        method: "GET",
-        secure: true,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags promotionCodeAdmin
-     * @name PromotioncodeadminCreate
-     * @summary Create a promotional code
-     * @request POST:/admin/promotion-code/create
-     * @secure
-     * @response `201` `PromotioncodeadminCreateData`
-     * @response `400` `HttpErrorDto`
-     */
-    promotioncodeadminCreate: (
-      data: PromotionCodeCreateDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PromotioncodeadminCreateData,
-        PromotioncodeadminCreateError
-      >({
-        path: `/admin/promotion-code/create`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags promotionCodeAdmin
-     * @name PromotioncodeadminUpdate
-     * @summary Update or deactivate a promotional code
-     * @request PATCH:/admin/promotion-code/update/{id}
-     * @secure
-     * @response `200` `PromotioncodeadminUpdateData`
-     * @response `400` `HttpErrorDto`
-     */
-    promotioncodeadminUpdate: (
-      { id }: PromotioncodeadminUpdateParams,
-      data: PromotionCodeUpdateDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PromotioncodeadminUpdateData,
-        PromotioncodeadminUpdateError
-      >({
-        path: `/admin/promotion-code/update/${id}`,
-        method: "PATCH",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-  };
-  promotionCode = {
-    /**
-     * No description
-     *
-     * @tags promotionCode
-     * @name PromotioncodeRedeem
-     * @summary Redeem a code for a free consulting session
-     * @request POST:/admin/promotion-code/redeem
-     * @secure
-     * @response `201` `PromotioncodeRedeemData`
-     * @response `400` `HttpErrorDto`
-     */
-    promotioncodeRedeem: (
-      data: PromotionCodeRedeemDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<PromotioncodeRedeemData, PromotioncodeRedeemError>({
-        path: `/admin/promotion-code/redeem`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags promotionCode
-     * @name PromotioncodeRedeemService
-     * @summary Redeem a service code for the next available installment
-     * @request POST:/admin/promotion-code/redeem-service
-     * @secure
-     * @response `201` `PromotioncodeRedeemServiceData`
-     * @response `400` `HttpErrorDto`
-     */
-    promotioncodeRedeemService: (
-      data: PromotionCodeRedeemServiceDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<
-        PromotioncodeRedeemServiceData,
-        PromotioncodeRedeemServiceError
-      >({
-        path: `/admin/promotion-code/redeem-service`,
-        method: "POST",
-        body: data,
-        secure: true,
-        type: ContentType.Json,
-        format: "json",
-        ...params,
-      }),
-  };
   identityVerification = {
     /**
      * No description
@@ -15245,6 +14891,36 @@ export class Api<SecurityDataType extends unknown> {
         path: `/admin/identity-verification/dni`,
         method: "POST",
         body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags identityVerification
+     * @name IdentityverificationLookupDni
+     * @summary Consultar nombres y apellidos por DNI
+     * @request POST:/admin/identity-verification/dni/lookup
+     * @secure
+     * @response `200` `IdentityverificationLookupDniData`
+     * @response `400` `HttpErrorDto`
+     * @response `404` `HttpErrorDto`
+     * @response `502` `HttpErrorDto`
+     */
+    identityverificationLookupDni: (
+      data: DniLookupDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        IdentityverificationLookupDniData,
+        IdentityverificationLookupDniError
+      >({
+        path: `/admin/identity-verification/dni/lookup`,
+        method: "POST",
+        body: data,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -15651,6 +15327,256 @@ export class Api<SecurityDataType extends unknown> {
         ...params,
       }),
   };
+  monnetPayin = {
+    /**
+     * No description
+     *
+     * @tags monnetPayin
+     * @name MonnetpayinCreateBankTransfer
+     * @summary PER · Válida · Monnet · Bank Transfer
+     * @request POST:/admin/monnet/payin/create-transaction/standard/bank-transfer
+     * @secure
+     * @response `200` `MonnetpayinCreateBankTransferData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetpayinCreateBankTransfer: (
+      data: PayinCreateBankTransferDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MonnetpayinCreateBankTransferData,
+        MonnetpayinCreateBankTransferError
+      >({
+        path: `/admin/monnet/payin/create-transaction/standard/bank-transfer`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags monnetPayin
+     * @name MonnetpayinCreateQr
+     * @summary PER · Válida · QR (Ligo en la colección)
+     * @request POST:/admin/monnet/payin/create-transaction/standard/qr
+     * @secure
+     * @response `200` `MonnetpayinCreateQrData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetpayinCreateQr: (data: PayinCreateQrDto, params: RequestParams = {}) =>
+      this.http.request<MonnetpayinCreateQrData, MonnetpayinCreateQrError>({
+        path: `/admin/monnet/payin/create-transaction/standard/qr`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags monnetPayin
+     * @name MonnetpayinCreateYapeMobile
+     * @summary White Label · Válida · Yape One Shot Mobile
+     * @request POST:/admin/monnet/payin/create-transaction/white-label/yape/mobile
+     * @secure
+     * @response `200` `MonnetpayinCreateYapeMobileData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetpayinCreateYapeMobile: (
+      data: PayinCreateYapeMobileDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MonnetpayinCreateYapeMobileData,
+        MonnetpayinCreateYapeMobileError
+      >({
+        path: `/admin/monnet/payin/create-transaction/white-label/yape/mobile`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags monnetPayin
+     * @name MonnetpayinCreateYapeWeb
+     * @summary White Label · Válida · Yape One Shot Web
+     * @request POST:/admin/monnet/payin/create-transaction/white-label/yape/web
+     * @secure
+     * @response `200` `MonnetpayinCreateYapeWebData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetpayinCreateYapeWeb: (
+      data: PayinCreateYapeWebDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MonnetpayinCreateYapeWebData,
+        MonnetpayinCreateYapeWebError
+      >({
+        path: `/admin/monnet/payin/create-transaction/white-label/yape/web`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  monnetCheckout = {
+    /**
+     * No description
+     *
+     * @tags monnetCheckout
+     * @name MonnetcheckoutCreateCheckout
+     * @summary Crear checkout de reunión con Monnet
+     * @request POST:/admin/monnet/checkout
+     * @secure
+     * @response `200` `MonnetcheckoutCreateCheckoutData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetcheckoutCreateCheckout: (
+      data: MonnetCreateCheckoutDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MonnetcheckoutCreateCheckoutData,
+        MonnetcheckoutCreateCheckoutError
+      >({
+        path: `/admin/monnet/checkout`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags monnetCheckout
+     * @name MonnetcheckoutFindCheckout
+     * @summary Consultar checkout e instrucciones de pago de la reunión
+     * @request GET:/admin/monnet/checkout/{id}
+     * @secure
+     * @response `200` `MonnetcheckoutFindCheckoutData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetcheckoutFindCheckout: (
+      { id }: MonnetcheckoutFindCheckoutParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MonnetcheckoutFindCheckoutData,
+        MonnetcheckoutFindCheckoutError
+      >({
+        path: `/admin/monnet/checkout/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags monnetCheckout
+     * @name MonnetcheckoutPrepareCheckoutPayment
+     * @summary Generar QR o código bancario con el importe calculado por Hubsme
+     * @request POST:/admin/monnet/checkout/{id}/payment
+     * @secure
+     * @response `200` `MonnetcheckoutPrepareCheckoutPaymentData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetcheckoutPrepareCheckoutPayment: (
+      { id }: MonnetcheckoutPrepareCheckoutPaymentParams,
+      data: MonnetPrepareCheckoutPaymentDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MonnetcheckoutPrepareCheckoutPaymentData,
+        MonnetcheckoutPrepareCheckoutPaymentError
+      >({
+        path: `/admin/monnet/checkout/${id}/payment`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags monnetCheckout
+     * @name MonnetcheckoutSyncCheckoutPayment
+     * @summary Verificar en Monnet y confirmar el pago de la reunión
+     * @request POST:/admin/monnet/checkout/{id}/payment/sync
+     * @secure
+     * @response `200` `MonnetcheckoutSyncCheckoutPaymentData`
+     * @response `400` `HttpErrorDto`
+     */
+    monnetcheckoutSyncCheckoutPayment: (
+      { id }: MonnetcheckoutSyncCheckoutPaymentParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MonnetcheckoutSyncCheckoutPaymentData,
+        MonnetcheckoutSyncCheckoutPaymentError
+      >({
+        path: `/admin/monnet/checkout/${id}/payment/sync`,
+        method: "POST",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+  };
+  monnetCheckoutAdmin = {
+    /**
+     * No description
+     *
+     * @tags monnetCheckoutAdmin
+     * @name MonnetcheckoutadminSimulateWebhook
+     * @summary Simular una notificación Payin de Monnet en certificación
+     * @request POST:/admin/monnet/checkout/{id}/payment/simulate-webhook
+     * @secure
+     * @response `200` `MonnetcheckoutadminSimulateWebhookData`
+     * @response `400` `HttpErrorDto`
+     * @response `401` `HttpErrorDto`
+     * @response `404` `HttpErrorDto`
+     * @response `409` `HttpErrorDto`
+     */
+    monnetcheckoutadminSimulateWebhook: (
+      { id }: MonnetcheckoutadminSimulateWebhookParams,
+      data: MonnetSimulateWebhookDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MonnetcheckoutadminSimulateWebhookData,
+        MonnetcheckoutadminSimulateWebhookError
+      >({
+        path: `/admin/monnet/checkout/${id}/payment/simulate-webhook`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
   monnetWebhook = {
     /**
      * No description
@@ -15671,6 +15597,72 @@ export class Api<SecurityDataType extends unknown> {
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags monnetWebhook
+     * @name MonnetwebhookPayout
+     * @summary Receive signed Monnet Payout notifications
+     * @request POST:/admin/monnet/webhook/payout
+     * @response `200` `MonnetwebhookPayoutData`
+     * @response `401` `HttpErrorDto`
+     */
+    monnetwebhookPayout: (params: RequestParams = {}) =>
+      this.http.request<MonnetwebhookPayoutData, MonnetwebhookPayoutError>({
+        path: `/admin/monnet/webhook/payout`,
+        method: "POST",
+        format: "json",
+        ...params,
+      }),
+  };
+  paymentHistory = {
+    /**
+     * No description
+     *
+     * @tags paymentHistory
+     * @name PaymenthistoryFindAll
+     * @summary Consultar el historial de pagos del usuario
+     * @request GET:/admin/payments
+     * @secure
+     * @response `200` `PaymenthistoryFindAllData`
+     * @response `400` `HttpErrorDto`
+     */
+    paymenthistoryFindAll: (
+      query: PaymenthistoryFindAllParams = {},
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PaymenthistoryFindAllData, PaymenthistoryFindAllError>({
+        path: `/admin/payments`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags paymentHistory
+     * @name PaymenthistoryFindOne
+     * @summary Consultar un pago del usuario
+     * @request GET:/admin/payments/{id}
+     * @secure
+     * @response `200` `PaymenthistoryFindOneData`
+     * @response `400` `HttpErrorDto`
+     */
+    paymenthistoryFindOne: (
+      { id }: PaymenthistoryFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<PaymenthistoryFindOneData, PaymenthistoryFindOneError>({
+        path: `/admin/payments/${id}`,
+        method: "GET",
+        secure: true,
         format: "json",
         ...params,
       }),
@@ -15709,6 +15701,58 @@ export class Api<SecurityDataType extends unknown> {
     register: (data: RegisterDto, params: RequestParams = {}) =>
       this.http.request<AuthRegisterData, AuthRegisterError>({
         path: `/auth/register`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthRegistrationDocuments
+     * @summary Get the versioned registration documents for a role
+     * @request GET:/auth/registration-documents
+     * @response `200` `AuthRegistrationDocumentsData`
+     * @response `400` `HttpErrorDto`
+     */
+    registrationDocuments: (
+      query: AuthRegistrationDocumentsParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        AuthRegistrationDocumentsData,
+        AuthRegistrationDocumentsError
+      >({
+        path: `/auth/registration-documents`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags auth
+     * @name AuthRegistrationEmailCode
+     * @summary Send a verification code to the registration email
+     * @request POST:/auth/registration-email-code
+     * @response `201` `AuthRegistrationEmailCodeData`
+     * @response `400` `HttpErrorDto`
+     * @response `429` `HttpErrorDto`
+     */
+    registrationEmailCode: (
+      data: RegistrationEmailCodeDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        AuthRegistrationEmailCodeData,
+        AuthRegistrationEmailCodeError
+      >({
+        path: `/auth/registration-email-code`,
         method: "POST",
         body: data,
         type: ContentType.Json,

@@ -7,6 +7,7 @@
     "build": "ng build && cp dist/front-hubsme/browser/index.csr.html dist/front-hubsme/browser/index.html",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "sync:registration-documents": "node --experimental-strip-types scripts/sync-registration-documents.mjs",
     "serve:ssr:front-hubsme": "node dist/front-hubsme/server/server.mjs"
   },
   "prettier": {

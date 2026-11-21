@@ -35,6 +35,16 @@ export class ConsultantService {
     return this.api.consultant.findByUser({ userId }).then((response) => response.data);
   }
 
+  getDepositAccounts(): Promise<ApiResponse<'consultant', 'getDepositAccounts'>> {
+    return this.api.consultant.getDepositAccounts().then((response) => response.data);
+  }
+
+  updateDepositAccounts(
+    data: ApiBody<'consultant', 'updateDepositAccounts'>,
+  ): Promise<ApiResponse<'consultant', 'updateDepositAccounts'>> {
+    return this.api.consultant.updateDepositAccounts(data).then((response) => response.data);
+  }
+
   create(data: ApiBody<'consultant', 'create'>): Promise<ApiResponse<'consultant', 'create'>> {
     return this.api.consultant.create(data).then((response) => response.data);
   }

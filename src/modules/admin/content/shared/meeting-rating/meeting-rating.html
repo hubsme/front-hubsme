@@ -1,0 +1,65 @@
+<section class="rounded-xl border border-border bg-surface px-4 py-3.5">
+  <h3 class="text-sm font-inter-bold text-text">
+    {{ editable() ? 'Calificar reunión' : 'Calificación de la PYME' }}
+  </h3>
+  @if (loading()) {
+    <p class="mt-2 text-xs text-muted" role="status">Cargando calificación…</p>
+  } @else if (loadFailed()) {
+    <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+      <p class="text-muted" role="status">No se pudo cargar la calificación.</p>
+      <button type="button" (click)="load()" class="font-inter-semibold text-secondary hover:underline">
+        Reintentar
+      </button>
+    </div>
+  } @else if (editable()) {
+    <form class="mt-1.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-2" (submit)="save($event)">
+      <div class="flex flex-wrap items-center gap-x-3">
+        <fieldset class="flex" [disabled]="saving()">
+          <legend class="sr-only">Calificación de la reunión</legend>
+          @for (star of stars; track star) {
+            <label class="cursor-pointer">
+              <input
+                type="radio"
+                class="peer sr-only"
+                [name]="'meeting-rating-' + meetingId()"
+                [value]="star"
+                [checked]="selectedStars() === star"
+                (change)="selectedStars.set(star)"
+              />
+              <span class="sr-only">{{ star === 1 ? '1 estrella' : star + ' estrellas' }}</span>
+              <span
+                aria-hidden="true"
+                class="grid size-9 place-items-center rounded-lg text-xl transition-colors hover:bg-warning/10 peer-focus-visible:ring-2 peer-focus-visible:ring-secondary"
+                [class.text-warning]="star <= (selectedStars() ?? 0)"
+                [class.text-muted]="star > (selectedStars() ?? 0)"
+              >
+                <i [class]="star <= (selectedStars() ?? 0) ? 'fas fa-star' : 'far fa-star'"></i>
+              </span>
+            </label>
+          }
+        </fieldset>
+        @if (savedStars(); as score) {
+          <span class="text-xs font-inter-medium text-muted" role="status">{{ score }} de 5 guardadas</span>
+        }
+      </div>
+      <button
+        type="submit"
+        class="min-h-9 rounded-lg bg-secondary px-3 text-xs font-inter-semibold text-fixed-text-50 transition-colors hover:bg-secondary/90 disabled:cursor-not-allowed disabled:opacity-50"
+        [disabled]="saving() || selectedStars() === null || selectedStars() === savedStars()"
+      >
+        {{ saving() ? 'Guardando…' : 'Guardar' }}
+      </button>
+    </form>
+  } @else if (savedStars(); as score) {
+    <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+      <div class="flex items-center gap-1.5 text-base" aria-hidden="true">
+        @for (star of stars; track star) {
+          <i [class]="star <= score ? 'fas fa-star text-warning' : 'far fa-star text-muted'"></i>
+        }
+      </div>
+      <span class="text-xs font-inter-medium text-muted">{{ score }} de 5 estrellas</span>
+    </div>
+  } @else {
+    <p class="mt-2 text-xs text-muted">Pendiente de calificación.</p>
+  }
+</section>

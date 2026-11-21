@@ -19,7 +19,7 @@ const matchConsultor = () => {
 
 export const routes: Routes = [
   {
-    path: '',
+    path: getPath(PATH.home),
     loadComponent: () => import('@module/landing/landing').then((m) => m.Landing),
   },
   {
@@ -31,6 +31,32 @@ export const routes: Routes = [
     path: getPath(PATH.termsConditions),
     loadComponent: () =>
       import('@module/terms-conditions/terms-conditions').then((m) => m.TermsConditions),
+  },
+  {
+    path: getPath(PATH.registrationDocuments),
+    children: [
+      {
+        path: getPath(PATH.registrationDocuments.current),
+        children: [
+          {
+            path: getPath(PATH.registrationDocuments.current.consultor),
+            title: 'Contrato de Adhesión Electrónica para Consultores',
+            loadComponent: () =>
+              import('@module/registration-document/consultor-contract/consultor-contract').then(
+                (m) => m.ConsultorContract,
+              ),
+          },
+          {
+            path: getPath(PATH.registrationDocuments.current.pyme),
+            title: 'Contrato de Adhesión Electrónica para PYMES',
+            loadComponent: () =>
+              import('@module/registration-document/pyme-contract/pyme-contract').then(
+                (m) => m.PymeContract,
+              ),
+          },
+        ],
+      },
+    ],
   },
   {
     path: getPath(PATH.dataDeletion),

@@ -3,15 +3,15 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ApiQuery, ApiResponse, PaginationMetaDto } from 'api/backend.api';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { PaginationComponent } from '@module/admin/components/pagination/pagination';
-import { MercadoPagoService } from '@service/admin/mercado-pago.service';
+import { PaymentHistoryService } from '@service/admin/payment-history.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { formatInPeru } from '@function/date.function';
 
-type PaymentHistoryResponse = ApiResponse<'mercadoPago', 'mercadopagoFindPayments'>;
+type PaymentHistoryResponse = ApiResponse<'paymentHistory', 'paymenthistoryFindAll'>;
 type PaymentHistoryItem = PaymentHistoryResponse['data'][number];
-type PaymentDetail = ApiResponse<'mercadoPago', 'mercadopagoFindPayment'>;
-type PaymentHistoryQuery = ApiQuery<'mercadoPago', 'mercadopagoFindPayments'>;
+type PaymentDetail = ApiResponse<'paymentHistory', 'paymenthistoryFindOne'>;
+type PaymentHistoryQuery = ApiQuery<'paymentHistory', 'paymenthistoryFindAll'>;
 type OperationTypeFilter = 'all' | NonNullable<PaymentHistoryQuery['operationType']>;
 type PaymentTypeFilter = 'all' | NonNullable<PaymentHistoryQuery['paymentType']>;
 
@@ -21,7 +21,7 @@ type PaymentTypeFilter = 'all' | NonNullable<PaymentHistoryQuery['paymentType']>
   templateUrl: './payment-history.html',
 })
 export class PaymentHistory {
-  private readonly mercadoPagoService = inject(MercadoPagoService);
+  private readonly paymentHistoryService = inject(PaymentHistoryService);
   private readonly hubsme = inject(HubsmeService);
   private readonly toastService = inject(ToastService);
   private requestSequence = 0;
@@ -51,10 +51,7 @@ export class PaymentHistory {
   readonly paymentTypeOptions: { value: PaymentTypeFilter; label: string }[] = [
     { value: 'all', label: 'Todos los pagos' },
     { value: 'cupon', label: 'Cupón' },
-    { value: 'monnet', label: 'QR · Monnet' },
-    { value: 'mercado_pago', label: 'Mercado Pago' },
-    { value: 'tarjeta', label: 'Tarjeta' },
-    { value: 'yape', label: 'Yape' },
+    { value: 'monnet', label: 'Monnet' },
   ];
 
   readonly payments = signal<PaymentHistoryItem[]>([]);
@@ -87,7 +84,7 @@ export class PaymentHistory {
     this.loading.set(true);
 
     try {
-      const result = await this.mercadoPagoService.findPayments({
+      const result = await this.paymentHistoryService.findPayments({
         page: this.page(),
         limit: this.pageSize,
         year: this.year(),
@@ -153,7 +150,7 @@ export class PaymentHistory {
     this.detailLoading.set(true);
 
     try {
-      const detail = await this.mercadoPagoService.findPayment(payment.id);
+      const detail = await this.paymentHistoryService.findPayment(payment.id);
       if (requestId === this.detailRequestSequence) this.selectedPayment.set(detail);
     } catch (error) {
       if (requestId === this.detailRequestSequence) {
@@ -206,41 +203,16 @@ export class PaymentHistory {
 
   paymentMethodLabel(payment: PaymentHistoryItem) {
     if (payment.paymentMethod === 'promotion_code') return 'Cupón';
-
-    const methodId = payment.paymentMethodId?.toLowerCase();
-    const typeId = payment.paymentTypeId?.toLowerCase();
-
-    if (methodId === 'qr') return 'QR · Monnet';
-    if (methodId === 'yape') return 'Yape';
-    if (methodId === 'account_money' || typeId === 'account_money') {
-      return 'Saldo de Mercado Pago';
-    }
-
-    const labels: Record<string, string> = {
-      credit_card: 'Tarjeta de crédito',
-      debit_card: 'Tarjeta de débito',
-      prepaid_card: 'Tarjeta prepago',
-      bank_transfer: 'Transferencia bancaria',
-      ticket: 'Pago en efectivo',
-      atm: 'Pago por cajero',
-      digital_currency: 'Billetera digital',
-    };
-
-    return (typeId && labels[typeId]) || 'Pago en línea';
+    if (payment.paymentMethodId === 'qr') return 'QR · Monnet';
+    if (payment.paymentMethodId === 'bank-transfer') return 'Código bancario · Monnet';
+    return 'Pago registrado';
   }
 
   paymentMethodIcon(payment: PaymentHistoryItem) {
     if (payment.paymentMethod === 'promotion_code') return 'fa-ticket';
-
-    const methodId = payment.paymentMethodId?.toLowerCase();
-    const typeId = payment.paymentTypeId?.toLowerCase();
-
-    if (methodId === 'yape') return 'fa-mobile-screen-button';
-    if (methodId === 'account_money' || typeId === 'account_money') return 'fa-wallet';
-    if (methodId === 'qr') return 'fa-qrcode';
-    if (typeId === 'bank_transfer') return 'fa-building-columns';
-    if (typeId === 'ticket' || typeId === 'atm') return 'fa-money-bill-wave';
-    return 'fa-credit-card';
+    if (payment.paymentMethodId === 'qr') return 'fa-qrcode';
+    if (payment.paymentMethodId === 'bank-transfer') return 'fa-building-columns';
+    return 'fa-wallet';
   }
 
   counterparty(payment: PaymentHistoryItem) {

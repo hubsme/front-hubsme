@@ -10,7 +10,6 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import {
@@ -19,14 +18,13 @@ import {
   TimeSlotPickerOption,
 } from '@module/admin/components/time-slot-picker/time-slot-picker';
 import { buildPath, PATH } from '@route/path.route';
-import { MercadoPagoService } from '@service/admin/mercado-pago.service';
 import { ConsultantTimeSlotService } from '@service/admin/consultant-time-slot.service';
 import { PromotionCodeService } from '@service/admin/promotion-code.service';
 import { ServiceRequestService } from '@service/admin/service-request.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { AlertService } from '@service/alert.service';
 import { ToastService } from '@service/toast.service';
-import { MercadoPagoCheckoutDto, ServiceRequestResultDto } from 'api/backend.api';
+import { ServiceRequestResultDto } from 'api/backend.api';
 import { ConsultantQuoteForm } from './components/consultant-quote-form/consultant-quote-form';
 import { ServicePaymentPlanSummary } from './layout/payment-plan-summary/payment-plan-summary';
 import {
@@ -89,16 +87,11 @@ export class ServiceDetail implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly serviceRequestService = inject(ServiceRequestService);
   private readonly consultantTimeSlotService = inject(ConsultantTimeSlotService);
-  private readonly mercadoPagoService = inject(MercadoPagoService);
   private readonly promotionCodeService = inject(PromotionCodeService);
   private readonly hubsme = inject(HubsmeService);
   private readonly alertService = inject(AlertService);
   private readonly toastService = inject(ToastService);
-  private readonly sanitizer = inject(DomSanitizer);
   private readonly evidenceFileInput = viewChild<ElementRef<HTMLInputElement>>('evidenceFileInput');
-  private paymentPolling: ReturnType<typeof setInterval> | null = null;
-  private pollingStartedAt = 0;
-  private paymentPollingInFlight = false;
   private availabilityRequestSequence = 0;
   private readonly availabilityLoadRequests = new Map<string, Promise<void>>();
 
@@ -106,11 +99,8 @@ export class ServiceDetail implements OnInit, OnDestroy {
   readonly loading = signal(false);
   readonly declineMessage = signal('');
   readonly declining = signal(false);
-  readonly preparingPayment = signal(false);
   readonly serviceCouponCode = signal('');
   readonly redeemingServiceCoupon = signal(false);
-  readonly paymentModalOpen = signal(false);
-  readonly paymentCheckout = signal<MercadoPagoCheckoutDto | null>(null);
   readonly milestoneMeetingTimes = signal<Record<number, string[]>>({});
   readonly schedulingMilestone = signal<number | null>(null);
   readonly serviceMeetingAvailabilityByMonth = signal<Record<string, TimeSlotPickerOption[]>>({});
@@ -276,11 +266,6 @@ export class ServiceDetail implements OnInit, OnDestroy {
       };
     });
   });
-  readonly paymentFrameUrl = computed<SafeResourceUrl | null>(() => {
-    const checkout = this.paymentCheckout();
-    const url = checkout?.initPoint ?? checkout?.sandboxInitPoint ?? null;
-    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
-  });
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -293,7 +278,6 @@ export class ServiceDetail implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.stopPaymentPolling();
     this.availabilityRequestSequence += 1;
     this.availabilityLoadRequests.clear();
   }
@@ -816,27 +800,6 @@ export class ServiceDetail implements OnInit, OnDestroy {
     this.showDeclineForm.set(false);
   }
 
-  async payService(selectedInstallment?: ServicePaymentScheduleItem): Promise<void> {
-    const current = this.service();
-    const installment = selectedInstallment ?? (current ? this.nextPendingPayment(current) : null);
-    if (!current || !installment?.available) return;
-
-    this.preparingPayment.set(true);
-    try {
-      const checkout = await this.mercadoPagoService.prepareServicePayment(current.id, installment.installmentIndex);
-      if (!checkout.initPoint && !checkout.sandboxInitPoint) {
-        throw new Error('La pasarela de pago no devolvió un enlace válido');
-      }
-      this.paymentCheckout.set(checkout);
-      this.paymentModalOpen.set(true);
-      this.startPaymentPolling();
-    } catch (error) {
-      this.toastService.error(this.hubsme.getErrorMessage(error));
-    } finally {
-      this.preparingPayment.set(false);
-    }
-  }
-
   async redeemServiceCoupon(): Promise<void> {
     const current = this.service();
     const installment = current ? this.nextPendingPayment(current) : null;
@@ -921,13 +884,6 @@ export class ServiceDetail implements OnInit, OnDestroy {
 
   meetingForMilestone(current: ServiceRequestResultDto, index: number): ServiceMeeting | null {
     return current.meetings.find((meeting) => meeting.serviceMilestoneIndex === index) ?? null;
-  }
-
-  closePaymentModal(): void {
-    this.stopPaymentPolling();
-    this.paymentModalOpen.set(false);
-    this.paymentCheckout.set(null);
-    void this.refreshService();
   }
 
   statusLabel(status: ServiceStatus): string {
@@ -1049,18 +1005,6 @@ export class ServiceDetail implements OnInit, OnDestroy {
     }
   }
 
-  private async refreshService(): Promise<void> {
-    const current = this.service();
-    if (!current) return;
-    try {
-      const updated = await this.serviceRequestService.findOne(current.id);
-      this.service.set(updated);
-      this.initializeServiceAvailability(updated);
-    } catch (error) {
-      this.toastService.error(this.hubsme.getErrorMessage(error));
-    }
-  }
-
   private focusCalendarOnNearestMeeting(current: ServiceRequestResultDto): void {
     const meetings = current.meetings.filter(
       (meeting): meeting is ServiceMeeting & { startTime: string } => Boolean(meeting.startTime),
@@ -1168,61 +1112,6 @@ export class ServiceDetail implements OnInit, OnDestroy {
   private clearAvailabilityRequest(monthKey: string, request: Promise<void>): void {
     if (this.availabilityLoadRequests.get(monthKey) === request) {
       this.availabilityLoadRequests.delete(monthKey);
-    }
-  }
-
-  private startPaymentPolling(): void {
-    this.stopPaymentPolling();
-    this.pollingStartedAt = Date.now();
-    void this.pollPaymentStatus();
-    this.paymentPolling = setInterval(() => void this.pollPaymentStatus(), 3000);
-  }
-
-  private stopPaymentPolling(): void {
-    if (!this.paymentPolling) return;
-    clearInterval(this.paymentPolling);
-    this.paymentPolling = null;
-  }
-
-  private async pollPaymentStatus(): Promise<void> {
-    const current = this.service();
-    if (!current || !this.paymentModalOpen() || this.paymentPollingInFlight) return;
-    if (Date.now() - this.pollingStartedAt > 600000) {
-      this.stopPaymentPolling();
-      this.toastService.warning(
-        'El pago sigue pendiente. Puedes cerrar esta ventana y reintentarlo luego.',
-      );
-      return;
-    }
-
-    this.paymentPollingInFlight = true;
-    try {
-      await this.mercadoPagoService.syncServicePayment(current.id, this.paymentCheckout()?.serviceInstallmentIndex);
-      if (!this.paymentModalOpen() || this.service()?.id !== current.id) return;
-      const updated = await this.serviceRequestService.findOne(current.id);
-      if (!this.paymentModalOpen() || this.service()?.id !== current.id) return;
-      this.service.set(updated);
-      this.initializeServiceAvailability(updated);
-      const paidInstallmentIndex = this.paymentCheckout()?.serviceInstallmentIndex;
-      const paidInstallment = updated.paymentSchedule.find(
-        (installment) => installment.installmentIndex === paidInstallmentIndex,
-      );
-      if (paidInstallment?.status !== 'approved') return;
-      this.stopPaymentPolling();
-      this.paymentModalOpen.set(false);
-      this.paymentCheckout.set(null);
-      const hasPendingInstallments = updated.paymentSchedule.some(
-        (installment) => installment.status !== 'approved',
-      );
-      this.toastService.success(
-        hasPendingInstallments
-          ? 'Cuota confirmada correctamente'
-          : 'Pago confirmado. El servicio quedó completamente pagado',
-      );
-    } catch {
-      // El siguiente ciclo vuelve a consultar para tolerar fallas temporales.
-    } finally {
-      this.paymentPollingInFlight = false;
     }
   }
 

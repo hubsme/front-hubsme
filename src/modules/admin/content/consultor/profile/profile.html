@@ -299,14 +299,18 @@
       }
     </aside>
 
-    <form (ngSubmit)="save()" class="min-w-0 space-y-6">
+    <form #profileForm="ngForm" (ngSubmit)="save(profileForm)" class="min-w-0 space-y-6">
       <div
         class="flex flex-col gap-4 rounded-2xl border border-border bg-surface px-5 py-4 shadow-md sm:flex-row sm:items-center sm:justify-between lg:sticky lg:-top-8 lg:z-[1] lg:rounded-t-none">
         <div>
-          <p class="text-sm font-inter-bold text-text">Tu perfil público</p>
-          <p class="mt-1 text-xs leading-5 text-muted">Revisa tus cambios antes de guardarlos.</p>
+          <p class="text-sm font-inter-bold text-text">
+            {{ activeTab() === 'information' ? 'Tu perfil público' : 'Tus datos de depósito' }}
+          </p>
+          <p class="mt-1 text-xs leading-5 text-muted">
+            {{ activeTab() === 'information' ? 'Revisa tus cambios antes de guardarlos.' : 'Gestiona dónde recibes tus pagos.' }}
+          </p>
         </div>
-        <button type="submit" [disabled]="saving()"
+        <button type="submit" [disabled]="saving() || (activeTab() === 'deposit' && !depositAccounts())"
           class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-secondary px-6 text-sm font-inter-bold text-fixed-text-50 shadow-sm transition hover:bg-secondary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/30 disabled:cursor-not-allowed disabled:opacity-50">
           @if (saving()) {
           <i class="fas fa-spinner fa-spin"></i>
@@ -318,7 +322,25 @@
         </button>
       </div>
 
-      <section class="rounded-2xl border border-border bg-surface p-6 shadow-sm lg:p-8">
+      <div>
+        <div class="flex gap-4 rounded-t-2xl border border-border bg-surface px-4 sm:gap-7 sm:px-8"
+          role="tablist" aria-label="Secciones de mi perfil" (keydown)="navigateProfileTabs($event)">
+          @for (tab of profileTabs; track tab.value) {
+          <button type="button" role="tab" [id]="'consultant-profile-tab-' + tab.value"
+            aria-controls="consultant-profile-panel" [attr.aria-selected]="activeTab() === tab.value"
+            [attr.tabindex]="activeTab() === tab.value ? 0 : -1" (click)="selectProfileTab(tab.value)"
+            class="-mb-px flex min-h-12 items-center gap-2 border-b-2 px-1 py-2 text-left text-sm font-inter-semibold transition-colors hover:text-secondary focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-secondary"
+            [class.border-secondary]="activeTab() === tab.value" [class.text-secondary]="activeTab() === tab.value"
+            [class.border-transparent]="activeTab() !== tab.value" [class.text-muted]="activeTab() !== tab.value">
+            <i class="fas shrink-0" [ngClass]="tab.icon" aria-hidden="true"></i>
+            {{ tab.label }}
+          </button>
+          }
+        </div>
+        <div id="consultant-profile-panel" role="tabpanel" [attr.aria-labelledby]="'consultant-profile-tab-' + activeTab()"
+          class="space-y-6">
+      @if (activeTab() === 'information') {
+      <section class="rounded-b-2xl border-x border-b border-border bg-surface p-6 shadow-sm lg:p-8">
         <div class="mb-6 border-b border-border/70 pb-5">
           <p class="text-xs font-inter-bold uppercase tracking-[0.14em] text-secondary">
             Información pública
@@ -653,68 +675,116 @@
           }
         </div>
       </section>
-
-      <section
-        class="flex flex-col gap-5 rounded-2xl border border-border bg-surface p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between lg:p-8">
-        <div class="flex items-center gap-3">
-          <div
-            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-background shadow-sm">
-            <img src="/avif/mercado_pago.avif" alt="Mercado Pago" class="h-7 w-7 object-contain" />
-          </div>
+      } @else {
+      <section class="rounded-b-2xl border-x border-b border-border bg-surface p-6 shadow-sm lg:p-8">
+        @if (depositAccountsLoading()) {
+        <p class="flex items-center gap-2 py-4 text-sm text-muted" role="status">
+          <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+          Cargando cuentas de depósito…
+        </p>
+        } @else if (depositAccounts(); as accounts) {
+        <div class="mb-6 border-b border-border/70 pb-5">
+          <h2 class="font-plus-jakarta-sans text-xl font-bold text-text">Dónde recibir tus pagos</h2>
+          <p class="mt-1 text-sm leading-6 text-muted">
+            Registra las cuentas a tu nombre que quieras usar para recibir depósitos.
+          </p>
+        </div>
+        <fieldset [disabled]="saving()" class="min-w-0 space-y-6">
           <div>
-            <p class="text-sm font-inter-bold text-text">Pasarela de cobros (Mercado Pago)</p>
-            @if (mercadoPagoStatus().connected) {
-            <p class="mt-1 text-xs leading-5 text-muted">
-              Conectado como:
-              <span class="font-inter-semibold text-text/80">{{
-                mercadoPagoAccountLabel()
-                }}</span>
-            </p>
-            } @else {
-            <p class="mt-1 text-xs leading-5 text-muted">
-              Vincula tu cuenta para recibir los pagos de tus consultorías.
-            </p>
-            }
+            <h3 class="mb-4 text-sm font-inter-bold text-text">Titular de las cuentas</h3>
+            <div class="grid gap-4 md:grid-cols-3">
+              <label class="block min-w-0 text-[0.78rem] font-inter-semibold text-muted">
+                <span class="mb-2 block">Nombres</span>
+                <input type="text" name="holderFirstName" autocomplete="off" maxlength="120"
+                  [ngModel]="accounts.holderFirstName" (ngModelChange)="updateDepositAccount('holderFirstName', $event)"
+                  [required]="hasDepositDestination()" pattern=".*\S.*" #holderFirstName="ngModel"
+                  class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
+                @if (holderFirstName.touched && holderFirstName.invalid) {
+                <span class="mt-1.5 block text-xs text-danger">Ingresa los nombres del titular.</span>
+                }
+              </label>
+              <label class="block min-w-0 text-[0.78rem] font-inter-semibold text-muted">
+                <span class="mb-2 block">Apellidos</span>
+                <input type="text" name="holderLastName" autocomplete="off" maxlength="120"
+                  [ngModel]="accounts.holderLastName" (ngModelChange)="updateDepositAccount('holderLastName', $event)"
+                  [required]="hasDepositDestination()" pattern=".*\S.*" #holderLastName="ngModel"
+                  class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
+                @if (holderLastName.touched && holderLastName.invalid) {
+                <span class="mt-1.5 block text-xs text-danger">Ingresa los apellidos del titular.</span>
+                }
+              </label>
+              <label class="block min-w-0 text-[0.78rem] font-inter-semibold text-muted">
+                <span class="mb-2 flex items-center gap-1.5">
+                  DNI
+                  @if (consultant()?.dni) {
+                  <i class="fas fa-lock text-[0.62rem]" aria-hidden="true"></i>
+                  }
+                </span>
+                <input type="text" name="holderDni" inputmode="numeric" autocomplete="off"
+                  [ngModel]="accounts.holderDni" (ngModelChange)="updateDepositAccount('holderDni', $event)"
+                  [required]="hasDepositDestination()" [readOnly]="!!consultant()?.dni"
+                  pattern="[0-9]{8}" #holderDni="ngModel"
+                  class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10 read-only:cursor-not-allowed read-only:text-muted" />
+                @if (holderDni.touched && holderDni.invalid) {
+                <span class="mt-1.5 block text-xs text-danger">Ingresa un DNI de 8 dígitos.</span>
+                }
+              </label>
+            </div>
           </div>
-        </div>
 
-        <div class="flex flex-wrap items-center gap-3 sm:justify-end">
-          @if (mercadoPagoStatus().connected) {
-          <span
-            class="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-xs font-inter-bold text-success">
-            <span class="h-1.5 w-1.5 rounded-full bg-success"></span>
-            Conectado
-          </span>
-          <button type="button" [disabled]="mercadoPagoLoading() || !consultant()"
-            class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-danger/30 bg-surface px-4 text-xs font-inter-bold text-danger transition hover:bg-danger/5 disabled:opacity-50"
-            (click)="confirmDisconnectMercadoPago()">
-            @if (mercadoPagoLoading()) {
-            <i class="fas fa-spinner fa-spin"></i>
-            } @else {
-            <i class="fas fa-link-slash"></i>
-            }
-            Desconectar
-          </button>
-          } @else {
-          <span
-            class="inline-flex items-center gap-1.5 rounded-full bg-danger/10 px-3 py-1 text-xs font-inter-bold text-danger">
-            <span class="h-1.5 w-1.5 rounded-full bg-danger"></span>
-            Desconectado
-          </span>
-          <button type="button" [disabled]="mercadoPagoLoading() || !consultant()"
-            class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-xs font-inter-bold text-text shadow-sm transition hover:border-secondary hover:text-secondary disabled:opacity-50"
-            (click)="startMercadoPagoConnect()">
-            @if (mercadoPagoLoading()) {
-            <i class="fas fa-spinner fa-spin"></i>
-            Vinculando...
-            } @else {
-            <i class="fas fa-link"></i>
-            Conectar cuenta
-            }
-          </button>
+          @for (group of depositGroups; track group.title) {
+          <div class="border-t border-border/70 pt-6">
+            <h3 class="mb-4 text-sm font-inter-bold text-text">{{ group.title }}</h3>
+            <div class="grid gap-4 md:grid-cols-2">
+              @for (field of group.fields; track field.key) {
+              <label class="block min-w-0 text-[0.78rem] font-inter-semibold text-muted">
+                <span class="mb-2 flex items-center gap-2">
+                  @if (field.logo; as logo) {
+                  <img [src]="logo" alt="" width="24" height="24" class="size-6 shrink-0 object-contain" />
+                  }
+                  {{ field.label }}
+                </span>
+                @if (group.isPhone) {
+                  <app-phone-input fixedCountry="pe" class="relative z-0 block isolate"
+                    [name]="field.key" [pattern]="group.pattern"
+                    [ngModel]="accounts[field.key]" (ngModelChange)="updateDepositAccount(field.key, $event)"
+                    #walletPhone="ngModel" />
+                  @if (walletPhone.touched && walletPhone.invalid) {
+                  <span class="mt-1.5 block text-xs text-danger">{{ group.error }}</span>
+                  }
+                } @else {
+                  <input type="text" [name]="field.key" inputmode="numeric" autocomplete="off"
+                    [pattern]="group.pattern"
+                    [ngModel]="accounts[field.key]" (ngModelChange)="updateDepositAccount(field.key, $event)"
+                    #depositField="ngModel"
+                    class="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/10" />
+                  @if (depositField.touched && depositField.invalid) {
+                  <span class="mt-1.5 block text-xs text-danger">{{ group.error }}</span>
+                  }
+                }
+              </label>
+              }
+            </div>
+          </div>
           }
+        </fieldset>
+        <p class="mt-6 flex items-center gap-2 text-xs leading-5 text-muted">
+          <i class="fas fa-lock shrink-0" aria-hidden="true"></i>
+          Estos datos son privados y se usan para gestionar tus depósitos.
+        </p>
+        } @else {
+        <div class="flex flex-wrap items-center gap-3 py-4">
+          <p class="text-sm text-muted">No se pudieron cargar las cuentas de depósito.</p>
+          <button type="button" (click)="loadDepositAccounts()"
+            class="rounded-lg border border-border px-3 py-2 text-xs font-inter-semibold text-secondary hover:border-secondary">
+            Reintentar
+          </button>
         </div>
+        }
       </section>
+      }
+        </div>
+      </div>
     </form>
   </section>
   }

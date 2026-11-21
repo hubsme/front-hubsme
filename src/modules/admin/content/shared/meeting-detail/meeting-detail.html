@@ -267,22 +267,41 @@
             </div>
           </div>
 
-          <!-- Description -->
-          <div class="mt-5 rounded-xl border border-border p-4">
-            <div class="mb-2.5 flex items-center gap-2">
-              <div
-                class="grid h-7 w-7 place-items-center rounded-lg bg-secondary-50 text-secondary"
-              >
-                <i class="far fa-file-lines text-[0.65rem]"></i>
+          @if (showRating()) {
+            <app-meeting-rating class="mt-5 block" [meetingId]="current.id" [editable]="canRate()" />
+          }
+
+          @if (current.status === 'finalizada') {
+            <div class="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border p-4">
+              <div class="flex items-center gap-2.5">
+                <span class="grid size-8 place-items-center rounded-lg bg-secondary-50 text-secondary">
+                  <i class="far fa-file-lines text-sm" aria-hidden="true"></i>
+                </span>
+                <h3 class="text-sm font-inter-bold text-text">Acta de la reunión</h3>
               </div>
-              <p class="text-[0.62rem] uppercase tracking-[0.12em] text-muted font-inter-bold">
-                Descripcion
+              <a
+                [routerLink]="actaLink()"
+                class="inline-flex min-h-9 items-center gap-2 rounded-lg bg-secondary px-3 text-xs font-inter-semibold text-fixed-text-50 transition-colors hover:bg-secondary/90"
+              >
+                Ver acta
+                <i class="fas fa-arrow-right text-[0.65rem]" aria-hidden="true"></i>
+              </a>
+            </div>
+          } @else {
+            <div class="mt-5 rounded-xl border border-border p-4">
+              <div class="mb-2.5 flex items-center gap-2">
+                <div class="grid size-7 place-items-center rounded-lg bg-secondary-50 text-secondary">
+                  <i class="far fa-file-lines text-[0.65rem]" aria-hidden="true"></i>
+                </div>
+                <p class="text-[0.62rem] uppercase tracking-[0.12em] text-muted font-inter-bold">
+                  Descripción
+                </p>
+              </div>
+              <p class="whitespace-pre-line text-[0.82rem] leading-6 text-text-700">
+                {{ current.description || 'Esta reunión no tiene descripción registrada.' }}
               </p>
             </div>
-            <p class="whitespace-pre-line text-[0.82rem] leading-6 text-text-700">
-              {{ current.description || 'Esta reunion no tiene descripcion registrada.' }}
-            </p>
-          </div>
+          }
 
           @if (current.status === 'cancelada' && current.cancellationReason) {
             <div class="mt-5 rounded-xl border border-danger/20 bg-danger/5 p-4">
@@ -296,7 +315,9 @@
           }
 
           <!-- Dashed divider before actions -->
-          <div class="my-6 border-t border-dashed border-border"></div>
+          @if (current.status !== 'finalizada') {
+            <div class="my-6 border-t border-dashed border-border"></div>
+          }
 
           <!-- Actions -->
           <div class="flex flex-col gap-2.5 sm:flex-row">
@@ -341,16 +362,7 @@
             }
           </div>
 
-          @if (current.status === 'finalizada') {
-            <button
-              type="button"
-              [routerLink]="actaLink()"
-              class="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-[0.78rem] text-fixed-background-50 font-inter-bold shadow-sm hover:bg-secondary/90 transition-all cursor-pointer"
-            >
-              <i class="far fa-file-lines text-[0.65rem]"></i>
-              Ver Acta
-            </button>
-          } @else if (canJoin()) {
+          @if (canJoin()) {
             <a
               [routerLink]="['/' + buildPath(PATH.meetingAccess), current.id]"
               class="mt-2.5 flex w-full items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-2.5 text-[0.78rem] text-fixed-background-50 font-inter-bold shadow-sm hover:bg-secondary/90 transition-all cursor-pointer"

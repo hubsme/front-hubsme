@@ -1,0 +1,62 @@
+@let legal = documents();
+
+<div class="space-y-4 sm:space-y-5">
+  <div class="rounded-xl border border-border bg-surface p-5 sm:p-6">
+    @if (legal) {
+      <label class="flex cursor-pointer items-start gap-3">
+        <input
+          #acceptance
+          type="checkbox"
+          class="mt-0.5 size-4 shrink-0 accent-secondary"
+          aria-required="true"
+          [checked]="acceptedVersion() === legal.version"
+          (change)="acceptedVersion.set(acceptance.checked ? legal.version : null)"
+        />
+        <span class="text-sm leading-relaxed text-text">
+          <strong class="mb-2 block font-inter-semibold">Aceptación del contrato</strong>
+          {{ legal.acceptanceText }}
+        </span>
+      </label>
+
+      <div class="ml-7 mt-4 flex flex-wrap items-baseline gap-x-6 gap-y-2 text-xs">
+        <a [href]="legal.contractUrl" target="_blank" rel="noopener noreferrer" class="font-inter-semibold text-secondary underline underline-offset-2">
+          Leer contrato para {{ role() === 'consultor' ? 'consultores' : 'PYMES' }}
+          <i class="fas fa-arrow-up-right-from-square ml-1" aria-hidden="true"></i>
+        </a>
+        <a [href]="legal.privacyUrl" target="_blank" rel="noopener noreferrer" class="font-inter-semibold text-secondary underline underline-offset-2">
+          Leer Política de Privacidad
+          <i class="fas fa-arrow-up-right-from-square ml-1" aria-hidden="true"></i>
+        </a>
+      </div>
+    } @else {
+      <p class="mb-1 text-sm font-inter-semibold text-text">Aceptación del contrato</p>
+      @if (failed()) {
+        <div class="flex flex-wrap items-center gap-2 text-xs" role="status">
+          <span class="text-muted">No se pudieron cargar los documentos.</span>
+          <button type="button" (click)="retry()" class="font-inter-semibold text-secondary underline">Reintentar</button>
+        </div>
+      } @else {
+        <p class="text-xs text-muted" role="status">Cargando documentos…</p>
+      }
+    }
+  </div>
+
+  @if (legal) {
+    <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-surface p-5 sm:p-6">
+      <input
+        #marketing
+        type="checkbox"
+        class="mt-0.5 size-4 shrink-0 accent-secondary"
+        [checked]="marketingConsent()"
+        (change)="marketingConsent.set(marketing.checked)"
+      />
+      <span class="text-sm leading-relaxed text-text">
+        <strong class="mb-2 block font-inter-semibold">Marketing (opcional)</strong>
+        {{ legal.marketingText }}
+        <span class="mt-2 block text-xs leading-relaxed text-muted">
+          La negativa no impedirá crear ni usar la cuenta, ni invalida el contrato previamente aceptado.
+        </span>
+      </span>
+    </label>
+  }
+</div>

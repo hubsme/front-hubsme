@@ -232,7 +232,7 @@
   <app-modal-form title="detalle de reunion" [submitText]="canJoin(meeting) ? 'Unirse' : 'Cerrar'" cancelText="Cerrar"
     maxWidth="lg" (onSubmit)="canJoin(meeting) ? joinMeeting(meeting) : closeCalendarMeeting()"
     (onClose)="closeCalendarMeeting()">
-    <div class="space-y-4 p-5">
+    <div class="flex flex-col gap-4 p-5">
       <div class="rounded-2xl border border-border bg-background p-4">
         <div class="flex items-start justify-between gap-4">
           <div>
@@ -264,6 +264,10 @@
         </div>
         }
       </div>
+
+      @if (meeting.status === 'confirmada' || meeting.status === 'finalizada') {
+        <app-meeting-rating [meetingId]="meeting.id" [editable]="canRate()" />
+      }
 
       <div class="flex flex-wrap gap-3">
         <button type="button" [routerLink]="['/' + buildPath(PATH.admin.pyme.meetings), meeting.id]"

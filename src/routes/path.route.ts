@@ -1,4 +1,4 @@
-import { ApiField } from 'api/backend.api';
+import type { ApiField } from 'api/backend.api';
 
 type Rol = ApiField<'user', 'findOne', 'role'>;
 
@@ -39,9 +39,20 @@ export function getPath(node: PathNode): string {
   return node._path;
 }
 
+export const REGISTRATION_DOCUMENT_VERSION = '2026-11-13';
+
 export const PATH = {
+  home: { _path: '' },
   policyPrivacy: { _path: 'politicas-de-privacidad' },
   termsConditions: { _path: 'terminos-y-condiciones' },
+  registrationDocuments: {
+    _path: 'legal',
+    current: {
+      _path: `registro-${REGISTRATION_DOCUMENT_VERSION}`,
+      consultor: { _path: 'consultor' },
+      pyme: { _path: 'pyme' },
+    },
+  },
   dataDeletion: { _path: 'eliminacion-de-datos' },
   diagnostic: { _path: 'diagnostico' },
   meetingAccess: { _path: 'reuniones' },

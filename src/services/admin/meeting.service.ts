@@ -19,6 +19,17 @@ export class MeetingService {
     return this.api.meeting.findOne({ id }).then((response) => response.data);
   }
 
+  getConsultantRating(id: number): Promise<ApiResponse<'meeting', 'getConsultantRating'>> {
+    return this.api.meeting.getConsultantRating({ id }).then((response) => response.data);
+  }
+
+  setConsultantRating(
+    id: number,
+    data: ApiBody<'meeting', 'setConsultantRating'>,
+  ): Promise<ApiResponse<'meeting', 'setConsultantRating'>> {
+    return this.api.meeting.setConsultantRating({ id }, data).then((response) => response.data);
+  }
+
   access(id: number): Promise<ApiResponse<'meeting', 'access'>> {
     return this.api.meeting.access({ id }).then((response) => response.data);
   }

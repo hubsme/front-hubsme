@@ -15,7 +15,9 @@ import {
   MeetingResultDto,
   PaginationMetaDto,
   PymeListItemDto,
+  TaskResultDto,
 } from 'api/backend.api';
+import { marked } from 'marked';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { ConsultantPayouts } from './components/consultant-payouts/consultant-payouts';
 
@@ -23,6 +25,7 @@ type MeetingStatus = NonNullable<
   ApiResponse<'meetingAdmin', 'meetingadminFindAll'>['data'][number]['status']
 >;
 type MeetingAdminSection = 'meetings' | 'payouts';
+type MeetingDetailTab = 'description' | 'tasks';
 
 @Component({
   selector: 'app-reuniones',
@@ -47,6 +50,21 @@ export class Reuniones {
   readonly detailLoading = signal(false);
   readonly showDetailModal = signal(false);
   readonly selectedMeeting = signal<MeetingAdminResultDto | null>(null);
+  readonly detailTab = signal<MeetingDetailTab>('description');
+  readonly detailTabs = [
+    { id: 'description', icon: 'far fa-file-lines' },
+    { id: 'tasks', icon: 'fas fa-list-check' },
+  ] as const;
+  readonly meetingDescriptionHtml = computed(() => {
+    const description = this.selectedMeeting()?.description?.trim();
+    return description ? marked.parse(description, { async: false, breaks: true }) : '';
+  });
+  readonly taskStatuses = {
+    pendiente: { label: 'Pendiente', className: 'bg-text/5 text-muted' },
+    en_progreso: { label: 'En progreso', className: 'bg-secondary/10 text-secondary' },
+    completada: { label: 'Completada', className: 'bg-success/10 text-success' },
+    bloqueada: { label: 'Bloqueada', className: 'bg-danger/10 text-danger' },
+  } satisfies Record<TaskResultDto['status'], { label: string; className: string }>;
   readonly search = signal('');
   readonly page = signal(1);
   readonly pageSize = 10;
@@ -158,6 +176,7 @@ export class Reuniones {
   }
 
   async openDetail(meeting: MeetingResultDto) {
+    this.detailTab.set('description');
     this.showDetailModal.set(true);
     this.selectedMeeting.set(null);
     this.detailLoading.set(true);
@@ -180,8 +199,26 @@ export class Reuniones {
   }
 
   async copyMeetingUrl(meetingUrl: string) {
-    await navigator.clipboard.writeText(meetingUrl);
-    this.toastService.success('Enlace de Teams copiado.');
+    try {
+      await navigator.clipboard.writeText(meetingUrl);
+      this.toastService.success('Enlace de Teams copiado.');
+    } catch {
+      this.toastService.error('No se pudo copiar el enlace de Teams.');
+    }
+  }
+
+  navigateDetailTabs(event: KeyboardEvent) {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+
+    event.preventDefault();
+    let tab: MeetingDetailTab = this.detailTab() === 'description' ? 'tasks' : 'description';
+    if (event.key === 'Home') tab = 'description';
+    if (event.key === 'End') tab = 'tasks';
+    this.detailTab.set(tab);
+
+    if (event.currentTarget instanceof HTMLElement) {
+      event.currentTarget.querySelector<HTMLButtonElement>(`#meeting-detail-tab-${tab}`)?.focus();
+    }
   }
 
   statusLabel(status: MeetingStatus) {

@@ -6,6 +6,9 @@ import { Api, ApiBody, ApiResponse } from 'api/backend.api';
 import { PATH, buildPath, getDefaultRoute } from '@route/path.route';
 import { SessionService } from '@service/session.service';
 import { ToastService } from '@service/toast.service';
+import { PhoneInputComponent } from '@component/phone-input/phone-input';
+import { RegistrationConsent } from '../components/registration-consent/registration-consent';
+import { RegistrationEmailVerification } from '../components/registration-email-verification/registration-email-verification';
 import {
   CONSULTANT_DIAGNOSTIC_AREAS,
   ConsultantDiagnosticArea,
@@ -52,7 +55,7 @@ type PdfJsModule = {
 
 @Component({
   selector: 'app-sing-up',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PhoneInputComponent, RegistrationConsent, RegistrationEmailVerification],
   templateUrl: './sing-up.html',
   styleUrl: './sing-up.css',
 })
@@ -82,12 +85,21 @@ export class SingUp implements OnInit, OnDestroy {
   identityVerification = signal<DniVerificationResult['identity'] | null>(null);
   email = signal('');
   password = signal('');
+  readonly emailCode = signal('');
+  readonly contractVersion = signal<string | null>(null);
+  readonly marketingConsent = signal(false);
   ownerPhone = signal('');
   ownerPosition = signal('');
   role = signal<'pyme' | 'consultor'>('pyme');
   roleLocked = signal(false);
-  step = signal<1 | 2>(1);
+  step = signal<1 | 2 | 3>(1);
   consultantPhase = signal<1 | 2>(1);
+  readonly wizardSteps = computed(() => this.role() === 'consultor'
+    ? ['Identidad', 'CV y áreas', 'Contrato', 'Credenciales']
+    : ['Perfil', 'Contrato', 'Credenciales']);
+  readonly activeWizardStep = computed(() => this.role() === 'consultor'
+    ? (this.step() === 1 ? this.consultantPhase() : this.step() + 1)
+    : this.step());
   loading = signal(false);
   googleLoading = signal(false);
   cvFileName = signal('');
@@ -159,12 +171,16 @@ export class SingUp implements OnInit, OnDestroy {
 
   setRole(role: 'pyme' | 'consultor') {
     if (this.roleLocked()) return;
+    if (role !== this.role()) {
+      this.contractVersion.set(null);
+      this.marketingConsent.set(false);
+    }
     this.role.set(role);
     this.step.set(1);
     this.consultantPhase.set(1);
   }
 
-  goToCredentialsStep() {
+  advanceProfile() {
     if (this.role() === 'consultor') {
       if (this.consultantPhase() === 1) {
         if (this.identityVerified() !== true) {
@@ -184,23 +200,30 @@ export class SingUp implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.role() === 'pyme' && this.rucVerified() !== true) {
+    if (this.rucVerified() !== true) {
       this.toastService.error('Ingresa un RUC válido y espera su validación');
       return;
     }
 
     if (!this.profileComplete()) {
-      this.toastService.error(
-        this.role() === 'pyme'
-          ? 'Completa empresa, RUC, nombres y apellidos del dueno'
-          : 'Sube tu CV en PDF y selecciona al menos un área de diagnóstico',
-      );
+      this.toastService.error('Completa empresa, RUC, nombres y apellidos del dueño');
       return;
     }
     this.step.set(2);
   }
 
+  goToCredentialsStep(currentVersion: string | undefined) {
+    if (this.step() !== 2 || !this.profileComplete() || !currentVersion || this.contractVersion() !== currentVersion) return;
+    this.step.set(3);
+  }
+
+  goBackToContractStep() {
+    if (this.loading() || this.googleLoading()) return;
+    this.step.set(2);
+  }
+
   goToProfileStep() {
+    if (this.loading() || this.googleLoading()) return;
     this.step.set(1);
     if (this.role() === 'consultor') this.consultantPhase.set(2);
   }
@@ -285,10 +308,10 @@ export class SingUp implements OnInit, OnDestroy {
   }
 
   onRegister() {
-    if (!this.profileComplete()) {
-      this.goToCredentialsStep();
-      return;
-    }
+    if (this.step() !== 3 || !this.profileComplete()) return;
+
+    const contractVersion = this.contractVersion();
+    if (!contractVersion || this.emailCode().length !== 8 || this.loading() || this.googleLoading()) return;
 
     if (!this.email() || !this.password() || !this.firstName() || !this.lastName()) {
       this.toastService.error('Completa nombres, apellidos, email y password');
@@ -301,6 +324,10 @@ export class SingUp implements OnInit, OnDestroy {
     }
 
     const payload: ApiBody<'auth', 'register'> = {
+      contractVersion,
+      acceptedContract: true,
+      marketingConsent: this.marketingConsent(),
+      emailCode: this.emailCode(),
       name: this.role() === 'consultor' ? `${this.firstName()} ${this.lastName()}`.trim() : this.companyName(),
       firstName: this.firstName(),
       lastName: this.lastName(),
@@ -347,15 +374,20 @@ export class SingUp implements OnInit, OnDestroy {
 
   startGoogleRegister() {
     if (!isPlatformBrowser(this.platformId)) return;
-    if (!this.profileComplete()) {
-      this.goToCredentialsStep();
-      return;
-    }
+    if (this.step() !== 3 || !this.profileComplete()) return;
+    const contractVersion = this.contractVersion();
+    if (!contractVersion || this.loading() || this.googleLoading()) return;
 
     this.googleLoading.set(true);
 
     this.api.auth
-      .googleUrl({ flow: 'register', role: this.role() })
+      .googleUrl({
+        flow: 'register',
+        role: this.role(),
+        contractVersion,
+        acceptedContract: 'true',
+        marketingConsent: this.marketingConsent() ? 'true' : 'false',
+      })
       .then((res) => {
         this.googlePopup = window.open(
           res.data.url,

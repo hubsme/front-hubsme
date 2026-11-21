@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { ServiceRequestResultDto } from 'api/backend.api';
 
 type PaymentScheduleItem = ServiceRequestResultDto['paymentSchedule'][number];
@@ -9,8 +9,6 @@ type PaymentScheduleItem = ServiceRequestResultDto['paymentSchedule'][number];
 })
 export class ServicePaymentPlanSummary {
   readonly service = input.required<ServiceRequestResultDto>();
-  readonly showPaymentActions = input(false);
-  readonly payInstallment = output<PaymentScheduleItem>();
 
   strategyLabel(strategy: ServiceRequestResultDto['paymentPlan']['strategy']): string {
     const labels: Record<ServiceRequestResultDto['paymentPlan']['strategy'], string> = {

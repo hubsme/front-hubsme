@@ -2,6 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import {
   AfterViewInit,
   Component,
+  DestroyRef,
   ElementRef,
   forwardRef,
   inject,
@@ -12,7 +13,7 @@ import {
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { normalizePhoneForSubmit } from '@function/phone.function';
-import type { Iti } from 'intl-tel-input';
+import type { Iso2, Iti } from 'intl-tel-input';
 
 @Component({
   selector: 'app-phone-input',
@@ -27,14 +28,17 @@ import type { Iti } from 'intl-tel-input';
 })
 export class PhoneInputComponent implements AfterViewInit, OnDestroy, ControlValueAccessor {
   private platformId = inject(PLATFORM_ID);
+  private readonly destroyRef = inject(DestroyRef);
   private instance: Iti | null = null;
   private currentValue = '';
   private disabled = false;
+  private writingValue = false;
   private onChange: (value: string) => void = () => undefined;
   private onTouched: () => void = () => undefined;
 
   @Input() name = 'phone';
   @Input() placeholder = '999 999 999';
+  @Input() fixedCountry: Iso2 | null = null;
 
   @ViewChild('phoneInput') private phoneInput?: ElementRef<HTMLInputElement>;
 
@@ -42,14 +46,18 @@ export class PhoneInputComponent implements AfterViewInit, OnDestroy, ControlVal
     if (!isPlatformBrowser(this.platformId) || !this.phoneInput) return;
 
     const { default: intlTelInput } = await import('intl-tel-input');
+    if (this.destroyRef.destroyed) return;
+
     this.instance = intlTelInput(this.phoneInput.nativeElement, {
-      initialCountry: 'pe',
+      initialCountry: this.fixedCountry ?? 'pe',
+      ...(this.fixedCountry ? { onlyCountries: [this.fixedCountry], countrySelectorMode: 'OFF' } : {}),
       separateDialCode: true,
-      strictMode: true,
+      // Leave invalid fixed-country values visible so the form can reject them.
+      strictMode: !this.fixedCountry,
       loadUtils: () => import('intl-tel-input/utils'),
     });
 
-    this.instance.setNumber(this.toDisplayNumber(this.currentValue));
+    this.updateDisplayedNumber();
     this.instance.setDisabled(this.disabled);
   }
 
@@ -59,7 +67,7 @@ export class PhoneInputComponent implements AfterViewInit, OnDestroy, ControlVal
 
   writeValue(value: string | null): void {
     this.currentValue = value ?? '';
-    this.instance?.setNumber(this.toDisplayNumber(this.currentValue));
+    this.updateDisplayedNumber();
   }
 
   registerOnChange(fn: (value: string) => void): void {
@@ -76,10 +84,20 @@ export class PhoneInputComponent implements AfterViewInit, OnDestroy, ControlVal
   }
 
   handleInput() {
+    if (this.writingValue) return;
+
     const rawValue = this.phoneInput?.nativeElement.value.trim() ?? '';
     const value = this.getCurrentNumber(rawValue);
     this.currentValue = value;
     this.onChange(value);
+  }
+
+  handleCountryChange(): void {
+    if (this.fixedCountry && this.instance && this.instance.getSelectedCountry()?.iso2 !== this.fixedCountry) {
+      this.instance.setSelectedCountry(this.fixedCountry);
+      return;
+    }
+    this.handleInput();
   }
 
   handleBlur() {
@@ -87,14 +105,20 @@ export class PhoneInputComponent implements AfterViewInit, OnDestroy, ControlVal
     this.onTouched();
   }
 
-  private toDisplayNumber(value: string) {
-    return normalizePhoneForSubmit(value);
+  private updateDisplayedNumber(): void {
+    if (!this.instance) return;
+
+    this.writingValue = true;
+    this.instance.setNumber(normalizePhoneForSubmit(this.currentValue));
+    this.writingValue = false;
   }
 
   private getCurrentNumber(rawValue: string) {
+    if (this.fixedCountry && !/^\+?[\d\s().-]*$/.test(rawValue)) return rawValue;
+
     const digits = rawValue.replace(/\D/g, '');
     if (!digits) return '';
-    if (rawValue.trim().startsWith('+')) return normalizePhoneForSubmit(rawValue);
+    if (rawValue.startsWith('+')) return this.fixedCountry ? `+${digits}` : normalizePhoneForSubmit(rawValue);
 
     const dialCode = this.instance?.getSelectedCountry()?.dialCode;
     if (!dialCode) return normalizePhoneForSubmit(rawValue);

@@ -1,0 +1,35 @@
+<div class="space-y-2">
+  <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+    <span class="text-xs text-muted">Verifica tu correo para registrarte con contraseña.</span>
+    <button
+      type="button"
+      class="rounded-lg border border-border px-3 py-2 text-xs font-inter-semibold text-secondary hover:bg-secondary/5 disabled:opacity-50"
+      [disabled]="!canSend() || busy()"
+      (click)="send()"
+    >
+      {{ busy() ? 'Enviando…' : codeRequested() ? 'Reenviar código' : 'Enviar código' }}
+    </button>
+  </div>
+  @if (canSend()) {
+    <label class="block text-xs font-inter-semibold text-muted">
+      <span class="mb-2 block">Código de verificación</span>
+      <input
+        #verification
+        type="text"
+        inputmode="numeric"
+        autocomplete="one-time-code"
+        maxlength="8"
+        placeholder="8 dígitos"
+        [value]="code()"
+        (input)="updateCode(verification)"
+        class="h-10 w-full rounded-xl border border-border bg-background px-3 text-sm text-text outline-none focus:border-secondary"
+      />
+    </label>
+    @if (codeRequested()) {
+      <p class="text-xs text-muted" role="status">Código enviado. Vence en 10 minutos.</p>
+    }
+  }
+  @if (error()) {
+    <p class="text-xs text-danger" role="alert">{{ error() }}</p>
+  }
+</div>

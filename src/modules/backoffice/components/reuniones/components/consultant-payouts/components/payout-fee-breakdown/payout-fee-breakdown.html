@@ -1,0 +1,42 @@
+<dl class="divide-y divide-border text-sm">
+  <div class="flex items-center justify-between gap-4 py-3">
+    <dt class="text-muted">Cobrado a la PYME</dt>
+    <dd class="shrink-0 font-inter-semibold text-text">
+      {{ currency() }} {{ payout().grossAmount | number: '1.2-2' }}
+    </dd>
+  </div>
+  @for (row of rows(); track row.label) {
+    <div class="flex items-center justify-between gap-4 py-3">
+      <dt class="min-w-0">
+        <span class="block text-text">{{ row.label }}</span>
+        <span class="mt-1 block text-xs text-muted">{{ row.detail }}</span>
+      </dt>
+      <dd class="shrink-0 text-text">− {{ currency() }} {{ row.amount | number: '1.2-2' }}</dd>
+    </div>
+  }
+  @if (payout().feeBreakdown; as fees) {
+    <div class="flex items-center justify-between gap-4 py-3">
+      <dt class="text-muted">Total de descuentos</dt>
+      <dd class="shrink-0 font-inter-semibold text-text">
+        {{ currency() }} {{ fees.totalDeductionsAmount | number: '1.2-2' }}
+      </dd>
+    </div>
+  }
+  <div class="flex items-center justify-between gap-4 py-4">
+    <dt class="font-inter-semibold text-text">
+      {{
+        payout().feeBreakdown?.version === 3
+          ? 'Saldo para liquidación mensual'
+          : 'Neto del consultor'
+      }}
+    </dt>
+    <dd class="shrink-0 text-lg font-inter-bold text-secondary">
+      {{ currency() }} {{ payout().amount | number: '1.2-2' }}
+    </dd>
+  </div>
+</dl>
+@if (!payout().feeBreakdown) {
+  <p class="text-xs leading-relaxed text-muted">
+    Este pago conserva el importe registrado antes de configurar las comisiones de Monnet.
+  </p>
+}

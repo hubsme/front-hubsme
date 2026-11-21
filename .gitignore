@@ -5,11 +5,17 @@
 /tmp
 /out-tsc
 /bazel-out
+/out.css
 
 # Node
 /node_modules
 npm-debug.log
 yarn-error.log
+/package-lock.json [0-9]*.json
+
+# Python cache
+__pycache__/
+*.py[cod]
 
 # IDEs and editors
 .idea/

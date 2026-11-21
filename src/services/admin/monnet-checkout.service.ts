@@ -11,9 +11,18 @@ export class MonnetCheckoutService {
       .then((response) => response.data);
   }
 
-  findCheckout(id: number): Promise<ApiResponse<'monnetCheckout', 'monnetcheckoutFindCheckout'>> {
+  findCheckout(
+    id: number,
+    signal?: AbortSignal,
+  ): Promise<ApiResponse<'monnetCheckout', 'monnetcheckoutFindCheckout'>> {
     return this.api.monnetCheckout
-      .monnetcheckoutFindCheckout({ id })
+      .monnetcheckoutFindCheckout({ id }, { signal })
+      .then((response) => response.data);
+  }
+
+  lookupDni(documentNumber: string, signal: AbortSignal) {
+    return this.api.identityVerification
+      .identityverificationLookupDni({ documentNumber }, { signal })
       .then((response) => response.data);
   }
 
@@ -26,9 +35,9 @@ export class MonnetCheckoutService {
       .then((response) => response.data);
   }
 
-  syncCheckoutPayment(id: number) {
+  syncCheckoutPayment(id: number, signal?: AbortSignal) {
     return this.api.monnetCheckout
-      .monnetcheckoutSyncCheckoutPayment({ id })
+      .monnetcheckoutSyncCheckoutPayment({ id }, { signal })
       .then((response) => response.data);
   }
 }

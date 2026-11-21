@@ -454,7 +454,7 @@
   [showFooter]="finalizingMeetingId() === meeting.id || canJoinMeeting(meeting)"
   (onSubmit)="finalizingMeetingId() === meeting.id ? generateActa(meeting) : (canJoinMeeting(meeting) ? joinMeeting(meeting) : closeMeetingDetail())"
   (onClose)="closeMeetingDetail()">
-  <div class="space-y-4 p-6">
+  <div class="flex flex-col gap-4 p-6">
     @if (finalizingMeetingId() === meeting.id) {
     <div class="space-y-5">
       <div class="flex items-start gap-3 px-1 py-1">
@@ -610,6 +610,10 @@
       </div>
       }
     </div>
+
+    @if (meeting.status === 'confirmada' || meeting.status === 'finalizada') {
+      <app-meeting-rating [meetingId]="meeting.id" />
+    }
 
     <div class="flex flex-wrap gap-3">
       <button type="button" [routerLink]="['/' + buildPath(PATH.admin.consultor.meetings), meeting.id]"

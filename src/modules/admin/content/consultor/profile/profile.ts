@@ -1,12 +1,11 @@
-import { CommonModule, isPlatformBrowser } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormsModule, NgForm } from '@angular/forms';
 import { Api, ApiBody, ApiResponse } from 'api/backend.api';
-import { MercadoPagoService } from '@service/admin/mercado-pago.service';
 import { HubsmeService } from '@service/hubsme.service';
 import { ToastService } from '@service/toast.service';
 import { SessionService } from '@service/session.service';
-import { AlertService } from '@service/alert.service';
+import { ConsultantService } from '@service/admin/consultant.service';
 import { PhoneInputComponent } from '@component/phone-input/phone-input';
 import { normalizePhoneForSubmit } from '@function/phone.function';
 import {
@@ -22,8 +21,9 @@ import {
 
 type ConsultantProfileData = ApiResponse<'consultant', 'findByUser'>;
 type ConsultantCvProfileData = ApiResponse<'ia', 'runConsultantCv'>;
-type MercadoPagoStatus = ApiResponse<'mercadoPago', 'mercadopagoStatus'>;
-type MercadoPagoMessage = { type: 'hubsme:mercado-pago'; connected?: boolean; nickname?: string; email?: string; error?: string };
+type ConsultantDepositAccounts = ApiResponse<'consultant', 'getDepositAccounts'>;
+type ProfileTab = 'information' | 'deposit';
+type DepositField = { key: keyof ConsultantDepositAccounts; label: string; logo?: string };
 
 type ConsultantEducationItem = {
   degree: string;
@@ -96,20 +96,15 @@ type DraggedPreviewItem = { list: PreviewList; index: number };
   imports: [CommonModule, FormsModule, PhoneInputComponent],
   templateUrl: './profile.html',
 })
-export class Profile implements OnInit, OnDestroy {
+export class Profile implements OnInit {
   private api = inject(Api);
-  private mercadoPagoService = inject(MercadoPagoService);
   private hubsme = inject(HubsmeService);
   private toastService = inject(ToastService);
   private sessionService = inject(SessionService);
-  private alertService = inject(AlertService);
-  private platformId = inject(PLATFORM_ID);
-  private mercadoPagoPopup: Window | null = null;
-  private mercadoPagoPopupTimer: ReturnType<typeof setInterval> | null = null;
+  private readonly consultantService = inject(ConsultantService);
 
   loading = signal(false);
   saving = signal(false);
-  mercadoPagoLoading = signal(false);
   uploadingPhoto = signal(false);
   uploadingVideo = signal(false);
   uploadingCv = signal(false);
@@ -119,6 +114,43 @@ export class Profile implements OnInit, OnDestroy {
   previewMediaActive = signal(false);
   draggedPreviewItem = signal<DraggedPreviewItem | null>(null);
   consultant = signal<ConsultantProfileData | null>(null);
+  readonly activeTab = signal<ProfileTab>('information');
+  readonly depositAccounts = signal<ConsultantDepositAccounts | null>(null);
+  readonly depositAccountsLoading = signal(false);
+  readonly profileTabs = [
+    { value: 'information', label: 'Información', icon: 'fa-circle-info' },
+    { value: 'deposit', label: 'Cuentas de depósito', icon: 'fa-credit-card' },
+  ] as const;
+  readonly depositGroups: {
+    title: string;
+    fields: DepositField[];
+    isPhone?: boolean;
+    pattern: string;
+    error: string;
+  }[] = [
+    {
+      title: 'Cuentas bancarias en soles',
+      fields: [
+        { key: 'savingsCci', label: 'CCI de cuenta de ahorros' },
+        { key: 'currentCci', label: 'CCI de cuenta corriente' },
+      ],
+      pattern: '[0-9]{20}',
+      error: 'Ingresa los 20 dígitos del CCI.',
+    },
+    {
+      title: 'Billeteras digitales',
+      isPhone: true,
+      fields: [
+        { key: 'yapePhone', label: 'Celular afiliado a Yape', logo: '/images/payment/yape.png' },
+        { key: 'plinPhone', label: 'Celular afiliado a Plin', logo: '/images/payment/plin.png' },
+      ],
+      pattern: '(?:\\+51)?9[0-9]{8}',
+      error: 'Ingresa un celular de 9 dígitos que empiece con 9.',
+    },
+  ];
+  readonly hasDepositDestination = computed(() =>
+    this.depositGroups.some(({ fields }) => fields.some(({ key }) => !!this.depositAccounts()?.[key])),
+  );
   readonly diagnosticAreaOptions = CONSULTANT_DIAGNOSTIC_AREAS;
   readonly workModalityOptions = CONSULTANT_WORK_MODALITY_OPTIONS;
   readonly chipFields: { field: ChipField; label: string; placeholder: string }[] = [
@@ -130,13 +162,6 @@ export class Profile implements OnInit, OnDestroy {
     { field: 'certifications', label: 'Certificaciones', placeholder: 'Agregar certificacion...' },
     { field: 'workedSectors', label: 'Sectores trabajados', placeholder: 'Agregar sector trabajado...' },
   ];
-  mercadoPagoStatus = signal<MercadoPagoStatus>({
-    connected: false,
-    mercadoPagoUserId: null,
-    nickname: null,
-    email: null,
-    connectedAt: null,
-  });
   photoError = signal(false);
   chipInputs = signal<Record<ChipField, string>>({
     specialties: '',
@@ -199,10 +224,6 @@ export class Profile implements OnInit, OnDestroy {
     this.load();
   }
 
-  ngOnDestroy(): void {
-    this.clearMercadoPagoPopupTimer();
-  }
-
   updateForm<K extends keyof ConsultantForm>(key: K, value: ConsultantForm[K]) {
     this.form.update((current) => ({ ...current, [key]: value }));
   }
@@ -246,13 +267,51 @@ export class Profile implements OnInit, OnDestroy {
           ownerPhone: data.ownerPhone ?? '',
           active: data.active,
         });
-        this.loadMercadoPagoStatus(data.id);
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.loading.set(false));
   }
 
-  save() {
+  selectProfileTab(tab: ProfileTab): void {
+    this.activeTab.set(tab);
+    if (tab === 'deposit' && !this.depositAccounts() && !this.depositAccountsLoading()) {
+      this.loadDepositAccounts();
+    }
+  }
+
+  navigateProfileTabs(event: KeyboardEvent): void {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+
+    event.preventDefault();
+    let tab: ProfileTab = this.activeTab() === 'information' ? 'deposit' : 'information';
+    if (event.key === 'Home') tab = 'information';
+    if (event.key === 'End') tab = 'deposit';
+
+    this.selectProfileTab(tab);
+    if (event.currentTarget instanceof HTMLElement) {
+      event.currentTarget.querySelector<HTMLButtonElement>(`#consultant-profile-tab-${tab}`)?.focus();
+    }
+  }
+
+  loadDepositAccounts(): void {
+    this.depositAccountsLoading.set(true);
+    this.consultantService.getDepositAccounts()
+      .then((accounts) => this.depositAccounts.set(accounts))
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.depositAccountsLoading.set(false));
+  }
+
+  updateDepositAccount(key: keyof ConsultantDepositAccounts, value: string): void {
+    this.depositAccounts.update((accounts) => accounts && { ...accounts, [key]: value || null });
+  }
+
+  save(profileForm: NgForm) {
+    if (this.saving()) return;
+    if (this.activeTab() === 'deposit') {
+      this.saveDepositAccounts(profileForm);
+      return;
+    }
+
     this.chipFields.forEach((chip) => this.commitChipInput(chip.field));
 
     const user = this.hubsme.currentUser();
@@ -302,6 +361,29 @@ export class Profile implements OnInit, OnDestroy {
       .then(() => {
         this.toastService.success('Perfil actualizado');
         this.load();
+      })
+      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
+      .finally(() => this.saving.set(false));
+  }
+
+  private saveDepositAccounts(profileForm: NgForm): void {
+    const accounts = this.depositAccounts();
+    if (!accounts) return;
+
+    if (profileForm.invalid) {
+      profileForm.form.markAllAsTouched();
+      return;
+    }
+
+    this.saving.set(true);
+    this.consultantService.updateDepositAccounts({
+      ...accounts,
+      yapePhone: accounts.yapePhone?.replace(/^\+51/, '') ?? null,
+      plinPhone: accounts.plinPhone?.replace(/^\+51/, '') ?? null,
+    })
+      .then((savedAccounts) => {
+        this.depositAccounts.set(savedAccounts);
+        this.toastService.success('Cuentas de depósito actualizadas');
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.saving.set(false));
@@ -416,89 +498,6 @@ export class Profile implements OnInit, OnDestroy {
       })
       .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
       .finally(() => this.uploadingPhoto.set(false));
-  }
-
-  startMercadoPagoConnect(): void {
-    const consultantId = this.consultant()?.id;
-    if (!consultantId || !isPlatformBrowser(this.platformId)) return;
-
-    this.mercadoPagoLoading.set(true);
-    this.mercadoPagoService
-      .authUrl({ consultantId })
-      .then((response) => {
-        this.mercadoPagoPopup = window.open(response.url, 'hubsme_mercado_pago', this.getMercadoPagoPopupFeatures());
-
-        if (!this.mercadoPagoPopup) {
-          this.toastService.error('Permite popups para conectar Mercado Pago');
-          this.mercadoPagoLoading.set(false);
-          return;
-        }
-
-        this.mercadoPagoPopup.focus();
-        this.mercadoPagoPopupTimer = setInterval(() => {
-          if (this.mercadoPagoPopup?.closed) {
-            this.clearMercadoPagoPopupTimer();
-            this.mercadoPagoLoading.set(false);
-          }
-        }, 500);
-      })
-      .catch((error) => {
-        this.toastService.error(this.hubsme.getErrorMessage(error));
-        this.mercadoPagoLoading.set(false);
-      });
-  }
-
-  disconnectMercadoPago(): void {
-    const consultantId = this.consultant()?.id;
-    if (!consultantId) return;
-
-    this.mercadoPagoLoading.set(true);
-    this.mercadoPagoService
-      .disconnect({ consultantId })
-      .then((status) => {
-        this.mercadoPagoStatus.set(status);
-        this.toastService.success('Mercado Pago desconectado');
-      })
-      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)))
-      .finally(() => this.mercadoPagoLoading.set(false));
-  }
-
-  confirmDisconnectMercadoPago(): void {
-    const account = this.mercadoPagoAccountLabel();
-    const accountStr = account && account !== 'Cuenta conectada' ? ` la cuenta ${account}` : ' tu cuenta';
-    this.alertService.confirm(
-      'Desconectar Mercado Pago',
-      `¿Estás seguro de que deseas desconectar${accountStr} de Mercado Pago? Esto impedirá que las PYMEs realicen reservas y pagos a tu cuenta.`,
-      () => {
-        this.disconnectMercadoPago();
-      }
-    );
-  }
-
-  mercadoPagoAccountLabel(): string {
-    const status = this.mercadoPagoStatus();
-    return status.nickname || status.email || status.mercadoPagoUserId || 'Cuenta conectada';
-  }
-
-  @HostListener('window:message', ['$event'])
-  handleMercadoPagoMessage(event: MessageEvent<unknown>): void {
-    if (!this.isMercadoPagoMessage(event.data)) return;
-
-    this.clearMercadoPagoPopupTimer();
-    this.mercadoPagoPopup?.close();
-    this.mercadoPagoPopup = null;
-    this.mercadoPagoLoading.set(false);
-
-    if (event.data.error) {
-      this.toastService.error(event.data.error);
-      return;
-    }
-
-    this.toastService.success('Mercado Pago conectado');
-    const consultantId = this.consultant()?.id;
-    if (consultantId) {
-      this.loadMercadoPagoStatus(consultantId);
-    }
   }
 
   onPhotoError() {
@@ -623,34 +622,6 @@ export class Profile implements OnInit, OnDestroy {
     const target = event.target;
     if (!(target instanceof HTMLInputElement)) return null;
     return target.files?.[0] ?? null;
-  }
-
-  private loadMercadoPagoStatus(consultantId: number): void {
-    this.mercadoPagoService
-      .status({ consultantId })
-      .then((status) => this.mercadoPagoStatus.set(status))
-      .catch((error) => this.toastService.error(this.hubsme.getErrorMessage(error)));
-  }
-
-  private clearMercadoPagoPopupTimer(): void {
-    if (!this.mercadoPagoPopupTimer) return;
-    clearInterval(this.mercadoPagoPopupTimer);
-    this.mercadoPagoPopupTimer = null;
-  }
-
-  private getMercadoPagoPopupFeatures(): string {
-    const width = 520;
-    const height = 700;
-    const left = Math.max(0, window.screenX + (window.outerWidth - width) / 2);
-    const top = Math.max(0, window.screenY + (window.outerHeight - height) / 2);
-
-    return `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no`;
-  }
-
-  private isMercadoPagoMessage(value: unknown): value is MercadoPagoMessage {
-    if (!value || typeof value !== 'object') return false;
-    const message = value as { type?: unknown };
-    return message.type === 'hubsme:mercado-pago';
   }
 
   uploadCv(event: Event) {

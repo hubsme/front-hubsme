@@ -2,11 +2,13 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Api, ApiResponse } from 'api/backend.api';
+import { Api, ApiQuery, ApiResponse } from 'api/backend.api';
 import { PATH, buildPath, getDefaultRoute } from '@route/path.route';
 import { HubsmeService } from '@service/hubsme.service';
 import { SessionService } from '@service/session.service';
 import { ToastService } from '@service/toast.service';
+import { RegistrationConsent } from '../components/registration-consent/registration-consent';
+import { RegistrationEmailVerification } from '../components/registration-email-verification/registration-email-verification';
 
 type Invitation = ApiResponse<'auth', 'invitation'>;
 type GoogleAuthMessage = {
@@ -17,7 +19,7 @@ type GoogleAuthMessage = {
 
 @Component({
   selector: 'app-join-organization',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RegistrationConsent, RegistrationEmailVerification],
   templateUrl: './join-organization.html',
 })
 export class JoinOrganization implements OnInit, OnDestroy {
@@ -41,6 +43,9 @@ export class JoinOrganization implements OnInit, OnDestroy {
   readonly showPassword = signal(false);
   readonly googleLoading = signal(false);
   readonly showEmailPasswordForm = signal(false);
+  readonly contractVersion = signal<string | null>(null);
+  readonly marketingConsent = signal(false);
+  readonly emailCode = signal('');
   readonly session = this.sessionService.session;
   private googlePopup: Window | null = null;
   private googlePopupTimer: ReturnType<typeof setInterval> | null = null;
@@ -105,11 +110,21 @@ export class JoinOrganization implements OnInit, OnDestroy {
   }
 
   startGoogleJoin(): void {
-    if (!isPlatformBrowser(this.platformId) || !this.invitation()) return;
+    const invitation = this.invitation();
+    if (!isPlatformBrowser(this.platformId) || !invitation || this.googleLoading()) return;
+    const contractVersion = this.contractVersion();
+    if (!invitation.hasAccount && !contractVersion) return;
+
+    const query: ApiQuery<'auth', 'googleUrl'> = { flow: 'invitation', invitationToken: this.token() };
+    if (!invitation.hasAccount && contractVersion) {
+      query.contractVersion = contractVersion;
+      query.acceptedContract = 'true';
+      query.marketingConsent = this.marketingConsent() ? 'true' : 'false';
+    }
 
     this.googleLoading.set(true);
     this.api.auth
-      .googleUrl({ flow: 'invitation', invitationToken: this.token() })
+      .googleUrl(query)
       .then((response) => {
         this.googlePopup = window.open(
           response.data.url,
@@ -143,7 +158,8 @@ export class JoinOrganization implements OnInit, OnDestroy {
 
   async createAccount(): Promise<void> {
     const invitation = this.invitation();
-    if (!invitation || invitation.hasAccount) return;
+    const contractVersion = this.contractVersion();
+    if (!invitation || invitation.hasAccount || !contractVersion || this.emailCode().length !== 8 || this.submitting()) return;
     const firstName = this.firstName().trim();
     const lastName = this.lastName().trim();
     if (!firstName || !lastName) {
@@ -162,6 +178,10 @@ export class JoinOrganization implements OnInit, OnDestroy {
     this.submitting.set(true);
     try {
       const response = await this.api.auth.register({
+        contractVersion,
+        acceptedContract: true,
+        marketingConsent: this.marketingConsent(),
+        emailCode: this.emailCode(),
         invitationToken: this.token(),
         email: invitation.email,
         password: this.password(),

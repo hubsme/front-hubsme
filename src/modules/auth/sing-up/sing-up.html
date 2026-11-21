@@ -7,7 +7,7 @@
           <img src="/avif/icono.avif" alt="Hubsme"
             class="h-12 w-auto animate-pulse dark:brightness-0 dark:invert" />
         } @else if (currentOnboardingSlide() === 1) {
-          <img src="/avif/mercado_pago.avif" alt="Mercado Pago" class="h-10 w-auto object-contain" />
+          <i class="far fa-user text-3xl text-secondary"></i>
         } @else {
           <i class="far fa-calendar-check text-3xl text-secondary"></i>
         }
@@ -19,7 +19,7 @@
           @if (currentOnboardingSlide() === 0) {
             ¡Bienvenido a Hubsme!
           } @else if (currentOnboardingSlide() === 1) {
-            1. Vincula Mercado Pago
+            1. Revisa tu perfil
           } @else {
             2. Configura tu disponibilidad
           }
@@ -28,7 +28,7 @@
           @if (currentOnboardingSlide() === 0) {
             Tu perfil de consultor está listo
           } @else if (currentOnboardingSlide() === 1) {
-            Indispensable para cobrar asesorías
+            Presenta tu experiencia y tu tarifa
           } @else {
             Indispensable para recibir citas
           }
@@ -40,7 +40,7 @@
         @if (currentOnboardingSlide() === 0) {
           Hemos procesado tu Currículum Vitae con Inteligencia Artificial para preconfigurar tu perfil. Antes de comenzar a recibir clientes, por favor revisa los siguientes pasos clave de configuración.
         } @else if (currentOnboardingSlide() === 1) {
-          Para poder recibir de forma automática y segura los honorarios de tus asesorías pagados por las PYMEs, debes vincular tu cuenta de Mercado Pago desde la sección de configuración de tu panel.
+          Revisa tu experiencia, especialidades y tarifa por hora en la sección "Perfil" de tu panel. Estos datos ayudan a las PYMEs a elegir la asesoría que necesitan.
         } @else {
           Configura los días y las horas en los que estás disponible para las consultas de negocios en la sección "Disponibilidad" del menú. Las PYMEs agendarán reuniones basándose en este horario.
         }
@@ -105,95 +105,49 @@
 
     <!-- Progress Stepper -->
     <div class="flex justify-center px-4 pt-4 pb-2 sm:px-10">
-      <div
-        class="flex w-full max-w-xs sm:max-w-md"
-        [class.items-start]="role() === 'consultor'"
-        [class.items-center]="role() !== 'consultor'"
-      >
-        @if (role() === 'consultor') {
-          @for (wizardStep of [1, 2, 3]; track wizardStep) {
-            <div class="flex min-w-0 flex-1 flex-col items-center self-start">
-              <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 shadow-sm"
-                [class.border-secondary]="(step() === 1 ? consultantPhase() : 3) === wizardStep"
-                [class.bg-secondary]="(step() === 1 ? consultantPhase() : 3) === wizardStep"
-                [class.text-background]="(step() === 1 ? consultantPhase() : 3) === wizardStep"
-                [class.border-success]="(step() === 1 ? consultantPhase() : 3) > wizardStep"
-                [class.bg-success]="(step() === 1 ? consultantPhase() : 3) > wizardStep"
-                [class.text-text/40]="(step() === 1 ? consultantPhase() : 3) < wizardStep"
-              >
-                @if ((step() === 1 ? consultantPhase() : 3) > wizardStep) {
-                  <i class="fas fa-check text-xs text-background"></i>
-                } @else {
-                  <span class="text-xs font-inter-bold">{{ wizardStep }}</span>
-                }
-              </div>
-              <span class="mt-1.5 block w-full text-center text-[11px] leading-tight font-inter-semibold"
-                [class.text-secondary]="(step() === 1 ? consultantPhase() : 3) === wizardStep"
-                [class.text-success]="(step() === 1 ? consultantPhase() : 3) > wizardStep"
-                [class.text-text/40]="(step() === 1 ? consultantPhase() : 3) < wizardStep">
-                @if (wizardStep === 1) {
-                  Identidad
-                } @else if (wizardStep === 2) {
-                  CV y áreas
-                } @else {
-                  Cuenta
-                }
-              </span>
-            </div>
-            @if (wizardStep < 3) {
-              <div class="mt-[15px] h-[2px] flex-1 bg-border transition-all duration-300 mx-1 sm:mx-2"
-                [class.bg-success]="(step() === 1 ? consultantPhase() : 3) > wizardStep">
-              </div>
+      <ol class="flex w-full max-w-md items-start" aria-label="Pasos del registro">
+        @for (label of wizardSteps(); track label; let last = $last) {
+          @let position = $index + 1;
+          @let current = activeWizardStep() === position;
+          @let completed = activeWizardStep() > position;
+          <li
+            class="relative flex min-w-0 flex-1 flex-col items-center"
+            [attr.aria-current]="current ? 'step' : null"
+          >
+            @if (!last) {
+              <span
+                class="absolute top-[15px] left-[calc(50%+1.5rem)] h-0.5 w-[calc(100%-3rem)] transition-colors"
+                [class.bg-success]="completed"
+                [class.bg-border]="!completed"
+                aria-hidden="true"
+              ></span>
             }
-          }
-        } @else {
-          <!-- Step 1: Perfil -->
-          <div class="flex flex-col items-center flex-1">
-            <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 shadow-sm"
-              [class.border-secondary]="step() === 1"
-              [class.bg-secondary]="step() === 1"
-              [class.text-background]="step() === 1"
-              [class.border-success]="step() === 2"
-              [class.bg-success]="step() === 2"
-              [class.text-background]="step() === 2"
+            <span
+              class="flex size-8 items-center justify-center rounded-full border-2 text-xs font-inter-bold shadow-sm transition-colors"
+              [class.border-secondary]="current"
+              [class.bg-secondary]="current"
+              [class.border-success]="completed"
+              [class.bg-success]="completed"
+              [class.text-background]="current || completed"
+              [class.border-border]="!current && !completed"
+              [class.text-text/40]="!current && !completed"
+              aria-hidden="true"
             >
-              @if (step() === 2) {
-                <i class="fas fa-check text-xs"></i>
+              @if (completed) {
+                <i class="fas fa-check"></i>
               } @else {
-                <span class="text-xs font-inter-bold">1</span>
+                {{ position }}
               }
-            </div>
-            <span class="mt-1.5 text-[11px] font-inter-semibold"
-              [class.text-secondary]="step() === 1"
-              [class.text-success]="step() === 2"
-              [class.text-text/40]="step() !== 1 && step() !== 2">
-              Perfil
             </span>
-          </div>
-
-          <div class="h-[2px] flex-1 bg-border transition-all duration-300 mx-2"
-            [class.bg-success]="step() === 2">
-          </div>
-
-          <!-- Step 2: Credentials -->
-          <div class="flex flex-col items-center flex-1">
-            <div class="flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 shadow-sm"
-              [class.border-secondary]="step() === 2"
-              [class.bg-secondary]="step() === 2"
-              [class.text-background]="step() === 2"
-              [class.border-border]="step() !== 2"
-              [class.text-text/40]="step() !== 2"
-            >
-              <span class="text-xs font-inter-bold">2</span>
-            </div>
-            <span class="mt-1.5 text-[11px] font-inter-semibold"
-              [class.text-secondary]="step() === 2"
-              [class.text-text/40]="step() !== 2">
-              Credenciales
-            </span>
-          </div>
+            <span
+              class="mt-1.5 text-center text-[11px] leading-tight font-inter-semibold"
+              [class.text-secondary]="current"
+              [class.text-success]="completed"
+              [class.text-text/40]="!current && !completed"
+            >{{ label }}</span>
+          </li>
         }
-      </div>
+      </ol>
     </div>
 
     <div class="p-6 sm:p-10 pt-4">
@@ -414,22 +368,15 @@
               </div>
 
               <div class="grid gap-4 sm:grid-cols-2">
-                <div class="space-y-1.5">
-                  <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Celular de Contacto</label>
-                  <div class="relative">
-                    <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-text/40">
-                      <i class="fas fa-phone text-xs"></i>
-                    </div>
-                    <input
-                      name="ownerPhone"
-                      autocomplete="tel"
-                      [ngModel]="ownerPhone()"
-                      (ngModelChange)="ownerPhone.set($event)"
-                      class="block w-full pl-10 pr-3.5 py-2.5 border border-text/15 rounded-xl focus:ring-2 focus:ring-secondary/20 focus:border-secondary outline-none bg-surface text-text placeholder:text-text-400/50 transition-all duration-200 text-sm"
-                      placeholder="+51 999 888 777"
-                    />
-                  </div>
-                </div>
+                <label class="block">
+                  <span class="mb-2 block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Celular de contacto</span>
+                  <app-phone-input
+                    class="block [&_input[type=tel]]:bg-surface"
+                    name="ownerPhone"
+                    [ngModel]="ownerPhone()"
+                    (ngModelChange)="ownerPhone.set($event)"
+                  />
+                </label>
                 <div class="space-y-1.5">
                   <label class="block text-xs font-inter-semibold text-text/60 uppercase tracking-wider">Cargo en la Empresa</label>
                   <div class="relative">
@@ -845,17 +792,15 @@
           <div class="pt-6 border-t border-text/5">
             <button
               type="button"
-              (click)="goToCredentialsStep()"
+              (click)="advanceProfile()"
               [disabled]="!canAdvanceCurrentStep()"
               class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-inter-bold text-background bg-secondary hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] shadow-md shadow-secondary/10"
             >
               <span>
                 @if (role() === 'consultor' && consultantPhase() === 1) {
                   Continuar al CV
-                } @else if (role() === 'consultor') {
-                  Continuar a la cuenta
                 } @else {
-                  Siguiente
+                  Continuar al contrato
                 }
               </span>
               <i class="fas fa-arrow-right text-xs"></i>
@@ -872,9 +817,43 @@
             }
           </div>
 
+        } @else if (step() === 2) {
+          <div class="space-y-6">
+            <div class="space-y-2">
+              <h1 class="text-xl font-inter-bold">Contrato y Privacidad</h1>
+              <p class="text-sm text-muted">Lee el contrato y la política de privacidad antes de continuar.</p>
+            </div>
+
+            <app-registration-consent
+              #consent
+              class="block"
+              [role]="role()"
+              [(acceptedVersion)]="contractVersion"
+              [(marketingConsent)]="marketingConsent"
+            />
+
+            <div class="flex flex-col-reverse gap-4 border-t border-text/5 pt-6 sm:flex-row sm:justify-between">
+              <button
+                type="button"
+                (click)="goToProfileStep()"
+                class="inline-flex items-center justify-center gap-2 rounded-xl border border-border px-4 py-3 text-sm font-inter-semibold text-muted transition-colors hover:border-secondary/40 hover:text-secondary"
+              >
+                <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
+                Volver al perfil
+              </button>
+              <button
+                type="button"
+                (click)="goToCredentialsStep(consent.documents()?.version)"
+                [disabled]="!contractVersion() || contractVersion() !== consent.documents()?.version"
+                class="inline-flex items-center justify-center gap-2 rounded-xl bg-secondary px-4 py-3 text-sm font-inter-bold text-background transition-colors hover:bg-secondary/90 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Continuar a credenciales
+                <i class="fas fa-arrow-right text-xs" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
         } @else {
-          
-          <!-- Credentials Step (Step 2) -->
+          <!-- Credentials Step -->
           <div class="space-y-5">
             <!-- Selected Profile Summary Banner -->
             <div class="rounded-2xl border border-secondary/10 bg-secondary/[0.02] p-4 flex items-center justify-between transition-all">
@@ -892,10 +871,11 @@
                   </p>
                 </div>
               </div>
-              <button 
-                type="button" 
-                (click)="goToProfileStep()" 
-                class="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-text/60 hover:bg-secondary/5 hover:text-secondary hover:border-secondary/30 transition-all cursor-pointer"
+              <button
+                type="button"
+                (click)="goToProfileStep()"
+                [disabled]="loading() || googleLoading()"
+                class="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-text/60 hover:bg-secondary/5 hover:text-secondary hover:border-secondary/30 transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                 title="Editar perfil"
               >
                 <i class="fas fa-pencil-alt text-xs"></i>
@@ -938,11 +918,13 @@
               </div>
             </div>
 
+            <app-registration-email-verification [email]="email()" [(code)]="emailCode" />
+
             <!-- Action Buttons -->
             <div class="pt-2 space-y-4">
               <button
                 type="submit"
-                [disabled]="loading()"
+                [disabled]="loading() || googleLoading() || !contractVersion() || emailCode().length !== 8"
                 class="w-full flex justify-center items-center py-3.5 px-4 rounded-xl text-sm font-inter-bold text-background bg-secondary hover:bg-secondary/90 disabled:opacity-50 transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] shadow-md shadow-secondary/10 cursor-pointer"
               >
                 @if (loading()) {
@@ -961,7 +943,7 @@
               <button
                 type="button"
                 (click)="startGoogleRegister()"
-                [disabled]="googleLoading()"
+                [disabled]="googleLoading() || loading() || !contractVersion()"
                 class="flex w-full items-center justify-center gap-3 rounded-xl border border-text/15 bg-surface px-4 py-3.5 text-sm font-inter-bold text-text hover:border-secondary/40 hover:bg-secondary/[0.01] hover:text-secondary disabled:opacity-50 transition-all duration-200 active:scale-[0.98] cursor-pointer"
               >
                 @if (googleLoading()) {
@@ -978,6 +960,15 @@
                 }
               </button>
             </div>
+            <button
+              type="button"
+              (click)="goBackToContractStep()"
+              [disabled]="loading() || googleLoading()"
+              class="inline-flex items-center gap-2 text-sm font-inter-semibold text-secondary hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <i class="fas fa-arrow-left text-xs" aria-hidden="true"></i>
+              Volver al contrato
+            </button>
           </div>
         }
       </form>

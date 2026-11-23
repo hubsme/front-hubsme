@@ -10,7 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import {
   TimeSlotPicker,
@@ -27,6 +27,7 @@ import { ToastService } from '@service/toast.service';
 import { ServiceRequestResultDto } from 'api/backend.api';
 import { ConsultantQuoteForm } from './components/consultant-quote-form/consultant-quote-form';
 import { ServicePaymentPlanSummary } from './layout/payment-plan-summary/payment-plan-summary';
+import { MonnetCheckoutService } from '@service/admin/monnet-checkout.service';
 import {
   dateKeyInPeru,
   formatInPeru,
@@ -84,6 +85,10 @@ type MilestoneInsertionPosition = {
   templateUrl: './service-detail.html',
 })
 export class ServiceDetail implements OnInit, OnDestroy {
+  private readonly router = inject(Router);
+  private readonly monnetCheckout = inject(MonnetCheckoutService);
+  readonly openingCheckout = signal(false);
+  readonly canPayService = computed(() => this.hubsme.canManageOrganization());
   private readonly route = inject(ActivatedRoute);
   private readonly serviceRequestService = inject(ServiceRequestService);
   private readonly consultantTimeSlotService = inject(ConsultantTimeSlotService);
@@ -804,7 +809,7 @@ export class ServiceDetail implements OnInit, OnDestroy {
     const current = this.service();
     const installment = current ? this.nextPendingPayment(current) : null;
     const code = this.serviceCouponCode().trim();
-    if (!current || !installment?.available || !code || this.redeemingServiceCoupon()) return;
+    if (!current || !installment?.available || !code || this.redeemingServiceCoupon() || this.openingCheckout()) return;
 
     this.redeemingServiceCoupon.set(true);
     try {
@@ -941,6 +946,21 @@ export class ServiceDetail implements OnInit, OnDestroy {
 
   nextPendingPayment(current: ServiceRequestResultDto): ServicePaymentScheduleItem | null {
     return current.paymentSchedule.find((installment) => installment.status !== 'approved') ?? null;
+  }
+
+  async payServiceInstallment(): Promise<void> {
+    const service = this.service();
+    const installment = service ? this.nextPendingPayment(service) : null;
+    if (!service || !installment?.available || this.openingCheckout() || !this.hubsme.canManageOrganization()) return;
+    this.openingCheckout.set(true);
+    try {
+      const checkout = await this.monnetCheckout.createServiceCheckout(service.id, installment.installmentIndex);
+      await this.router.navigate([buildPath(PATH.admin.pyme.services.checkout), checkout.id]);
+    } catch (error) {
+      this.toastService.error(this.hubsme.getErrorMessage(error));
+    } finally {
+      this.openingCheckout.set(false);
+    }
   }
 
   serviceBudgetLabel(current: ServiceRequestResultDto): string {

@@ -1,10 +1,12 @@
 import { Component, input } from '@angular/core';
 import { ServiceRequestResultDto } from 'api/backend.api';
+import { MeetingReceipt } from '@module/admin/content/shared/meeting-receipt/meeting-receipt';
 
 type PaymentScheduleItem = ServiceRequestResultDto['paymentSchedule'][number];
 
 @Component({
   selector: 'app-service-payment-plan-summary',
+  imports: [MeetingReceipt],
   templateUrl: './payment-plan-summary.html',
 })
 export class ServicePaymentPlanSummary {

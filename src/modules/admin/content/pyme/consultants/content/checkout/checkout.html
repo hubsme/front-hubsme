@@ -11,7 +11,7 @@
   <div>
     <h1 class="text-[1.9rem] leading-tight font-plus-jakarta-sans font-bold">Checkout de pago</h1>
     <p class="mt-1 text-[0.92rem] text-muted">
-      Revisa el resumen de tu sesión antes de continuar con el pago.
+      {{ checkout()?.serviceRequestId ? 'Revisa la cuota de tu servicio antes de continuar con el pago.' : 'Revisa el resumen de tu sesión antes de continuar con el pago.' }}
     </p>
   </div>
 
@@ -248,13 +248,17 @@
             <span
               class="grid size-9 shrink-0 place-items-center rounded-lg bg-secondary/10 text-secondary"
             >
-              <i class="fas fa-video" aria-hidden="true"></i>
+              <i [class]="checkout.serviceRequestId ? 'fas fa-file-invoice' : 'fas fa-video'" aria-hidden="true"></i>
             </span>
             <div>
-              <p class="font-inter-bold">Reserva por confirmar</p>
+              <p class="font-inter-bold">{{ checkout.serviceRequestId ? 'Pago de cuota' : 'Reserva por confirmar' }}</p>
               <p class="mt-1 leading-relaxed text-muted">
+                @if (checkout.serviceRequestId) {
+                  Al confirmar el pago, esta cuota quedará registrada en el plan de pagos de tu servicio.
+                } @else {
                 Al completar el pago, el consultor elegirá uno de los horarios propuestos. Te
                 enviaremos el enlace de Microsoft Teams por correo cuando confirme.
+                }
               </p>
             </div>
           </div>
@@ -322,14 +326,26 @@
                     >{{ session.durationMinutes }} min
                   </span>
                 }
+                @if (!checkout.serviceRequestId) {
                 <span class="rounded-md border border-border bg-surface px-2 py-0.5">
                   <i class="fas fa-video mr-1 text-secondary" aria-hidden="true"></i>MS Teams
                 </span>
+                }
               </div>
             </div>
           </div>
         }
 
+        @if (service(); as currentService) {
+          <div class="space-y-2">
+            <h3 class="text-sm font-inter-bold">{{ currentService.title }}</h3>
+            @for (installment of currentService.paymentSchedule; track installment.installmentIndex) {
+              @if (installment.installmentIndex === checkout.serviceInstallmentIndex) {
+                <p class="text-sm text-muted">{{ installment.label }} · {{ installment.percentage }}%</p>
+              }
+            }
+          </div>
+        }
         @if (meeting(); as session) {
           @let times = proposedTimes(session);
           @if (times.length) {
@@ -357,7 +373,7 @@
           }
         }
 
-        @if (!isPaid() && checkout.canCreatePayment && checkout.status !== 'expired') {
+        @if (!checkout.serviceRequestId && !isPaid() && checkout.canCreatePayment && checkout.status !== 'expired') {
           <form (ngSubmit)="applyPromotionCode()" class="space-y-2 border-t border-border pt-5">
             <label for="promotionCode" class="mb-2 block text-sm font-inter-semibold">
               <i class="fas fa-ticket mr-1.5 text-success" aria-hidden="true"></i>¿Tienes un código
@@ -407,7 +423,7 @@
 
         <div class="space-y-3 border-t border-border pt-5 text-sm">
           <div class="flex items-center justify-between gap-3">
-            <span class="text-muted">Sesión de consultoría</span>
+            <span class="text-muted">{{ checkout.serviceRequestId ? 'Cuota del servicio' : 'Sesión de consultoría' }}</span>
             <span class="shrink-0 font-inter-semibold"
               >{{ currencySymbol() }} {{ currency(subtotal()) }}</span
             >
@@ -560,7 +576,7 @@
           <div class="grid items-center gap-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-6">
             <img
               [src]="qr"
-              alt="QR de pago de la sesión"
+              alt="QR de pago"
               class="mx-auto size-52 max-w-full rounded-xl border border-border"
             />
             <div class="min-w-0 space-y-3 text-sm">

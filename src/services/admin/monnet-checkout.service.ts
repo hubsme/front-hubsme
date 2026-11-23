@@ -5,6 +5,11 @@ import { Api, ApiBody, ApiResponse } from 'api/backend.api';
 export class MonnetCheckoutService {
   private readonly api = inject(Api);
 
+  createServiceCheckout(id: number, installmentIndex: number) {
+    return this.api.monnetCheckout.monnetcheckoutCreateServiceCheckout({ id }, { installmentIndex })
+      .then((response) => response.data);
+  }
+
   createCheckout(data: ApiBody<'monnetCheckout', 'monnetcheckoutCreateCheckout'>) {
     return this.api.monnetCheckout
       .monnetcheckoutCreateCheckout(data)

@@ -3,13 +3,12 @@
     <div>
       <h2 class="font-inter-semibold text-text">Liquidaciones mensuales</h2>
       <p class="mt-1 text-sm text-muted">
-        Un pago por consultor al cierre del mes. Revisa las sesiones y el desglose antes del
-        depósito.
+        Revisa las consultorías y los servicios completados, sus RxH y el desglose antes del depósito.
       </p>
     </div>
     <label class="block">
       <span class="mb-2 block text-xs font-inter-semibold uppercase text-muted"
-        >Mes de las sesiones</span
+        >Mes de liquidación</span
       >
       <input
         type="month"
@@ -110,7 +109,7 @@
           <thead class="border-b border-border bg-background-50">
             <tr class="text-left text-xs font-inter-semibold uppercase text-muted">
               <th class="px-4 py-3">Consultor</th>
-              <th class="px-4 py-3">Sesiones</th>
+              <th class="px-4 py-3">Cobros</th>
               <th class="px-4 py-3 text-right">Cobrado del mes</th>
               <th class="px-4 py-3 text-right">Payin + IGV del mes</th>
               <th class="px-4 py-3 text-right">Total a depositar</th>
@@ -130,11 +129,11 @@
                 <td class="px-4 py-4">
                   <p class="font-inter-semibold text-text">
                     {{ payout.meetingCount }}
-                    {{ payout.meetingCount === 1 ? 'sesión' : 'sesiones' }}
+                    {{ payout.meetingCount === 1 ? 'cobro' : 'cobros' }}
                   </p>
                   <p class="mt-1 text-xs text-muted">
                     {{ payout.includedMeetingCount }}
-                    {{ payout.includedMeetingCount === 1 ? 'finalizada' : 'finalizadas' }}
+                    {{ payout.includedMeetingCount === 1 ? 'liquidable' : 'liquidables' }}
                   </p>
                 </td>
                 <td class="px-4 py-4 text-right font-inter-semibold text-text">
@@ -150,7 +149,7 @@
                   <p class="font-inter-bold text-secondary">
                     {{ money(amountBeforePayout(payout), payout.currency) }}
                   </p>
-                  <p class="mt-1 text-xs text-muted">Solo sesiones finalizadas pendientes</p>
+                  <p class="mt-1 text-xs text-muted">Consultorías y servicios completados con RxH</p>
                 </td>
                 <td class="px-4 py-4">
                   <span
@@ -299,19 +298,19 @@
               class="mt-3 flex w-full items-center gap-2 rounded-lg border border-background-200 bg-background-50 px-3 py-2 text-xs font-inter-medium leading-relaxed text-background-700"
             >
               <i class="fas fa-circle-info shrink-0" aria-hidden="true"></i>
-              <p>Solo se incluyen las reuniones finalizadas</p>
+              <p>Se incluyen las consultorías finalizadas y las cuotas de servicios completados con su RxH.</p>
             </div>
 
             <section class="mt-6">
               <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <h4 class="font-inter-semibold text-text">
-                  Reuniones de
+                  Cobros de
                   <span class="capitalize">{{
                     payout.month + '-15T12:00:00Z' | date: 'MMMM' : '-0500'
                   }}</span>
                 </h4>
                 <span class="text-xs text-muted"
-                  >{{ payout.includedMeetingCount }} de {{ payout.meetingCount }} incluidas en el
+                  >{{ payout.includedMeetingCount }} de {{ payout.meetingCount }} incluidos en el
                   saldo</span
                 >
               </div>
@@ -329,11 +328,14 @@
                         <p class="mt-1 text-xs leading-relaxed text-muted">
                           {{ meetingDate(meeting.startTime) }}
                         </p>
+                        @if (!meeting.isIncluded) {
+                          <p class="mt-1 text-xs text-warning">{{ inclusionLabel(meeting) }}</p>
+                        }
                       </div>
                       <span
                         class="inline-flex justify-self-center rounded-full px-2 py-0.5 text-[10px] leading-3"
                         [class]="meetingStatusBadgeClass(meeting.meetingStatus)"
-                        >{{ meetingStatusLabel(meeting.meetingStatus) }}</span
+                        >{{ meeting.operationType === 'servicio' ? (meeting.meetingStatus === 'finalizada' ? 'Servicio completado' : 'Servicio en curso') : meetingStatusLabel(meeting.meetingStatus) }}</span
                       >
                       <div class="flex min-w-0 items-center justify-end gap-2 sm:gap-3">
                         <p class="shrink-0 text-xs font-inter-semibold text-text sm:text-sm">
@@ -367,10 +369,17 @@
                         <div class="flex items-start justify-between gap-3">
                           <p class="min-w-0 break-words text-sm text-text">{{ meeting.title }}</p>
                           <span class="shrink-0 text-xs font-inter-medium text-muted">
-                            Reunión #{{ meeting.meetingId }}
+                            {{ meeting.operationType === 'servicio' ? 'Servicio #' + meeting.serviceRequestId : 'Reunión #' + meeting.meetingId }}
                           </span>
                         </div>
-                        <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-xs sm:grid-cols-3">
+                        <app-meeting-receipt
+                          class="mt-3 block"
+                          [meetingId]="meeting.meetingId ?? 0"
+                          [checkoutId]="meeting.operationType === 'servicio' ? meeting.checkoutId : null"
+                          [adminView]="true"
+                          [fileName]="meeting.receiptOriginalName"
+                        />
+                        <dl class="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 text-xs sm:grid-cols-3">
                           <div class="min-w-0">
                             <dt class="text-muted">Comisión Payin</dt>
                             <dd

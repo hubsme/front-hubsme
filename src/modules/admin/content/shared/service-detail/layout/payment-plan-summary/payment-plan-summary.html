@@ -1,7 +1,7 @@
 <details class="group border-b border-border">
   <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4">
     <span class="flex min-w-0 items-center gap-2 text-xs font-inter-bold">
-      <span>Plan de pagos</span>
+      <span>Plan de pagos y RxH</span>
       <span class="rounded-full bg-secondary/10 px-2 py-0.5 text-[0.58rem] font-inter-semibold text-secondary">
         {{ service().paymentPlan.installments.length }}
       </span>
@@ -38,6 +38,9 @@
             </p>
             @if (installment.availabilityMessage) {
               <p class="mt-1 text-[0.6rem] leading-relaxed text-muted">{{ installment.availabilityMessage }}</p>
+            }
+            @if (installment.status === 'approved' && installment.checkoutId) {
+              <app-meeting-receipt class="mt-3 block" [checkoutId]="installment.checkoutId" />
             }
           </div>
         </div>

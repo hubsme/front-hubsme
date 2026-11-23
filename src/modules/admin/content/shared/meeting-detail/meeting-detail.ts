@@ -10,6 +10,7 @@ import { PymeService } from '@service/admin/pyme.service';
 import { MeetingService } from '@service/admin/meeting.service';
 import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { MeetingRating } from '@module/admin/content/shared/meeting-rating/meeting-rating';
+import { MeetingReceipt } from '@module/admin/content/shared/meeting-receipt/meeting-receipt';
 import { PATH, buildPath } from '@route/path.route';
 import { formatInPeru, parseApiDate } from '@function/date.function';
 
@@ -19,7 +20,7 @@ type Pyme = ApiResponse<'pyme', 'findByUser'>;
 
 @Component({
   selector: 'app-meeting-detail',
-  imports: [CommonModule, FormsModule, ModalForm, RouterLink, MeetingRating],
+  imports: [CommonModule, FormsModule, ModalForm, RouterLink, MeetingRating, MeetingReceipt],
   templateUrl: './meeting-detail.html',
 })
 export class MeetingDetail implements OnInit {

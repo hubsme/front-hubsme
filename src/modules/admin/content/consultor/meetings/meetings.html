@@ -613,6 +613,7 @@
 
     @if (meeting.status === 'confirmada' || meeting.status === 'finalizada') {
       <app-meeting-rating [meetingId]="meeting.id" />
+      <app-meeting-receipt [meetingId]="meeting.id" />
     }
 
     <div class="flex flex-wrap gap-3">

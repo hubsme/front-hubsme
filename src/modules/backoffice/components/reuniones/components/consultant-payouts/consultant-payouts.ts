@@ -19,6 +19,7 @@ import {
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { PayoutFeeBreakdown } from './components/payout-fee-breakdown/payout-fee-breakdown';
 import { PayoutDialog } from './components/payout-dialog/payout-dialog';
+import { MeetingReceipt } from '@module/admin/content/shared/meeting-receipt/meeting-receipt';
 
 type PayoutStatus = MeetingMonthlyPayoutDto['status'];
 
@@ -32,6 +33,7 @@ type PayoutStatus = MeetingMonthlyPayoutDto['status'];
     PaginationComponent,
     PayoutFeeBreakdown,
     PayoutDialog,
+    MeetingReceipt,
   ],
   templateUrl: './consultant-payouts.html',
 })
@@ -99,14 +101,14 @@ export class ConsultantPayouts {
     if (!payout) return [];
     return [
       {
-        label: 'Bruto de sesiones',
-        detail: 'Solo sesiones finalizadas',
+        label: 'Bruto liquidable',
+        detail: 'Consultorías y servicios completados con RxH',
         amount: payout.grossAmount,
         isDeduction: false,
       },
       {
         label: 'Comisión total Payin',
-        detail: 'Comisión e IGV de las sesiones incluidas',
+        detail: 'Comisión e IGV de los cobros incluidos',
         amount: payout.payinTotalAmount,
         isDeduction: true,
       },
@@ -305,6 +307,8 @@ export class ConsultantPayouts {
   }
 
   inclusionLabel(meeting: MeetingMonthlyPayoutItemDto): string {
+    if (meeting.exclusionReason === 'missing_receipt') return 'Pendiente de RxH';
+    if (meeting.operationType === 'servicio' && meeting.exclusionReason === 'not_completed') return 'Servicio en curso';
     return meeting.exclusionReason === 'already_paid'
       ? 'Ya pagada'
       : meeting.exclusionReason === 'not_completed'

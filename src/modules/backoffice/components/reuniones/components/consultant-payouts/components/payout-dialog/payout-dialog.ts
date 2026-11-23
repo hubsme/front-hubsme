@@ -34,7 +34,10 @@ export class PayoutDialog implements OnInit {
     yape: { label: 'Yape', logo: '/images/payment/yape.png' },
     plin: { label: 'Plin', logo: '/images/payment/plin.png' },
   };
-  readonly transfer = computed(() => this.options()?.transfer ?? this.settlement().transfer);
+  readonly transfer = computed(() => {
+    const options = this.options();
+    return options ? options.transfer : this.settlement().transfer;
+  });
   readonly canSubmit = computed(() => {
     const options = this.options();
     return !!options?.confirmation && !this.busy() && options.destinations.some(

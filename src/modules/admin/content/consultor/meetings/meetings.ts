@@ -30,6 +30,7 @@ import { ModalForm } from '@module/admin/components/modal-form/modal-form';
 import { PATH, buildPath } from '@route/path.route';
 import { MeetingList } from '@module/admin/content/shared/meeting-list/meeting-list';
 import { MeetingRating } from '@module/admin/content/shared/meeting-rating/meeting-rating';
+import { MeetingReceipt } from '@module/admin/content/shared/meeting-receipt/meeting-receipt';
 import {
   dateKeyInPeru,
   dateTimePartsInPeru,
@@ -93,6 +94,7 @@ type MonthDaySelection = {
     CalendarTutorial,
     MeetingList,
     MeetingRating,
+    MeetingReceipt,
   ],
   providers: [
     provideCalendar({

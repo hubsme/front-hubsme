@@ -269,6 +269,7 @@
 
           @if (showRating()) {
             <app-meeting-rating class="mt-5 block" [meetingId]="current.id" [editable]="canRate()" />
+            <app-meeting-receipt class="mt-5 block" [meetingId]="current.id" />
           }
 
           @if (current.status === 'finalizada') {

@@ -14,6 +14,7 @@ import { ToastService } from '@service/toast.service';
 import { PATH, buildPath } from '@route/path.route';
 import { formatInPeru } from '@function/date.function';
 import { BANK_PAYMENT_CHANNELS } from './bank-payment-channels';
+import { ServiceRequestService } from '@service/admin/service-request.service';
 
 type CheckoutData = ApiResponse<'monnetCheckout', 'monnetcheckoutFindCheckout'>;
 type MeetingData = ApiResponse<'meeting', 'findOne'>;
@@ -38,6 +39,8 @@ type PaymentOption = {
   templateUrl: './checkout.html',
 })
 export class Checkout implements OnInit, OnDestroy {
+  private readonly serviceRequestService = inject(ServiceRequestService);
+  readonly service = signal<ApiResponse<'service', 'findOne'> | null>(null);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private monnetCheckoutService = inject(MonnetCheckoutService);
@@ -198,6 +201,13 @@ export class Checkout implements OnInit, OnDestroy {
     this.now.set(Date.now());
     this.checkout.set(checkout);
 
+    if (checkout.serviceRequestId) {
+      return Promise.all([
+        this.serviceRequestService.findOne(checkout.serviceRequestId).then((service) => this.service.set(service)),
+        this.consultantService.findByUser(checkout.consultantId).then((consultant) => this.consultant.set(consultant)),
+      ]);
+    }
+
     if (checkout.meetingId) {
       return this.meetingService
         .findOne(checkout.meetingId)
@@ -237,7 +247,7 @@ export class Checkout implements OnInit, OnDestroy {
       );
       if (session.signal.aborted) return;
       this.checkout.set(checkout);
-      if (checkout.status === 'approved' && checkout.meetingId) {
+      if (checkout.status === 'approved' && (checkout.meetingId || checkout.serviceRequestId)) {
         this.completePaidFlow(checkout.meetingId);
       } else if (checkout.status === 'expired' && checkout.canCreatePayment) {
         this.stopPaymentPolling();
@@ -291,12 +301,18 @@ export class Checkout implements OnInit, OnDestroy {
     this.checkingPayment.set(false);
   }
 
-  private completePaidFlow(meetingId: number) {
+  private completePaidFlow(meetingId: number | null) {
     if (this.redirectingAfterPayment) return;
     this.redirectingAfterPayment = true;
     this.stopPaymentPolling();
     this.paymentModalOpen.set(false);
     this.opening.set(false);
+    const serviceId = this.checkout()?.serviceRequestId;
+    if (serviceId) {
+      this.toastService.success('Pago de la cuota confirmado.');
+      void this.router.navigate([buildPath(PATH.admin.pyme.services), serviceId]);
+      return;
+    }
     this.toastService.success('Pago confirmado. La reunión queda por confirmación del consultor');
     this.router.navigate([buildPath(PATH.admin.pyme.meetings), meetingId], { replaceUrl: true });
   }
@@ -336,8 +352,8 @@ export class Checkout implements OnInit, OnDestroy {
     if (this.paymentBusy()) return;
     if (this.isPaid()) {
       const meetingId = this.checkout()?.meetingId;
-      if (meetingId) {
-        this.completePaidFlow(meetingId);
+      if (meetingId || this.checkout()?.serviceRequestId) {
+        this.completePaidFlow(meetingId ?? null);
       } else {
         this.toastService.success('Este checkout ya fue pagado');
       }
@@ -371,7 +387,7 @@ export class Checkout implements OnInit, OnDestroy {
       .then((checkout) => {
         if (this.destroyed) return;
         this.checkout.set(checkout);
-        if (checkout.status === 'approved' && checkout.meetingId) {
+        if (checkout.status === 'approved' && (checkout.meetingId || checkout.serviceRequestId)) {
           this.completePaidFlow(checkout.meetingId);
           return;
         }
@@ -464,6 +480,11 @@ export class Checkout implements OnInit, OnDestroy {
   }
 
   goBack() {
+    const serviceId = this.checkout()?.serviceRequestId;
+    if (serviceId) {
+      void this.router.navigate([buildPath(PATH.admin.pyme.services), serviceId]);
+      return;
+    }
     this.router.navigate([buildPath(PATH.admin.pyme.meetings)]);
   }
 

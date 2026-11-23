@@ -1,0 +1,123 @@
+@if (adminView()) {
+  <section
+    aria-label="Recibo por honorarios"
+    class="flex min-w-0 items-center gap-2 rounded-lg border border-border px-3 py-2 text-xs"
+  >
+    <i class="fas fa-file-pdf shrink-0 text-muted" aria-hidden="true"></i>
+    <span class="shrink-0 font-inter-semibold text-text">RxH</span>
+    @if (originalName(); as name) {
+      <span class="min-w-0 flex-1 truncate text-muted" [title]="name">{{ name }}</span>
+      <button
+        type="button"
+        (click)="download()"
+        [disabled]="downloading()"
+        aria-label="Descargar recibo por honorarios"
+        title="Descargar RxH"
+        class="grid size-7 shrink-0 place-items-center rounded-md text-secondary hover:bg-secondary/5 disabled:opacity-50"
+      >
+        <i
+          [class]="downloading() ? 'fas fa-spinner fa-spin' : 'fas fa-download'"
+          aria-hidden="true"
+        ></i>
+      </button>
+    } @else {
+      <span class="min-w-0 text-muted">Pendiente de adjuntar</span>
+    }
+  </section>
+} @else {
+  <section class="rounded-xl border border-border bg-surface px-4 py-3.5">
+    <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+      <div class="min-w-0 flex-1">
+        <h3 class="text-sm font-inter-bold text-text">Recibo por honorarios</h3>
+        @if (loading()) {
+          <p class="mt-1 text-xs text-muted" role="status">Cargando recibo…</p>
+        } @else if (loadFailed()) {
+          <p class="mt-1 text-xs text-muted" role="alert">No se pudo cargar el recibo.</p>
+        } @else if (selectedFile(); as file) {
+          <p class="mt-1 truncate text-xs text-muted" [title]="file.name">{{ file.name }}</p>
+        } @else if (originalName(); as name) {
+          <div class="mt-1 flex min-w-0 items-center gap-1.5 text-xs text-muted">
+            <i class="fas fa-check text-success" aria-hidden="true"></i>
+            <span class="truncate" [title]="name">{{ name }}</span>
+            @if (state()?.receipt; as receipt) {
+              <span class="shrink-0"
+                >· {{ receipt.sizeBytes / 1024 / 1024 | number: '1.1-1' }} MB</span
+              >
+            }
+          </div>
+        } @else {
+          <p class="mt-1 text-xs text-muted">
+            {{ state()?.canUpload ? 'Pendiente · PDF hasta 10 MB' : 'Pendiente de adjuntar RxH.' }}
+          </p>
+        }
+      </div>
+
+      @if (loadFailed()) {
+        <button
+          type="button"
+          (click)="load()"
+          class="text-xs font-inter-semibold text-secondary hover:underline"
+        >
+          Reintentar
+        </button>
+      } @else if (!loading()) {
+        <div class="flex shrink-0 items-center gap-2">
+          @if (originalName() && !selectedFile()) {
+            <button
+              type="button"
+              (click)="download()"
+              [disabled]="downloading()"
+              aria-label="Descargar recibo por honorarios"
+              title="Descargar RxH"
+              class="grid size-8 place-items-center rounded-lg border border-border text-xs text-secondary hover:bg-secondary/5 disabled:opacity-50"
+            >
+              <i
+                [class]="downloading() ? 'fas fa-spinner fa-spin' : 'fas fa-download'"
+                aria-hidden="true"
+              ></i>
+            </button>
+          }
+
+          @if (state()?.canUpload) {
+            <label
+              class="inline-flex min-h-8 cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-border px-2.5 text-xs font-inter-semibold text-text hover:border-secondary focus-within:ring-2 focus-within:ring-secondary"
+              [title]="
+                originalName() || selectedFile()
+                  ? 'Cambiar PDF · Máximo 10 MB'
+                  : 'Adjuntar PDF · Máximo 10 MB'
+              "
+            >
+              <i class="fas fa-paperclip" aria-hidden="true"></i>
+              @if (!originalName() && !selectedFile()) {
+                <span>Adjuntar</span>
+              } @else {
+                <span class="sr-only">Cambiar PDF</span>
+              }
+              <input
+                type="file"
+                accept="application/pdf,.pdf"
+                class="sr-only"
+                [disabled]="saving()"
+                (change)="selectFile($event)"
+              />
+            </label>
+            @if (selectedFile()) {
+              <button
+                type="button"
+                (click)="save()"
+                [disabled]="saving()"
+                class="inline-flex min-h-8 items-center gap-1.5 rounded-lg bg-secondary px-2.5 text-xs font-inter-semibold text-fixed-text-50 hover:bg-secondary/90 disabled:opacity-50"
+              >
+                @if (saving()) {
+                  <i class="fas fa-spinner fa-spin" aria-hidden="true"></i>
+                }
+                {{ saving() ? 'Guardando…' : 'Guardar' }}
+              </button>
+            }
+          }
+        </div>
+      }
+    </div>
+  </section>
+}
+<a #downloadLink class="hidden" aria-hidden="true" tabindex="-1"></a>

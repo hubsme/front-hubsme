@@ -829,7 +829,10 @@ export interface MonthlyPayoutTransferDto {
 
 export interface MeetingMonthlyPayoutItemDto {
   payoutId: number;
-  meetingId: number;
+  meetingId: number | null;
+  operationType: "consultoria" | "servicio";
+  serviceRequestId: number | null;
+  serviceInstallmentIndex: number | null;
   checkoutId: number;
   title: string;
   /** @format date-time */
@@ -844,7 +847,13 @@ export interface MeetingMonthlyPayoutItemDto {
   payinTotalAmount: string | null;
   netAfterPayinAmount: string | null;
   isIncluded: boolean;
-  exclusionReason: "not_completed" | "already_paid" | "payin_unknown" | null;
+  receiptOriginalName: string | null;
+  exclusionReason:
+    | "not_completed"
+    | "already_paid"
+    | "payin_unknown"
+    | "missing_receipt"
+    | null;
 }
 
 export interface MeetingMonthlyPayoutDto {
@@ -857,10 +866,10 @@ export interface MeetingMonthlyPayoutDto {
   meetingCount: number;
   includedMeetingCount: number;
   unreconciledMeetingCount: number;
-  /** Cobrado de todas las reuniones del mes, incluidas las aún no finalizadas o ya pagadas */
+  /** Cobros de consultorías y cuotas de servicios del periodo, incluidos los aún no liquidables o ya pagados */
   collectedGrossAmount: string;
   collectedPayinTotalAmount: string | null;
-  /** Bruto de reuniones finalizadas y aún no pagadas */
+  /** Bruto de consultorías finalizadas y cuotas de servicios completados, con RxH adjunto y aún no pagadas al consultor */
   grossAmount: string;
   payinCommissionAmount: string | null;
   payinTaxAmount: string | null;
@@ -954,7 +963,9 @@ export interface MeetingConsultantPayoutResultDto {
   createdAt: string;
   /** @format date-time */
   updatedAt: string;
-  meetingId: number;
+  meetingId: number | null;
+  serviceRequestId: number | null;
+  serviceInstallmentIndex: number | null;
   checkoutId: number;
   pymeId: number;
   consultantId: number;
@@ -971,7 +982,7 @@ export interface MeetingConsultantPayoutResultDto {
   /** @format date-time */
   paidAt: string | null;
   processedByAdmin: string | null;
-  meetingTitle: string;
+  meetingTitle: string | null;
   /** @format date-time */
   meetingStartTime: string | null;
   meetingStatus:
@@ -979,7 +990,8 @@ export interface MeetingConsultantPayoutResultDto {
     | "por_confirmar"
     | "confirmada"
     | "finalizada"
-    | "cancelada";
+    | "cancelada"
+    | null;
   pymeName: string;
   consultantName: string;
   paymentId: string | null;
@@ -993,7 +1005,7 @@ export interface MeetingConsultantPayoutResultDto {
   /** Número de reagendamientos asociados a esta reunión */
   rescheduleCount: number;
   /** ID de la última reunión activa o más reciente en la cadena */
-  latestMeetingId: number;
+  latestMeetingId: number | null;
   /** Título de la última reunión activa en la cadena */
   latestMeetingTitle: string;
   /**
@@ -1555,6 +1567,54 @@ export interface MeetingRemoveResultDto {
   tasks?: TaskResultDto[];
 }
 
+export interface MeetingReceiptFileDto {
+  originalName: string;
+  sizeBytes: number;
+  /** @format date-time */
+  updatedAt: string;
+}
+
+export interface MeetingReceiptResultDto {
+  receipt: MeetingReceiptFileDto | null;
+  canUpload: boolean;
+}
+
+export interface MeetingReceiptUploadDto {
+  /**
+   * Recibo por honorarios en PDF, máximo 10 MB
+   * @format binary
+   */
+  file: File;
+}
+
+export interface ServiceReceiptResultDto {
+  receipt: MeetingReceiptFileDto | null;
+  canUpload: boolean;
+}
+
+export interface ServiceReceiptUploadDto {
+  /**
+   * Recibo por honorarios en PDF, máximo 10 MB
+   * @format binary
+   */
+  file: File;
+}
+
+export interface StorageUploadBodyDto {
+  /** @format binary */
+  file?: File;
+}
+
+export interface StorageResultDto {
+  publicId: string;
+  url: string;
+  secureUrl: string;
+  format: string;
+  bytes: number;
+  resourceType: string;
+  createdAt: string;
+}
+
 export interface HubsmeAiRunDto {
   /** Texto de la transcripción a procesar */
   text: string;
@@ -1944,21 +2004,6 @@ export interface ConsultantGoogleCalendarDisconnectResultDto {
    * @example "2026-06-11T15:00:00.000Z"
    */
   connectedAt: string | null;
-}
-
-export interface StorageUploadBodyDto {
-  /** @format binary */
-  file?: File;
-}
-
-export interface StorageResultDto {
-  publicId: string;
-  url: string;
-  secureUrl: string;
-  format: string;
-  bytes: number;
-  resourceType: string;
-  createdAt: string;
 }
 
 export interface EmailSendDto {
@@ -3160,6 +3205,7 @@ export interface ServiceRequestPaymentPlanDto {
 }
 
 export interface ServiceRequestPaymentScheduleItemDto {
+  checkoutId: number | null;
   /** @min 0 */
   installmentIndex: number;
   label: string;
@@ -4791,6 +4837,74 @@ export interface PayinCreateYapeWebDto {
   payinCustomerShippingZipCode?: string;
 }
 
+export interface MonnetCreateServiceCheckoutDto {
+  /**
+   * Índice de la cuota del plan de pagos
+   * @min 0
+   */
+  installmentIndex: number;
+}
+
+export interface MonnetCheckoutMeetingDetailsDto {
+  startTime: string;
+  proposedStartTimes: string[];
+  durationMinutes: number;
+  title: string;
+  description?: string;
+}
+
+export interface MonnetCheckoutReferencesDto {
+  /** @example "HUBSME-00000000-0000-4000-8000-000000000001" */
+  payinMerchantOperationNumber: string;
+  /** @example "MONTRX4214729724051762681" */
+  payinTrxOperation: string | null;
+  /** @example "42147297" */
+  operationNumber: string | null;
+  /** @example "0987654321" */
+  payinID: string | null;
+  /** @example "13238534" */
+  paymentCode: string | null;
+}
+
+export interface MonnetCreateServiceCheckoutResultDto {
+  id: number;
+  meetingId: number | null;
+  serviceRequestId: number | null;
+  serviceInstallmentIndex: number | null;
+  pymeId: number;
+  consultantId: number;
+  status:
+    | "created"
+    | "pending"
+    | "approved"
+    | "rejected"
+    | "cancelled"
+    | "expired";
+  /** @example "120.00" */
+  amount: string;
+  marketplaceFee: string;
+  /** @example "PEN" */
+  currency: string;
+  meetingDetails: MonnetCheckoutMeetingDetailsDto | null;
+  monnetReferences: MonnetCheckoutReferencesDto | null;
+  paymentMethod: "qr" | "bank-transfer" | null;
+  paymentUrl: string | null;
+  /** @example "13238534" */
+  paymentCode: string | null;
+  /**
+   * Entidades habilitadas por Monnet para el código bancario.
+   * @example ["BBVA","IBK","BCP"]
+   */
+  paymentBankCodes: string[] | null;
+  /** Imagen PNG del QR en formato data:image/png;base64,... */
+  qrCode: string | null;
+  /** Vencimiento en ISO 8601; se muestra en la zona horaria del usuario. */
+  expiresAt: string | null;
+  environment: "cert" | "production" | null;
+  /** Indica si se puede crear un pago. Un intento incierto se verifica antes de volver a cobrar. */
+  canCreatePayment: boolean;
+}
+
 export interface MonnetCreateCheckoutDto {
   /** @example 3 */
   consultantId: number;
@@ -4816,30 +4930,11 @@ export interface MonnetCreateCheckoutDto {
   description?: string;
 }
 
-export interface MonnetCheckoutMeetingDetailsDto {
-  startTime: string;
-  proposedStartTimes: string[];
-  durationMinutes: number;
-  title: string;
-  description?: string;
-}
-
-export interface MonnetCheckoutReferencesDto {
-  /** @example "HUBSME-00000000-0000-4000-8000-000000000001" */
-  payinMerchantOperationNumber: string;
-  /** @example "MONTRX4214729724051762681" */
-  payinTrxOperation: string | null;
-  /** @example "42147297" */
-  operationNumber: string | null;
-  /** @example "0987654321" */
-  payinID: string | null;
-  /** @example "13238534" */
-  paymentCode: string | null;
-}
-
 export interface MonnetCheckoutResultDto {
   id: number;
   meetingId: number | null;
+  serviceRequestId: number | null;
+  serviceInstallmentIndex: number | null;
   pymeId: number;
   consultantId: number;
   status:
@@ -4877,6 +4972,8 @@ export interface MonnetCheckoutResultDto {
 export interface MonnetFindCheckoutResultDto {
   id: number;
   meetingId: number | null;
+  serviceRequestId: number | null;
+  serviceInstallmentIndex: number | null;
   pymeId: number;
   consultantId: number;
   status:
@@ -4934,6 +5031,8 @@ export interface MonnetPrepareCheckoutPaymentDto {
 export interface MonnetPrepareCheckoutPaymentResultDto {
   id: number;
   meetingId: number | null;
+  serviceRequestId: number | null;
+  serviceInstallmentIndex: number | null;
   pymeId: number;
   consultantId: number;
   status:
@@ -4971,6 +5070,8 @@ export interface MonnetPrepareCheckoutPaymentResultDto {
 export interface MonnetSyncCheckoutPaymentResultDto {
   id: number;
   meetingId: number | null;
+  serviceRequestId: number | null;
+  serviceInstallmentIndex: number | null;
   pymeId: number;
   consultantId: number;
   status:
@@ -5678,6 +5779,26 @@ export type WhatsappVerifyWebhookData = string;
 
 export type WhatsappReceiveWebhookData = WhatsappWebhookAcceptedDto;
 
+export interface MeetingadminDownloadServiceReceiptParams {
+  /** ID del checkout */
+  id: number;
+}
+
+/** @format binary */
+export type MeetingadminDownloadServiceReceiptData = File;
+
+export type MeetingadminDownloadServiceReceiptError = HttpErrorDto;
+
+export interface MeetingadminDownloadReceiptParams {
+  /** ID de la reunión */
+  id: number;
+}
+
+/** @format binary */
+export type MeetingadminDownloadReceiptData = File;
+
+export type MeetingadminDownloadReceiptError = HttpErrorDto;
+
 export interface MeetingadminFindMonthlyPayoutsParams {
   /**
    * Page number
@@ -5690,7 +5811,7 @@ export interface MeetingadminFindMonthlyPayoutsParams {
    */
   limit?: number;
   /**
-   * Mes de la sesión en Perú; por defecto el mes actual
+   * Mes de la sesión o de finalización del servicio en Perú; por defecto el mes actual
    * @example "2026-11"
    */
   month?: string;
@@ -5977,6 +6098,86 @@ export type MeetingRemoveData = MeetingRemoveResultDto;
 
 export type MeetingRemoveError = HttpErrorDto;
 
+export interface MeetingreceiptFindOneParams {
+  id: number;
+}
+
+export type MeetingreceiptFindOneData = MeetingReceiptResultDto;
+
+export type MeetingreceiptFindOneError = HttpErrorDto;
+
+export interface MeetingreceiptUploadParams {
+  id: number;
+}
+
+export type MeetingreceiptUploadData = MeetingReceiptResultDto;
+
+export type MeetingreceiptUploadError = HttpErrorDto;
+
+export interface MeetingreceiptDownloadParams {
+  /** ID de la reunión */
+  id: number;
+}
+
+/** @format binary */
+export type MeetingreceiptDownloadData = File;
+
+export type MeetingreceiptDownloadError = HttpErrorDto;
+
+export interface ServicereceiptFindOneParams {
+  /** ID del checkout de la cuota */
+  id: number;
+}
+
+export type ServicereceiptFindOneData = ServiceReceiptResultDto;
+
+export type ServicereceiptFindOneError = HttpErrorDto;
+
+export interface ServicereceiptUploadParams {
+  /** ID del checkout de la cuota */
+  id: number;
+}
+
+export type ServicereceiptUploadData = ServiceReceiptResultDto;
+
+export type ServicereceiptUploadError = HttpErrorDto;
+
+export interface ServicereceiptDownloadParams {
+  /** ID de la reunión */
+  id: number;
+}
+
+/** @format binary */
+export type ServicereceiptDownloadData = File;
+
+export type ServicereceiptDownloadError = HttpErrorDto;
+
+export interface StorageUploadParams {
+  folder: string;
+}
+
+export type StorageUploadData = StorageResultDto;
+
+export type StorageUploadError = HttpErrorDto;
+
+export interface StorageDeleteParams {
+  /** Ruta del archivo en Azure Storage */
+  publicId: string;
+}
+
+export type StorageDeleteData = any;
+
+export type StorageDeleteError = HttpErrorDto;
+
+export interface StorageDownloadParams {
+  /** Ruta del archivo que se desea descargar */
+  path: string;
+}
+
+export type StorageDownloadData = any;
+
+export type StorageDownloadError = HttpErrorDto;
+
 export type IaRunHubsmeAiData = HubsmeAiResultDto;
 
 export type IaRunHubsmeAiError = HttpErrorDto;
@@ -6142,32 +6343,6 @@ export type ConsultantgooglecalendarDisconnectData =
   ConsultantGoogleCalendarDisconnectResultDto;
 
 export type ConsultantgooglecalendarDisconnectError = HttpErrorDto;
-
-export interface StorageUploadParams {
-  folder: string;
-}
-
-export type StorageUploadData = StorageResultDto;
-
-export type StorageUploadError = HttpErrorDto;
-
-export interface StorageDeleteParams {
-  /** Ruta del archivo en Azure Storage */
-  publicId: string;
-}
-
-export type StorageDeleteData = any;
-
-export type StorageDeleteError = HttpErrorDto;
-
-export interface StorageDownloadParams {
-  /** Ruta del archivo que se desea descargar */
-  path: string;
-}
-
-export type StorageDownloadData = any;
-
-export type StorageDownloadError = HttpErrorDto;
 
 export type EmailSendEmailData = EmailSendResultDto;
 
@@ -6946,6 +7121,16 @@ export type MonnetpayinCreateYapeMobileError = HttpErrorDto;
 export type MonnetpayinCreateYapeWebData = PayinTransactionResultDto;
 
 export type MonnetpayinCreateYapeWebError = HttpErrorDto;
+
+export interface MonnetcheckoutCreateServiceCheckoutParams {
+  /** ID de la solicitud de servicio */
+  id: number;
+}
+
+export type MonnetcheckoutCreateServiceCheckoutData =
+  MonnetCreateServiceCheckoutResultDto;
+
+export type MonnetcheckoutCreateServiceCheckoutError = HttpErrorDto;
 
 export type MonnetcheckoutCreateCheckoutData = MonnetCheckoutResultDto;
 
@@ -7872,6 +8057,48 @@ export namespace MeetingAdmin {
   /**
    * No description
    * @tags meetingAdmin
+   * @name MeetingadminDownloadServiceReceipt
+   * @summary Descargar el RxH de una cuota de servicio como administrador
+   * @request GET:/admin/backoffice/meeting/service-receipt/{id}/file
+   * @secure
+   * @response `200` `MeetingadminDownloadServiceReceiptData`
+   * @response `404` `HttpErrorDto`
+   */
+  export namespace MeetingadminDownloadServiceReceipt {
+    export type RequestParams = {
+      /** ID del checkout */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingadminDownloadServiceReceiptData;
+  }
+
+  /**
+   * No description
+   * @tags meetingAdmin
+   * @name MeetingadminDownloadReceipt
+   * @summary Descargar el recibo por honorarios de una reunión como administrador
+   * @request GET:/admin/backoffice/meeting/receipt/{id}/file
+   * @secure
+   * @response `200` `MeetingadminDownloadReceiptData`
+   * @response `404` `HttpErrorDto`
+   */
+  export namespace MeetingadminDownloadReceipt {
+    export type RequestParams = {
+      /** ID de la reunión */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingadminDownloadReceiptData;
+  }
+
+  /**
+   * No description
+   * @tags meetingAdmin
    * @name MeetingadminFindMonthlyPayouts
    * @summary List monthly settlements and Monnet Payout status
    * @request GET:/admin/backoffice/meeting/payout/monthly
@@ -7893,7 +8120,7 @@ export namespace MeetingAdmin {
        */
       limit?: number;
       /**
-       * Mes de la sesión en Perú; por defecto el mes actual
+       * Mes de la sesión o de finalización del servicio en Perú; por defecto el mes actual
        * @example "2026-11"
        */
       month?: string;
@@ -8482,6 +8709,198 @@ export namespace Meeting {
   }
 }
 
+export namespace MeetingReceipt {
+  /**
+   * No description
+   * @tags meetingReceipt
+   * @name MeetingreceiptFindOne
+   * @summary Consultar el recibo por honorarios como participante de la reunión
+   * @request GET:/admin/meeting/receipt/{id}
+   * @secure
+   * @response `200` `MeetingreceiptFindOneData`
+   * @response `403` `HttpErrorDto`
+   */
+  export namespace MeetingreceiptFindOne {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingreceiptFindOneData;
+  }
+
+  /**
+   * No description
+   * @tags meetingReceipt
+   * @name MeetingreceiptUpload
+   * @summary Adjuntar o reemplazar el recibo por honorarios como consultor de la reunión
+   * @request PUT:/admin/meeting/receipt/{id}
+   * @secure
+   * @response `200` `MeetingreceiptUploadData`
+   * @response `400` `HttpErrorDto`
+   * @response `403` `HttpErrorDto`
+   * @response `409` `HttpErrorDto`
+   */
+  export namespace MeetingreceiptUpload {
+    export type RequestParams = {
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = MeetingReceiptUploadDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingreceiptUploadData;
+  }
+
+  /**
+   * No description
+   * @tags meetingReceipt
+   * @name MeetingreceiptDownload
+   * @summary Descargar el PDF del recibo como participante de la reunión
+   * @request GET:/admin/meeting/receipt/{id}/file
+   * @secure
+   * @response `200` `MeetingreceiptDownloadData`
+   * @response `403` `HttpErrorDto`
+   */
+  export namespace MeetingreceiptDownload {
+    export type RequestParams = {
+      /** ID de la reunión */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = MeetingreceiptDownloadData;
+  }
+}
+
+export namespace ServiceReceipt {
+  /**
+   * No description
+   * @tags serviceReceipt
+   * @name ServicereceiptFindOne
+   * @summary Consultar el RxH de una cuota como participante del servicio
+   * @request GET:/admin/service-receipt/{id}
+   * @secure
+   * @response `200` `ServicereceiptFindOneData`
+   * @response `403` `HttpErrorDto`
+   */
+  export namespace ServicereceiptFindOne {
+    export type RequestParams = {
+      /** ID del checkout de la cuota */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServicereceiptFindOneData;
+  }
+
+  /**
+   * No description
+   * @tags serviceReceipt
+   * @name ServicereceiptUpload
+   * @summary Adjuntar el PDF del RxH de una cuota pagada como consultor del servicio
+   * @request PUT:/admin/service-receipt/{id}
+   * @secure
+   * @response `200` `ServicereceiptUploadData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace ServicereceiptUpload {
+    export type RequestParams = {
+      /** ID del checkout de la cuota */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = ServiceReceiptUploadDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServicereceiptUploadData;
+  }
+
+  /**
+   * No description
+   * @tags serviceReceipt
+   * @name ServicereceiptDownload
+   * @summary Descargar el RxH de la cuota como participante del servicio
+   * @request GET:/admin/service-receipt/{id}/file
+   * @secure
+   * @response `200` `ServicereceiptDownloadData`
+   * @response `403` `HttpErrorDto`
+   */
+  export namespace ServicereceiptDownload {
+    export type RequestParams = {
+      /** ID de la reunión */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = ServicereceiptDownloadData;
+  }
+}
+
+export namespace Storage {
+  /**
+   * No description
+   * @tags storage
+   * @name StorageUpload
+   * @summary Subir un archivo a Azure Storage
+   * @request POST:/storage
+   * @response `200` `StorageUploadData`
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace StorageUpload {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      folder: string;
+    };
+    export type RequestBody = StorageUploadBodyDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = StorageUploadData;
+  }
+
+  /**
+   * No description
+   * @tags storage
+   * @name StorageDelete
+   * @summary Eliminar un archivo de Azure Storage
+   * @request DELETE:/storage/{publicId}
+   * @secure
+   * @response `200` `StorageDeleteData` Operación completada
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace StorageDelete {
+    export type RequestParams = {
+      /** Ruta del archivo en Azure Storage */
+      publicId: string;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = StorageDeleteData;
+  }
+
+  /**
+   * No description
+   * @tags storage
+   * @name StorageDownload
+   * @summary Visualizar o descargar archivo de Azure Storage
+   * @request GET:/storage/download-file
+   * @response `200` `StorageDownloadData` Operación completada
+   * @response `400` `HttpErrorDto`
+   */
+  export namespace StorageDownload {
+    export type RequestParams = {};
+    export type RequestQuery = {
+      /** Ruta del archivo que se desea descargar */
+      path: string;
+    };
+    export type RequestBody = never;
+    export type RequestHeaders = {};
+    export type ResponseBody = StorageDownloadData;
+  }
+}
+
 export namespace Ia {
   /**
    * No description
@@ -8874,68 +9293,6 @@ export namespace ConsultantGoogleCalendar {
     export type RequestBody = never;
     export type RequestHeaders = {};
     export type ResponseBody = ConsultantgooglecalendarDisconnectData;
-  }
-}
-
-export namespace Storage {
-  /**
-   * No description
-   * @tags storage
-   * @name StorageUpload
-   * @summary Subir un archivo a Azure Storage
-   * @request POST:/storage
-   * @response `200` `StorageUploadData`
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace StorageUpload {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      folder: string;
-    };
-    export type RequestBody = StorageUploadBodyDto;
-    export type RequestHeaders = {};
-    export type ResponseBody = StorageUploadData;
-  }
-
-  /**
-   * No description
-   * @tags storage
-   * @name StorageDelete
-   * @summary Eliminar un archivo de Azure Storage
-   * @request DELETE:/storage/{publicId}
-   * @secure
-   * @response `200` `StorageDeleteData` Operación completada
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace StorageDelete {
-    export type RequestParams = {
-      /** Ruta del archivo en Azure Storage */
-      publicId: string;
-    };
-    export type RequestQuery = {};
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = StorageDeleteData;
-  }
-
-  /**
-   * No description
-   * @tags storage
-   * @name StorageDownload
-   * @summary Visualizar o descargar archivo de Azure Storage
-   * @request GET:/storage/download-file
-   * @response `200` `StorageDownloadData` Operación completada
-   * @response `400` `HttpErrorDto`
-   */
-  export namespace StorageDownload {
-    export type RequestParams = {};
-    export type RequestQuery = {
-      /** Ruta del archivo que se desea descargar */
-      path: string;
-    };
-    export type RequestBody = never;
-    export type RequestHeaders = {};
-    export type ResponseBody = StorageDownloadData;
   }
 }
 
@@ -10749,6 +11106,29 @@ export namespace MonnetCheckout {
   /**
    * No description
    * @tags monnetCheckout
+   * @name MonnetcheckoutCreateServiceCheckout
+   * @summary Crear o recuperar el checkout Monnet de una cuota de servicio
+   * @request POST:/admin/monnet/checkout/service/{id}
+   * @secure
+   * @response `200` `MonnetcheckoutCreateServiceCheckoutData`
+   * @response `400` `HttpErrorDto`
+   * @response `403` `HttpErrorDto`
+   * @response `409` `HttpErrorDto`
+   */
+  export namespace MonnetcheckoutCreateServiceCheckout {
+    export type RequestParams = {
+      /** ID de la solicitud de servicio */
+      id: number;
+    };
+    export type RequestQuery = {};
+    export type RequestBody = MonnetCreateServiceCheckoutDto;
+    export type RequestHeaders = {};
+    export type ResponseBody = MonnetcheckoutCreateServiceCheckoutData;
+  }
+
+  /**
+   * No description
+   * @tags monnetCheckout
    * @name MonnetcheckoutCreateCheckout
    * @summary Crear checkout de reunión con Monnet
    * @request POST:/admin/monnet/checkout
@@ -12236,6 +12616,56 @@ export class Api<SecurityDataType extends unknown> {
      * No description
      *
      * @tags meetingAdmin
+     * @name MeetingadminDownloadServiceReceipt
+     * @summary Descargar el RxH de una cuota de servicio como administrador
+     * @request GET:/admin/backoffice/meeting/service-receipt/{id}/file
+     * @secure
+     * @response `200` `MeetingadminDownloadServiceReceiptData`
+     * @response `404` `HttpErrorDto`
+     */
+    meetingadminDownloadServiceReceipt: (
+      { id }: MeetingadminDownloadServiceReceiptParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MeetingadminDownloadServiceReceiptData,
+        MeetingadminDownloadServiceReceiptError
+      >({
+        path: `/admin/backoffice/meeting/service-receipt/${id}/file`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetingAdmin
+     * @name MeetingadminDownloadReceipt
+     * @summary Descargar el recibo por honorarios de una reunión como administrador
+     * @request GET:/admin/backoffice/meeting/receipt/{id}/file
+     * @secure
+     * @response `200` `MeetingadminDownloadReceiptData`
+     * @response `404` `HttpErrorDto`
+     */
+    meetingadminDownloadReceipt: (
+      { id }: MeetingadminDownloadReceiptParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MeetingadminDownloadReceiptData,
+        MeetingadminDownloadReceiptError
+      >({
+        path: `/admin/backoffice/meeting/receipt/${id}/file`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetingAdmin
      * @name MeetingadminFindMonthlyPayouts
      * @summary List monthly settlements and Monnet Payout status
      * @request GET:/admin/backoffice/meeting/payout/monthly
@@ -12872,6 +13302,227 @@ export class Api<SecurityDataType extends unknown> {
         ...params,
       }),
   };
+  meetingReceipt = {
+    /**
+     * No description
+     *
+     * @tags meetingReceipt
+     * @name MeetingreceiptFindOne
+     * @summary Consultar el recibo por honorarios como participante de la reunión
+     * @request GET:/admin/meeting/receipt/{id}
+     * @secure
+     * @response `200` `MeetingreceiptFindOneData`
+     * @response `403` `HttpErrorDto`
+     */
+    meetingreceiptFindOne: (
+      { id }: MeetingreceiptFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<MeetingreceiptFindOneData, MeetingreceiptFindOneError>({
+        path: `/admin/meeting/receipt/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetingReceipt
+     * @name MeetingreceiptUpload
+     * @summary Adjuntar o reemplazar el recibo por honorarios como consultor de la reunión
+     * @request PUT:/admin/meeting/receipt/{id}
+     * @secure
+     * @response `200` `MeetingreceiptUploadData`
+     * @response `400` `HttpErrorDto`
+     * @response `403` `HttpErrorDto`
+     * @response `409` `HttpErrorDto`
+     */
+    meetingreceiptUpload: (
+      { id }: MeetingreceiptUploadParams,
+      data: MeetingReceiptUploadDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<MeetingreceiptUploadData, MeetingreceiptUploadError>({
+        path: `/admin/meeting/receipt/${id}`,
+        method: "PUT",
+        body: data,
+        secure: true,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags meetingReceipt
+     * @name MeetingreceiptDownload
+     * @summary Descargar el PDF del recibo como participante de la reunión
+     * @request GET:/admin/meeting/receipt/{id}/file
+     * @secure
+     * @response `200` `MeetingreceiptDownloadData`
+     * @response `403` `HttpErrorDto`
+     */
+    meetingreceiptDownload: (
+      { id }: MeetingreceiptDownloadParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MeetingreceiptDownloadData,
+        MeetingreceiptDownloadError
+      >({
+        path: `/admin/meeting/receipt/${id}/file`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+  };
+  serviceReceipt = {
+    /**
+     * No description
+     *
+     * @tags serviceReceipt
+     * @name ServicereceiptFindOne
+     * @summary Consultar el RxH de una cuota como participante del servicio
+     * @request GET:/admin/service-receipt/{id}
+     * @secure
+     * @response `200` `ServicereceiptFindOneData`
+     * @response `403` `HttpErrorDto`
+     */
+    servicereceiptFindOne: (
+      { id }: ServicereceiptFindOneParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ServicereceiptFindOneData, ServicereceiptFindOneError>({
+        path: `/admin/service-receipt/${id}`,
+        method: "GET",
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags serviceReceipt
+     * @name ServicereceiptUpload
+     * @summary Adjuntar el PDF del RxH de una cuota pagada como consultor del servicio
+     * @request PUT:/admin/service-receipt/{id}
+     * @secure
+     * @response `200` `ServicereceiptUploadData`
+     * @response `400` `HttpErrorDto`
+     */
+    servicereceiptUpload: (
+      { id }: ServicereceiptUploadParams,
+      data: ServiceReceiptUploadDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<ServicereceiptUploadData, ServicereceiptUploadError>({
+        path: `/admin/service-receipt/${id}`,
+        method: "PUT",
+        body: data,
+        secure: true,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags serviceReceipt
+     * @name ServicereceiptDownload
+     * @summary Descargar el RxH de la cuota como participante del servicio
+     * @request GET:/admin/service-receipt/{id}/file
+     * @secure
+     * @response `200` `ServicereceiptDownloadData`
+     * @response `403` `HttpErrorDto`
+     */
+    servicereceiptDownload: (
+      { id }: ServicereceiptDownloadParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        ServicereceiptDownloadData,
+        ServicereceiptDownloadError
+      >({
+        path: `/admin/service-receipt/${id}/file`,
+        method: "GET",
+        secure: true,
+        ...params,
+      }),
+  };
+  storage = {
+    /**
+     * No description
+     *
+     * @tags storage
+     * @name StorageUpload
+     * @summary Subir un archivo a Azure Storage
+     * @request POST:/storage
+     * @response `200` `StorageUploadData`
+     * @response `400` `HttpErrorDto`
+     */
+    upload: (
+      query: StorageUploadParams,
+      data: StorageUploadBodyDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<StorageUploadData, StorageUploadError>({
+        path: `/storage`,
+        method: "POST",
+        query: query,
+        body: data,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags storage
+     * @name StorageDelete
+     * @summary Eliminar un archivo de Azure Storage
+     * @request DELETE:/storage/{publicId}
+     * @secure
+     * @response `200` `StorageDeleteData` Operación completada
+     * @response `400` `HttpErrorDto`
+     */
+    delete: (
+      { publicId }: StorageDeleteParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<StorageDeleteData, StorageDeleteError>({
+        path: `/storage/${publicId}`,
+        method: "DELETE",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags storage
+     * @name StorageDownload
+     * @summary Visualizar o descargar archivo de Azure Storage
+     * @request GET:/storage/download-file
+     * @response `200` `StorageDownloadData` Operación completada
+     * @response `400` `HttpErrorDto`
+     */
+    download: (
+      query: StorageDownloadParams,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<StorageDownloadData, StorageDownloadError>({
+        path: `/storage/download-file`,
+        method: "GET",
+        query: query,
+        ...params,
+      }),
+  };
   ia = {
     /**
      * No description
@@ -13353,75 +14004,6 @@ export class Api<SecurityDataType extends unknown> {
         query: query,
         secure: true,
         format: "json",
-        ...params,
-      }),
-  };
-  storage = {
-    /**
-     * No description
-     *
-     * @tags storage
-     * @name StorageUpload
-     * @summary Subir un archivo a Azure Storage
-     * @request POST:/storage
-     * @response `200` `StorageUploadData`
-     * @response `400` `HttpErrorDto`
-     */
-    upload: (
-      query: StorageUploadParams,
-      data: StorageUploadBodyDto,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<StorageUploadData, StorageUploadError>({
-        path: `/storage`,
-        method: "POST",
-        query: query,
-        body: data,
-        type: ContentType.FormData,
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags storage
-     * @name StorageDelete
-     * @summary Eliminar un archivo de Azure Storage
-     * @request DELETE:/storage/{publicId}
-     * @secure
-     * @response `200` `StorageDeleteData` Operación completada
-     * @response `400` `HttpErrorDto`
-     */
-    delete: (
-      { publicId }: StorageDeleteParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<StorageDeleteData, StorageDeleteError>({
-        path: `/storage/${publicId}`,
-        method: "DELETE",
-        secure: true,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags storage
-     * @name StorageDownload
-     * @summary Visualizar o descargar archivo de Azure Storage
-     * @request GET:/storage/download-file
-     * @response `200` `StorageDownloadData` Operación completada
-     * @response `400` `HttpErrorDto`
-     */
-    download: (
-      query: StorageDownloadParams,
-      params: RequestParams = {},
-    ) =>
-      this.http.request<StorageDownloadData, StorageDownloadError>({
-        path: `/storage/download-file`,
-        method: "GET",
-        query: query,
         ...params,
       }),
   };
@@ -15435,6 +16017,37 @@ export class Api<SecurityDataType extends unknown> {
       }),
   };
   monnetCheckout = {
+    /**
+     * No description
+     *
+     * @tags monnetCheckout
+     * @name MonnetcheckoutCreateServiceCheckout
+     * @summary Crear o recuperar el checkout Monnet de una cuota de servicio
+     * @request POST:/admin/monnet/checkout/service/{id}
+     * @secure
+     * @response `200` `MonnetcheckoutCreateServiceCheckoutData`
+     * @response `400` `HttpErrorDto`
+     * @response `403` `HttpErrorDto`
+     * @response `409` `HttpErrorDto`
+     */
+    monnetcheckoutCreateServiceCheckout: (
+      { id }: MonnetcheckoutCreateServiceCheckoutParams,
+      data: MonnetCreateServiceCheckoutDto,
+      params: RequestParams = {},
+    ) =>
+      this.http.request<
+        MonnetcheckoutCreateServiceCheckoutData,
+        MonnetcheckoutCreateServiceCheckoutError
+      >({
+        path: `/admin/monnet/checkout/service/${id}`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
     /**
      * No description
      *
